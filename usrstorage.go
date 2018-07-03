@@ -1,6 +1,4 @@
-package usrstorage
-
-import "github.com/MadAppGang/identifo"
+package identifo
 
 //Client is a client for user storage service
 type Client interface {
@@ -14,7 +12,7 @@ type Session interface {
 
 //Storage is service, that could persist the user sotrage (or at least pretend to)
 type Storage interface {
-	FindUser(userID identifo.UserID, password string) (*identifo.User, error)
-	FindUserWithKey(key string, keyValue interface{}, password string) (*identifo.User, error)
-	CreateUser(user identifo.User, password string) (*identifo.User, error)
+	FindUser(userID UserID, password string) (*User, error)
+	FindUserWithKey(key string, keyValue interface{}, password string) (*User, error)
+	CreateUser(user User, password string) (*User, error)
 }

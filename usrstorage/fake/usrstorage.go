@@ -4,7 +4,6 @@ import (
 	"math/rand"
 
 	"github.com/MadAppGang/identifo"
-	"github.com/MadAppGang/identifo/usrstorage"
 )
 
 const (
@@ -21,7 +20,7 @@ type fakeClient struct {
 
 //NewClient instantiate and setup new fake user storage client
 //users: predefined user list
-func NewClient(users []identifo.User) usrstorage.Client {
+func NewClient(users []identifo.User) identifo.Client {
 	c := fakeClient{}
 	if users != nil {
 		c.users = users
@@ -30,7 +29,7 @@ func NewClient(users []identifo.User) usrstorage.Client {
 }
 
 //Connect initiates and returns empty fake user session, which do nothing :-)
-func (c *fakeClient) Connect() (usrstorage.Session, error) {
+func (c *fakeClient) Connect() (identifo.Session, error) {
 	u := fakeSession{storage: fakeStorage{}}
 	u.storage.client = c //assing reference to the client, because it holds the users list
 	return &u, nil
@@ -42,7 +41,7 @@ type fakeSession struct {
 }
 
 //Storage returns
-func (uss *fakeSession) Storage() usrstorage.Storage {
+func (uss *fakeSession) Storage() identifo.Storage {
 	return &uss.storage
 }
 
