@@ -1,3 +1,6 @@
+![components structure](https://raw.githubusercontent.com/MadAppGang/identifo/master/docs/identifo.jpg)
+
+
 # identifo
 Universal authentication framework for web, created with go
 
