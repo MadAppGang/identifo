@@ -135,3 +135,45 @@ func TestUsrstorage_CreateUser(t *testing.T) {
 		t.Fatal("wrong user")
 	}
 }
+
+func TestUsrstorage_GetUser_ErrorNotFound(t *testing.T) {
+	users := []identifo.User{
+		identifo.User{ID: "id123", Profile: map[string]interface{}{fake.PasswordKey: "password"}},
+	}
+
+	c := fake.NewClient(users)
+	if c == nil {
+		t.Fatal("the client is empty")
+	}
+
+	s, err := c.Connect()
+	if err != nil {
+		t.Fatal(err)
+	}
+	if s == nil {
+		t.Fatal("session is empty")
+	}
+
+	u, err := s.Storage().FindUser("id123", "wrong_password")
+	if u != nil {
+		t.Fatal("user should be empty")
+	}
+	if err == nil {
+		t.Fatal("error should be here")
+	}
+	if err != fake.ErrorUserNotFound {
+		t.Fatal(err)
+	}
+
+	u, err = s.Storage().FindUser("wrong_id", "password")
+	if u != nil {
+		t.Fatal("user should be empty")
+	}
+	if err == nil {
+		t.Fatal("error should be here")
+	}
+	if err != fake.ErrorUserNotFound {
+		t.Fatal(err)
+	}
+
+}
