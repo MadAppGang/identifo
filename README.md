@@ -35,4 +35,8 @@ Some summary on algorithms:
 - RSASSA is RSA algorithm, adapted fro signatures. As RSA it's assymetric keys algorithm, using keypair of public and secret keys. The main difference of RSASSA is that private key could be used create and verify signature, and public only to verify. Public key could not be used to create signatures. It's kind of one-way one-to-many pattern.
 - ECDSA - the replacement for RSA. It's ulilise the different math. And because of thay could prvide the same level of security with less power usage. It's signiffically faster. 
 
-The key is provided by identifo regarding [JWK (JSON web key) cpecigication](https://tools.ietf.org/html/rfc7517).
+The key is provided by identifo regarding [JWK (JSON web key) cpecification](https://tools.ietf.org/html/rfc7517).
+
+## JWT encryption
+
+We are not supporting JWT encyption in this verison, buy you could embed some encrypted data in the user payload.
