@@ -22,7 +22,7 @@ func (ar *apiRouter) HandleHello() http.HandlerFunc {
 	}
 }
 
-//HandleHello - returns hello message
+//HandleHello - returns pong message
 func (ar *apiRouter) HandlePing() http.HandlerFunc {
 	type pongResponse struct {
 		Message string    `json:"message,omitempty"`
@@ -32,7 +32,7 @@ func (ar *apiRouter) HandlePing() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ar.logger.Println("trace pong handler")
 		pong := pongResponse{
-			Message: "Hello from test server",
+			Message: "Pong!",
 			Date:    time.Now(),
 		}
 		ar.ServeJSON(w, http.StatusOK, pong)

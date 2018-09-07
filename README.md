@@ -40,3 +40,23 @@ The key is provided by identifo regarding [JWK (JSON web key) cpecification](htt
 ## JWT encryption
 
 We are not supporting JWT encyption in this verison, buy you could embed some encrypted data in the user payload.
+
+
+## Components
+
+Everything build on negroni and gorilla mux
+
+Negroni uses this middlewared:
+[Authorization](https://github.com/casbin/negroni-authz)
+[Data Binding](https://github.com/mholt/binding)
+[CORS Headers](https://github.com/rs/cors)
+[GZIP response](https://github.com/phyber/negroni-gzip)
+[JWT middleware](https://github.com/auth0/go-jwt-middleware)
+[Logrus support](https://github.com/meatballhat/negroni-logrus)
+[OAuth2 support](https://github.com/goincremental/negroni-oauth2)
+
+
+## Useful imformation
+
+Understanding sessions:
+https://blog.questionable.services/article/map-string-interface/
