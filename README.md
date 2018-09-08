@@ -5,22 +5,33 @@
 ## General information
 
 Universal authentication framework for web, created with go.
-It follows the [OpenID connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html)  and [OAuth2](https://tools.ietf.org/html/rfc6749) specifications.
-
-OpenID connect 1.0 is new protocol.
-
-From [openid.net](https://openid.net/connect/), “OpenID Connect 1.0 is a simple identity layer on top of the OAuth 2.0 protocol. It allows Clients to verify the identity of the End-User based on the authentication performed by an Authorization Server, as well as to obtain basic profile information about the End-User in an interoperable and REST-like manner.” This “REST-like manner” makes OIDC more like an API (in line with OAuth2) than the previous generations of OpenID. OIDC extends the OAuth2 Authorization Code Grant (three-legged OAuth).
-
-We are highly recommend to dive in and understand the purpose and mechanisms of this specification. OIDC is the most secure, flexible and widely adopted way for authorization.
-
-[Modern authentication standards explained series](https://medium.com/@robert.broeckelmann/saml-v2-0-vs-jwt-series-550551f4eb0d)
-[Understanding OpenID Connect Part 1](https://medium.com/@robert.broeckelmann/saml2-vs-jwt-understanding-openid-connect-part-1-fffe0d50f953)
-[Understanding OpenID Connect Part 2](https://medium.com/@robert.broeckelmann/saml2-vs-jwt-understanding-openid-connect-part-2-f361ca867baa)
-[Understanding OpenID Connect Part 3](https://medium.com/@robert.broeckelmann/saml2-vs-jwt-understanding-openid-connect-part-3-b81c5aa9bc20)
 
 ## Components structure
 
 ![components structure](https://raw.githubusercontent.com/MadAppGang/identifo/master/docs/structure.png)
+
+## Motivation
+
+Almost all of the provides OpenID Connect and Oauth2 login flow. It makes an excellent sense for provided use cases. The service is external to your, and OpenID Connect is one of the most secure ways to provide auth service.
+
+Someday we have started to implement Strongbox project. It's highly secure team messenger.  We are unable to use external services in this case, because it decreases the security level by storing user data and credentials on 3rd party services somewhere in the cloud. Also, it makes impossible to host this solution on premises, creating external dependency.
+
+We could use a self-hosted solution. However, we had to keep all our codebase with Go. All of the current candidates provided OpenID Connect, OAuth2 login flow. It's overcomplicated for single app solution. If you have one backend, that host's your web app and provide REST API for native clients - you own users password. So there no any sense for OIDC. 
+
+So we decided to implement Identity Privider with these key features:
+
+- easy to integrate into any infrastructure
+- fast, small and binary distributed
+- uses JWT and other OIDC principles, avoid all levels of redirections 
+- provide default user persistent storage service
+- provide an easy way to integrate any other user persistent layer
+- provide default login/register/reset password forms 
+- provide the way to  restyle login/register/reset form
+- implement token introspection
+- implement machine-machine tokens (analog to Oauth2 Client Credentials Grant)
+- optional management console to set up, monitor and configure the service 
+
+Although Identifo is not intended to implement OpenID Connect flow, you could easily integrate it with [Ory Hydra](https://www.ory.sh). Just with a couple of minutes, you able to get the complete OIDC support. The tutorial and instructions TBA. 
 
 ## Token
 
