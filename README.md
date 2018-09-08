@@ -5,7 +5,7 @@
 ## General information
 
 Universal authentication framework for web, created with go.
-It follows the OpenID connect 1.0 login flow and OAuth2 specification.
+It follows the [OpenID connect 1.0](https://openid.net/specs/openid-connect-core-1_0.html)  and [OAuth2](https://tools.ietf.org/html/rfc6749) specifications.
 
 OpenID connect 1.0 is new protocol.
 
