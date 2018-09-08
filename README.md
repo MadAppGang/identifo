@@ -12,26 +12,33 @@ Universal authentication framework for web, created with go.
 
 ## Motivation
 
-Almost all of the provides OpenID Connect and Oauth2 login flow. It makes an excellent sense for provided use cases. The service is external to your, and OpenID Connect is one of the most secure ways to provide auth service.
+There is a lot of Authorization and Authentication services on the market now.
+
+Some of them are commercial SaaS systems with one click integration like [Auth0](https://auth0.com), [AWS Cognito](https://aws.amazon.com/cognito/), [Firebase auth](https://firebase.google.com/docs/auth/).
+
+Some of them are self-hosted and open-sourced, like [OauthD](https://github.com/oauth-io/oauthd), [Gluu Server](https://www.gluu.org/),
+[Anvil](http://anvil.io/#features).
+
+Almost all of them provides OpenID Connect and Oauth2 login flow. It makes an excellent sense for expected use cases. The service is external to your servers, and OpenID Connect is one of the most secure ways to provide auth service in this architecture solution.
 
 Someday we have started to implement Strongbox project. It's highly secure team messenger.  We are unable to use external services in this case, because it decreases the security level by storing user data and credentials on 3rd party services somewhere in the cloud. Also, it makes impossible to host this solution on premises, creating external dependency.
 
-We could use a self-hosted solution. However, we had to keep all our codebase with Go. All of the current candidates provided OpenID Connect, OAuth2 login flow. It's overcomplicated for single app solution. If you have one backend, that host's your web app and provide REST API for native clients - you own users password. So there no any sense for OIDC. 
+We could use a self-hosted solution. However, we had to keep all our codebase with Go. All of the current candidates provided OpenID Connect, OAuth2 login flow. It's overcomplicated for single app solution. If you have one backend, that host's your web app and provide REST API for native clients - you own users password. So there no any sense for OIDC.
 
-So we decided to implement Identity Privider with these key features:
+So we decided to implement Identity Provider with these key features:
 
 - easy to integrate into any infrastructure
 - fast, small and binary distributed
-- uses JWT and other OIDC principles, avoid all levels of redirections 
+- uses JWT and other OIDC principles, avoid all levels of redirections
 - provide default user persistent storage service
 - provide an easy way to integrate any other user persistent layer
 - provide default login/register/reset password forms 
 - provide the way to  restyle login/register/reset form
 - implement token introspection
 - implement machine-machine tokens (analog to Oauth2 Client Credentials Grant)
-- optional management console to set up, monitor and configure the service 
+- optional management console to set up, monitor and configure the service
 
-Although Identifo is not intended to implement OpenID Connect flow, you could easily integrate it with [Ory Hydra](https://www.ory.sh). Just with a couple of minutes, you able to get the complete OIDC support. The tutorial and instructions TBA. 
+Although Identifo is not intended to implement OpenID Connect flow, you could easily integrate it with [Ory Hydra](https://www.ory.sh). Just with a couple of minutes, you able to get the complete OIDC support. The tutorial and instructions TBA.
 
 ## Token
 
