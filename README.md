@@ -92,3 +92,9 @@ Negroni uses this middlewares:
 ## Useful information
 
 [Understanding sessions](https://blog.questionable.services/article/map-string-interface/)
+
+## Test
+
+We have covered everything we count not trivial. Tests are created for documentation and code validation purposes. If you don't understand something and could not find it in the docs, please try to find in in the tests as well. If you think there is missing test, PR is always welcome or just let us know.
+
+[Test http requests](https://blog.questionable.services/article/testing-http-handlers-go/)

@@ -7,13 +7,17 @@ import (
 	"os"
 
 	"github.com/MadAppGang/identifo"
+	"github.com/MadAppGang/identifo/model"
 	"github.com/urfave/negroni"
 )
 
 //apiRoutes - router that handles all API request
 type apiRouter struct {
-	router *negroni.Negroni
-	logger *log.Logger
+	router       *negroni.Negroni
+	logger       *log.Logger
+	appStorage   model.AppStorage
+	userStorage  model.UserStorage
+	tokenStorage model.TokenStorage
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -23,14 +27,16 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger) identifo.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage) identifo.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 	//setup default router to stdout
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
-
 	}
+	ar.appStorage = appStorage
+	ar.userStorage = userStorage
+	ar.tokenStorage = tokenStorage
 	return &ar
 }
 

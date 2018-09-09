@@ -62,6 +62,12 @@ func NewAppData(data model.AppData) AppData {
 	}
 }
 
+//MakeAppData creates new memory app data instance
+func MakeAppData(id, secret string, active bool, description string, scopes []string) AppData {
+	return AppData{id, secret, active, description, scopes}
+
+}
+
 func (ad AppData) ID() string          { return ad.id }
 func (ad AppData) Secret() string      { return ad.secret }
 func (ad AppData) Active() bool        { return ad.active }
