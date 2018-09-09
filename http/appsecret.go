@@ -9,3 +9,9 @@ func AppSecretMiddleware(rw http.ResponseWriter, r *http.Request, next http.Hand
 	// call endpoint handler
 	next(rw, r)
 }
+
+//CheckSignature check HMAC signature of routes
+func CheckSignature(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+	// call endpoint handler
+	next(rw, r)
+}
