@@ -3,16 +3,27 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e2742db7ef1a01578bac05e4eb101a3afde606fd2b3455319ee2412b9d679dd6"
+  digest = "1:b79e7a57771b86165271d6116f09c567d6c15f26fe994a9910912dd977ea2ea5"
   name = "github.com/MadAppGang/identifo"
+  packages = [
+    ".",
+    "model",
+  ]
+  pruneopts = "UT"
+  revision = "ea40d0af8b4f0ab39e19cb9b5f15431a305fbf16"
+
+[[projects]]
+  digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
+  name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
   pruneopts = "UT"
-  revision = "9e34ff01b64fdd2c7481d836b0d8417af5531497"
+  revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
+  version = "v3.2.0"
 
 [[projects]]
   branch = "master"
   digest = "1:0e5b66364c5559101d270c0ed5f0196ca6ce910cf89247b9315c6305f15f29d5"
-  name = "github.com/Pallinder/go-randomdata"
+  name = "github.com/pallinder/go-randomdata"
   packages = ["."]
   pruneopts = "UT"
   revision = "15df0648130a623e418886f81b2aaecd0a00547b"
@@ -30,7 +41,9 @@
   analyzer-version = 1
   input-imports = [
     "github.com/MadAppGang/identifo",
-    "github.com/Pallinder/go-randomdata",
+    "github.com/MadAppGang/identifo/model",
+    "github.com/dgrijalva/jwt-go",
+    "github.com/pallinder/go-randomdata",
     "github.com/urfave/negroni",
   ]
   solver-name = "gps-cdcl"
