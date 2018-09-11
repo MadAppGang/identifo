@@ -3,14 +3,14 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b79e7a57771b86165271d6116f09c567d6c15f26fe994a9910912dd977ea2ea5"
+  digest = "1:0c7d611c96f871bf32679ee66f54ec633d9d69167715e8dfe1c31def3fdaf20d"
   name = "github.com/MadAppGang/identifo"
   packages = [
     ".",
     "model",
   ]
   pruneopts = "UT"
-  revision = "ea40d0af8b4f0ab39e19cb9b5f15431a305fbf16"
+  revision = "043deb8417740c0143e72daedbc8417d8158a6d8"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -19,6 +19,25 @@
   pruneopts = "UT"
   revision = "06ea1031745cb8b3dab3f6a236daf2b0aa468b7e"
   version = "v3.2.0"
+
+[[projects]]
+  digest = "1:e1ff887e232b2d8f4f7c7db15a5fac7be418025afc4dda53c59c765dbb5aa6b4"
+  name = "github.com/go-playground/locales"
+  packages = [
+    ".",
+    "currency",
+  ]
+  pruneopts = "UT"
+  revision = "f63010822830b6fe52288ee52d5a1151088ce039"
+  version = "v0.12.1"
+
+[[projects]]
+  digest = "1:e022cf244bcac1b6ef933f1a2e0adcf6a6dfd7b872d8d41e4d4179bb09a87cbc"
+  name = "github.com/go-playground/universal-translator"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "b32fa301c9fe55953584134cb6853a13c87ec0a1"
+  version = "v0.16.0"
 
 [[projects]]
   branch = "master"
@@ -36,6 +55,14 @@
   revision = "c6a59be0ce122566695fbd5e48a77f8f10c8a63a"
   version = "v1.0.0"
 
+[[projects]]
+  digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
+  name = "gopkg.in/go-playground/validator.v9"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "e69e9a28bb62b977fdc58d051f1bb477b7cbe486"
+  version = "v9.21.0"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -45,6 +72,7 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/pallinder/go-randomdata",
     "github.com/urfave/negroni",
+    "gopkg.in/go-playground/validator.v9",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

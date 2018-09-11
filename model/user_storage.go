@@ -5,6 +5,7 @@ type UserStorage interface {
 	UserByID(id string) (User, error)
 	UserBySocialID(id string) (User, error)
 	AttachDeviceToken(id, token string) error
+	UserByNamePassword(name, password string) error
 }
 
 //User is abstract representation of the user in auth layer
@@ -15,4 +16,12 @@ type User interface {
 	Name() string
 	PasswordHash() string
 	Profile() map[string]interface{}
+}
+
+//TokenService manage tokens abstraction layer
+type TokenService interface {
+}
+
+//Token is app token to give user chan
+type Token interface {
 }

@@ -18,6 +18,7 @@ type apiRouter struct {
 	appStorage   model.AppStorage
 	userStorage  model.UserStorage
 	tokenStorage model.TokenStorage
+	scope
 }
 
 //ServeHTTP identifo.Router protocol implementation

@@ -1,6 +1,28 @@
 package jwt
 
-import jwt "github.com/dgrijalva/jwt-go"
+import (
+	jwtgo "github.com/dgrijalva/jwt-go"
+	"github.com/madappgang/identifo/model"
+)
+
+func NewTokenService() model.TokenService {
+	t := TokenService{}
+	return &t
+}
+
+//TokenService JWT token service
+type TokenService struct {
+}
+
+func (ts *TokenService) Parse(string) (model.Token, error) {
+	//TODO: implementation
+	return nil, nil
+}
+
+func (ts *TokenService) NewToken(model.User) (model.Token, error) {
+	//TODO: implementation
+	return nil, nil
+}
 
 //Token represents JWT token in the system
 type Token struct {
@@ -14,7 +36,7 @@ func Parse(t string) (*Token, error) {
 //Claims extended claims structure
 type Claims struct {
 	Foo string `json:"foo"`
-	jwt.StandardClaims
+	jwtgo.StandardClaims
 }
 
 //how to use JWT tokens full example
