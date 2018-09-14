@@ -21,24 +21,28 @@ func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := loginData{}
-		if ar.MustParseJSON(w, r, d) != nil {
+		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
-		user, err := ar.userStorage.UserByName(d.Username, d.Password)
+		user, err := ar.userStorage.UserByNamePassword(d.Username, d.Password)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID, d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		// u := ar.userStorage.UserByID
-		// hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
+		token, err := ar.tokenService.NewToken(user, scopes)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
 
+		ar.ServeJSON(w, http.StatusOK, map[string]string{"token": token.String()})
 	}
 }

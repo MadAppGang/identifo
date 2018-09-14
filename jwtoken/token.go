@@ -22,7 +22,7 @@ func (ts *TokenService) Parse(string) (model.Token, error) {
 }
 
 //NewToken creates new token for user
-func (ts *TokenService) NewToken(model.User) (model.Token, error) {
+func (ts *TokenService) NewToken(u model.User, scopes []string) (model.Token, error) {
 	//TODO: implementation
 	return nil, nil
 }

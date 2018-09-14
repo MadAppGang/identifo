@@ -5,7 +5,8 @@ type UserStorage interface {
 	UserByID(id string) (User, error)
 	UserBySocialID(id string) (User, error)
 	AttachDeviceToken(id, token string) error
-	UserByNamePassword(name, password string) error
+	UserByNamePassword(name, password string) (User, error)
+	RequestScopes(userID string, scopes []string) ([]string, error)
 }
 
 //User is abstract representation of the user in auth layer

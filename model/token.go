@@ -2,7 +2,7 @@ package model
 
 //TokenService manage tokens abstraction layer
 type TokenService interface {
-	NewToken(User) (Token, error)
+	NewToken(u User, scopes []string) (Token, error)
 	Parse(string) (Token, error)
 }
 

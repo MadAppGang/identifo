@@ -9,8 +9,9 @@ import (
 
 //MustParseJSON parses request body json data to the `out` struct.
 //Writes error to ResponseWriter on error
-func (ar *apiRouter) MustParseJSON(w http.ResponseWriter, r *http.Request, out *interface{}) error {
+func (ar *apiRouter) MustParseJSON(w http.ResponseWriter, r *http.Request, out interface{}) error {
 	//parse structure
+
 	err := json.NewDecoder(r.Body).Decode(out)
 	if err != nil {
 		ar.Error(w, err, http.StatusBadRequest, "")
@@ -18,8 +19,8 @@ func (ar *apiRouter) MustParseJSON(w http.ResponseWriter, r *http.Request, out *
 	}
 
 	//validate structure
-	validate = validator.New()
-	err = validate.Struct(*out)
+	validate := validator.New()
+	err = validate.Struct(out)
 	if err != nil {
 		ar.Error(w, err, http.StatusBadRequest, "")
 		return err

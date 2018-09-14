@@ -18,7 +18,7 @@ type apiRouter struct {
 	appStorage   model.AppStorage
 	userStorage  model.UserStorage
 	tokenStorage model.TokenStorage
-	scope
+	tokenService model.TokenService
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -28,7 +28,7 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage) identifo.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 	//setup default router to stdout
