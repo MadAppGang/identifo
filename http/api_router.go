@@ -6,8 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/MadAppGang/identifo"
-	"github.com/MadAppGang/identifo/model"
+	"github.com/madappgang/identifo"
+	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
 

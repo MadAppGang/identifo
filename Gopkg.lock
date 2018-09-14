@@ -2,17 +2,6 @@
 
 
 [[projects]]
-  branch = "master"
-  digest = "1:0c7d611c96f871bf32679ee66f54ec633d9d69167715e8dfe1c31def3fdaf20d"
-  name = "github.com/MadAppGang/identifo"
-  packages = [
-    ".",
-    "model",
-  ]
-  pruneopts = "UT"
-  revision = "043deb8417740c0143e72daedbc8417d8158a6d8"
-
-[[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
   name = "github.com/dgrijalva/jwt-go"
   packages = ["."]
@@ -67,8 +56,6 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
-    "github.com/MadAppGang/identifo",
-    "github.com/MadAppGang/identifo/model",
     "github.com/dgrijalva/jwt-go",
     "github.com/pallinder/go-randomdata",
     "github.com/urfave/negroni",
