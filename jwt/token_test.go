@@ -1,4 +1,4 @@
-package jwtoken
+package jwt
 
 import (
 	"reflect"
