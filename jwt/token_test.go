@@ -4,20 +4,23 @@ import (
 	"reflect"
 	"testing"
 
+	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
 )
 
 const (
 	privateKey         = "./private.pem"
 	publicKey          = "./public.pem"
+	testIssuer         = "identifo.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAifQ.Sqmh_44nXg3Lxs9jr9YCDZVNJN459Br4ODnZIt3EY72opwy5hzYL_l_hua4PJCM0WmYNLB-nKC80TS84LO5muw"
 )
 
 func TestNewTokenService(t *testing.T) {
-	ts, _ := NewTokenService(privateKey, publicKey)
+	ts, _ := NewTokenService(privateKey, publicKey, testIssuer)
 	type args struct {
 		private string
 		public  string
+		issuer  string
 	}
 	tests := []struct {
 		name    string
@@ -25,14 +28,14 @@ func TestNewTokenService(t *testing.T) {
 		want    model.TokenService
 		wantErr bool
 	}{
-		{"successfull creation", args{privateKey, publicKey}, ts, false},
-		{"invalid private path", args{"somepath", publicKey}, nil, true},
-		{"invalid public path", args{privateKey, "domefakepath"}, nil, true},
-		{"empty file pathes", args{"", ""}, nil, true},
+		{"successfull creation", args{privateKey, publicKey, testIssuer}, ts, false},
+		{"invalid private path", args{"somepath", publicKey, testIssuer}, nil, true},
+		{"invalid public path", args{privateKey, "domefakepath", testIssuer}, nil, true},
+		{"empty file pathes", args{"", "", testIssuer}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewTokenService(tt.args.private, tt.args.public)
+			got, err := NewTokenService(tt.args.private, tt.args.public, testIssuer)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -45,7 +48,7 @@ func TestNewTokenService(t *testing.T) {
 }
 
 func TestParseString(t *testing.T) {
-	ts, err := NewTokenService(privateKey, publicKey)
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -74,8 +77,8 @@ func TestParseString(t *testing.T) {
 
 }
 
-func TestTokenGenerate(t *testing.T) {
-	ts, err := NewTokenService(privateKey, publicKey)
+func TestTokenToString(t *testing.T) {
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -111,6 +114,48 @@ func TestTokenGenerate(t *testing.T) {
 	}
 	if !reflect.DeepEqual(claims1, claims2) {
 		t.Errorf("Claims = %+v, want %+v", claims1, claims2)
+	}
+
+}
+
+func TestNewToken(t *testing.T) {
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
+	if err != nil {
+		t.Errorf("Unable to crate service %v", err)
+	}
+	ustg := mem.NewUserStorage()
+	user, _ := ustg.UserByNamePassword("name", "password")
+	scopes := []string{"scope1", "scope2"}
+	appID := "123456"
+
+	token, err := ts.NewToken(user, scopes, appID)
+	if err != nil {
+		t.Errorf("Unable to create token %v", err)
+	}
+	tokenString, err := ts.String(token)
+	if err != nil {
+		t.Errorf("Unable to serialize token %v", err)
+	}
+	token2, err := ts.Parse(tokenString)
+	if err != nil {
+		t.Errorf("Unable to parse token %v", err)
+	}
+	if token2 == nil {
+		t.Error("Token is empty")
+	}
+	t2, _ := token2.(*Token)
+	claims2, _ := t2.JWT.Claims.(*Claims)
+	if len(claims2.UserProfile) == 0 {
+		t.Errorf("Claims = %+v, want not zero", claims2.UserProfile)
+	}
+	if claims2.Issuer != testIssuer {
+		t.Errorf("Issuer = %+v, want %+v", claims2.Issuer, testIssuer)
+	}
+	if claims2.Subject != user.ID() {
+		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID())
+	}
+	if claims2.Audience != appID {
+		t.Errorf("Audience = %+v, want %+v", claims2.Audience, appID)
 	}
 
 }
