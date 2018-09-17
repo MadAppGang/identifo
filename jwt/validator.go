@@ -8,8 +8,18 @@ import (
 )
 
 var (
-	ErrTokenValidationNoExpire = errors.New("Token is invalid, no expire date")
-	ErrTokenValidationNoIAT    = errors.New("Token is invalid, no issued at date")
+	ErrTokenValidationNoExpire        = errors.New("Token is invalid, no expire date")
+	ErrTokenValidationNoIAT           = errors.New("Token is invalid, no issued at date")
+	ErrTokenValidationInvalidIssuer   = errors.New("Token is invalid, issuer is invalid")
+	ErrTokenValidationInvalidAudience = errors.New("Token is invalid, audience is invalid")
+	ErrTokenValidationInvalidSubject  = errors.New("Token is invalid, subject is invalid")
+)
+
+const (
+	//SignatureAlg is hardcoded signature algorithm
+	//there is a number of options, we are stick to this value
+	//see https://tools.ietf.org/html/rfc7516 for details
+	SignatureAlg = "ES256"
 )
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
@@ -18,10 +28,14 @@ var (
 var TimeFunc = time.Now
 
 //NewValidator creates new JWT validator
-func NewValidator(appID, issuer string) model.Validator {
+//appID - application ID who have made the request, should be in audience field of JWT token
+//issues - this server name, should be the same as iss of JWT token
+//userID - user, who have made the request, if the field is empty, we are not validating it
+func NewValidator(appID, issuer, userID string) model.Validator {
 	v := Validator{}
 	v.appID = appID
 	v.issuer = issuer
+	v.userID = userID
 	return &v
 }
 
@@ -29,6 +43,7 @@ func NewValidator(appID, issuer string) model.Validator {
 type Validator struct {
 	appID  string
 	issuer string
+	userID string
 }
 
 //Validate validates token
@@ -48,6 +63,12 @@ func (v *Validator) Validate(t model.Token) error {
 	if !ok {
 		return ErrTokenInvalid
 	}
+
+	//check the signature algorithm attack is not passing through
+	if token.JWT.Method.Alg() != SignatureAlg {
+		return ErrTokenInvalid
+	}
+
 	claims, ok := token.JWT.Claims.(*Claims)
 	if !ok {
 		return ErrTokenInvalid
@@ -62,10 +83,17 @@ func (v *Validator) Validate(t model.Token) error {
 		return ErrTokenValidationNoIAT
 	}
 
-	///Audience //servers who will use it token
-	///Issuer   //who issued, should be this server
-	///Subject //user ID of the token
-	///
+	if claims.VerifyAudience(v.appID, true) == false {
+		return ErrTokenValidationInvalidAudience
+	}
+
+	if claims.VerifyIssuer(v.issuer, true) == false {
+		return ErrTokenValidationInvalidIssuer
+	}
+
+	if (len(v.userID) > 0) && (claims.Subject != v.userID) {
+		return ErrTokenValidationInvalidSubject
+	}
 
 	return nil
 }

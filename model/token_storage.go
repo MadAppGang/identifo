@@ -6,3 +6,9 @@ type TokenStorage interface {
 	HasToken(token string) bool
 	RevokeToken(token string) error
 }
+
+//TokenBlacklist implements token blacklist
+type TokenBlacklist interface {
+	Blacklisted(token string) bool
+	Add(token string) error
+}

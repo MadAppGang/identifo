@@ -16,13 +16,11 @@ var (
 )
 
 //NewTokenService returns new JWT token service
-//secret is private key secret, could be empty (we are not reccomend to keep it empty)
 //private is path to private key in pem format, please keep it in secret place
 //public is path to the public key
 //now we support only EC256 keypairs
-func NewTokenService(secret, private, public string) (model.TokenService, error) {
+func NewTokenService(private, public string) (model.TokenService, error) {
 	t := TokenService{}
-	t.secret = secret
 
 	//load private key from pem file
 	prkb, err := ioutil.ReadFile(private)
@@ -49,7 +47,6 @@ func NewTokenService(secret, private, public string) (model.TokenService, error)
 
 //TokenService JWT token service
 type TokenService struct {
-	secret     string
 	privateKey *ecdsa.PrivateKey
 	publicKey  *ecdsa.PublicKey
 }
@@ -79,6 +76,25 @@ func (ts *TokenService) NewToken(u model.User, scopes []string) (model.Token, er
 	return nil, nil
 }
 
+func (ts *TokenService) String(t model.Token) (string, error) {
+	token, ok := t.(*Token)
+	if !ok {
+		return "", ErrTokenInvalid
+	}
+	if err := t.Validate(); err != nil {
+		return "", err
+	}
+	if !token.JWT.Valid {
+		return "", ErrTokenInvalid
+	}
+	str, err := token.JWT.SignedString(ts.privateKey)
+	if err != nil {
+		return "", err
+	}
+
+	return str, nil
+}
+
 //Token represents JWT token in the system
 type Token struct {
 	JWT *jwt.Token
@@ -92,19 +108,13 @@ func (t *Token) Validate() error {
 	if !t.JWT.Valid {
 		return ErrTokenInvalid
 	}
-	//TODO: validate claims
-	return nil
-}
 
-//String returns string representation of the token
-func (t *Token) String() string {
-	//TODO: serialize to string
-	return ""
+	return nil
 }
 
 //Claims extended claims structure
 type Claims struct {
-	Foo string `json:"foo"`
+	Foo string `json:"user_profile,omitempty"`
 	jwt.StandardClaims
 }
 
