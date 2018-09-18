@@ -2,6 +2,8 @@ package http
 
 import (
 	"net/http"
+
+	"github.com/madappgang/identifo/model"
 )
 
 // type loginResponse struct {
@@ -17,6 +19,11 @@ func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 		Password    string   `json:"password,omitempty" validate:"required,gte=6,lte=130"`
 		DeviceToken string   `json:"device_token,omitempty"`
 		Scopes      []string `json:"scopes,omitempty"`
+	}
+
+	type AuthResponse struct {
+		AccessToken  string `json:"access_token,omitempty"`
+		RefreshToken string `json:"refresh_token,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -37,12 +44,43 @@ func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.tokenService.NewToken(user, scopes)
+		app := appFromContext(r.Context())
+		if app == nil {
+			ar.logger.Println("Error getting App")
+			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			return
+		}
+
+		token, err := ar.tokenService.NewToken(user, scopes, app)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, map[string]string{"token": token.String()})
+		refreshString := ""
+		//requesting offline access ?
+		if contains(scopes, model.OfflineScope) {
+			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+			if err != nil {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+				return
+			}
+			refreshString, err = ar.tokenService.String(refresh)
+			if err != nil {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+				return
+			}
+		}
+
+		result := AuthResponse{
+			AccessToken:  tokenString,
+			RefreshToken: refreshString,
+		}
+		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

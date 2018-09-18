@@ -28,7 +28,7 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 	//setup default router to stdout
@@ -38,6 +38,8 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	ar.appStorage = appStorage
 	ar.userStorage = userStorage
 	ar.tokenStorage = tokenStorage
+	ar.tokenService = tokenService
+	ar.initRoutes()
 	return &ar
 }
 
@@ -47,8 +49,8 @@ func (ar *apiRouter) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 		ar.Error(w, err, http.StatusInternalServerError, "")
 	}
 
-	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 }
 
 // Error writes an API error message to the response and logger.
@@ -69,11 +71,12 @@ func (ar *apiRouter) Error(w http.ResponseWriter, err error, code int, userInfo 
 	}
 
 	// Write generic error response.
-	w.WriteHeader(code)
 	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(code)
 	json.NewEncoder(w).Encode(&errorResponse{
 		Error: err.Error(),
 		Info:  userInfo,
 		Code:  code,
 	})
+
 }

@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -22,9 +23,15 @@ const (
 //SignatureHandler returns middleware, that hanles
 //Digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=
 //https://identifo.madappgang.com/#ca6498ab-b3dc-4c1e-a5b0-2dd633831e2d
-func (ar *apiRouter) SignatureHandler(secret string) negroni.HandlerFunc {
+func (ar *apiRouter) SignatureHandler() negroni.HandlerFunc {
 
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		app := appFromContext(r.Context())
+		if app == nil {
+			ar.logger.Println("Error getting App")
+			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			return
+		}
 
 		//read and decode request signature im header
 		reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
@@ -43,7 +50,7 @@ func (ar *apiRouter) SignatureHandler(secret string) negroni.HandlerFunc {
 		}
 
 		//check body signature
-		if err := validateBodySignature(body, reqMAC, []byte(secret)); err != nil {
+		if err := validateBodySignature(body, reqMAC, []byte(app.Secret())); err != nil {
 			ar.logger.Printf("Error validating request signature: %v", err)
 			ar.Error(rw, err, http.StatusBadRequest, "")
 			return
@@ -82,6 +89,8 @@ func validateBodySignature(body, reqMAC, secret []byte) error {
 	mac.Write(body)
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(reqMAC, expectedMAC) {
+		fmt.Printf("Body %v", string(body))
+		fmt.Printf("Expected %v, got %v", string(reqMAC), string(expectedMAC))
 		return ErrorRequestSignature
 	}
 	return nil
