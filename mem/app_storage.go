@@ -44,32 +44,44 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 
 //AppData is memory model for model.AppData
 type AppData struct {
-	id          string
-	secret      string
-	active      bool
-	description string
-	scopes      []string
+	id                   string
+	secret               string
+	active               bool
+	description          string
+	scopes               []string
+	offline              bool
+	redirectURL          string
+	refreshTokenLifespan int64
+	tokenLifespan        int64
 }
 
 //NewAppData instantiate app data memory model from general one
 func NewAppData(data model.AppData) AppData {
 	return AppData{
-		id:          data.ID(),
-		secret:      data.Secret(),
-		active:      data.Active(),
-		description: data.Description(),
-		scopes:      data.Scopes(),
+		id:                   data.ID(),
+		secret:               data.Secret(),
+		active:               data.Active(),
+		description:          data.Description(),
+		scopes:               data.Scopes(),
+		offline:              data.Offline(),
+		redirectURL:          data.RedirectURL(),
+		refreshTokenLifespan: data.RefreshTokenLifespan(),
+		tokenLifespan:        data.TokenLifespan(),
 	}
 }
 
 //MakeAppData creates new memory app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string) AppData {
-	return AppData{id, secret, active, description, scopes}
+func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) AppData {
+	return AppData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}
 
 }
 
-func (ad AppData) ID() string          { return ad.id }
-func (ad AppData) Secret() string      { return ad.secret }
-func (ad AppData) Active() bool        { return ad.active }
-func (ad AppData) Description() string { return ad.description }
-func (ad AppData) Scopes() []string    { return ad.scopes }
+func (ad AppData) ID() string                  { return ad.id }
+func (ad AppData) Secret() string              { return ad.secret }
+func (ad AppData) Active() bool                { return ad.active }
+func (ad AppData) Description() string         { return ad.description }
+func (ad AppData) Scopes() []string            { return ad.scopes }
+func (ad AppData) Offline() bool               { return ad.offline }
+func (ad AppData) RedirectURL() string         { return ad.redirectURL }
+func (ad AppData) RefreshTokenLifespan() int64 { return ad.refreshTokenLifespan }
+func (ad AppData) TokenLifespan() int64        { return ad.tokenLifespan }

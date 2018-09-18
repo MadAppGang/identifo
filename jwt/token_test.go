@@ -16,7 +16,10 @@ const (
 )
 
 func TestNewTokenService(t *testing.T) {
-	ts, _ := NewTokenService(privateKey, publicKey, testIssuer)
+	us := mem.NewUserStorage()
+	tstor := mem.NewTokenStorage()
+	as := mem.NewAppStorage()
+	ts, _ := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
 	type args struct {
 		private string
 		public  string
@@ -35,7 +38,7 @@ func TestNewTokenService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewTokenService(tt.args.private, tt.args.public, testIssuer)
+			got, err := NewTokenService(tt.args.private, tt.args.public, testIssuer, tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -48,7 +51,10 @@ func TestNewTokenService(t *testing.T) {
 }
 
 func TestParseString(t *testing.T) {
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
+	us := mem.NewUserStorage()
+	tstor := mem.NewTokenStorage()
+	as := mem.NewAppStorage()
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -78,7 +84,10 @@ func TestParseString(t *testing.T) {
 }
 
 func TestTokenToString(t *testing.T) {
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
+	us := mem.NewUserStorage()
+	tstor := mem.NewTokenStorage()
+	as := mem.NewAppStorage()
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -119,16 +128,22 @@ func TestTokenToString(t *testing.T) {
 }
 
 func TestNewToken(t *testing.T) {
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer)
+	us := mem.NewUserStorage()
+	tstor := mem.NewTokenStorage()
+	as := mem.NewAppStorage()
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
 	ustg := mem.NewUserStorage()
 	user, _ := ustg.UserByNamePassword("name", "password")
+	//generate random user until we get active user
+	for !user.Active() {
+		user, _ = ustg.UserByNamePassword("name", "password")
+	}
 	scopes := []string{"scope1", "scope2"}
-	appID := "123456"
-
-	token, err := ts.NewToken(user, scopes, appID)
+	app := mem.MakeAppData("123456", "1", true, "test", scopes, true, "", 0, 0)
+	token, err := ts.NewToken(user, scopes, app)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
 	}
@@ -154,8 +169,8 @@ func TestNewToken(t *testing.T) {
 	if claims2.Subject != user.ID() {
 		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID())
 	}
-	if claims2.Audience != appID {
-		t.Errorf("Audience = %+v, want %+v", claims2.Audience, appID)
+	if claims2.Audience != app.ID() {
+		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID())
 	}
 
 }

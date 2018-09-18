@@ -54,6 +54,7 @@ func randUser() user {
 			name:    randomdata.SillyName(),
 			pswd:    randomdata.StringNumber(2, "-"),
 			profile: profile,
+			active:  randomdata.Boolean(),
 		},
 	}
 }
@@ -64,6 +65,7 @@ type userData struct {
 	name    string
 	pswd    string
 	profile map[string]interface{}
+	active  bool
 }
 
 type user struct {
@@ -75,3 +77,4 @@ func (u user) ID() string                      { return u.id }
 func (u user) Name() string                    { return u.name }
 func (u user) PasswordHash() string            { return u.pswd }
 func (u user) Profile() map[string]interface{} { return u.profile }
+func (u user) Active() bool                    { return u.active }

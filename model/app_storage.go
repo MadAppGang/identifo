@@ -18,4 +18,14 @@ type AppData interface {
 	//Scopes is the list of all allowed scopes
 	//if it's empty, no limitations (opaque scope)
 	Scopes() []string
+	//Offline - indicated could the app has refresh token
+	//don't use refresh tokens with apps, that don't have secure storage
+	Offline() bool
+	//RedirectURL - redirect URL, where to redirect the user after seccessfull login
+	//useful not only for web apps, mobile and desktop app could use custom scheme for that
+	RedirectURL() string
+	//TokenLifespan Token lifespan in seconds, if 0 - use default one
+	TokenLifespan() int64
+	//RefreshTokenLifespan RefreshToken lifespan in seconds, if 0 - use default one
+	RefreshTokenLifespan() int64
 }

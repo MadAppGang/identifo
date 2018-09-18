@@ -17,4 +17,5 @@ type User interface {
 	Name() string
 	PasswordHash() string
 	Profile() map[string]interface{}
+	Active() bool
 }
