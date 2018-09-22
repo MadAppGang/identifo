@@ -20,7 +20,7 @@ func (ar *apiRouter) AppID() negroni.HandlerFunc {
 		ar.logger.Printf("App ID is %s\n", appID)
 		app, err := ar.appStorage.AppByID(appID)
 		if err != nil {
-			ar.logger.Printf("Error getting App ID %v", err)
+			ar.logger.Printf("Error getting App by ID %v", err)
 			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
 			return
 		}

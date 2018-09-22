@@ -57,7 +57,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	err := us.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(UserBucket))
 		v := b.Get([]byte(id))
-		return res.Unmarshal(v)
+		if v == nil {
+			return ErrorNotFound
+		}
+		rr, err := UserFromJSON(v)
+		res = rr
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -81,7 +86,9 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 		if u == nil {
 			return ErrorNotFound
 		}
-		return res.Unmarshal(u)
+		rr, err := UserFromJSON(u)
+		res = rr
+		return err
 	})
 	if err != nil {
 		return nil, err
@@ -108,7 +115,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		b := tx.Bucket([]byte(UserBucket))
 		bi := tx.Bucket([]byte(UserByNameAndPassword))
 		//we use username and password hash as the key
-		key := name + ":" + PasswordHash(password)
+		key := name
 		//get user ID from index
 		userID := bi.Get([]byte(key))
 		if userID == nil {
@@ -119,12 +126,45 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		if u == nil {
 			return ErrorNotFound
 		}
-		return res.Unmarshal(u)
+		rr, err := UserFromJSON(u)
+		if err := bcrypt.CompareHashAndPassword([]byte(rr.PasswordHash()), []byte(password)); err != nil {
+			//return this error to hide the existence of the user
+			return ErrorNotFound
+		}
+		res = rr
+		return err
 	})
 	if err != nil {
 		return nil, err
 	}
 	return res, nil
+}
+
+//AddNewUser adds new user
+func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
+	u, ok := usr.(User)
+	if !ok {
+		return nil, ErrorWrongDataFormat
+	}
+	u.userData.Pswd = PasswordHash(password)
+	err := us.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserBucket))
+		bi := tx.Bucket([]byte(UserByNameAndPassword))
+		//we use username and password hash as the key
+		key := u.Name()
+		data, err := u.Marshal()
+		if err != nil {
+			return err
+		}
+		if err := b.Put([]byte(u.ID()), data); err != nil {
+			return err
+		}
+		return bi.Put([]byte(key), []byte(u.ID()))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return u, nil
 }
 
 //data implementation
@@ -141,14 +181,13 @@ type User struct {
 	userData
 }
 
-//Unmarshal deserializes data
-func (u User) Unmarshal(d []byte) error {
+//UserFromJSON deserializes data
+func UserFromJSON(d []byte) (User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
-		return err
+		return User{}, err
 	}
-	u.userData = user
-	return nil
+	return User{user}, nil
 }
 
 //Marshal serialize data to byte array

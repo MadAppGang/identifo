@@ -41,7 +41,12 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if err := as.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(AppBucket))
 		v := b.Get([]byte(id))
-		return res.Unmarshal(v)
+		if v == nil {
+			return ErrorNotFound
+		}
+		rr, err := AppDataFromJSON(v)
+		res = rr
+		return err
 	}); err != nil {
 		return nil, err
 	}
@@ -57,6 +62,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) error {
 	return as.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(AppBucket))
 		data, err := res.Marshal()
+		fmt.Println("ADDING: " + string(data))
 		if err != nil {
 			return err
 		}
@@ -125,14 +131,13 @@ func NewAppData(data model.AppData) AppData {
 	}}
 }
 
-//Unmarshal deserializes data
-func (ad AppData) Unmarshal(d []byte) error {
+//AppDataFromJSON deserializes data from JSON
+func AppDataFromJSON(d []byte) (AppData, error) {
 	add := appData{}
 	if err := json.Unmarshal(d, &add); err != nil {
-		return err
+		return AppData{}, err
 	}
-	ad.appData = add
-	return nil
+	return AppData{add}, nil
 }
 
 //Marshal serialize data to byte array
