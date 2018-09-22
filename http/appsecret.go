@@ -5,7 +5,6 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -51,7 +50,7 @@ func (ar *apiRouter) SignatureHandler() negroni.HandlerFunc {
 
 		//check body signature
 		if err := validateBodySignature(body, reqMAC, []byte(app.Secret())); err != nil {
-			ar.logger.Printf("Error validating request signature: %v", err)
+			ar.logger.Printf("Error validating request signature: %v\n", err)
 			ar.Error(rw, err, http.StatusBadRequest, "")
 			return
 		}
@@ -89,8 +88,7 @@ func validateBodySignature(body, reqMAC, secret []byte) error {
 	mac.Write(body)
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(reqMAC, expectedMAC) {
-		fmt.Printf("Body %v", string(body))
-		fmt.Printf("Expected %v, got %v", string(reqMAC), string(expectedMAC))
+		// fmt.Printf("Error validation signature, expecting: %v, got: %v\n", hex.EncodeToString(expectedMAC), hex.EncodeToString(reqMAC))
 		return ErrorRequestSignature
 	}
 	return nil

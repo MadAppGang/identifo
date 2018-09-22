@@ -53,7 +53,7 @@ func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 
 		token, err := ar.tokenService.NewToken(user, scopes, app)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.Error(w, err, http.StatusUnauthorized, "")
 			return
 		}
 		tokenString, err := ar.tokenService.String(token)

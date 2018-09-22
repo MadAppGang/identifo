@@ -1,6 +1,8 @@
 package mem
 
-import "github.com/madappgang/identifo/model"
+import (
+	"github.com/madappgang/identifo/model"
+)
 
 //NewTokenStorage created in memory token sotrage
 func NewTokenStorage() model.TokenStorage {

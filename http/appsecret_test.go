@@ -33,7 +33,7 @@ func Test_extractSignature(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if got := extractSignature(tt.args.b64); !reflect.DeepEqual(got, tt.want) {
-				t.Errorf("extractSignature() = %v, want %v", got, tt.want)
+				t.Errorf("extractSignature() = %v, want %v", hex.EncodeToString(got), hex.EncodeToString(tt.want))
 			}
 		})
 	}
@@ -84,6 +84,11 @@ func Test_validateBodySignature(t *testing.T) {
 			"test with empty secret",
 			args{[]byte("test"), d("6530FCF8901618438CACDE3D3C6B660A49DA0BA95601BCDF8D607FC69B68A13D"), nil},
 			true,
+		},
+		{
+			"test with empty secret",
+			args{[]byte("{ \n\"username\": \"test@madappgang.com\", \"password\": \"secret\", \"scope\": [\"offline\", \"chat\"] }"), d("ee5b46e622d9dccbe939fba26e802c91a56ccb2e03a6bd010479dd0e80243d9d"), []byte("secret")},
+			false,
 		},
 		{
 			"empty body with signed with `secret`",
