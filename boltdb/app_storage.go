@@ -54,7 +54,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 }
 
 //AddNewApp add new app to memory storage
-func (as *AppStorage) AddNewApp(app model.AppData) error {
+func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	res, ok := app.(AppData)
 	if !ok {
 		return ErrorWrongDataFormat

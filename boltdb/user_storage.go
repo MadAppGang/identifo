@@ -46,12 +46,12 @@ func NewUserStorage(db *bolt.DB) (model.UserStorage, error) {
 	return &us, nil
 }
 
-//UserStorage implements user storage in memory
+//UserStorage implements user storage in boltdb
 type UserStorage struct {
 	db *bolt.DB
 }
 
-//UserByID returns random generated user
+//UserByID returns user by ID
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	var res User
 	err := us.db.View(func(tx *bolt.Tx) error {
@@ -70,7 +70,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return res, nil
 }
 
-//UserBySocialID returns random generated user
+//UserBySocialID returns user by social ID
 func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	var res User
 	err := us.db.View(func(tx *bolt.Tx) error {
@@ -108,7 +108,7 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
-//UserByNamePassword returns random generated user
+//UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	var res User
 	err := us.db.View(func(tx *bolt.Tx) error {

@@ -70,6 +70,17 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:1ecf2a49df33be51e757d0033d5d51d5f784f35f68e5a38f797b2d3f03357d71"
+  name = "golang.org/x/crypto"
+  packages = [
+    "bcrypt",
+    "blowfish",
+  ]
+  pruneopts = "UT"
+  revision = "0e37d006457bf46f9e6692014ba72ef82c33022c"
+
+[[projects]]
+  branch = "master"
   digest = "1:6c54cefa33de85c47075aae30f1d1a333967c405272010bb76aa943467e4cbae"
   name = "golang.org/x/sys"
   packages = ["unix"]
@@ -84,6 +95,20 @@
   revision = "e69e9a28bb62b977fdc58d051f1bb477b7cbe486"
   version = "v9.21.0"
 
+[[projects]]
+  branch = "v2"
+  digest = "1:988de7520a09024d5d94cd99bd545afbf194893994ec759b1cda0a0bbb6adb80"
+  name = "gopkg.in/mgo.v2"
+  packages = [
+    ".",
+    "bson",
+    "internal/json",
+    "internal/sasl",
+    "internal/scram",
+  ]
+  pruneopts = "UT"
+  revision = "9856a29383ce1c59f308dd1cf0363a79b5bef6b5"
+
 [solve-meta]
   analyzer-name = "dep"
   analyzer-version = 1
@@ -93,7 +118,10 @@
     "github.com/gorilla/mux",
     "github.com/pallinder/go-randomdata",
     "github.com/urfave/negroni",
+    "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",
+    "gopkg.in/mgo.v2",
+    "gopkg.in/mgo.v2/bson",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1

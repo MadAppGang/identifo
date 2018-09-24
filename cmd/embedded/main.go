@@ -72,7 +72,7 @@ func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
 		log.Fatal(err)
 	}
 	fmt.Printf("app data: %+v", app)
-	err = as.AddNewApp(app)
+	_, err = as.AddNewApp(app)
 	if err != nil {
 		log.Fatal(err)
 	}
