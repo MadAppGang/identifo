@@ -1,6 +1,8 @@
 package mongo
 
 import (
+	"encoding/json"
+
 	"gopkg.in/mgo.v2/bson"
 
 	"github.com/madappgang/identifo/model"
@@ -93,16 +95,25 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 
 //data implementation
 type userData struct {
-	ID      bson.ObjectId          `bson:"_id,omitempty"`
-	Name    string                 `bson:"name,omitempty"`
-	Pswd    string                 `bson:"pswd,omitempty"`
-	Profile map[string]interface{} `bson:"profile,omitempty"`
-	Active  bool                   `bson:"active,omitempty"`
+	ID      bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	Name    string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Pswd    string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Profile map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
+	Active  bool                   `bson:"active,omitempty" json:"active,omitempty"`
 }
 
 //User user data structure for mongodb storage
 type User struct {
 	userData
+}
+
+//UserFromJSON deserializes data
+func UserFromJSON(d []byte) (User, error) {
+	user := userData{}
+	if err := json.Unmarshal(d, &user); err != nil {
+		return User{}, err
+	}
+	return User{user}, nil
 }
 
 //model.User interface implementation

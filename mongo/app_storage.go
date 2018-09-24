@@ -97,15 +97,15 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 }
 
 type appData struct {
-	ID                   bson.ObjectId `bson:"_id,omitempty"`
-	Secret               string        `bson:"secret,omitempty"`
-	Active               bool          `bson:"active,omitempty"`
-	Description          string        `bson:"description,omitempty"`
-	Scopes               []string      `bson:"scopes,omitempty"`
-	Offline              bool          `bson:"offline,omitempty"`
-	RedirectURL          string        `bson:"redirect_url,omitempty"`
-	RefreshTokenLifespan int64         `bson:"refresh_token_lifespan,omitempty"`
-	TokenLifespan        int64         `bson:"token_lifespan,omitempty"`
+	ID                   bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
+	Secret               string        `bson:"secret,omitempty" json:"secret,omitempty"`
+	Active               bool          `bson:"active,omitempty" json:"active,omitempty"`
+	Description          string        `bson:"description,omitempty" json:"description,omitempty"`
+	Scopes               []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	Offline              bool          `bson:"offline,omitempty" json:"offline,omitempty"`
+	RedirectURL          string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
+	RefreshTokenLifespan int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	TokenLifespan        int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 }
 
 //AppData is memory model for model.AppData
