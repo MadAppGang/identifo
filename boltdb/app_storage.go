@@ -57,9 +57,9 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	res, ok := app.(AppData)
 	if !ok {
-		return ErrorWrongDataFormat
+		return nil, ErrorWrongDataFormat
 	}
-	return as.db.Update(func(tx *bolt.Tx) error {
+	return app, as.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(AppBucket))
 		data, err := res.Marshal()
 		fmt.Println("ADDING: " + string(data))
@@ -77,7 +77,8 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 		return ErrorWrongDataFormat
 	}
 	res.appData.Active = false
-	return as.AddNewApp(res)
+	_, err := as.AddNewApp(res)
+	return err
 }
 
 //UpdateApp updates app in storage
