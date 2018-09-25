@@ -39,7 +39,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	if err := s.C.FindId(bson.ObjectIdHex(id)).One(&u); err != nil {
 		return nil, err
 	}
-	return User{userData: u}, nil
+	return &User{userData: u}, nil
 }
 
 //UserBySocialID returns random generated user
@@ -75,12 +75,12 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	}
 	//clear password hash
 	u.Pswd = ""
-	return User{userData: u}, nil
+	return &User{userData: u}, nil
 }
 
 //AddNewUser adds new user
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
-	u, ok := usr.(User)
+	u, ok := usr.(*User)
 	if !ok {
 		return nil, ErrorWrongDataFormat
 	}
@@ -91,6 +91,21 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		return nil, err
 	}
 	return u, nil
+}
+
+//AddUserByNameAndPassword register new user
+func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+	//using user name as a key
+	_, err := us.UserByID(name)
+	//if there is no error, it means user already exists
+	if err == nil {
+		return nil, ErrorUserExists
+	}
+	u := userData{}
+	u.Active = true
+	u.Name = name
+	u.Profile = profile
+	return us.AddNewUser(&User{u}, password)
 }
 
 //data implementation
@@ -107,21 +122,27 @@ type User struct {
 	userData
 }
 
+//Sanitize removes sensitive data
+func (u *User) Sanitize() {
+	u.userData.Pswd = ""
+	u.userData.Active = false
+}
+
 //UserFromJSON deserializes data
-func UserFromJSON(d []byte) (User, error) {
+func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
-		return User{}, err
+		return &User{}, err
 	}
-	return User{user}, nil
+	return &User{user}, nil
 }
 
 //model.User interface implementation
-func (u User) ID() string                      { return u.userData.ID.Hex() }
-func (u User) Name() string                    { return u.userData.Name }
-func (u User) PasswordHash() string            { return u.userData.Pswd }
-func (u User) Profile() map[string]interface{} { return u.userData.Profile }
-func (u User) Active() bool                    { return u.userData.Active }
+func (u *User) ID() string                      { return u.userData.ID.Hex() }
+func (u *User) Name() string                    { return u.userData.Name }
+func (u *User) PasswordHash() string            { return u.userData.Pswd }
+func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
+func (u *User) Active() bool                    { return u.userData.Active }
 
 //PasswordHash creates hash with salt for password
 func PasswordHash(pwd string) string {

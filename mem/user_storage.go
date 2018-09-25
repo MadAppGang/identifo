@@ -47,39 +47,44 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return randUser(), nil
 }
 
-func randUser() user {
+func randUser() *user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),
 		"id":      randomdata.StringNumber(2, "-"),
 		"address": randomdata.Address(),
 	}
-	return user{
+	return &user{
 		userData: userData{
-			id:      randomdata.StringNumber(2, "-"),
-			name:    randomdata.SillyName(),
-			pswd:    randomdata.StringNumber(2, "-"),
-			profile: profile,
-			active:  randomdata.Boolean(),
+			ID:      randomdata.StringNumber(2, "-"),
+			Name:    randomdata.SillyName(),
+			Pswd:    randomdata.StringNumber(2, "-"),
+			Profile: profile,
+			Active:  randomdata.Boolean(),
 		},
 	}
 }
 
 //data implementation
 type userData struct {
-	id      string
-	name    string
-	pswd    string
-	profile map[string]interface{}
-	active  bool
+	ID      string                 `json:"id,omitempty"`
+	Name    string                 `json:"name,omitempty"`
+	Pswd    string                 `json:"pswd,omitempty"`
+	Profile map[string]interface{} `json:"profile,omitempty"`
+	Active  bool                   `json:"active,omitempty"`
 }
 
 type user struct {
 	userData
 }
 
+func (u *user) Sanitize() {
+	u.userData.Pswd = ""
+	u.userData.Active = false
+}
+
 //model.User interface implementation
-func (u user) ID() string                      { return u.id }
-func (u user) Name() string                    { return u.name }
-func (u user) PasswordHash() string            { return u.pswd }
-func (u user) Profile() map[string]interface{} { return u.profile }
-func (u user) Active() bool                    { return u.active }
+func (u *user) ID() string                      { return u.userData.ID }
+func (u *user) Name() string                    { return u.userData.Name }
+func (u *user) PasswordHash() string            { return u.userData.Pswd }
+func (u *user) Profile() map[string]interface{} { return u.userData.Profile }
+func (u *user) Active() bool                    { return u.userData.Active }
