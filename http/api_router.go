@@ -45,12 +45,15 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 
 //ServeJSON send status code, headers and data and send it back to the user
 func (ar *apiRouter) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
-	if err := json.NewEncoder(w).Encode(v); err != nil {
+	data, err := json.Marshal(v)
+	if err != nil {
 		ar.Error(w, err, http.StatusInternalServerError, "")
+		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
+	w.Write(data)
 }
 
 // Error writes an API error message to the response and logger.
