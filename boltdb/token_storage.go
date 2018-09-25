@@ -30,7 +30,7 @@ func NewTokenStorage(db *bolt.DB) (model.TokenStorage, error) {
 
 }
 
-//TokenStorage im embedded token storage
+//TokenStorage  embedded token storage
 type TokenStorage struct {
 	db *bolt.DB
 }

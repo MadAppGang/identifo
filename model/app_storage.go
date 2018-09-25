@@ -4,7 +4,7 @@ package model
 type AppStorage interface {
 	//AppByID returns application data by AppID
 	AppByID(id string) (AppData, error)
-	AddNewApp(app AppData) error
+	AddNewApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(oldAppID string, newApp AppData) error
 }

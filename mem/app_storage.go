@@ -24,9 +24,9 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 }
 
 //AddNewApp add new app to memory storage
-func (as *AppStorage) AddNewApp(app model.AppData) error {
+func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	as.storage[app.ID()] = NewAppData(app)
-	return nil
+	return app, nil
 }
 
 //DisableApp disables app from storage

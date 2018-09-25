@@ -5,21 +5,20 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/boltdb/bolt"
-	"github.com/madappgang/identifo/boltdb"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/mongo"
 )
 
 func initDB() model.Router {
-	db, err := boltdb.InitDB("db.db")
+	db, err := mongo.NewDB("localhost:27017", "identifo")
 	if err != nil {
 		log.Fatal(err)
 	}
-	appStorage, _ := boltdb.NewAppStorage(db)
-	userStorage, _ := boltdb.NewUserStorage(db)
-	tokenStorage, _ := boltdb.NewTokenStorage(db)
+	appStorage, _ := mongo.NewAppStorage(db)
+	userStorage, _ := mongo.NewUserStorage(db)
+	tokenStorage, _ := mongo.NewTokenStorage(db)
 
 	tokenService, _ := jwt.NewTokenService(
 		"../../jwt/private.pem",
@@ -34,25 +33,25 @@ func initDB() model.Router {
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
 		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
-		createData(db, userStorage.(*boltdb.UserStorage), appStorage)
+		createData(db, userStorage.(*mongo.UserStorage), appStorage)
 	}
 	return r
 }
 
 func main() {
-	fmt.Println("Embedded server started")
+	fmt.Println("mongodb server started")
 	r := initDB()
 
 	http.ListenAndServe(":8080", r)
 }
 
-func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
-	u1d := []byte(`{"id":"12345","name":"test@madappgang.com","active":true}`)
-	u1, _ := boltdb.UserFromJSON(u1d)
+func createData(db *mongo.DB, us *mongo.UserStorage, as model.AppStorage) {
+	u1d := []byte(`{"name":"test@madappgang.com","active":true}`)
+	u1, _ := mongo.UserFromJSON(u1d)
 	us.AddNewUser(u1, "secret")
 
-	u1d = []byte(`{"id":"12346","name":"User2","active":false}`)
-	u1, _ = boltdb.UserFromJSON(u1d)
+	u1d = []byte(`{"name":"User2","active":false}`)
+	u1, _ = mongo.UserFromJSON(u1d)
 	us.AddNewUser(u1, "other_password")
 
 	ad := []byte(`{
@@ -67,7 +66,7 @@ func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
 		"refresh_token_lifespan":9000000,
 		"token_lifespan":9000
 	}`)
-	app, err := boltdb.AppDataFromJSON(ad)
+	app, err := mongo.AppDataFromJSON(ad)
 	if err != nil {
 		log.Fatal(err)
 	}
