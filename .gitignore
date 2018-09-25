@@ -12,3 +12,4 @@
 *.out
 vendor
 db.db
+debug

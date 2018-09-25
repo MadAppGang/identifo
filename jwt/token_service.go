@@ -35,6 +35,7 @@ func NewTokenService(private, public, issuer string, storage model.TokenStorage,
 	t.issuer = issuer
 	t.appStorage = appStorage
 	t.userStorage = userStorage
+	t.tokenStorage = storage
 	//load private key from pem file
 	prkb, err := ioutil.ReadFile(private)
 	if err != nil {

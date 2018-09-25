@@ -6,11 +6,6 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-// type loginResponse struct {
-// 	Answer string    `json:"answer,omitempty"`
-// 	Date   time.Time `json:"date,omitempty"`
-// }
-
 //LoginWithPassword - login user with email and password
 func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 

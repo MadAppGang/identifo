@@ -10,4 +10,5 @@ const (
 	//ErrorNotFound general not found error
 	ErrorNotFound        = Error("not found")
 	ErrorWrongDataFormat = Error("wrong data format")
+	ErrorUserExists      = Error("User already exists")
 )

@@ -26,6 +26,6 @@ func (ar *apiRouter) initRoutes() {
 		negroni.Wrap(auth),
 	))
 	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
-
+	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	ar.router.UseHandler(r)
 }

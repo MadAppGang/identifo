@@ -42,6 +42,11 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	return randUser(), nil
 }
 
+//AddUserByNameAndPassword returns random generated user
+func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+	return randUser(), nil
+}
+
 func randUser() user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),

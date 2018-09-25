@@ -167,6 +167,22 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, nil
 }
 
+//AddUserByNameAndPassword creates new user and save him/her in datavase
+func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+	//using user name as a key
+	_, err := us.UserByID(name)
+	//if there is no error, it means user already exists
+	if err == nil {
+		return nil, ErrorUserExists
+	}
+	u := userData{}
+	u.Active = true
+	u.Name = name
+	u.Profile = profile
+	u.ID = name
+	return us.AddNewUser(User{u}, password)
+}
+
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
@@ -193,6 +209,12 @@ func UserFromJSON(d []byte) (User, error) {
 //Marshal serialize data to byte array
 func (u User) Marshal() ([]byte, error) {
 	return json.Marshal(u.userData)
+}
+
+//Sanitize clears all sensitive data
+func (u User) Sanitize() {
+	u.userData.Pswd = ""
+	u.userData.Active = false
 }
 
 //model.User interface implementation
