@@ -49,7 +49,9 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
 
-	a.appData.ID = bson.NewObjectId()
+	if !a.appData.ID.Valid() {
+		a.appData.ID = bson.NewObjectId()
+	}
 	if err := s.C.Insert(a.appData); err != nil {
 		return nil, err
 	}
