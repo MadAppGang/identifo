@@ -27,5 +27,11 @@ func (ar *apiRouter) initRoutes() {
 	))
 	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
 	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
+
+	auth.Path("/token").Handler(negroni.New(
+		ar.Token("refresh"),
+		negroni.Wrap(ar.RefreshToken()),
+	)).Methods("GET")
+
 	ar.router.UseHandler(r)
 }

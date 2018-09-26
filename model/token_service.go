@@ -17,11 +17,14 @@ type TokenService interface {
 	RefreshToken(token Token) (Token, error)
 	Parse(string) (Token, error)
 	String(Token) (string, error)
+	Issuer() string
 }
 
 //Token is app token to give user chan
 type Token interface {
 	Validate() error
+	UserID() string
+	Type() string
 }
 
 //Validator calidate token with external requester

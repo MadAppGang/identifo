@@ -15,6 +15,8 @@ const (
 	ErrorRequestInvalidAppID = Error("Incorrect or empty application ID")
 	//ErrorRequestInactiveApp the reqesting app is inactive
 	ErrorRequestInactiveApp = Error("Requesting app is inactive")
+	//ErrorRequestInvalidToken invalid or empty token
+	ErrorRequestInvalidToken = Error("Incorrect or empty Bearer token")
 
 	//ErrorPasswordShouldHave7Letter strong password  validation
 	ErrorPasswordShouldHave7Letter = Error("Password should have at least seven letters")

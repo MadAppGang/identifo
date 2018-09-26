@@ -69,6 +69,11 @@ type TokenService struct {
 	issuer       string
 }
 
+//Issuer returns issuer name
+func (ts *TokenService) Issuer() string {
+	return ts.issuer
+}
+
 //Parse parses token data from string representation
 func (ts *TokenService) Parse(s string) (model.Token, error) {
 	tokenString := strings.TrimSpace(s)

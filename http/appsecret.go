@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -17,6 +18,8 @@ const (
 	SignatureHeaderKey = "Digest"
 	//SignatureHeaderValuePrefix signature prefix, indicating hash algorithm, hardcoded now, could be dynamic in the future
 	SignatureHeaderValuePrefix = "SHA-256="
+	//TimestampHeaderKey header timestamp key
+	TimestampHeaderKey = "X-Identifo-Timestamp"
 )
 
 //SignatureHandler returns middleware, that hanles
@@ -40,12 +43,20 @@ func (ar *apiRouter) SignatureHandler() negroni.HandlerFunc {
 			return
 		}
 
-		//extract body
-		body, err := ioutil.ReadAll(r.Body)
-		if err != nil {
-			ar.logger.Printf("Error reading body: %v", err)
-			ar.Error(rw, ErrorWrongInput, http.StatusBadRequest, "")
-			return
+		var body []byte
+		if r.Method == "GET" {
+			t := r.Header.Get(TimestampHeaderKey)
+			body = []byte(r.URL.String() + t)
+			fmt.Println(r.URL.String() + t)
+		} else {
+			//extract body
+			b, err := ioutil.ReadAll(r.Body)
+			if err != nil {
+				ar.logger.Printf("Error reading body: %v", err)
+				ar.Error(rw, ErrorWrongInput, http.StatusBadRequest, "")
+				return
+			}
+			body = b
 		}
 
 		//check body signature
@@ -55,8 +66,10 @@ func (ar *apiRouter) SignatureHandler() negroni.HandlerFunc {
 			return
 		}
 
-		//return body as Reader to next handlers
-		r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		if r.Method != "GET" {
+			//return body as Reader to next handlers
+			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		}
 		// call next handler
 		next(rw, r)
 	}

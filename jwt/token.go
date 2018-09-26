@@ -20,6 +20,24 @@ func (t *Token) Validate() error {
 	return nil
 }
 
+//UserID returns user ID
+func (t *Token) UserID() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Subject
+}
+
+//Type returns token type, could be empty or "refresh" only
+func (t *Token) Type() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Type
+}
+
 //Claims extended claims structure
 type Claims struct {
 	UserProfile string `json:"user_profile,omitempty"`
