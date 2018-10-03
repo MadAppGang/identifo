@@ -1,8 +1,17 @@
 package http
 
 import (
+	"net/http"
+
+	"github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
+)
+
+var (
+	headersOk = handlers.AllowedHeaders([]string{"Content-Type", "X-Requested-With"})
+	originsOk = handlers.AllowedOrigins([]string{"http://localhost:8080"})
+	methodsOk = handlers.AllowedMethods([]string{"GET", "HEAD", "POST", "OPTIONS", "PUT", "DELETE"})
 )
 
 //setup all routes
@@ -18,6 +27,10 @@ func (ar *apiRouter) initRoutes() {
 	//setup root routes
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
+	r.Path("/password/forgot").HandlerFunc(ar.ForgotPassword()).Methods("POST", "GET")
+
+	// static files serve
+	r.PathPrefix("/static/").Handler(http.FileServer(http.Dir("../../")))
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
@@ -33,5 +46,6 @@ func (ar *apiRouter) initRoutes() {
 		negroni.Wrap(ar.RefreshToken()),
 	)).Methods("GET")
 
-	ar.router.UseHandler(r)
+	handler := handlers.CORS(originsOk, headersOk, methodsOk)(r)
+	ar.router.UseHandler(handler)
 }

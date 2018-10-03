@@ -183,6 +183,53 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(User{u}, password)
 }
 
+//UserByName returns user by it's name
+func (us *UserStorage) UserByName(name string) (model.User, error) {
+	var (
+		user  model.User
+		users []model.User
+	)
+
+	if err := us.allUsers(&users); err != nil {
+		return nil, err
+	}
+
+	for _, u := range users {
+		if u.Name() == name {
+			user = u
+			break
+		}
+	}
+
+	if user == nil {
+		return nil, ErrorNotFound
+	}
+
+	return user, nil
+}
+
+func (us *UserStorage) allUsers(users *[]model.User) error {
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserBucket))
+
+		c := b.Cursor()
+
+		for k, v := c.First(); k != nil; k, v = c.Next() {
+			user, err := UserFromJSON(v)
+
+			if err != nil {
+				return err
+			}
+
+			*users = append(*users, user)
+		}
+
+		return nil
+	})
+
+	return err
+}
+
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`

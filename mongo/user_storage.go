@@ -108,6 +108,20 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(&User{u}, password)
 }
 
+// UserByName returns user by it's Name
+func (us *UserStorage) UserByName(name string) (model.User, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	q := bson.M{"$regex": bson.RegEx{Pattern: name, Options: "i"}}
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return nil, ErrorNotFound
+	}
+
+	return &User{userData: u}, nil
+}
+
 //data implementation
 type userData struct {
 	ID      bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
