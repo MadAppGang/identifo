@@ -61,6 +61,14 @@
   revision = "15df0648130a623e418886f81b2aaecd0a00547b"
 
 [[projects]]
+  digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
+  name = "github.com/rs/cors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9a47f48565a795472d43519dd49aac781f3034fb"
+  version = "v1.6.0"
+
+[[projects]]
   digest = "1:d688f4ad71b5dfad95c2d74cb0feac09f8f3c32ae5cecc078230dbdeece39e53"
   name = "github.com/urfave/negroni"
   packages = ["."]
@@ -117,6 +125,7 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
     "github.com/pallinder/go-randomdata",
+    "github.com/rs/cors",
     "github.com/urfave/negroni",
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",

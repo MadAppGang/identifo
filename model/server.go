@@ -1,6 +1,10 @@
 package model
 
-import "net/http"
+import (
+	"net/http"
+
+	"github.com/rs/cors"
+)
 
 //Server holds together all dependencies
 type Server struct {
@@ -10,4 +14,5 @@ type Server struct {
 //Router is class to handle all incoming http requests
 type Router interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
+	AddCORS(cors.Options)
 }

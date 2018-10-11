@@ -5,6 +5,8 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/rs/cors"
+
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -29,6 +31,14 @@ func initDB() model.Router {
 		userStorage,
 	)
 	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	// Add CORS
+	options := cors.Options{
+		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
+		AllowedOrigins: []string{"http://localhost:8080"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD"},
+	}
+	r.AddCORS(options)
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
