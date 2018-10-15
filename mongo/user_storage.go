@@ -70,7 +70,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
 		return nil, ErrorNotFound
 	}
-	if u.Pswd != PasswordHash(password) {
+	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
 		return nil, ErrorNotFound
 	}
 	//clear password hash
@@ -87,6 +87,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 	u.userData.ID = bson.NewObjectId()
+	u.userData.Pswd = PasswordHash(password)
 	if err := s.C.Insert(u.userData); err != nil {
 		return nil, err
 	}
