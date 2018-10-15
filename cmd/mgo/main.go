@@ -32,10 +32,10 @@ func initDB() model.Router {
 	)
 
 	staticPages := model.StaticPages{
-		Login:          "../../tmpl/login.html",
-		Registration:   "../../tmpl/registration.html",
-		ForgotPassword: "../../tmpl/forgot-password.html",
-		ResetPassword:  "../../tmpl/reset-password.html",
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
 	}
 	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, staticPages)
 
