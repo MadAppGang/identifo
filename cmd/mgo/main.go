@@ -32,14 +32,6 @@ func initDB() model.Router {
 	)
 	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
-	// Add CORS
-	options := cors.Options{
-		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
-		AllowedOrigins: []string{"http://localhost:8080"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD"},
-	}
-	r.AddCORS(options)
-
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
 		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
@@ -48,9 +40,19 @@ func initDB() model.Router {
 	return r
 }
 
+func initCORS(r model.Router) {
+	options := cors.Options{
+		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
+		AllowedOrigins: []string{"http://localhost:8080"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD"},
+	}
+	r.AddCORS(options)
+}
+
 func main() {
 	fmt.Println("mongodb server started")
 	r := initDB()
+	initCORS(r)
 
 	http.ListenAndServe(":8080", r)
 }
