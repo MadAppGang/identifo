@@ -8,6 +8,7 @@ import (
 
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -28,9 +29,14 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, corsOptions *cors.Options) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
+
+	if corsOptions != nil {
+		ar.initCORS(*corsOptions)
+	}
+
 	//setup default router to stdout
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
