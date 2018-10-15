@@ -1,6 +1,8 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
@@ -24,6 +26,11 @@ func (ar *apiRouter) initRoutes() {
 	r.HandleFunc("/registration", ar.ServeTemplate(ar.staticPages.Registration)).Methods("GET")
 	r.HandleFunc("/password/forgot", ar.ServeTemplate(ar.staticPages.ForgotPassword)).Methods("GET")
 	r.HandleFunc("/password/reset", ar.ServeTemplate(ar.staticPages.ResetPassword)).Methods("GET")
+
+	//static files
+	handler := http.FileServer(http.Dir("../../static"))
+	r.PathPrefix("/css").Handler(handler)
+	r.PathPrefix("/js").Handler(handler)
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
