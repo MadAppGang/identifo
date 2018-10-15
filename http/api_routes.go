@@ -1,6 +1,8 @@
 package http
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
@@ -18,6 +20,11 @@ func (ar *apiRouter) initRoutes() {
 	//setup root routes
 	ar.handler.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 	ar.handler.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
+
+	//static files
+	handler := http.FileServer(http.Dir("../../static"))
+	r.PathPrefix("/css").Handler(handler)
+	r.PathPrefix("/js").Handler(handler)
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
