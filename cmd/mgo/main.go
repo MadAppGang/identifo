@@ -5,12 +5,11 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/rs/cors"
-
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/mongo"
+	"github.com/rs/cors"
 )
 
 func initDB() model.Router {
@@ -37,7 +36,14 @@ func initDB() model.Router {
 		ForgotPassword: "../../static/forgot-password.html",
 		ResetPassword:  "../../static/reset-password.html",
 	}
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, staticPages)
+
+	corsOptions := cors.Options{
+		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
+		AllowedOrigins: []string{"http://localhost:8080"},
+		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"},
+	}
+
+	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, &corsOptions, staticPages)
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
@@ -47,19 +53,9 @@ func initDB() model.Router {
 	return r
 }
 
-func initCORS(r model.Router) {
-	options := cors.Options{
-		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
-		AllowedOrigins: []string{"http://localhost:8080"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD"},
-	}
-	r.AddCORS(options)
-}
-
 func main() {
 	fmt.Println("mongodb server started")
 	r := initDB()
-	initCORS(r)
 
 	http.ListenAndServe(":8080", r)
 }
