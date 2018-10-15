@@ -30,7 +30,14 @@ func initDB() model.Router {
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	staticPages := model.StaticPages{
+		Login:          "../../tmpl/login.html",
+		Registration:   "../../tmpl/registration.html",
+		ForgotPassword: "../../tmpl/forgot-password.html",
+		ResetPassword:  "../../tmpl/reset-password.html",
+	}
+	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, staticPages)
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {

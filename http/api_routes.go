@@ -19,6 +19,12 @@ func (ar *apiRouter) initRoutes() {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 
+	//static pages
+	r.HandleFunc("/login", ar.ServeTemplate(ar.staticPages.Login)).Methods("GET")
+	r.HandleFunc("/registration", ar.ServeTemplate(ar.staticPages.Registration)).Methods("GET")
+	r.HandleFunc("/password/forgot", ar.ServeTemplate(ar.staticPages.ForgotPassword)).Methods("GET")
+	r.HandleFunc("/password/reset", ar.ServeTemplate(ar.staticPages.ResetPassword)).Methods("GET")
+
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	r.PathPrefix("/auth").Handler(apiMiddlewares.With(

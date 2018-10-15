@@ -19,6 +19,7 @@ type apiRouter struct {
 	userStorage  model.UserStorage
 	tokenStorage model.TokenStorage
 	tokenService model.TokenService
+	staticPages  model.StaticPages
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -28,7 +29,7 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, staticPages model.StaticPages) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 	//setup default router to stdout
@@ -39,6 +40,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	ar.userStorage = userStorage
 	ar.tokenStorage = tokenStorage
 	ar.tokenService = tokenService
+	ar.staticPages = staticPages
 	ar.initRoutes()
 	return &ar
 }
