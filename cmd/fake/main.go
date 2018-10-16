@@ -29,6 +29,8 @@ func main() {
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	var settings ihttp.Settings
+	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
 	http.ListenAndServe(":8080", r)
 }
