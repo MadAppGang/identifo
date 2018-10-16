@@ -22,6 +22,11 @@ type apiRouter struct {
 	tokenService model.TokenService
 }
 
+// Settings describe router's settings
+type Settings struct {
+	cors *cors.Options
+}
+
 //ServeHTTP identifo.Router protocol implementation
 func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
@@ -29,12 +34,12 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, corsOptions *cors.Options) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, settings Settings) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 
-	if corsOptions != nil {
-		ar.initCORS(*corsOptions)
+	if settings.cors != nil {
+		ar.initCORS(*settings.cors)
 	}
 
 	//setup default router to stdout

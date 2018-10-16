@@ -12,7 +12,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-func initDB() model.Router {
+func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := boltdb.InitDB("db.db")
 	if err != nil {
 		log.Fatal(err)
@@ -29,19 +29,31 @@ func initDB() model.Router {
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
+
 	if err != nil {
 		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
 		createData(db, userStorage.(*boltdb.UserStorage), appStorage)
 	}
-	return r
+
+	return appStorage, userStorage, tokenStorage, tokenService
+}
+
+func getSettings() ihttp.Settings {
+	return ihttp.Settings{}
+}
+
+func initRouter() model.Router {
+	settings := getSettings()
+	appStorage, userStorage, tokenStorage, tokenService := initDB()
+
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
 }
 
 func main() {
 	fmt.Println("Embedded server started")
-	r := initDB()
+	r := initRouter()
 
 	http.ListenAndServe(":8080", r)
 }
