@@ -29,13 +29,14 @@ func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
 		static.HandleFunc("/register", ar.ServeTemplate(staticPages.Registration)).Methods("GET")
 		static.HandleFunc("/password/forgot", ar.ServeTemplate(staticPages.ForgotPassword)).Methods("GET")
 		static.HandleFunc("/password/reset", ar.ServeTemplate(staticPages.ResetPassword)).Methods("GET")
+
+		//setup routes for static files
+		handler := http.FileServer(http.Dir("../../static"))
+		static.PathPrefix("/css").Handler(handler)
+		static.PathPrefix("/js").Handler(handler)
+
 		r.NewRoute().Handler(static)
 	}
-
-	//static files
-	handler := http.FileServer(http.Dir("../../static"))
-	r.PathPrefix("/css").Handler(handler)
-	r.PathPrefix("/js").Handler(handler)
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
