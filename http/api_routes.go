@@ -21,13 +21,13 @@ func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
 
 	//setup routes for static pages
 	if staticPages != nil {
-		pages := r.NewRoute().Subrouter()
-		r.NewRoute().Handler(pages)
+		static := r.NewRoute().Subrouter()
 
-		pages.HandleFunc("/login", ar.ServeTemplate(staticPages.Login)).Methods("GET")
-		pages.HandleFunc("/register", ar.ServeTemplate(staticPages.Registration)).Methods("GET")
-		pages.HandleFunc("/password/forgot", ar.ServeTemplate(staticPages.ForgotPassword)).Methods("GET")
-		pages.HandleFunc("/password/reset", ar.ServeTemplate(staticPages.ResetPassword)).Methods("GET")
+		static.HandleFunc("/login", ar.ServeTemplate(staticPages.Login)).Methods("GET")
+		static.HandleFunc("/register", ar.ServeTemplate(staticPages.Registration)).Methods("GET")
+		static.HandleFunc("/password/forgot", ar.ServeTemplate(staticPages.ForgotPassword)).Methods("GET")
+		static.HandleFunc("/password/reset", ar.ServeTemplate(staticPages.ResetPassword)).Methods("GET")
+		r.NewRoute().Handler(static)
 	}
 
 	//setup auth routes
