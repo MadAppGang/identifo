@@ -47,6 +47,20 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return nil, ErrorNotImplemented
 }
 
+//CheckIfUserExistByName checks does user exist with presented name
+func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	q := bson.M{"$regex": bson.RegEx{Pattern: createStrictRegex(name), Options: "i"}}
+	var u userData
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return false
+	}
+
+	return true
+}
+
 //AttachDeviceToken do nothing here
 //TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
@@ -148,4 +162,8 @@ func (u *User) Active() bool                    { return u.userData.Active }
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
+}
+
+func createStrictRegex(str string) string {
+	return "^" + str + "$"
 }

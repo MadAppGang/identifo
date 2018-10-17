@@ -8,6 +8,7 @@ type UserStorage interface {
 	UserByNamePassword(name, password string) (User, error)
 	AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (User, error)
 	RequestScopes(userID string, scopes []string) ([]string, error)
+	CheckIfUserExistByName(name string) bool
 }
 
 //User is abstract representation of the user in auth layer

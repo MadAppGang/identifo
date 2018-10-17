@@ -27,6 +27,11 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
+//CheckIfUserExistByName always returns true
+func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+	return true
+}
+
 //AttachDeviceToken do nothing here
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return nil
