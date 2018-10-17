@@ -19,6 +19,13 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	us := UserStorage{}
 	us.db = db
 	//TODO: ensure indexes
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	if err := s.C.EnsureIndexKey("name"); err != nil {
+		return nil, err
+	}
+
 	return &us, nil
 }
 
