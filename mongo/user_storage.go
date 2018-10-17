@@ -19,6 +19,13 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	us := UserStorage{}
 	us.db = db
 	//TODO: ensure indexes
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	if err := s.C.EnsureIndexKey("name"); err != nil {
+		return nil, err
+	}
+
 	return &us, nil
 }
 
@@ -45,6 +52,20 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 //UserBySocialID returns random generated user
 func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return nil, ErrorNotImplemented
+}
+
+//CheckIfUserExistByName checks does user exist with presented name
+func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	q := bson.M{"$regex": bson.RegEx{Pattern: createStrictRegex(name), Options: "i"}}
+	var u userData
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return false
+	}
+
+	return true
 }
 
 //AttachDeviceToken do nothing here
@@ -149,4 +170,8 @@ func (u *User) Active() bool                    { return u.userData.Active }
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
+}
+
+func createStrictRegex(str string) string {
+	return "^" + str + "$"
 }

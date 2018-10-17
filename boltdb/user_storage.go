@@ -96,6 +96,31 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return res, nil
 }
 
+//CheckIfUserExistByName checks does user exist with presented name
+func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserByNameAndPassword))
+		ub := tx.Bucket([]byte(UserBucket))
+		userID := b.Get([]byte(name))
+
+		if userID == nil {
+			return ErrorNotFound
+		}
+
+		if u := ub.Get([]byte(userID)); u == nil {
+			return ErrorNotFound
+		}
+
+		return nil
+	})
+
+	if err != nil {
+		return false
+	}
+
+	return true
+}
+
 //AttachDeviceToken do nothing here
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here
