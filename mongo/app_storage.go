@@ -13,19 +13,19 @@ var (
 	AppsCollection = "Applications"
 )
 
-//NewAppStorage creates new embedded AppStorage implementation
+//NewAppStorage creates new mongo AppStorage implementation
 func NewAppStorage(db *DB) (model.AppStorage, error) {
 	as := AppStorage{}
 	as.db = db
 	return &as, nil
 }
 
-//AppStorage is fully functional app storage
+//AppStorage is fully functional app storage in mongo
 type AppStorage struct {
 	db *DB
 }
 
-//AppByID returns app from memory by ID
+//AppByID returns app from mongo by ID
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, ErrorWrongDataFormat
@@ -40,7 +40,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	return AppData{appData: ad}, nil
 }
 
-//AddNewApp add new app to memory storage
+//AddNewApp add new app to mongo storage
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
@@ -58,7 +58,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	return app, nil
 }
 
-//DisableApp disables app from storage
+//DisableApp disables app in mongo storage
 func (as *AppStorage) DisableApp(app model.AppData) error {
 	if !bson.IsObjectIdHex(app.ID()) {
 		return ErrorWrongDataFormat
@@ -78,7 +78,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	return nil
 }
 
-//UpdateApp updates app in storage
+//UpdateApp updates app in mongo storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	if !bson.IsObjectIdHex(oldAppID) {
 		return ErrorWrongDataFormat
@@ -110,12 +110,12 @@ type appData struct {
 	TokenLifespan        int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 }
 
-//AppData is memory model for model.AppData
+//AppData is mongo model for model.AppData
 type AppData struct {
 	appData
 }
 
-//NewAppData instantiate app data memory model from general one
+//NewAppData instantiate app data mongo model from general one
 func NewAppData(data model.AppData) (AppData, error) {
 	if !bson.IsObjectIdHex(data.ID()) {
 		return AppData{}, ErrorWrongDataFormat
@@ -147,7 +147,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 	return json.Marshal(ad.appData)
 }
 
-//MakeAppData creates new memory app data instance
+//MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, ErrorWrongDataFormat

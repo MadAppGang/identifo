@@ -2,6 +2,47 @@
 
 
 [[projects]]
+  digest = "1:0645f339a61f3f6e79ffe31e2189aa46fdaee544a884874e42147c60758c13d8"
+  name = "github.com/aws/aws-sdk-go"
+  packages = [
+    "aws",
+    "aws/awserr",
+    "aws/awsutil",
+    "aws/client",
+    "aws/client/metadata",
+    "aws/corehandlers",
+    "aws/credentials",
+    "aws/credentials/ec2rolecreds",
+    "aws/credentials/endpointcreds",
+    "aws/credentials/stscreds",
+    "aws/csm",
+    "aws/defaults",
+    "aws/ec2metadata",
+    "aws/endpoints",
+    "aws/request",
+    "aws/session",
+    "aws/signer/v4",
+    "internal/ini",
+    "internal/sdkio",
+    "internal/sdkrand",
+    "internal/sdkuri",
+    "internal/shareddefaults",
+    "private/protocol",
+    "private/protocol/json/jsonutil",
+    "private/protocol/jsonrpc",
+    "private/protocol/query",
+    "private/protocol/query/queryutil",
+    "private/protocol/rest",
+    "private/protocol/xml/xmlutil",
+    "service/dynamodb",
+    "service/dynamodb/dynamodbattribute",
+    "service/sts",
+  ]
+  pruneopts = "UT"
+  revision = "9a79cc876234949427d966249a09fc98e7864bde"
+  version = "v1.15.61"
+
+[[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
   name = "github.com/boltdb/bolt"
   packages = ["."]
@@ -53,12 +94,27 @@
   version = "v1.6.2"
 
 [[projects]]
+  digest = "1:e22af8c7518e1eab6f2eab2b7d7558927f816262586cd6ed9f349c97a6c285c4"
+  name = "github.com/jmespath/go-jmespath"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "0b12d6b5"
+
+[[projects]]
   branch = "master"
   digest = "1:0e5b66364c5559101d270c0ed5f0196ca6ce910cf89247b9315c6305f15f29d5"
   name = "github.com/pallinder/go-randomdata"
   packages = ["."]
   pruneopts = "UT"
   revision = "15df0648130a623e418886f81b2aaecd0a00547b"
+
+[[projects]]
+  digest = "1:2e76a73cb51f42d63a2a1a85b3dc5731fd4faf6821b434bd0ef2c099186031d6"
+  name = "github.com/rs/xid"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "15d26544def341f036c5f8dca987a4cbe575032c"
+  version = "v1.2.1"
 
 [[projects]]
   digest = "1:d688f4ad71b5dfad95c2d74cb0feac09f8f3c32ae5cecc078230dbdeece39e53"
@@ -81,11 +137,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:0a40b0bdd57a93e741d8557465be3a2edeec408e9b6399586ad65bbe8e355796"
+  digest = "1:2e50f1b357b5045529ef66440674e7b17f5e433df8aaac85d10c4ab61dc70eb4"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "fa43e7bc11baaae89f3f902b2b4d832b68234844"
+  revision = "44b849a8bc13eb42e95e6c6c5e360481b73ec710"
 
 [[projects]]
   digest = "1:e2f64cca6e235f32cd4c2f9be9ae0cda1f8608fc6fdb68936e8d10e4e0bb074d"
@@ -113,10 +169,16 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/aws/aws-sdk-go/aws",
+    "github.com/aws/aws-sdk-go/aws/awserr",
+    "github.com/aws/aws-sdk-go/aws/session",
+    "github.com/aws/aws-sdk-go/service/dynamodb",
+    "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
     "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
     "github.com/pallinder/go-randomdata",
+    "github.com/rs/xid",
     "github.com/urfave/negroni",
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",
