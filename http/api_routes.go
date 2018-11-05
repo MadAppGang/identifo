@@ -8,7 +8,7 @@ import (
 )
 
 //setup all routes
-func (ar *apiRouter) initRoutes() {
+func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
 	//do nothing on empty router (or should panic?)
 	if ar.router == nil {
 		return
@@ -21,16 +21,22 @@ func (ar *apiRouter) initRoutes() {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 
-	//static pages
-	r.HandleFunc("/login", ar.ServeTemplate(ar.staticPages.Login)).Methods("GET")
-	r.HandleFunc("/registration", ar.ServeTemplate(ar.staticPages.Registration)).Methods("GET")
-	r.HandleFunc("/password/forgot", ar.ServeTemplate(ar.staticPages.ForgotPassword)).Methods("GET")
-	r.HandleFunc("/password/reset", ar.ServeTemplate(ar.staticPages.ResetPassword)).Methods("GET")
+	//setup routes for static pages
+	if staticPages != nil {
+		static := r.NewRoute().Subrouter()
 
-	//static files
-	handler := http.FileServer(http.Dir("../../static"))
-	r.PathPrefix("/css").Handler(handler)
-	r.PathPrefix("/js").Handler(handler)
+		static.HandleFunc("/login", ar.ServeTemplate(staticPages.Login)).Methods("GET")
+		static.HandleFunc("/register", ar.ServeTemplate(staticPages.Registration)).Methods("GET")
+		static.HandleFunc("/password/forgot", ar.ServeTemplate(staticPages.ForgotPassword)).Methods("GET")
+		static.HandleFunc("/password/reset", ar.ServeTemplate(staticPages.ResetPassword)).Methods("GET")
+
+		//setup routes for static files
+		handler := http.FileServer(http.Dir("../../static"))
+		static.PathPrefix("/css").Handler(handler)
+		static.PathPrefix("/js").Handler(handler)
+
+		r.NewRoute().Handler(static)
+	}
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()

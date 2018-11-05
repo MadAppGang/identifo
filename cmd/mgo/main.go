@@ -9,10 +9,9 @@ import (
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/mongo"
-	"github.com/rs/cors"
 )
 
-func initDB() model.Router {
+func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := mongo.NewDB("localhost:27017", "identifo")
 	if err != nil {
 		log.Fatal(err)
@@ -30,32 +29,35 @@ func initDB() model.Router {
 		userStorage,
 	)
 
-	staticPages := model.StaticPages{
+	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
+	if err != nil {
+		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
+		createData(db, userStorage.(*mongo.UserStorage), appStorage)
+	}
+	return appStorage, userStorage, tokenStorage, tokenService
+}
+
+func getSettings() ihttp.Settings {
+	staticPages := ihttp.StaticPages{
 		Login:          "../../static/login.html",
 		Registration:   "../../static/registration.html",
 		ForgotPassword: "../../static/forgot-password.html",
 		ResetPassword:  "../../static/reset-password.html",
 	}
 
-	corsOptions := cors.Options{
-		AllowedHeaders: []string{"Content-Type", "X-Requested-With"},
-		AllowedOrigins: []string{"http://localhost:8080"},
-		AllowedMethods: []string{"GET", "POST", "PUT", "DELETE", "HEAD", "OPTIONS"},
-	}
+	return ihttp.Settings{StaticPages: &staticPages}
+}
 
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, &corsOptions, staticPages)
+func initRouter() model.Router {
+	appStorage, userStorage, tokenStorage, tokenService := initDB()
+	settings := getSettings()
 
-	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
-	if err != nil {
-		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
-		createData(db, userStorage.(*mongo.UserStorage), appStorage)
-	}
-	return r
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
 }
 
 func main() {
 	fmt.Println("mongodb server started")
-	r := initDB()
+	r := initRouter()
 
 	http.ListenAndServe(":8080", r)
 }
