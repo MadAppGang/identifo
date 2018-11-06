@@ -1,6 +1,8 @@
 "use strict";
 
 var emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+var authServer = "http://127.0.0.1:8080";
+
 var makeObserver = function makeObserver() {
   var listeners = [];
   var subscribe = function subscribe(listener) {
@@ -64,7 +66,7 @@ var createFormView = function createFormView(
     return (errorMessage.style.opacity = 0);
   };
   var sendRequest = function sendRequest(data) {
-    return axios.post("http://127.0.0.1:8080/password/forgot", data);
+    return axios.post(authServer + "/password/forgot", data);
   };
   var validateEmail = function validateEmail(value) {
     return emailRegex.test(value);
