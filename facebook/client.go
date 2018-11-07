@@ -79,8 +79,8 @@ func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	if resp.StatusCode < 400 {
-		return nil, fmt.Errorf("Server responce error: %d", resp.StatusCode)
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("Facebook response error: %d", resp.StatusCode)
 	}
 	err = json.NewDecoder(resp.Body).Decode(v)
 	if err != nil {

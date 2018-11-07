@@ -42,7 +42,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		b := tx.Bucket([]byte(AppBucket))
 		v := b.Get([]byte(id))
 		if v == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		rr, err := AppDataFromJSON(v)
 		res = rr
