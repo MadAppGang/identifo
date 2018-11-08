@@ -63,6 +63,12 @@ func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return model.ErrorNotImplemented
 }
 
+//DetachDeviceToken do nothing here yet
+//TODO: implement
+func (us *UserStorage) DetachDeviceToken(token string) error {
+	return model.ErrorNotImplemented
+}
+
 //RequestScopes for now returns requested scope
 //TODO: implement scope logic
 func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, error) {

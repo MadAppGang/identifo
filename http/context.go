@@ -8,4 +8,6 @@ const (
 	AppDataContextKey ContextKey = iota + 1
 	//TokenContextKey bearer token context key
 	TokenContextKey
+	//TokenRawContextKey bearer token context key in raw format
+	TokenRawContextKey
 )

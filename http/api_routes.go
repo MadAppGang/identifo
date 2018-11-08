@@ -30,9 +30,16 @@ func (ar *apiRouter) initRoutes() {
 	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 
 	auth.Path("/token").Handler(negroni.New(
-		ar.Token("refresh"),
+		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
 	)).Methods("GET")
+
+	me := mux.NewRouter().PathPrefix("/me").Subrouter()
+	auth.Path("/me").Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(me),
+	))
+	auth.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
 
 	ar.router.UseHandler(r)
 }
