@@ -58,7 +58,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		b := tx.Bucket([]byte(UserBucket))
 		v := b.Get([]byte(id))
 		if v == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		rr, err := UserFromJSON(v)
 		res = rr
@@ -70,21 +70,22 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return res, nil
 }
 
-//UserBySocialID returns user by social ID
-func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
+//UserByFederatedID returns user by federated ID
+func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	var res User
+	sid := string(provider) + ":" + id
 	err := us.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(UserBucket))
 		bi := tx.Bucket([]byte(UserBySocialIDBucket))
 		//get user ID from index
-		userID := bi.Get([]byte(id))
+		userID := bi.Get([]byte(sid))
 		if userID == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		//get user by userID
 		u := b.Get(userID)
 		if u == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		rr, err := UserFromJSON(u)
 		res = rr
@@ -124,7 +125,7 @@ func (us *UserStorage) CheckIfUserExistByName(name string) bool {
 //AttachDeviceToken do nothing here
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here
-	return nil
+	return model.ErrorNotImplemented
 }
 
 //RequestScopes mem always returns requested scope
@@ -144,17 +145,17 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		//get user ID from index
 		userID := bi.Get([]byte(key))
 		if userID == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		//get user by userID
 		u := b.Get(userID)
 		if u == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		rr, err := UserFromJSON(u)
 		if err := bcrypt.CompareHashAndPassword([]byte(rr.PasswordHash()), []byte(password)); err != nil {
 			//return this error to hide the existence of the user
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 		res = rr
 		return err
@@ -192,13 +193,45 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, nil
 }
 
+//AddUserWithFederatedID add new user with social ID
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+	sid := string(provider) + ":" + federatedID
+	//using user name as a key
+	_, err := us.UserByFederatedID(provider, federatedID)
+	//if there is no error, it means user already exists
+	if err == nil {
+		return nil, model.ErrorUserExists
+	}
+	u := userData{}
+	u.Active = true
+	u.Name = sid
+	u.ID = sid //not sure it's a good idea
+	user := User{u}
+	err = us.db.Update(func(tx *bolt.Tx) error {
+		bi := tx.Bucket([]byte(UserBySocialIDBucket))
+		b := tx.Bucket([]byte(UserBucket))
+		data, err := user.Marshal()
+		if err != nil {
+			return err
+		}
+		if err := b.Put([]byte(user.ID()), data); err != nil {
+			return err
+		}
+		return bi.Put([]byte(sid), []byte(user.ID()))
+	})
+	if err != nil {
+		return nil, err
+	}
+	return user, nil
+}
+
 //AddUserByNameAndPassword creates new user and save him/her in datavase
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	//using user name as a key
 	_, err := us.UserByID(name)
 	//if there is no error, it means user already exists
 	if err == nil {
-		return nil, ErrorUserExists
+		return nil, model.ErrorUserExists
 	}
 	u := userData{}
 	u.Active = true

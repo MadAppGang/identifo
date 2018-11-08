@@ -26,7 +26,7 @@ type TokenStorage struct {
 //SaveToken save token in database
 func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
-		return ErrorWrongDataFormat
+		return model.ErrorWrongDataFormat
 	}
 	s := ts.db.Session(TokensCollection)
 	defer s.Close()

@@ -14,6 +14,10 @@ const (
 	TokenHeaderKey = "Authorization"
 	//TokenHeaderKeyPrefix token prefix regarding RFCXXX
 	TokenHeaderKeyPrefix = "BEARER "
+	//TokenTypeRefresh is to handle refresh as bearer token
+	TokenTypeRefresh = "refresh"
+	//TokenTypeAccess is to handle access token type as bearer token
+	TokenTypeAccess = "access"
 )
 
 //Token middleware extracts token and validates it
@@ -47,7 +51,8 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), TokenContextKey, app)
+		ctx := context.WithValue(r.Context(), TokenContextKey, token)
+		ctx = context.WithValue(r.Context(), TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
