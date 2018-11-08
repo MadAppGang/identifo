@@ -114,7 +114,7 @@ func (us *UserStorage) CheckIfUserExistByName(name string) bool {
 		return nil
 	})
 
-	if err != nil {
+	return err == nil
 		return false
 	}
 
