@@ -26,4 +26,9 @@ const (
 	ErrorPasswordNoUppercase = Error("Pussword should have at least one uppercase symbol")
 	//ErrorPasswordWrongSymbols strong password validation
 	ErrorPasswordWrongSymbols = Error("Password contains wrong symbols")
+
+	//ErrorFederatedProviderIsNotSupported federated ID provider is not supported
+	ErrorFederatedProviderIsNotSupported = Error("Federated provider is not supported")
+	//ErrorFederatedProviderEmptyUserID federated provider returns empty user ID, maybe access token does not have required permissions
+	ErrorFederatedProviderEmptyUserID = Error("Federated provider returns empty user ID")
 )

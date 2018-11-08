@@ -70,10 +70,10 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return res, nil
 }
 
-//UserBySocialID returns user by social ID
-func (us *UserStorage) UserBySocialID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+//UserByFederatedID returns user by federated ID
+func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	var res User
-	sid := string(provider) + "+" + id
+	sid := string(provider) + ":" + id
 	err := us.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(UserBucket))
 		bi := tx.Bucket([]byte(UserBySocialIDBucket))
@@ -168,19 +168,18 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, nil
 }
 
-//AddUserWithSocialID add new user with social ID
-func (us *UserStorage) AddUserWithSocialID(provider model.FederatedIdentityProvider, socialID, name, password string, profile map[string]interface{}) (model.User, error) {
-	sid := string(provider) + "+" + socialID
+//AddUserWithFederatedID add new user with social ID
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+	sid := string(provider) + ":" + federatedID
 	//using user name as a key
-	_, err := us.UserBySocialID(provider, socialID)
+	_, err := us.UserByFederatedID(provider, federatedID)
 	//if there is no error, it means user already exists
 	if err == nil {
 		return nil, model.ErrorUserExists
 	}
 	u := userData{}
 	u.Active = true
-	u.Name = name
-	u.Profile = profile
+	u.Name = sid
 	u.ID = sid //not sure it's a good idea
 	user := User{u}
 	err = us.db.Update(func(tx *bolt.Tx) error {

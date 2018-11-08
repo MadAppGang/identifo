@@ -7,8 +7,8 @@ type UserStorage interface {
 	UserByNamePassword(name, password string) (User, error)
 	AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (User, error)
 	RequestScopes(userID string, scopes []string) ([]string, error)
-	UserBySocialID(provider FederatedIdentityProvider, id string) (User, error)
-	AddUserWithSocialID(provider FederatedIdentityProvider, socialID, name, password string, profile map[string]interface{}) (User, error)
+	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
+	AddUserWithFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 }
 
 //User is abstract representation of the user in auth layer

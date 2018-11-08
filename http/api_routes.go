@@ -26,8 +26,7 @@ func (ar *apiRouter) initRoutes() {
 		negroni.Wrap(auth),
 	))
 	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
-	auth.Path("/social").HandlerFunc(ar.FacebookLogin()).Methods("POST")
-	auth.Path("/facebook").HandlerFunc(ar.FacebookLogin()).Methods("POST")
+	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 
 	auth.Path("/token").Handler(negroni.New(
