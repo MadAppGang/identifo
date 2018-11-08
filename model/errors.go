@@ -11,4 +11,5 @@ const (
 	ErrorNotFound        = Error("not found")
 	ErrorWrongDataFormat = Error("wrong data format")
 	ErrorUserExists      = Error("User already exists")
+	ErrorNotImplemented  = Error("Not implemented")
 )

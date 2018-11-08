@@ -3,10 +3,9 @@ package mongo
 import (
 	"encoding/json"
 
-	"gopkg.in/mgo.v2/bson"
-
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -30,7 +29,7 @@ type UserStorage struct {
 //UserByID returns user by it's ID
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	if !bson.IsObjectIdHex(id) {
-		return nil, ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -42,16 +41,26 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return &User{userData: u}, nil
 }
 
-//UserBySocialID returns random generated user
-func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
-	return nil, ErrorNotImplemented
+//UserByFederatedID returns user by federated ID
+func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+	sid := string(provider) + ":" + id
+
+	var u userData
+	if err := s.C.Find(bson.M{"federatedIDs": sid}).One(&u); err != nil {
+		return nil, model.ErrorNotFound
+	}
+	//clear password hash
+	u.Pswd = ""
+	return &User{userData: u}, nil
 }
 
 //AttachDeviceToken do nothing here
 //TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here
-	return nil
+	return model.ErrorNotImplemented
 }
 
 //RequestScopes for now returns requested scope
@@ -68,10 +77,10 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	var u userData
 	q := bson.M{"$regex": bson.RegEx{Pattern: name, Options: "i"}}
 	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
-		return nil, ErrorNotFound
+		return nil, model.ErrorNotFound
 	}
 	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
-		return nil, ErrorNotFound
+		return nil, model.ErrorNotFound
 	}
 	//clear password hash
 	u.Pswd = ""
@@ -82,12 +91,14 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
 	u, ok := usr.(*User)
 	if !ok {
-		return nil, ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 	u.userData.ID = bson.NewObjectId()
-	u.userData.Pswd = PasswordHash(password)
+	if len(password) > 0 {
+		u.userData.Pswd = PasswordHash(password)
+	}
 	if err := s.C.Insert(u.userData); err != nil {
 		return nil, err
 	}
@@ -100,7 +111,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	_, err := us.UserByID(name)
 	//if there is no error, it means user already exists
 	if err == nil {
-		return nil, ErrorUserExists
+		return nil, model.ErrorUserExists
 	}
 	u := userData{}
 	u.Active = true
@@ -109,13 +120,30 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(&User{u}, password)
 }
 
+//AddUserWithFederatedID add new user with social ID
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+	_, err := us.UserByFederatedID(provider, federatedID)
+	//if there is no error, it means user already exists
+	if err == nil {
+		return nil, model.ErrorUserExists
+	}
+	sid := string(provider) + ":" + federatedID
+	u := userData{}
+	u.Active = true
+	u.Name = sid
+	u.FederatedIDs = []string{sid}
+	return us.AddNewUser(&User{u}, "")
+
+}
+
 //data implementation
 type userData struct {
-	ID      bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name    string                 `bson:"name,omitempty" json:"name,omitempty"`
-	Pswd    string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
-	Profile map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
-	Active  bool                   `bson:"active,omitempty" json:"active,omitempty"`
+	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
+	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
+	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
 }
 
 //User user data structure for mongodb storage

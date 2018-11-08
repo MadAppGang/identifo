@@ -23,7 +23,7 @@ const (
 	//ErrorPasswordNoNumbers strong password validation
 	ErrorPasswordNoNumbers = Error("Password should have at least one number")
 	//ErrorPasswordNoUppercase strong password validation
-	ErrorPasswordNoUppercase = Error("Pussword should have at least one uppercase symbol")
+	ErrorPasswordNoUppercase = Error("Password should have at least one uppercase symbol")
 	//ErrorPasswordWrongSymbols strong password validation
 	ErrorPasswordWrongSymbols = Error("Password contains wrong symbols")
 

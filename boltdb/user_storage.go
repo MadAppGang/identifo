@@ -100,7 +100,7 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 //AttachDeviceToken do nothing here
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here
-	return nil
+	return model.ErrorNotImplemented
 }
 
 //RequestScopes mem always returns requested scope
