@@ -39,7 +39,8 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	ar.router = negroni.Classic()
 
 	if settings.cors != nil {
-		ar.initCORS(*settings.cors)
+		c := cors.New(*settings.cors)
+		ar.router.Use(c)
 	}
 
 	//setup default router to stdout
