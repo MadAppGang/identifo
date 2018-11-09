@@ -119,6 +119,7 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 	claims := Claims{
 		Scopes:      strings.Join(scopes, " "),
 		UserProfile: profileString,
+		Type:        model.AccessTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,

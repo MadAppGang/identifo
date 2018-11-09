@@ -19,7 +19,9 @@ func main() {
 	tokenStorage := mem.NewTokenStorage()
 
 	app := mem.MakeAppData("59fd884d8f6b180001f5b4e2", "secret", true, "Test app", []string{"offline", "smartrun"}, true, "", 0, 0)
-	appStorage.AddNewApp(app)
+	if _, err := appStorage.AddNewApp(app); err != nil {
+		panic(err)
+	}
 
 	tokenService, _ := jwt.NewTokenService(
 		"../../jwt/private.pem",
@@ -30,5 +32,7 @@ func main() {
 		userStorage,
 	)
 	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
-	http.ListenAndServe(":8080", r)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		panic(err)
+	}
 }

@@ -63,6 +63,12 @@ func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return model.ErrorNotImplemented
 }
 
+//DetachDeviceToken do nothing here yet
+//TODO: implement
+func (us *UserStorage) DetachDeviceToken(token string) error {
+	return model.ErrorNotImplemented
+}
+
 //RequestScopes for now returns requested scope
 //TODO: implement scope logic
 func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, error) {
@@ -113,26 +119,19 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = name
-	u.Profile = profile
-	return us.AddNewUser(&User{u}, password)
+	u := userData{Active: true, Name: name, Profile: profile}
+	return us.AddNewUser(&User{userData: u}, password)
 }
 
 //AddUserWithFederatedID add new user with social ID
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
-	_, err := us.UserByFederatedID(provider, federatedID)
 	//if there is no error, it means user already exists
-	if err == nil {
+	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return nil, model.ErrorUserExists
 	}
 	sid := string(provider) + ":" + federatedID
-	u := userData{}
-	u.Active = true
-	u.Name = sid
-	u.FederatedIDs = []string{sid}
-	return us.AddNewUser(&User{u}, "")
+	u := userData{Active: true, Name: sid, FederatedIDs: []string{sid}}
+	return us.AddNewUser(&User{userData: u}, "")
 
 }
 
@@ -163,7 +162,7 @@ func UserFromJSON(d []byte) (*User, error) {
 	if err := json.Unmarshal(d, &user); err != nil {
 		return &User{}, err
 	}
-	return &User{user}, nil
+	return &User{userData: user}, nil
 }
 
 //model.User interface implementation
