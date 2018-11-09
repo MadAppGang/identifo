@@ -105,21 +105,17 @@ func (us *UserStorage) CheckIfUserExistByName(name string) bool {
 		userID := b.Get([]byte(name))
 
 		if userID == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 
 		if u := ub.Get([]byte(userID)); u == nil {
-			return ErrorNotFound
+			return model.ErrorNotFound
 		}
 
 		return nil
 	})
 
 	return err == nil
-		return false
-	}
-
-	return true
 }
 
 //AttachDeviceToken do nothing here
