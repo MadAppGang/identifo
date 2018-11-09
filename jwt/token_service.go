@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -119,6 +120,7 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 	claims := Claims{
 		Scopes:      strings.Join(scopes, " "),
 		UserProfile: profileString,
+		Type:        model.AccessTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -180,9 +182,11 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 	t := Token{JWT: token, new: true}
 	tokenString, err := ts.String(&t)
 	if err != nil {
+		fmt.Printf("1:", err)
 		return nil, ErrSavingToken
 	}
 	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
+		fmt.Printf("2:", err)
 		return nil, ErrSavingToken
 	}
 	return &t, nil
@@ -217,9 +221,11 @@ func (ts *TokenService) RefreshToken(refreshToken model.Token) (model.Token, err
 
 	tokenString, err := ts.String(token)
 	if err != nil {
+		fmt.Printf("3:", err)
 		return nil, ErrSavingToken
 	}
 	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
+		fmt.Printf("4:", err)
 		return nil, ErrSavingToken
 	}
 	return token, nil

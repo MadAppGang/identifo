@@ -1,4 +1,4 @@
-package boltdb
+package model
 
 //Error - domain level error type
 type Error string
@@ -7,5 +7,9 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
+	//ErrorNotFound general not found error
+	ErrorNotFound        = Error("not found")
 	ErrorWrongDataFormat = Error("wrong data format")
+	ErrorUserExists      = Error("User already exists")
+	ErrorNotImplemented  = Error("Not implemented")
 )

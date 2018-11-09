@@ -28,7 +28,7 @@ type AppStorage struct {
 //AppByID returns app from mongo by ID
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if !bson.IsObjectIdHex(id) {
-		return nil, ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
@@ -44,7 +44,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
-		return nil, ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
@@ -61,7 +61,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 //DisableApp disables app in mongo storage
 func (as *AppStorage) DisableApp(app model.AppData) error {
 	if !bson.IsObjectIdHex(app.ID()) {
-		return ErrorWrongDataFormat
+		return model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
@@ -81,7 +81,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 //UpdateApp updates app in mongo storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	if !bson.IsObjectIdHex(oldAppID) {
-		return ErrorWrongDataFormat
+		return model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
@@ -118,7 +118,7 @@ type AppData struct {
 //NewAppData instantiate app data mongo model from general one
 func NewAppData(data model.AppData) (AppData, error) {
 	if !bson.IsObjectIdHex(data.ID()) {
-		return AppData{}, ErrorWrongDataFormat
+		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData{
 		ID:                   bson.ObjectIdHex(data.ID()),
@@ -150,7 +150,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 //MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
-		return AppData{}, ErrorWrongDataFormat
+		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData{bson.ObjectIdHex(id), secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
 }

@@ -6,7 +6,7 @@ import (
 )
 
 //setup all routes
-func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
+func (ar *apiRouter) initRoutes() {
 	//do nothing on empty router (or should panic?)
 	if ar.router == nil {
 		return
@@ -19,17 +19,6 @@ func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
 	r := mux.NewRouter().StrictSlash(true)
 	r.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 
-	//setup routes for static pages
-	if staticPages != nil {
-		static := r.NewRoute().Subrouter()
-
-		static.HandleFunc("/login", ar.ServeTemplate(staticPages.Login)).Methods("GET")
-		static.HandleFunc("/register", ar.ServeTemplate(staticPages.Registration)).Methods("GET")
-		static.HandleFunc("/password/forgot", ar.ServeTemplate(staticPages.ForgotPassword)).Methods("GET")
-		static.HandleFunc("/password/reset", ar.ServeTemplate(staticPages.ResetPassword)).Methods("GET")
-		r.NewRoute().Handler(static)
-	}
-
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	r.PathPrefix("/auth").Handler(apiMiddlewares.With(
@@ -37,12 +26,21 @@ func (ar *apiRouter) initRoutes(staticPages *StaticPages) {
 		negroni.Wrap(auth),
 	))
 	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
+	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 
 	auth.Path("/token").Handler(negroni.New(
-		ar.Token("refresh"),
+		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
 	)).Methods("GET")
+
+	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
+	r.PathPrefix("/me").Handler(apiMiddlewares.With(
+		ar.SignatureHandler(),
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(meRouter),
+	))
+	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
 
 	ar.router.UseHandler(r)
 }

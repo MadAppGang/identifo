@@ -12,7 +12,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
+func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := boltdb.InitDB("db.db")
 	if err != nil {
 		log.Fatal(err)
@@ -40,15 +40,10 @@ func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.To
 	return appStorage, userStorage, tokenStorage, tokenService
 }
 
-func getSettings() ihttp.Settings {
-	return ihttp.Settings{}
-}
-
 func initRouter() model.Router {
-	settings := getSettings()
-	appStorage, userStorage, tokenStorage, tokenService := initDB()
+	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 }
 
 func main() {

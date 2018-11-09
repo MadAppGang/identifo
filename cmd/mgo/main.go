@@ -11,7 +11,7 @@ import (
 	"github.com/madappgang/identifo/mongo"
 )
 
-func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
+func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := mongo.NewDB("localhost:27017", "identifo")
 	if err != nil {
 		log.Fatal(err)
@@ -37,22 +37,21 @@ func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.To
 	return appStorage, userStorage, tokenStorage, tokenService
 }
 
-func getSettings() ihttp.Settings {
-	staticPages := ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
-	}
+// func getSettings() ihttp.Settings {
+// 	staticPages := ihttp.StaticPages{
+// 		Login:          "../../static/login.html",
+// 		Registration:   "../../static/registration.html",
+// 		ForgotPassword: "../../static/forgot-password.html",
+// 		ResetPassword:  "../../static/reset-password.html",
+// 	}
 
-	return ihttp.Settings{StaticPages: &staticPages}
-}
+// 	return ihttp.Settings{StaticPages: &staticPages}
+// }
 
 func initRouter() model.Router {
-	appStorage, userStorage, tokenStorage, tokenService := initDB()
-	settings := getSettings()
+	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 }
 
 func main() {
