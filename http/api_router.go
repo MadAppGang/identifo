@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
@@ -19,6 +20,7 @@ type apiRouter struct {
 	userStorage  model.UserStorage
 	tokenStorage model.TokenStorage
 	tokenService model.TokenService
+	handler      *mux.Router
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -31,6 +33,8 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
+	ar.handler = mux.NewRouter().StrictSlash(true)
+	ar.router.UseHandler(ar.handler)
 
 	for _, option := range options {
 		if err := option(&ar); err != nil {

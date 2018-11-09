@@ -37,21 +37,17 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 	return appStorage, userStorage, tokenStorage, tokenService
 }
 
-// func getSettings() ihttp.Settings {
-// 	staticPages := ihttp.StaticPages{
-// 		Login:          "../../static/login.html",
-// 		Registration:   "../../static/registration.html",
-// 		ForgotPassword: "../../static/forgot-password.html",
-// 		ResetPassword:  "../../static/reset-password.html",
-// 	}
-
-// 	return ihttp.Settings{StaticPages: &staticPages}
-// }
-
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+	staticPages := ihttp.StaticPages{
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
+	}
+
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(staticPages))
 }
 
 func main() {

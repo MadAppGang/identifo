@@ -16,12 +16,11 @@ func (ar *apiRouter) initRoutes() {
 	apiMiddlewares := ar.router.With(ar.DumpRequest(), ar.AppID())
 
 	//setup root routes
-	r := mux.NewRouter().StrictSlash(true)
-	r.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
+	ar.handler.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
-	r.PathPrefix("/auth").Handler(apiMiddlewares.With(
+	ar.handler.PathPrefix("/auth").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
 		negroni.Wrap(auth),
 	))
@@ -35,12 +34,10 @@ func (ar *apiRouter) initRoutes() {
 	)).Methods("GET")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
-	r.PathPrefix("/me").Handler(apiMiddlewares.With(
+	ar.handler.PathPrefix("/me").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(meRouter),
 	))
 	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
-
-	ar.router.UseHandler(r)
 }

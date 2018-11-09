@@ -3,8 +3,6 @@ package http
 import (
 	"html/template"
 	"net/http"
-
-	"github.com/gorilla/mux"
 )
 
 // StaticPages holds together all paths to a static pages
@@ -39,13 +37,9 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 }
 
 func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
-	router := mux.NewRouter().StrictSlash(true)
-
-	router.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
-	router.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
-	router.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
-	router.HandleFunc("/password/reset", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
-
-	ar.router.UseHandler(router)
+	ar.handler.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
+	ar.handler.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
+	ar.handler.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
 	return nil
 }
