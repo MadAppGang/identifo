@@ -40,7 +40,7 @@ type DB struct {
 //isTableExists checks if table exists database
 func (db *DB) isTableExists(table string) (bool, error) {
 	input := &dynamodb.DescribeTableInput{
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(table),
 	}
 	_, err := db.C.DescribeTable(input)
 	if awsErrorErrorNotFound(err) {
@@ -50,6 +50,7 @@ func (db *DB) isTableExists(table string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+
 	return true, nil
 }
 

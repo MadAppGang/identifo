@@ -1,6 +1,8 @@
 package dynamodb
 
 import (
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -16,6 +18,7 @@ const (
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
 	ts := TokenStorage{}
 	ts.db = db
+	ts.ensureTable()
 	return &ts, nil
 
 }
@@ -53,6 +56,7 @@ func (ts *TokenStorage) ensureTable() error {
 			TableName: aws.String(TokensTableName),
 		}
 		_, err = ts.db.C.CreateTable(input)
+		fmt.Println("21", err)
 		return err
 	}
 	return nil
@@ -70,6 +74,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	t := Token{Token: token}
 	tv, err := dynamodbattribute.MarshalMap(t)
 	if err != nil {
+		fmt.Println("11", err)
 		return ErrorInternalError
 	}
 
@@ -79,6 +84,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	}
 	_, err = ts.db.C.PutItem(input)
 	if err != nil {
+		fmt.Println("12", err)
 		return ErrorInternalError
 	}
 	return nil

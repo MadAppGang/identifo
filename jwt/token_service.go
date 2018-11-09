@@ -4,6 +4,7 @@ import (
 	"crypto/ecdsa"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"strings"
 
@@ -181,9 +182,11 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 	t := Token{JWT: token, new: true}
 	tokenString, err := ts.String(&t)
 	if err != nil {
+		fmt.Printf("1:", err)
 		return nil, ErrSavingToken
 	}
 	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
+		fmt.Printf("2:", err)
 		return nil, ErrSavingToken
 	}
 	return &t, nil
@@ -218,9 +221,11 @@ func (ts *TokenService) RefreshToken(refreshToken model.Token) (model.Token, err
 
 	tokenString, err := ts.String(token)
 	if err != nil {
+		fmt.Printf("3:", err)
 		return nil, ErrSavingToken
 	}
 	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
+		fmt.Printf("4:", err)
 		return nil, ErrSavingToken
 	}
 	return token, nil

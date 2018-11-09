@@ -64,8 +64,7 @@ func (as *AppStorage) ensureTable() error {
 //AppByID returns app from dynamodb by ID
 //ID is generated with https://github.com/rs/xid
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	idx, err := xid.FromString(id)
-	if err != nil {
+	if len(id) == 0 {
 		return nil, model.ErrorWrongDataFormat
 	}
 
@@ -73,7 +72,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		TableName: aws.String(AppsTable),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
-				S: aws.String(idx.String()),
+				S: aws.String(id),
 			},
 		},
 	})
@@ -99,7 +98,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 		return nil, model.ErrorWrongDataFormat
 	}
 	//generate new ID if it's not set
-	if _, err := xid.FromString(a.ID()); err != nil {
+	if len(a.ID()) == 0 {
 		a.appData.ID = xid.New().String()
 	}
 
