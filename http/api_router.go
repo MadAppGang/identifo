@@ -8,7 +8,6 @@ import (
 
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
-	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -22,11 +21,6 @@ type apiRouter struct {
 	tokenService model.TokenService
 }
 
-// Settings describe router's settings
-type Settings struct {
-	cors *cors.Options
-}
-
 //ServeHTTP identifo.Router protocol implementation
 func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
@@ -34,13 +28,14 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, settings Settings) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 
-	if settings.cors != nil {
-		c := cors.New(*settings.cors)
-		ar.router.Use(c)
+	for _, option := range options {
+		if err := option(&ar); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	//setup default router to stdout
