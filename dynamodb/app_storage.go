@@ -62,8 +62,7 @@ func (as *AppStorage) ensureTable() error {
 //AppByID returns app from dynamodb by ID
 //ID is generated with https://github.com/rs/xid
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	idx, err := xid.FromString(id)
-	if err != nil {
+	if len(id) == 0 {
 		return nil, model.ErrorWrongDataFormat
 	}
 
@@ -71,7 +70,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		TableName: aws.String(AppsTable),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
-				S: aws.String(idx.String()),
+				S: aws.String(id),
 			},
 		},
 	})
@@ -97,7 +96,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 		return nil, model.ErrorWrongDataFormat
 	}
 	//generate new ID if it's not set
-	if _, err := xid.FromString(a.ID()); err != nil {
+	if len(a.ID()) == 0 {
 		a.appData.ID = xid.New().String()
 	}
 
@@ -118,7 +117,8 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 
 //DisableApp disables app in dynamodb storage
 func (as *AppStorage) DisableApp(app model.AppData) error {
-	if _, err := xid.FromString(app.ID()); err != nil {
+	_, err := xid.FromString(app.ID())
+	if err != nil {
 		return model.ErrorWrongDataFormat
 	}
 	input := &dynamodb.UpdateItemInput{
@@ -136,7 +136,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 		ReturnValues:     aws.String("UPDATED_NEW"),
 		UpdateExpression: aws.String("set active = :a"),
 	}
-	_, err := as.db.C.UpdateItem(input)
+	_, err = as.db.C.UpdateItem(input)
 	//this approach was to delete record for dearivated app, leave it here for a while
 	// input := &dynamodb.DeleteItemInput{
 	// 	Key: map[string]*dynamodb.AttributeValue{
@@ -156,7 +156,8 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 
 //UpdateApp updates app in dynamodb storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	if _, err := xid.FromString(oldAppID); err != nil {
+	_, err := xid.FromString(oldAppID)
+	if err != nil {
 		return model.ErrorWrongDataFormat
 	}
 
@@ -188,7 +189,8 @@ type AppData struct {
 
 //NewAppData instantiate app data mongo model from general one
 func NewAppData(data model.AppData) (AppData, error) {
-	if _, err := xid.FromString(data.ID()); err != nil {
+	_, err := xid.FromString(data.ID())
+	if err != nil {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
@@ -220,20 +222,11 @@ func (ad AppData) Marshal() ([]byte, error) {
 
 //MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
-	if _, err := xid.FromString(id); err != nil {
+	_, err := xid.FromString(id)
+	if err != nil {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData: appData{
-		ID:                   id,
-		Secret:               secret,
-		Active:               active,
-		Description:          description,
-		Scopes:               scopes,
-		Offline:              offline,
-		RedirectURL:          redirectURL,
-		RefreshTokenLifespan: refreshTokenLifespan,
-		TokenLifespan:        tokenLifespan,
-	}}, nil
+	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID }

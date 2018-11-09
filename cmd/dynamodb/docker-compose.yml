@@ -6,7 +6,10 @@ services:
         - "8000:8000"
     admin:
       image: aaronshaf/dynamodb-admin:latest
+      depends_on: 
+        - dynamodb
       ports:
         - "8001:8001"
       environment:
-        - DYNAMO_ENDPOINT=dynamodb:8000
+        - DYNAMO_ENDPOINT=http://dynamodb:8000
+        - AWS_REGION=us-west-2

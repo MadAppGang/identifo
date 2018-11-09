@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -23,8 +24,10 @@ const (
 
 //NewUserStorage crates and provision new user storage instance
 func NewUserStorage(db *DB) (model.UserStorage, error) {
-	us := &UserStorage{db: db}
-	return us, nil
+	us := UserStorage{}
+	us.db = db
+	(&us).ensureTable()
+	return &us, nil
 }
 
 //UserStorage stores and manages data in dynamodb sotrage
@@ -119,10 +122,11 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 }
 
 func (us *UserStorage) userByName(name string) (*userData, error) {
+	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(UsersTableName),
 		IndexName:              aws.String(UserTableEmailIndexName),
-		KeyConditionExpression: aws.String("name=:n"),
+		KeyConditionExpression: aws.String("username = :n"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
 		},
@@ -137,7 +141,8 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 	}
 	item := result.Items[0]
 	userdata := userData{}
-	if err = dynamodbattribute.UnmarshalMap(item, &userdata); err != nil {
+	err = dynamodbattribute.UnmarshalMap(item, &userdata)
+	if err != nil {
 		return nil, ErrorInternalError
 	}
 	return &userdata, nil
@@ -145,6 +150,7 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 
 //UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
+	name = strings.ToLower(name)
 	userdata, err := us.userByName(name)
 	if err != nil {
 		return nil, err
@@ -172,6 +178,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		u.userData.Pswd = PasswordHash(password)
 	}
 
+	u.userData.Name = strings.ToLower(u.userData.Name)
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
 		return nil, ErrorInternalError
@@ -181,7 +188,8 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		Item:      uv,
 		TableName: aws.String(UsersTableName),
 	}
-	if _, err = us.db.C.PutItem(input); err != nil {
+	_, err = us.db.C.PutItem(input)
+	if err != nil {
 		return nil, ErrorInternalError
 	}
 	u.Sanitize()
@@ -190,55 +198,71 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 
 //AddUserByNameAndPassword register new user
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
-	if _, err := us.userByName(name); err != model.ErrorNotFound {
+	name = strings.ToLower(name)
+	_, err := us.userByName(name)
+	if err != nil && err != model.ErrorNotFound {
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{Active: true, Name: name, Profile: profile}
-	return us.AddNewUser(&User{userData: u}, password)
+	u := userData{}
+	u.Active = true
+	u.Name = name
+	u.Profile = profile
+	return us.AddNewUser(&User{u}, password)
 }
 
 //AddUserWithFederatedID add new user with social ID
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
-	if _, err := us.userIDByFederatedID(provider, federatedID); err != model.ErrorNotFound {
+	_, err := us.userIDByFederatedID(provider, federatedID)
+	if err != nil && err != model.ErrorNotFound {
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
 
 	fid := string(provider) + ":" + federatedID
-	u := userData{Name: fid, Active: true}
 
 	uu, err := us.userByName(fid)
 	//error getting user
-	if err != model.ErrorNotFound {
+	if err != nil && err != model.ErrorNotFound {
 		return nil, err
 	} else if err == model.ErrorNotFound {
 		//no such user, let's create it
-		uuu, err := us.AddNewUser(&User{userData: u}, "")
-		if err != nil {
-			return nil, err
+		u := userData{}
+		u.Name = fid
+		u.Active = true
+		var independentError error
+		uuu, independentError := us.AddNewUser(&User{u}, "")
+		if independentError != nil {
+			return nil, independentError
 		}
 		uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
 	}
 	//if no error it means there is already user for this federated id somehow,
 	//the only possible way for that is faulty creation of the federated accout before
 
-	uuv, err := dynamodbattribute.MarshalMap(uu)
+	fedData := federatedUserID{}
+	fedData.FederatedID = fid
+	fedData.UserID = uu.ID
+	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
 	if err != nil {
 		return nil, ErrorInternalError
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item:      uuv,
+		Item:      fedInputData,
 		TableName: aws.String(UsersFederatedIDTableName),
 	}
-
-	if _, err = us.db.C.PutItem(input); err != nil {
+	_, err = us.db.C.PutItem(input)
+	if err != nil {
 		return nil, ErrorInternalError
 	}
-	resultUser := &User{userData: u}
+	//just in case
+	if uu == nil {
+		return nil, ErrorInternalError
+	}
+	resultUser := &User{*uu}
 	resultUser.Sanitize()
 	return resultUser, nil
 }
@@ -246,7 +270,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
-	Name    string                 `json:"name,omitempty"`
+	Name    string                 `json:"username,omitempty"`
 	Pswd    string                 `json:"pswd,omitempty"`
 	Profile map[string]interface{} `json:"profile,omitempty"`
 	Active  bool                   `json:"active,omitempty"`
@@ -274,7 +298,7 @@ func UserFromJSON(d []byte) (*User, error) {
 	if err := json.Unmarshal(d, &user); err != nil {
 		return &User{}, err
 	}
-	return &User{userData: user}, nil
+	return &User{user}, nil
 }
 
 //model.User interface implementation
@@ -305,6 +329,10 @@ func (us *UserStorage) ensureTable() error {
 					AttributeName: aws.String("id"),
 					AttributeType: aws.String("S"),
 				},
+				{
+					AttributeName: aws.String("username"),
+					AttributeType: aws.String("S"),
+				},
 			},
 			KeySchema: []*dynamodb.KeySchemaElement{
 				{
@@ -317,7 +345,7 @@ func (us *UserStorage) ensureTable() error {
 					IndexName: aws.String(UserTableEmailIndexName),
 					KeySchema: []*dynamodb.KeySchemaElement{
 						{
-							AttributeName: aws.String("name"),
+							AttributeName: aws.String("username"),
 							KeyType:       aws.String("HASH"),
 						},
 					},
@@ -326,6 +354,9 @@ func (us *UserStorage) ensureTable() error {
 					// 	NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
 					// 	ProjectionType:   aws.String("INCLUDE"),
 					// },
+					Projection: &dynamodb.Projection{
+						ProjectionType: aws.String("KEYS_ONLY"),
+					},
 					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 						ReadCapacityUnits:  aws.Int64(10),
 						WriteCapacityUnits: aws.Int64(10),
@@ -339,7 +370,9 @@ func (us *UserStorage) ensureTable() error {
 			TableName: aws.String(UsersTableName),
 		}
 		_, err = us.db.C.CreateTable(input)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 
 	//create table to handle federated ID's
@@ -369,7 +402,9 @@ func (us *UserStorage) ensureTable() error {
 			TableName: aws.String(UsersFederatedIDTableName),
 		}
 		_, err = us.db.C.CreateTable(input)
-		return err
+		if err != nil {
+			return err
+		}
 	}
 	return nil
 }
