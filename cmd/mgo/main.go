@@ -37,15 +37,10 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 	return appStorage, userStorage, tokenStorage, tokenService
 }
 
-func getSettings() ihttp.Settings {
-	return ihttp.Settings{}
-}
-
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
-	settings := getSettings()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 }
 
 func main() {
