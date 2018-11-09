@@ -24,10 +24,9 @@ const (
 
 //NewUserStorage crates and provision new user storage instance
 func NewUserStorage(db *DB) (model.UserStorage, error) {
-	us := UserStorage{}
-	us.db = db
-	(&us).ensureTable()
-	return &us, nil
+	us := &UserStorage{db: db}
+	err := us.ensureTable()
+	return us, err
 }
 
 //UserStorage stores and manages data in dynamodb sotrage
@@ -205,11 +204,8 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = name
-	u.Profile = profile
-	return us.AddNewUser(&User{u}, password)
+	u := userData{Active: true, Name: name, Profile: profile}
+	return us.AddNewUser(&User{userData: u}, password)
 }
 
 //AddUserWithFederatedID add new user with social ID
@@ -229,11 +225,9 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, err
 	} else if err == model.ErrorNotFound {
 		//no such user, let's create it
-		u := userData{}
-		u.Name = fid
-		u.Active = true
+		u := userData{Name: fid, Active: true}
 		var independentError error
-		uuu, independentError := us.AddNewUser(&User{u}, "")
+		uuu, independentError := us.AddNewUser(&User{userData: u}, "")
 		if independentError != nil {
 			return nil, independentError
 		}
@@ -242,9 +236,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	//if no error it means there is already user for this federated id somehow,
 	//the only possible way for that is faulty creation of the federated accout before
 
-	fedData := federatedUserID{}
-	fedData.FederatedID = fid
-	fedData.UserID = uu.ID
+	fedData := federatedUserID{FederatedID: fid, UserID: uu.ID}
 	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
 	if err != nil {
 		return nil, ErrorInternalError
@@ -254,15 +246,15 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		Item:      fedInputData,
 		TableName: aws.String(UsersFederatedIDTableName),
 	}
-	_, err = us.db.C.PutItem(input)
-	if err != nil {
+
+	if _, err = us.db.C.PutItem(input); err != nil {
 		return nil, ErrorInternalError
 	}
 	//just in case
 	if uu == nil {
 		return nil, ErrorInternalError
 	}
-	resultUser := &User{*uu}
+	resultUser := &User{userData: *uu}
 	resultUser.Sanitize()
 	return resultUser, nil
 }
@@ -298,7 +290,7 @@ func UserFromJSON(d []byte) (*User, error) {
 	if err := json.Unmarshal(d, &user); err != nil {
 		return &User{}, err
 	}
-	return &User{user}, nil
+	return &User{userData: user}, nil
 }
 
 //model.User interface implementation
@@ -369,8 +361,8 @@ func (us *UserStorage) ensureTable() error {
 			},
 			TableName: aws.String(UsersTableName),
 		}
-		_, err = us.db.C.CreateTable(input)
-		if err != nil {
+
+		if _, err = us.db.C.CreateTable(input); err != nil {
 			return err
 		}
 	}
@@ -401,8 +393,8 @@ func (us *UserStorage) ensureTable() error {
 			},
 			TableName: aws.String(UsersFederatedIDTableName),
 		}
-		_, err = us.db.C.CreateTable(input)
-		if err != nil {
+
+		if _, err = us.db.C.CreateTable(input); err != nil {
 			return err
 		}
 	}

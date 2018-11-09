@@ -82,8 +82,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		return nil, model.ErrorNotFound
 	}
 	appdata := appData{}
-	err = dynamodbattribute.UnmarshalMap(result.Item, &appdata)
-	if err != nil {
+	if err = dynamodbattribute.UnmarshalMap(result.Item, &appdata); err != nil {
 		return nil, ErrorInternalError
 	}
 	return AppData{appData: appdata}, nil
@@ -156,8 +155,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 
 //UpdateApp updates app in dynamodb storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	_, err := xid.FromString(oldAppID)
-	if err != nil {
+	if _, err := xid.FromString(oldAppID); err != nil {
 		return model.ErrorWrongDataFormat
 	}
 
@@ -189,8 +187,7 @@ type AppData struct {
 
 //NewAppData instantiate app data mongo model from general one
 func NewAppData(data model.AppData) (AppData, error) {
-	_, err := xid.FromString(data.ID())
-	if err != nil {
+	if _, err := xid.FromString(data.ID()); err != nil {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
@@ -222,11 +219,20 @@ func (ad AppData) Marshal() ([]byte, error) {
 
 //MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
-	_, err := xid.FromString(id)
-	if err != nil {
+	if _, err := xid.FromString(id); err != nil {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
+	return AppData{appData: appData{
+		ID:                   id,
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
+	}}, nil
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID }

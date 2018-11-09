@@ -16,10 +16,9 @@ const (
 
 //NewTokenStorage creates mew dynamodb storage
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
-	ts := TokenStorage{}
-	ts.db = db
-	ts.ensureTable()
-	return &ts, nil
+	ts := &TokenStorage{db: db}
+	err := ts.ensureTable()
+	return ts, err
 
 }
 
