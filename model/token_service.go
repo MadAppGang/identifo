@@ -5,6 +5,8 @@ const (
 	OfflineScope = "offline"
 	//RefrestTokenType refresh token type value
 	RefrestTokenType = "refresh"
+	//AccessTokenType access token type value
+	AccessTokenType = "access"
 )
 
 //TokenService manage tokens abstraction layer

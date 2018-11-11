@@ -5,7 +5,7 @@ import (
 	"net/http"
 )
 
-// StaticPages holds together all static pages
+// StaticPages holds together all paths to a static pages
 type StaticPages struct {
 	Login          string
 	Registration   string
@@ -27,4 +27,26 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 		}
 	}
+}
+
+// ServeStaticPages serves static provided pages
+func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
+	return func(ar *apiRouter) error {
+		return ar.serveStatic(sp)
+	}
+}
+
+func (ar *apiRouter) serveStatic(sp StaticPages) error {
+	//setup routes for templates
+	ar.handler.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
+	ar.handler.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
+	ar.handler.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
+
+	//setup routes for static files
+	handler := http.FileServer(http.Dir("../../static"))
+	ar.handler.PathPrefix("/css").Handler(handler)
+	ar.handler.PathPrefix("/js").Handler(handler)
+
+	return nil
 }

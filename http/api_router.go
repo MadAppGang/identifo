@@ -6,9 +6,9 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
-	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -20,12 +20,7 @@ type apiRouter struct {
 	userStorage  model.UserStorage
 	tokenStorage model.TokenStorage
 	tokenService model.TokenService
-}
-
-// Settings describe router's settings
-type Settings struct {
-	Cors        *cors.Options
-	StaticPages *StaticPages
+	handler      *mux.Router
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -35,12 +30,16 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, settings Settings) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) model.Router {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
+	ar.handler = mux.NewRouter().StrictSlash(true)
+	ar.router.UseHandler(ar.handler)
 
-	if settings.Cors != nil {
-		ar.initCORS(*settings.Cors)
+	for _, option := range options {
+		if err := option(&ar); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	//setup default router to stdout
@@ -51,7 +50,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	ar.userStorage = userStorage
 	ar.tokenStorage = tokenStorage
 	ar.tokenService = tokenService
-	ar.initRoutes(settings.StaticPages)
+	ar.initRoutes()
 	return &ar
 }
 

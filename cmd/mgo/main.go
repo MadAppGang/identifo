@@ -11,7 +11,7 @@ import (
 	"github.com/madappgang/identifo/mongo"
 )
 
-func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
+func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := mongo.NewDB("localhost:27017", "identifo")
 	if err != nil {
 		log.Fatal(err)
@@ -37,7 +37,9 @@ func initDB() (model.AppStorage, model.UserStorage, model.TokenStorage, model.To
 	return appStorage, userStorage, tokenStorage, tokenService
 }
 
-func getSettings() ihttp.Settings {
+func initRouter() model.Router {
+	appStorage, userStorage, tokenStorage, tokenService := initServices()
+
 	staticPages := ihttp.StaticPages{
 		Login:          "../../static/login.html",
 		Registration:   "../../static/registration.html",
@@ -45,14 +47,7 @@ func getSettings() ihttp.Settings {
 		ResetPassword:  "../../static/reset-password.html",
 	}
 
-	return ihttp.Settings{StaticPages: &staticPages}
-}
-
-func initRouter() model.Router {
-	appStorage, userStorage, tokenStorage, tokenService := initDB()
-	settings := getSettings()
-
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, settings)
+	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(staticPages))
 }
 
 func main() {
