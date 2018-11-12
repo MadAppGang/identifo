@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -39,6 +40,7 @@ type UserStorage struct {
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	idx, err := xid.FromString(id)
 	if err != nil {
+		log.Println("wrong user ID: ", id)
 		return nil, model.ErrorWrongDataFormat
 	}
 
@@ -51,6 +53,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -60,6 +63,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	userdata := userData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &userdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return &User{userData: userdata}, nil
@@ -76,6 +80,7 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return "", ErrorInternalError
 	}
 	//empty result
@@ -85,6 +90,7 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 	fidd := federatedUserID{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &fidd)
 	if err != nil || len(fidd.UserID) == 0 {
+		log.Println(err)
 		return "", ErrorInternalError
 	}
 	return fidd.UserID, nil
@@ -133,6 +139,7 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 		Select: aws.String("ALL_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -143,6 +150,7 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 	userdata := userData{}
 	err = dynamodbattribute.UnmarshalMap(item, &userdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return &userdata, nil
@@ -153,6 +161,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	name = strings.ToLower(name)
 	userdata, err := us.userByName(name)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	//if password is incorrect, returning not found error for secure reason
@@ -181,6 +190,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	u.userData.Name = strings.ToLower(u.userData.Name)
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -190,6 +200,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	}
 	_, err = us.db.C.PutItem(input)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	u.Sanitize()
@@ -201,6 +212,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	name = strings.ToLower(name)
 	_, err := us.userByName(name)
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
@@ -216,6 +228,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
@@ -226,6 +239,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	uu, err := us.userByName(fid)
 	//error getting user
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == model.ErrorNotFound {
 		//no such user, let's create it
@@ -235,6 +249,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		var independentError error
 		uuu, independentError := us.AddNewUser(&User{u}, "")
 		if independentError != nil {
+			log.Println(err)
 			return nil, independentError
 		}
 		uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
@@ -247,6 +262,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	fedData.UserID = uu.ID
 	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -256,6 +272,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	}
 	_, err = us.db.C.PutItem(input)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//just in case
@@ -296,6 +313,7 @@ func (u *User) Sanitize() {
 func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
+		log.Println(err)
 		return &User{}, err
 	}
 	return &User{user}, nil
@@ -319,6 +337,7 @@ func PasswordHash(pwd string) string {
 func (us *UserStorage) ensureTable() error {
 	exists, err := us.db.isTableExists(UsersTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -371,6 +390,7 @@ func (us *UserStorage) ensureTable() error {
 		}
 		_, err = us.db.C.CreateTable(input)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
@@ -378,6 +398,7 @@ func (us *UserStorage) ensureTable() error {
 	//create table to handle federated ID's
 	exists, err = us.db.isTableExists(UsersFederatedIDTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -403,6 +424,7 @@ func (us *UserStorage) ensureTable() error {
 		}
 		_, err = us.db.C.CreateTable(input)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}

@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -32,6 +33,7 @@ type AppStorage struct {
 func (as *AppStorage) ensureTable() error {
 	exists, err := as.db.isTableExists(AppsTable)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -77,6 +79,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -86,6 +89,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	appdata := appData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &appdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return AppData{appData: appdata}, nil
@@ -104,6 +108,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 
 	av, err := dynamodbattribute.MarshalMap(a)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -113,6 +118,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	}
 	_, err = as.db.C.PutItem(input)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return a, nil
@@ -122,6 +128,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 func (as *AppStorage) DisableApp(app model.AppData) error {
 	_, err := xid.FromString(app.ID())
 	if err != nil {
+		log.Println("wrong AppID: ", app.ID())
 		return model.ErrorWrongDataFormat
 	}
 	input := &dynamodb.UpdateItemInput{
@@ -152,6 +159,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	// _, err = as.db.C.DeleteItem(input)
 
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil
@@ -161,12 +169,14 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	_, err := xid.FromString(oldAppID)
 	if err != nil {
+		log.Println("wrong oldAppID: ", oldAppID)
 		return model.ErrorWrongDataFormat
 	}
 
 	ad := AppData{}
 	ad.appData.ID = oldAppID
 	if err := as.DisableApp(ad); err != nil {
+		log.Println(err)
 		return err
 	}
 	_, err = as.AddNewApp(newApp)
@@ -194,6 +204,7 @@ type AppData struct {
 func NewAppData(data model.AppData) (AppData, error) {
 	_, err := xid.FromString(data.ID())
 	if err != nil {
+		log.Println("wrong AppID: ", data.ID())
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData{
@@ -213,6 +224,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 func AppDataFromJSON(d []byte) (AppData, error) {
 	add := appData{}
 	if err := json.Unmarshal(d, &add); err != nil {
+		log.Println(err)
 		return AppData{}, err
 	}
 	return AppData{add}, nil
@@ -227,6 +239,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
 	_, err := xid.FromString(id)
 	if err != nil {
+		log.Println(err)
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
