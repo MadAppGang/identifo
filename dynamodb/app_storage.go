@@ -114,8 +114,8 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 		Item:      av,
 		TableName: aws.String(AppsTable),
 	}
-	_, err = as.db.C.PutItem(input)
-	if err != nil {
+
+	if _, err = as.db.C.PutItem(input); err != nil {
 		log.Println(err)
 		return nil, ErrorInternalError
 	}
@@ -165,8 +165,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 
 //UpdateApp updates app in dynamodb storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	_, err := xid.FromString(oldAppID)
-	if err != nil {
+	if _, err := xid.FromString(oldAppID); err != nil {
 		log.Println("wrong oldAppID: ", oldAppID)
 		return model.ErrorWrongDataFormat
 	}
@@ -220,8 +219,8 @@ func NewAppData(data model.AppData) (AppData, error) {
 
 //AppDataFromJSON deserializes data from JSON
 func AppDataFromJSON(d []byte) (AppData, error) {
-	add := appData{}
-	if err := json.Unmarshal(d, &add); err != nil {
+	apd := appData{}
+	if err := json.Unmarshal(d, &apd); err != nil {
 		log.Println(err)
 		return AppData{}, err
 	}
@@ -235,8 +234,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 
 //MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
-	_, err := xid.FromString(id)
-	if err != nil {
+	if _, err := xid.FromString(id); err != nil {
 		log.Println(err)
 		return AppData{}, model.ErrorWrongDataFormat
 	}

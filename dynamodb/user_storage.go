@@ -201,8 +201,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		Item:      uv,
 		TableName: aws.String(UsersTableName),
 	}
-	_, err = us.db.C.PutItem(input)
-	if err != nil {
+	if _, err = us.db.C.PutItem(input); err != nil {
 		log.Println(err)
 		return nil, ErrorInternalError
 	}
@@ -268,8 +267,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		Item:      fedInputData,
 		TableName: aws.String(UsersFederatedIDTableName),
 	}
-	_, err = us.db.C.PutItem(input)
-	if err != nil {
+	if _, err = us.db.C.PutItem(input); err != nil {
 		log.Println(err)
 		return nil, ErrorInternalError
 	}
@@ -279,11 +277,8 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	}
 
 	//construct result user to return
-	udata := userData{}
-	udata.ID = uu.ID
-	udata.Name = uu.Name
-	udata.Active = true
-	resultUser := &User{udata}
+	udata := userData{ID: uu.ID, Name: uu.Name, Active: true}
+	resultUser := &User{userData: udata}
 	return resultUser, nil
 }
 
