@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -31,6 +32,7 @@ type TokenStorage struct {
 func (ts *TokenStorage) ensureTable() error {
 	exists, err := ts.db.isTableExists(TokensTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -73,7 +75,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	t := Token{Token: token}
 	tv, err := dynamodbattribute.MarshalMap(t)
 	if err != nil {
-		fmt.Println("11", err)
+		log.Println(err)
 		return ErrorInternalError
 	}
 
@@ -83,7 +85,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	}
 	_, err = ts.db.C.PutItem(input)
 	if err != nil {
-		fmt.Println("12", err)
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil
@@ -105,6 +107,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return false
 	}
 	//empty result
@@ -128,6 +131,7 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil
