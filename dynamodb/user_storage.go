@@ -127,7 +127,7 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
-func (us *UserStorage) userByName(name string) (*userData, error) {
+func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) {
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(UsersTableName),
@@ -136,7 +136,7 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
 		},
-		Select: aws.String("ALL_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
 	})
 	if err != nil {
 		log.Println(err)
@@ -147,7 +147,7 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 		return nil, model.ErrorNotFound
 	}
 	item := result.Items[0]
-	userdata := userData{}
+	userdata := userIndexByNameData{}
 	err = dynamodbattribute.UnmarshalMap(item, &userdata)
 	if err != nil {
 		log.Println(err)
@@ -159,18 +159,22 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 //UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	name = strings.ToLower(name)
-	userdata, err := us.userByName(name)
+	userIdx, err := us.userIdxByName(name)
 	if err != nil {
 		log.Println(err)
 		return nil, err
 	}
 	//if password is incorrect, returning not found error for secure reason
-	if bcrypt.CompareHashAndPassword([]byte(userdata.Pswd), []byte(password)) != nil {
+	if bcrypt.CompareHashAndPassword([]byte(userIdx.Pswd), []byte(password)) != nil {
 		return nil, model.ErrorNotFound
 	}
-	u := &User{userData: *userdata}
-	u.Sanitize()
-	return u, nil
+	user, err := us.UserByID(userIdx.ID)
+	if err != nil {
+		log.Println(err)
+		return nil, ErrorInternalError
+	}
+	user.Sanitize()
+	return user, nil
 }
 
 //AddNewUser adds new user
@@ -210,7 +214,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 //AddUserByNameAndPassword register new user
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
-	_, err := us.userByName(name)
+	_, err := us.userIdxByName(name)
 	if err != nil && err != model.ErrorNotFound {
 		log.Println(err)
 		return nil, err
@@ -236,7 +240,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	fid := string(provider) + ":" + federatedID
 
-	uu, err := us.userByName(fid)
+	uu, err := us.userIdxByName(fid)
 	//error getting user
 	if err != nil && err != model.ErrorNotFound {
 		log.Println(err)
@@ -252,7 +256,9 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 			log.Println(err)
 			return nil, independentError
 		}
-		uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
+		uu.ID = uuu.ID()
+		uu.Name = uuu.Name()
+		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
 	}
 	//if no error it means there is already user for this federated id somehow,
 	//the only possible way for that is faulty creation of the federated accout before
@@ -279,9 +285,21 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	if uu == nil {
 		return nil, ErrorInternalError
 	}
-	resultUser := &User{*uu}
-	resultUser.Sanitize()
+
+	//construct result user to return
+	udata := userData{}
+	udata.ID = uu.ID
+	udata.Name = uu.Name
+	udata.Active = true
+	resultUser := &User{udata}
 	return resultUser, nil
+}
+
+//userIndexByNameData represents index projected data
+type userIndexByNameData struct {
+	ID   string `json:"id,omitempty"`
+	Pswd string `json:"pswd,omitempty"`
+	Name string `json:"username,omitempty"`
 }
 
 //data implementation
@@ -368,14 +386,14 @@ func (us *UserStorage) ensureTable() error {
 							KeyType:       aws.String("HASH"),
 						},
 					},
-					//we are doing local password check. As a result,  we don't need this projections
-					// Projection: &dynamodb.Projection{
-					// 	NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
-					// 	ProjectionType:   aws.String("INCLUDE"),
-					// },
+					// we are doing local password check.
 					Projection: &dynamodb.Projection{
-						ProjectionType: aws.String("KEYS_ONLY"),
+						NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
+						ProjectionType:   aws.String("INCLUDE"),
 					},
+					// Projection: &dynamodb.Projection{
+					// 	ProjectionType: aws.String("KEYS_ONLY"),
+					// },
 					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 						ReadCapacityUnits:  aws.Int64(10),
 						WriteCapacityUnits: aws.Int64(10),
