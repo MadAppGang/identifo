@@ -43,7 +43,13 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fata(err)
+	}
+
+	return router
 }
 
 func main() {

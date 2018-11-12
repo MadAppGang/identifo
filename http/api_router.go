@@ -28,13 +28,13 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) model.Router {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) (model.Router, error) {
 	ar := apiRouter{}
 	ar.router = negroni.Classic()
 
 	for _, option := range options {
 		if err := option(&ar); err != nil {
-			log.Fatal(err)
+			return nil, err
 		}
 	}
 
@@ -47,7 +47,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	ar.tokenStorage = tokenStorage
 	ar.tokenService = tokenService
 	ar.initRoutes()
-	return &ar
+	return &ar, nil
 }
 
 //ServeJSON send status code, headers and data and send it back to the user
