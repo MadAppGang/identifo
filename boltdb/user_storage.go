@@ -20,21 +20,16 @@ const (
 
 //NewUserStorage creates and inits embedded user storage
 func NewUserStorage(db *bolt.DB) (model.UserStorage, error) {
-	us := UserStorage{}
-	us.db = db
+	us := UserStorage{db: db}
 	//ensure we have app's bucket in the database
 	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(UserBucket))
-		if err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
-		_, err = tx.CreateBucketIfNotExists([]byte(UserBySocialIDBucket))
-		if err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserBySocialIDBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
-
-		_, err = tx.CreateBucketIfNotExists([]byte(UserByNameAndPassword))
-		if err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserByNameAndPassword)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 
@@ -97,8 +92,14 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return res, nil
 }
 
-//AttachDeviceToken do nothing here
+//AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
+	//we are not supporting devices for users here
+	return model.ErrorNotImplemented
+}
+
+//DetachDeviceToken does nothing here.
+func (us *UserStorage) DetachDeviceToken(token string) error {
 	//we are not supporting devices for users here
 	return model.ErrorNotImplemented
 }
@@ -177,11 +178,9 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = sid
+	u := userData{Active: true, Name: sid}
 	u.ID = sid //not sure it's a good idea
-	user := User{u}
+	user := User{userData: u}
 	err = us.db.Update(func(tx *bolt.Tx) error {
 		bi := tx.Bucket([]byte(UserBySocialIDBucket))
 		b := tx.Bucket([]byte(UserBucket))
@@ -208,12 +207,8 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = name
-	u.Profile = profile
-	u.ID = name
-	return us.AddNewUser(User{u}, password)
+	u := userData{Active: true, Name: name, Profile: profile, ID: name}
+	return us.AddNewUser(User{userData: u}, password)
 }
 
 //data implementation
@@ -236,7 +231,7 @@ func UserFromJSON(d []byte) (User, error) {
 	if err := json.Unmarshal(d, &user); err != nil {
 		return User{}, err
 	}
-	return User{user}, nil
+	return User{userData: user}, nil
 }
 
 //Marshal serialize data to byte array

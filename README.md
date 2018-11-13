@@ -19,11 +19,11 @@ Some of them are commercial SaaS systems with one click integration like [Auth0]
 Some of them are self-hosted and open-sourced, like [OauthD](https://github.com/oauth-io/oauthd), [Gluu Server](https://www.gluu.org/),
 [Anvil](http://anvil.io/#features).
 
-Almost all of them provides OpenID Connect and Oauth2 login flow. It makes an excellent sense for expected use cases. The service is external to your servers, and OpenID Connect is one of the most secure ways to provide auth service in this architecture solution.
+Almost all of them provide OpenID Connect and Oauth2 login flow. It makes an excellent sense for expected use cases. The service is external to your servers, and OpenID Connect is one of the most secure ways to provide auth service in this architectural solution.
 
 Someday we have started to implement Strongbox project. It's highly secure team messenger.  We are unable to use external services in this case, because it decreases the security level by storing user data and credentials on 3rd party services somewhere in the cloud. Also, it makes impossible to host this solution on premises, creating external dependency.
 
-We could use a self-hosted solution. However, we had to keep all our codebase with Go. All of the current candidates provided OpenID Connect, OAuth2 login flow. It's overcomplicated for single app solution. If you have one backend, that host's your web app and provide REST API for native clients - you own users password. So there no any sense for OIDC.
+We could use a self-hosted solution. However, we had to keep all our codebase with Go. All of the current candidates provided OpenID Connect, OAuth2 login flow. It's overcomplicated for single app solution. If you have one backend, that hosts your web app and provides REST API for native clients - you own users passwords. So there is no sense in using OIDC in that case.
 
 So we decided to implement Identity Provider with these key features:
 
@@ -33,12 +33,12 @@ So we decided to implement Identity Provider with these key features:
 - provide default user persistent storage service
 - provide an easy way to integrate any other user persistent layer
 - provide default login/register/reset password forms 
-- provide the way to  restyle login/register/reset form
+- provide the way to restyle login/register/reset form
 - implement token introspection
 - implement machine-machine tokens (analog to Oauth2 Client Credentials Grant)
 - optional management console to set up, monitor and configure the service
 
-Although Identifo is not intended to implement OpenID Connect flow, you could easily integrate it with [Ory Hydra](https://www.ory.sh). Just with a couple of minutes, you able to get the complete OIDC support. The tutorial and instructions TBA.
+Although Identifo is not intended to implement OpenID Connect flow, you could easily integrate it with [Ory Hydra](https://www.ory.sh). Just with a couple of minutes, you are able to get the complete OIDC support. The tutorial and instructions TBA.
 
 ## Token
 
@@ -47,7 +47,7 @@ To get more information about the JWT and get some amazing tools around that, pl
 
 ### JWT signature
 
-Token signatire is used to ansure the data in the token is not changedby 3-rd party and could be trusted. 
+Token signature is used to ensure the data in the token is not changed by 3-rd party and could be trusted. 
 There is [JWA specification](https://tools.ietf.org/html/rfc7518), that declare the JWT signature standarts. 
 
 The identifo follows this specification rules and supports mandatory SH256 algoritm (HMAC using SHA-256).The Identifo implements two recommended algorithms as well:
@@ -65,9 +65,9 @@ Future support of optional algorithms is open for discussion:
 Some summary on algorithms:
 
 - HMAC allows the messages to be verified throght the shared secret. Anyone with the key could also create the signature.
-- SHA-XXX is the family of hashing algorythms. They gey the data of arbitary length and produce the output of fixed length. Trying to reduce collision and not reversable. So even one bit of change of original message should produce the completely different output with good hashing function. And it should be fast as possible.
-- RSASSA is RSA algorithm, adapted fro signatures. As RSA it's assymetric keys algorithm, using keypair of public and secret keys. The main difference of RSASSA is that private key could be used create and verify signature, and public only to verify. Public key could not be used to create signatures. It's kind of one-way one-to-many pattern.
-- ECDSA - the replacement for RSA. It's ulilise the different math. And because of thay could provide the same level of security with less power usage. It's signiffically faster. 
+- SHA-XXX is the family of hashing algorythms. They get the data of arbitary length and produce the output of fixed length. Trying to reduce collision and not reversable. So even one bit of change of original message should produce the completely different output with good hashing function. And it should be fast as possible.
+- RSASSA is RSA algorithm, adapted from signatures. As RSA it's assymetric keys algorithm, using keypair of public and secret keys. The main difference of RSASSA is that private key could be used to create and verify signature, and public key only to verify. Public key could not be used to create signatures. It's kind of one-way one-to-many pattern.
+- ECDSA - the replacement for RSA. It ulilises different math. And because of that could provide the same level of security with less power usage. It's significantly faster. 
 
 The key is provided by identifo regarding [JWK (JSON web key) specification](https://tools.ietf.org/html/rfc7517).
 

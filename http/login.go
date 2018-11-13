@@ -15,12 +15,6 @@ func (ar *apiRouter) LoginWithPassword() http.HandlerFunc {
 		DeviceToken string   `json:"device_token,omitempty"`
 		Scopes      []string `json:"scopes,omitempty"`
 	}
-
-	type AuthResponse struct {
-		AccessToken  string `json:"access_token,omitempty"`
-		RefreshToken string `json:"refresh_token,omitempty"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := loginData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
