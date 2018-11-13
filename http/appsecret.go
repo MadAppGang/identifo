@@ -98,7 +98,9 @@ func extractSignature(b64 string) []byte {
 //validateBodySignature validates signature for request with `body` is match to signature `reqMAC`, signed with `secret`
 func validateBodySignature(body, reqMAC, secret []byte) error {
 	mac := hmac.New(sha256.New, secret)
-	mac.Write(body)
+	if _, err := mac.Write(body); err != nil {
+		return err
+	}
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(reqMAC, expectedMAC) {
 		// fmt.Printf("Error validation signature, expecting: %v, got: %v\n", hex.EncodeToString(expectedMAC), hex.EncodeToString(reqMAC))

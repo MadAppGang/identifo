@@ -51,12 +51,22 @@ func main() {
 
 func createData(db *dynamodb.DB, us *dynamodb.UserStorage, as model.AppStorage) {
 	u1d := []byte(`{"username":"test@madappgang.com","active":true}`)
-	u1, _ := dynamodb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "secret")
+	u1, err := dynamodb.UserFromJSON(u1d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err = us.AddNewUser(u1, "secret"); err != nil {
+		log.Fatal(err)
+	}
 
 	u1d = []byte(`{"username":"User2","active":false}`)
-	u1, _ = dynamodb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "other_password")
+	u1, err = dynamodb.UserFromJSON(u1d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := us.AddNewUser(u1, "other_password"); err != nil {
+		log.Fatal(err)
+	}
 
 	ad := []byte(`{
 		"id":"59fd884d8f6b180001f5b4e2",
@@ -75,8 +85,7 @@ func createData(db *dynamodb.DB, us *dynamodb.UserStorage, as model.AppStorage) 
 		log.Fatal(err)
 	}
 	fmt.Printf("app data: %+v", app)
-	_, err = as.AddNewApp(app)
-	if err != nil {
+	if _, err = as.AddNewApp(app); err != nil {
 		log.Fatal(err)
 	}
 }

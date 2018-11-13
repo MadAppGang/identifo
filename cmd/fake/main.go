@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"log"
+
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mem"
@@ -19,7 +21,9 @@ func main() {
 	tokenStorage := mem.NewTokenStorage()
 
 	app := mem.MakeAppData("59fd884d8f6b180001f5b4e2", "secret", true, "Test app", []string{"offline", "smartrun"}, true, "", 0, 0)
-	appStorage.AddNewApp(app)
+	if _, err := appStorage.AddNewApp(app); err != nil {
+		panic(err)
+	}
 
 	tokenService, _ := jwt.NewTokenService(
 		"../../jwt/private.pem",
@@ -29,12 +33,13 @@ func main() {
 		appStorage,
 		userStorage,
 	)
-
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if err != nil {
-		log.Fata(err)
+		log.Fatal(err)
 	}
 
-	http.ListenAndServe(":8080", r)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		panic(err)
+	}
 }
