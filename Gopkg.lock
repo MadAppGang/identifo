@@ -102,6 +102,14 @@
 
 [[projects]]
   branch = "master"
+  digest = "1:bad8c08367e93a0a30d1090ac9bc98e7157df162d21b638cc72d28d331806f8c"
+  name = "github.com/mendsley/gojwk"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "4d5ec6e58103388d6cb0d7d72bc72649be4f0504"
+
+[[projects]]
+  branch = "master"
   digest = "1:0e5b66364c5559101d270c0ed5f0196ca6ce910cf89247b9315c6305f15f29d5"
   name = "github.com/pallinder/go-randomdata"
   packages = ["."]
@@ -185,6 +193,7 @@
     "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
+    "github.com/mendsley/gojwk",
     "github.com/pallinder/go-randomdata",
     "github.com/rs/cors",
     "github.com/rs/xid",

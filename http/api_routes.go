@@ -42,5 +42,9 @@ func (ar *apiRouter) initRoutes() {
 	))
 	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
 
+	wellKnownRouter := r.PathPrefix("/.well-known").Subrouter()
+	wellKnownRouter.HandleFunc(("/openid-configuration"), ar.Configuration()).Methods("GET")
+	wellKnownRouter.HandleFunc("/jwks", ar.ServeJWKS()).Methods("GET")
+
 	ar.router.UseHandler(r)
 }

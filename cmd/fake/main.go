@@ -30,6 +30,11 @@ func main() {
 		userStorage,
 	)
 
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fata(err)
+	}
+
 	http.ListenAndServe(":8080", r)
 }

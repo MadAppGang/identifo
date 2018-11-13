@@ -10,6 +10,7 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/madappgang/identifo/model"
+	jwk "github.com/mendsley/gojwk"
 )
 
 var (
@@ -57,6 +58,12 @@ func NewTokenService(private, public, issuer string, storage model.TokenStorage,
 		return nil, err
 	}
 
+	t.jwk, err = jwk.PublicKey(t.publicKey)
+	if err != nil {
+		return nil, err
+	}
+	t.jwk.Use = "enc"
+
 	return &t, nil
 }
 
@@ -68,11 +75,17 @@ type TokenService struct {
 	appStorage   model.AppStorage
 	userStorage  model.UserStorage
 	issuer       string
+	jwk          *jwk.Key
 }
 
 //Issuer returns issuer name
 func (ts *TokenService) Issuer() string {
 	return ts.issuer
+}
+
+// JWK returns JSON Web Key
+func (ts *TokenService) JWK() *jwk.Key {
+	return ts.jwk
 }
 
 //Parse parses token data from string representation

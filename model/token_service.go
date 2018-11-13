@@ -1,5 +1,7 @@
 package model
 
+import jwk "github.com/mendsley/gojwk"
+
 const (
 	//OfflineScope scope value to request refresh token
 	OfflineScope = "offline"
@@ -20,6 +22,7 @@ type TokenService interface {
 	Parse(string) (Token, error)
 	String(Token) (string, error)
 	Issuer() string
+	JWK() *jwk.Key
 }
 
 //Token is app token to give user chan
