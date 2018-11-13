@@ -9,8 +9,7 @@ import (
 //use it only for test purposes and in DI
 //all data is wiped on exit
 func NewUserStorage() model.UserStorage {
-	us := UserStorage{}
-	return &us
+	return &UserStorage{}
 }
 
 //UserStorage implements user storage in memory
@@ -27,8 +26,13 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
-//AttachDeviceToken do nothing here
+//AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
+	return nil
+}
+
+// DetachDeviceToken does nothing here.
+func (us *UserStorage) DetachDeviceToken(token string) error {
 	return nil
 }
 
@@ -44,6 +48,16 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 //AddUserByNameAndPassword returns random generated user
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+	return randUser(), nil
+}
+
+//UserByFederatedID returns randomly generated user.
+func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+	return randUser(), nil
+}
+
+// AddUserWithFederatedID returns randomly generated user.
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	return randUser(), nil
 }
 

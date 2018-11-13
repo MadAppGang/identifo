@@ -51,8 +51,7 @@ func (c *Client) request(method, path string, params url.Values, body interface{
 	var buf io.ReadWriter
 	if body != nil {
 		buf = new(bytes.Buffer)
-		err := json.NewEncoder(buf).Encode(body)
-		if err != nil {
+		if err := json.NewEncoder(buf).Encode(body); err != nil {
 			return nil, err
 		}
 	}
@@ -82,8 +81,7 @@ func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
 	if resp.StatusCode >= 400 {
 		return nil, fmt.Errorf("Facebook response error: %d", resp.StatusCode)
 	}
-	err = json.NewDecoder(resp.Body).Decode(v)
-	if err != nil {
+	if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
 		return nil, err
 	}
 	return resp, nil

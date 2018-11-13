@@ -4,15 +4,13 @@ import mgo "gopkg.in/mgo.v2"
 
 //NewDB creates new database connection
 func NewDB(conn string, db string) (*DB, error) {
-	m := DB{}
 	session, err := mgo.Dial(conn)
 	if err != nil {
 		return nil, err
 	}
-	m.S = session
-	m.DB = db
+	m := &DB{S: session, DB: db}
 	//TODO: ensure all indexes
-	return &m, nil
+	return m, nil
 }
 
 //DB is database connection structure
