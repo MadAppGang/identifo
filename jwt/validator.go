@@ -1,6 +1,7 @@
 package jwt
 
 import (
+	"crypto/ecdsa"
 	"errors"
 	"time"
 
@@ -96,4 +97,13 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	return nil
+}
+
+//ValidateString validates string representation of the token
+func (v *Validator) ValidateString(t string, publicKey *ecdsa.PublicKey) error {
+	token, err := ParseTokenWithPublicKey(t, publicKey)
+	if err != nil {
+		return err
+	}
+	return v.Validate(token)
 }
