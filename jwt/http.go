@@ -2,6 +2,7 @@ package jwt
 
 import (
 	"crypto/ecdsa"
+	"io/ioutil"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -40,4 +41,32 @@ func ParseTokenWithPublicKey(t string, publicKey *ecdsa.PublicKey) (model.Token,
 	resultToken := Token{}
 	resultToken.JWT = token
 	return &resultToken, nil
+}
+
+//LoadPrivateKeyFromPEM loads private key from PEM
+func LoadPrivateKeyFromPEM(file string) (*ecdsa.PrivateKey, error) {
+	prkb, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	privateKey, err := jwt.ParseECPrivateKeyFromPEM(prkb)
+	if err != nil {
+		return nil, err
+	}
+	return privateKey, nil
+
+}
+
+//LoadPublicKeyFromPEM loads public key from PEM
+func LoadPublicKeyFromPEM(file string) (*ecdsa.PublicKey, error) {
+	//load public key form pem file
+	pkb, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, err
+	}
+	publicKey, err := jwt.ParseECPublicKeyFromPEM(pkb)
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
 }
