@@ -1,7 +1,6 @@
 package jwt
 
 import (
-	"crypto/ecdsa"
 	"errors"
 	"time"
 
@@ -17,10 +16,11 @@ var (
 )
 
 const (
-	//SignatureAlg is hardcoded signature algorithm
+	//SignatureAlgES is hardcoded signature algorithm
 	//there is a number of options, we are stick to this value
 	//see https://tools.ietf.org/html/rfc7516 for details
-	SignatureAlg = "ES256"
+	SignatureAlgES = "ES256"
+	SignatureAlgRS = "RS256"
 )
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
@@ -66,7 +66,7 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	//check the signature algorithm attack is not passing through
-	if token.JWT.Method.Alg() != SignatureAlg {
+	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
 		return ErrTokenInvalid
 	}
 
@@ -100,7 +100,7 @@ func (v *Validator) Validate(t model.Token) error {
 }
 
 //ValidateString validates string representation of the token
-func (v *Validator) ValidateString(t string, publicKey *ecdsa.PublicKey) error {
+func (v *Validator) ValidateString(t string, publicKey interface{}) error {
 	token, err := ParseTokenWithPublicKey(t, publicKey)
 	if err != nil {
 		return err

@@ -1,8 +1,6 @@
 package jwt
 
 import (
-	"crypto/ecdsa"
-	"io/ioutil"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -25,7 +23,7 @@ func ExtractTokenFromBearerHeader(token string) []byte {
 }
 
 //ParseTokenWithPublicKey parses token with public key provided
-func ParseTokenWithPublicKey(t string, publicKey *ecdsa.PublicKey) (model.Token, error) {
+func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.Token, error) {
 	tokenString := strings.TrimSpace(t)
 
 	// Parse the token
@@ -41,41 +39,4 @@ func ParseTokenWithPublicKey(t string, publicKey *ecdsa.PublicKey) (model.Token,
 	resultToken := Token{}
 	resultToken.JWT = token
 	return &resultToken, nil
-}
-
-//LoadPrivateKeyFromPEM loads private key from PEM
-func LoadPrivateKeyFromPEM(file string) (*ecdsa.PrivateKey, error) {
-	prkb, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	privateKey, err := jwt.ParseECPrivateKeyFromPEM(prkb)
-	if err != nil {
-		return nil, err
-	}
-	return privateKey, nil
-
-}
-
-//LoadPublicKeyFromPEM loads public key from PEM
-func LoadPublicKeyFromPEM(file string) (*ecdsa.PublicKey, error) {
-	//load public key form pem file
-	pkb, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-	publicKey, err := jwt.ParseECPublicKeyFromPEM(pkb)
-	if err != nil {
-		return nil, err
-	}
-	return publicKey, nil
-}
-
-//LoadPublicKeyFromString loads public key from string
-func LoadPublicKeyFromString(s string) (*ecdsa.PublicKey, error) {
-	publicKey, err := jwt.ParseECPublicKeyFromPEM([]byte(s))
-	if err != nil {
-		return nil, err
-	}
-	return publicKey, nil
 }

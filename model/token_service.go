@@ -9,6 +9,16 @@ const (
 	AccessTokenType = "access"
 )
 
+//TokenServiceAlgorithm - we support only two now
+type TokenServiceAlgorithm int
+
+const (
+	//TokenServiceAlgorithmES256 ES256 signature
+	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota
+	//TokenServiceAlgorithmRS256 RS256 signature
+	TokenServiceAlgorithmRS256
+)
+
 //TokenService manage tokens abstraction layer
 type TokenService interface {
 	//NewToken creates new access token for the user
