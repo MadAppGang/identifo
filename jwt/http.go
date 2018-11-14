@@ -70,3 +70,12 @@ func LoadPublicKeyFromPEM(file string) (*ecdsa.PublicKey, error) {
 	}
 	return publicKey, nil
 }
+
+//LoadPublicKeyFromString loads public key from string
+func LoadPublicKeyFromString(s string) (*ecdsa.PublicKey, error) {
+	publicKey, err := jwt.ParseECPublicKeyFromPEM([]byte(s))
+	if err != nil {
+		return nil, err
+	}
+	return publicKey, nil
+}
