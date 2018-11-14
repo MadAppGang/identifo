@@ -1,5 +1,6 @@
 
 #!/bin/bash
 
-ssh-keygen -t rsa -b 4096 -m PEM -f private.pem -C "identifo@madappgang.com" -N ""
-mv private.pem.pub public.pem
+ssh-keygen -t rsa -b 2048 -m PEM -f private.pem -C "identifo@madappgang.com" -N ""
+rm private.pem.pub
+openssl rsa -in private.pem -pubout -outform PEM -out public.pem
