@@ -20,7 +20,7 @@ func LoadPrivateKeyFromPEM(file string, alg model.TokenServiceAlgorithm) (interf
 	case model.TokenServiceAlgorithmRS256:
 		privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(prkb)
 	default:
-		return nil, ErrWrongWignatureAlgorithm
+		return nil, ErrWrongSignatureAlgorithm
 	}
 	if err != nil {
 		return nil, err
@@ -43,7 +43,7 @@ func LoadPublicKeyFromPEM(file string, alg model.TokenServiceAlgorithm) (interfa
 	case model.TokenServiceAlgorithmRS256:
 		publicKey, err = jwt.ParseRSAPublicKeyFromPEM(pkb)
 	default:
-		return nil, ErrWrongWignatureAlgorithm
+		return nil, ErrWrongSignatureAlgorithm
 	}
 	if err != nil {
 		return nil, err
@@ -61,7 +61,7 @@ func LoadPublicKeyFromString(s string, alg model.TokenServiceAlgorithm) (interfa
 	case model.TokenServiceAlgorithmRS256:
 		publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(s))
 	default:
-		return nil, ErrWrongWignatureAlgorithm
+		return nil, ErrWrongSignatureAlgorithm
 	}
 	if err != nil {
 		return nil, err

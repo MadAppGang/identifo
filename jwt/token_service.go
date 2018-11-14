@@ -11,7 +11,7 @@ import (
 
 var (
 	ErrEmptyToken              = errors.New("Token is empty")
-	ErrWrongWignatureAlgorithm = errors.New("Unsupported signature algorithm")
+	ErrWrongSignatureAlgorithm = errors.New("Unsupported signature algorithm")
 	ErrTokenInvalid            = errors.New("Token is invalid")
 	ErrCreatingToken           = errors.New("Error creating token")
 	ErrSavingToken             = errors.New("Error saving token")
@@ -119,7 +119,16 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 			IssuedAt:  now,
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := jwt.NewWithClaims(sm, claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
@@ -165,7 +174,16 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 			IssuedAt:  now,
 		},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodES256, claims)
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := jwt.NewWithClaims(sm, claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
