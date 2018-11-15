@@ -35,7 +35,7 @@ func initDB() model.Router {
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
 		"identifo.madappgang.com",
-		model.TokenServiceAlgorithmRS256,
+		model.TokenServiceAlgorithmES256,
 		tokenStorage,
 		appStorage,
 		userStorage,
