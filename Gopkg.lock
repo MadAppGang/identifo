@@ -109,6 +109,14 @@
   revision = "15df0648130a623e418886f81b2aaecd0a00547b"
 
 [[projects]]
+  digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
+  name = "github.com/rs/cors"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "9a47f48565a795472d43519dd49aac781f3034fb"
+  version = "v1.6.0"
+
+[[projects]]
   digest = "1:2e76a73cb51f42d63a2a1a85b3dc5731fd4faf6821b434bd0ef2c099186031d6"
   name = "github.com/rs/xid"
   packages = ["."]
@@ -178,6 +186,7 @@
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
     "github.com/pallinder/go-randomdata",
+    "github.com/rs/cors",
     "github.com/rs/xid",
     "github.com/urfave/negroni",
     "golang.org/x/crypto/bcrypt",

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	ihttp "github.com/madappgang/identifo/http"
@@ -33,7 +34,13 @@ func main() {
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)
 	}
