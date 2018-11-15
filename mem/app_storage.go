@@ -16,7 +16,7 @@ type AppStorage struct {
 
 //AppByID returns app from memory by ID
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	if a, ok := as.storage[id]; ok != true {
+	if a, ok := as.storage[id]; !ok {
 		return nil, ErrorNotFound
 	} else {
 		return a, nil
@@ -61,7 +61,7 @@ type AppData struct {
 
 //NewAppData instantiate app data memory model from general one
 func NewAppData(data model.AppData) AppData {
-	return AppData{appData{
+	return AppData{appData: appData{
 		ID:                   data.ID(),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
@@ -76,8 +76,17 @@ func NewAppData(data model.AppData) AppData {
 
 //MakeAppData creates new memory app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) AppData {
-	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}
-
+	return AppData{appData: appData{
+		ID:                   id,
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
+	}}
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID }

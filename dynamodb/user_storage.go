@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -24,10 +25,9 @@ const (
 
 //NewUserStorage crates and provision new user storage instance
 func NewUserStorage(db *DB) (model.UserStorage, error) {
-	us := UserStorage{}
-	us.db = db
-	(&us).ensureTable()
-	return &us, nil
+	us := &UserStorage{db: db}
+	err := us.ensureTable()
+	return us, err
 }
 
 //UserStorage stores and manages data in dynamodb sotrage
@@ -39,6 +39,7 @@ type UserStorage struct {
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	idx, err := xid.FromString(id)
 	if err != nil {
+		log.Println("wrong user ID: ", id)
 		return nil, model.ErrorWrongDataFormat
 	}
 
@@ -51,6 +52,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -60,6 +62,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	userdata := userData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &userdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return &User{userData: userdata}, nil
@@ -76,6 +79,7 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return "", ErrorInternalError
 	}
 	//empty result
@@ -85,6 +89,7 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 	fidd := federatedUserID{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &fidd)
 	if err != nil || len(fidd.UserID) == 0 {
+		log.Println(err)
 		return "", ErrorInternalError
 	}
 	return fidd.UserID, nil
@@ -121,7 +126,13 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
-func (us *UserStorage) userByName(name string) (*userData, error) {
+//Scopes returns supported scopes, could be static data of database
+func (us *UserStorage) Scopes() []string {
+	//we allow all scopes for embedded database, you could implement your own logic in external service
+	return []string{"offline", "user"}
+}
+
+func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) {
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(UsersTableName),
@@ -130,9 +141,10 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
 		},
-		Select: aws.String("ALL_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -140,9 +152,10 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 		return nil, model.ErrorNotFound
 	}
 	item := result.Items[0]
-	userdata := userData{}
+	userdata := userIndexByNameData{}
 	err = dynamodbattribute.UnmarshalMap(item, &userdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return &userdata, nil
@@ -151,17 +164,22 @@ func (us *UserStorage) userByName(name string) (*userData, error) {
 //UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	name = strings.ToLower(name)
-	userdata, err := us.userByName(name)
+	userIdx, err := us.userIdxByName(name)
 	if err != nil {
+		log.Println(err)
 		return nil, err
 	}
 	//if password is incorrect, returning not found error for secure reason
-	if bcrypt.CompareHashAndPassword([]byte(userdata.Pswd), []byte(password)) != nil {
+	if bcrypt.CompareHashAndPassword([]byte(userIdx.Pswd), []byte(password)) != nil {
 		return nil, model.ErrorNotFound
 	}
-	u := &User{userData: *userdata}
-	u.Sanitize()
-	return u, nil
+	user, err := us.UserByID(userIdx.ID)
+	if err != nil {
+		log.Println(err)
+		return nil, ErrorInternalError
+	}
+	user.Sanitize()
+	return user, nil
 }
 
 //AddNewUser adds new user
@@ -181,6 +199,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	u.userData.Name = strings.ToLower(u.userData.Name)
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -188,8 +207,8 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		Item:      uv,
 		TableName: aws.String(UsersTableName),
 	}
-	_, err = us.db.C.PutItem(input)
-	if err != nil {
+	if _, err = us.db.C.PutItem(input); err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	u.Sanitize()
@@ -199,23 +218,22 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 //AddUserByNameAndPassword register new user
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
-	_, err := us.userByName(name)
+	_, err := us.userIdxByName(name)
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = name
-	u.Profile = profile
-	return us.AddNewUser(&User{u}, password)
+	u := userData{Active: true, Name: name, Profile: profile}
+	return us.AddNewUser(&User{userData: u}, password)
 }
 
 //AddUserWithFederatedID add new user with social ID
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
@@ -223,30 +241,31 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	fid := string(provider) + ":" + federatedID
 
-	uu, err := us.userByName(fid)
+	uu, err := us.userIdxByName(fid)
 	//error getting user
 	if err != nil && err != model.ErrorNotFound {
+		log.Println(err)
 		return nil, err
 	} else if err == model.ErrorNotFound {
 		//no such user, let's create it
-		u := userData{}
-		u.Name = fid
-		u.Active = true
+		u := userData{Name: fid, Active: true}
 		var independentError error
-		uuu, independentError := us.AddNewUser(&User{u}, "")
+		uuu, independentError := us.AddNewUser(&User{userData: u}, "")
 		if independentError != nil {
+			log.Println(err)
 			return nil, independentError
 		}
-		uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
+		uu.ID = uuu.ID()
+		uu.Name = uuu.Name()
+		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
 	}
 	//if no error it means there is already user for this federated id somehow,
 	//the only possible way for that is faulty creation of the federated accout before
 
-	fedData := federatedUserID{}
-	fedData.FederatedID = fid
-	fedData.UserID = uu.ID
+	fedData := federatedUserID{FederatedID: fid, UserID: uu.ID}
 	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -254,17 +273,26 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		Item:      fedInputData,
 		TableName: aws.String(UsersFederatedIDTableName),
 	}
-	_, err = us.db.C.PutItem(input)
-	if err != nil {
+	if _, err = us.db.C.PutItem(input); err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//just in case
 	if uu == nil {
 		return nil, ErrorInternalError
 	}
-	resultUser := &User{*uu}
-	resultUser.Sanitize()
+
+	//construct result user to return
+	udata := userData{ID: uu.ID, Name: uu.Name, Active: true}
+	resultUser := &User{userData: udata}
 	return resultUser, nil
+}
+
+//userIndexByNameData represents index projected data
+type userIndexByNameData struct {
+	ID   string `json:"id,omitempty"`
+	Pswd string `json:"pswd,omitempty"`
+	Name string `json:"username,omitempty"`
 }
 
 //data implementation
@@ -296,9 +324,10 @@ func (u *User) Sanitize() {
 func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
+		log.Println(err)
 		return &User{}, err
 	}
-	return &User{user}, nil
+	return &User{userData: user}, nil
 }
 
 //model.User interface implementation
@@ -319,6 +348,7 @@ func PasswordHash(pwd string) string {
 func (us *UserStorage) ensureTable() error {
 	exists, err := us.db.isTableExists(UsersTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -349,14 +379,14 @@ func (us *UserStorage) ensureTable() error {
 							KeyType:       aws.String("HASH"),
 						},
 					},
-					//we are doing local password check. As a result,  we don't need this projections
-					// Projection: &dynamodb.Projection{
-					// 	NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
-					// 	ProjectionType:   aws.String("INCLUDE"),
-					// },
+					// we are doing local password check.
 					Projection: &dynamodb.Projection{
-						ProjectionType: aws.String("KEYS_ONLY"),
+						NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
+						ProjectionType:   aws.String("INCLUDE"),
 					},
+					// Projection: &dynamodb.Projection{
+					// 	ProjectionType: aws.String("KEYS_ONLY"),
+					// },
 					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 						ReadCapacityUnits:  aws.Int64(10),
 						WriteCapacityUnits: aws.Int64(10),
@@ -371,6 +401,7 @@ func (us *UserStorage) ensureTable() error {
 		}
 		_, err = us.db.C.CreateTable(input)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
@@ -378,6 +409,7 @@ func (us *UserStorage) ensureTable() error {
 	//create table to handle federated ID's
 	exists, err = us.db.isTableExists(UsersFederatedIDTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -403,6 +435,7 @@ func (us *UserStorage) ensureTable() error {
 		}
 		_, err = us.db.C.CreateTable(input)
 		if err != nil {
+			log.Println(err)
 			return err
 		}
 	}
