@@ -17,6 +17,8 @@ const (
 	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota
 	//TokenServiceAlgorithmRS256 RS256 signature
 	TokenServiceAlgorithmRS256
+	//TokenServiceAlgorithmAuto try to detect algorithm on the fly
+	TokenServiceAlgorithmAuto
 )
 
 //TokenService manage tokens abstraction layer

@@ -35,6 +35,23 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 	t.appStorage = appStorage
 	t.userStorage = userStorage
 	t.tokenStorage = storage
+
+	//trying to guess algo from the private file
+	if alg == model.TokenServiceAlgorithmAuto {
+		_, err := LoadPrivateKeyFromPEM(private, model.TokenServiceAlgorithmES256)
+		if err == nil {
+			alg = model.TokenServiceAlgorithmES256
+		} else {
+			_, err := LoadPrivateKeyFromPEM(private, model.TokenServiceAlgorithmRS256)
+			if err == nil {
+				alg = model.TokenServiceAlgorithmRS256
+			}
+		}
+		if alg == model.TokenServiceAlgorithmAuto {
+			return nil, ErrWrongSignatureAlgorithm
+		}
+	}
+
 	t.algorithm = alg
 	//load private key from pem file
 	var err error

@@ -7,6 +7,7 @@ import (
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mem"
+	"github.com/madappgang/identifo/model"
 )
 
 //this server works only with memory storages and generated data
@@ -27,6 +28,7 @@ func main() {
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
 		"identifo.madappgang.com",
+		model.TokenServiceAlgorithmAuto,
 		tokenStorage,
 		appStorage,
 		userStorage,
