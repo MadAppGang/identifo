@@ -40,11 +40,10 @@ func initDB() model.Router {
 		appStorage,
 		userStorage,
 	)
-<<<<<<< HEAD
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if err != nil {
-		log.Fata(err)
+		log.Fatal(err)
 	}
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
