@@ -33,6 +33,8 @@ type TokenService interface {
 	String(Token) (string, error)
 	Issuer() string
 	Algorithm() string
+	PublicKey() interface{} //we are not using crypto.PublicKey here to avoid dependencies
+	KeyID() string
 }
 
 //Token is app token to give user chan

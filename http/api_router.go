@@ -20,6 +20,7 @@ type apiRouter struct {
 	tokenStorage      model.TokenStorage
 	tokenService      model.TokenService
 	oidcConfiguration *OIDCConfiguration
+	jwk               *jwk
 }
 
 //ServeHTTP identifo.Router protocol implementation

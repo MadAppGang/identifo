@@ -1,6 +1,9 @@
 package jwt
 
 import (
+	"crypto/sha1"
+	"crypto/x509"
+	"encoding/base64"
 	"encoding/json"
 	"errors"
 	"strings"
@@ -94,6 +97,20 @@ func (ts *TokenService) Algorithm() string {
 	}
 }
 
+//PublicKey returns public key
+func (ts *TokenService) PublicKey() interface{} {
+	return ts.publicKey
+}
+
+//KeyID returns public key ID, using SHA-1 fingertip
+func (ts *TokenService) KeyID() string {
+	if der, err := x509.MarshalPKIXPublicKey(ts.publicKey); err == nil {
+		s := sha1.Sum(der)
+		return base64.RawURLEncoding.EncodeToString(s[:]) //slice from [20]byte
+	}
+	return ""
+}
+
 //Parse parses token data from string representation
 func (ts *TokenService) Parse(s string) (model.Token, error) {
 	tokenString := strings.TrimSpace(s)
@@ -140,6 +157,7 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 		Scopes:      strings.Join(scopes, " "),
 		UserProfile: profileString,
 		Type:        model.AccessTokenType,
+		KeyID:       ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -195,6 +213,7 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 		Scopes:      strings.Join(scopes, " "),
 		UserProfile: profileString,
 		Type:        model.RefrestTokenType,
+		KeyID:       ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
