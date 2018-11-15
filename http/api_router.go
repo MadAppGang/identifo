@@ -39,7 +39,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
-		handler:      mux.NewRouter().StrictSlash(true),
+		handler:      mux.NewRouter(),
 	}
 	ar.router.UseHandler(ar.handler)
 

@@ -40,14 +40,7 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	staticPages := ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
-	}
-
-	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(staticPages))
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeDefaultStaticPages())
 
 	if err != nil {
 		log.Fatal(err)
