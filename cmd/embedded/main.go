@@ -25,6 +25,7 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
 		"identifo.madappgang.com",
+		model.TokenServiceAlgorithmAuto,
 		tokenStorage,
 		appStorage,
 		userStorage,
@@ -43,24 +44,42 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	return ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fata(err)
+	}
+
+	return router
 }
 
 func main() {
 	fmt.Println("Embedded server started")
 	r := initRouter()
 
-	http.ListenAndServe(":8080", r)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		panic(err)
+	}
 }
 
 func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
 	u1d := []byte(`{"id":"12345","name":"test@madappgang.com","active":true}`)
-	u1, _ := boltdb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "secret")
+	u1, err := boltdb.UserFromJSON(u1d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err = us.AddNewUser(u1, "secret"); err != nil {
+		log.Fatal(err)
+	}
 
 	u1d = []byte(`{"id":"12346","name":"User2","active":false}`)
-	u1, _ = boltdb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "other_password")
+	u1, err = boltdb.UserFromJSON(u1d)
+	if err != nil {
+		log.Fatal(err)
+	}
+	if _, err := us.AddNewUser(u1, "other_password"); err != nil {
+		log.Fatal(err)
+	}
 
 	ad := []byte(`{
 		"id":"59fd884d8f6b180001f5b4e2",
@@ -79,8 +98,7 @@ func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
 		log.Fatal(err)
 	}
 	fmt.Printf("app data: %+v", app)
-	_, err = as.AddNewApp(app)
-	if err != nil {
+	if _, err = as.AddNewApp(app); err != nil {
 		log.Fatal(err)
 	}
 }

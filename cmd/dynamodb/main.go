@@ -16,19 +16,36 @@ func initDB() model.Router {
 	if err != nil {
 		log.Fatal(err)
 	}
-	appStorage, _ := dynamodb.NewAppStorage(db)
-	userStorage, _ := dynamodb.NewUserStorage(db)
-	tokenStorage, _ := dynamodb.NewTokenStorage(db)
+	appStorage, err := dynamodb.NewAppStorage(db)
+	if err != nil {
+		log.Fatal(err)
+	}
 
-	tokenService, _ := jwt.NewTokenService(
+	userStorage, err := dynamodb.NewUserStorage(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tokenStorage, err := dynamodb.NewTokenStorage(db)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	tokenService, err := jwt.NewTokenService(
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
 		"identifo.madappgang.com",
+		model.TokenServiceAlgorithmAuto,
 		tokenStorage,
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+<<<<<<< HEAD
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fata(err)
+	}
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {

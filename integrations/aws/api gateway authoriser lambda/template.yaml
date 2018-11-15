@@ -1,0 +1,26 @@
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+Description: Handle Indetifo JWT token Bearer header auth
+Resources: 
+  IdentifoApiAuth:
+    Type: AWS::Serverless::Function
+    Properties:
+      Runtime: go1.x
+      Handler: IdentifoApiAuth
+      CodeUri: .
+      Timeout: 30
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /auth
+            Method: post
+      Environment:
+        Variables:
+          PUBLIC_KEY: |
+            -----BEGIN PUBLIC KEY-----
+            MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAE5M/tyOljVBOIyoNFE4UL1fOY5lsU
+            HCKtvnwwREQTZQpJf1f3VeiraKtljuv0QaSzwfY1OpqIGKHYZYngdrcblg==
+            -----END PUBLIC KEY-----
+          JWT_ISSUER: "identifo.creatorconnect.com"
+

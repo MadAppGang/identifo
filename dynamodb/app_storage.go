@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -17,10 +18,9 @@ var (
 
 //NewAppStorage creates new dynamoDB AppStorage implementation
 func NewAppStorage(db *DB) (model.AppStorage, error) {
-	as := AppStorage{}
-	as.db = db
-	(&as).ensureTable()
-	return &as, nil
+	as := &AppStorage{db: db}
+	err := as.ensureTable()
+	return as, err
 }
 
 //AppStorage is fully functional app storage
@@ -32,6 +32,7 @@ type AppStorage struct {
 func (as *AppStorage) ensureTable() error {
 	exists, err := as.db.isTableExists(AppsTable)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -56,9 +57,8 @@ func (as *AppStorage) ensureTable() error {
 			TableName: aws.String(AppsTable),
 		}
 		_, err = as.db.C.CreateTable(input)
-		return err
 	}
-	return nil
+	return err
 }
 
 //AppByID returns app from dynamodb by ID
@@ -77,6 +77,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	//empty result
@@ -86,6 +87,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	appdata := appData{}
 	err = dynamodbattribute.UnmarshalMap(result.Item, &appdata)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return AppData{appData: appdata}, nil
@@ -104,6 +106,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 
 	av, err := dynamodbattribute.MarshalMap(a)
 	if err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 
@@ -111,8 +114,9 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 		Item:      av,
 		TableName: aws.String(AppsTable),
 	}
-	_, err = as.db.C.PutItem(input)
-	if err != nil {
+
+	if _, err = as.db.C.PutItem(input); err != nil {
+		log.Println(err)
 		return nil, ErrorInternalError
 	}
 	return a, nil
@@ -122,6 +126,7 @@ func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 func (as *AppStorage) DisableApp(app model.AppData) error {
 	_, err := xid.FromString(app.ID())
 	if err != nil {
+		log.Println("wrong AppID: ", app.ID())
 		return model.ErrorWrongDataFormat
 	}
 	input := &dynamodb.UpdateItemInput{
@@ -152,6 +157,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	// _, err = as.db.C.DeleteItem(input)
 
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil
@@ -159,17 +165,18 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 
 //UpdateApp updates app in dynamodb storage
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	_, err := xid.FromString(oldAppID)
-	if err != nil {
+	if _, err := xid.FromString(oldAppID); err != nil {
+		log.Println("wrong oldAppID: ", oldAppID)
 		return model.ErrorWrongDataFormat
 	}
 
 	ad := AppData{}
 	ad.appData.ID = oldAppID
 	if err := as.DisableApp(ad); err != nil {
+		log.Println(err)
 		return err
 	}
-	_, err = as.AddNewApp(newApp)
+	_, err := as.AddNewApp(newApp)
 	return err
 }
 
@@ -194,9 +201,10 @@ type AppData struct {
 func NewAppData(data model.AppData) (AppData, error) {
 	_, err := xid.FromString(data.ID())
 	if err != nil {
+		log.Println("wrong AppID: ", data.ID())
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData{
+	return AppData{appData: appData{
 		ID:                   data.ID(),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
@@ -211,11 +219,12 @@ func NewAppData(data model.AppData) (AppData, error) {
 
 //AppDataFromJSON deserializes data from JSON
 func AppDataFromJSON(d []byte) (AppData, error) {
-	add := appData{}
-	if err := json.Unmarshal(d, &add); err != nil {
+	apd := appData{}
+	if err := json.Unmarshal(d, &apd); err != nil {
+		log.Println(err)
 		return AppData{}, err
 	}
-	return AppData{add}, nil
+	return AppData{appData: apd}, nil
 }
 
 //Marshal serialize data to byte array
@@ -225,11 +234,21 @@ func (ad AppData) Marshal() ([]byte, error) {
 
 //MakeAppData creates new mongo app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
-	_, err := xid.FromString(id)
-	if err != nil {
+	if _, err := xid.FromString(id); err != nil {
+		log.Println(err)
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
+	return AppData{appData: appData{
+		ID:                   id,
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
+	}}, nil
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID }

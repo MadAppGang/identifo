@@ -12,10 +12,8 @@ const (
 
 //NewTokenStorage created in embedded token sotrage
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
-	ts := TokenStorage{}
-	ts.db = db
+	ts := TokenStorage{db: db}
 	return &ts, nil
-
 }
 
 //TokenStorage omnogbased token storage
