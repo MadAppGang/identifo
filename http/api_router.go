@@ -13,12 +13,14 @@ import (
 
 //apiRoutes - router that handles all API request
 type apiRouter struct {
-	router       *negroni.Negroni
-	logger       *log.Logger
-	appStorage   model.AppStorage
-	userStorage  model.UserStorage
-	tokenStorage model.TokenStorage
-	tokenService model.TokenService
+	router            *negroni.Negroni
+	logger            *log.Logger
+	appStorage        model.AppStorage
+	userStorage       model.UserStorage
+	tokenStorage      model.TokenStorage
+	tokenService      model.TokenService
+	oidcConfiguration *OIDCConfiguration
+	jwk               *jwk
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -29,8 +31,13 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 //NewRouter created and initiates new router
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) (model.Router, error) {
-	ar := apiRouter{}
-	ar.router = negroni.Classic()
+	ar := apiRouter{
+		router:       negroni.Classic(),
+		appStorage:   appStorage,
+		userStorage:  userStorage,
+		tokenStorage: tokenStorage,
+		tokenService: tokenService,
+	}
 
 	for _, option := range options {
 		if err := option(&ar); err != nil {
@@ -42,10 +49,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
-	ar.appStorage = appStorage
-	ar.userStorage = userStorage
-	ar.tokenStorage = tokenStorage
-	ar.tokenService = tokenService
+
 	ar.initRoutes()
 	return &ar, nil
 }
@@ -60,7 +64,9 @@ func (ar *apiRouter) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	w.Write(data)
+	if _, err = w.Write(data); err != nil {
+		log.Printf("error writing http response: %s", err)
+	}
 }
 
 // Error writes an API error message to the response and logger.
@@ -83,10 +89,12 @@ func (ar *apiRouter) Error(w http.ResponseWriter, err error, code int, userInfo 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
-	json.NewEncoder(w).Encode(&errorResponse{
+	encodeErr := json.NewEncoder(w).Encode(&errorResponse{
 		Error: err.Error(),
 		Info:  userInfo,
 		Code:  code,
 	})
-
+	if encodeErr != nil {
+		ar.logger.Printf("error writing http response: %s", err)
+	}
 }

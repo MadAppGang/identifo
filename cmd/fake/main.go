@@ -2,11 +2,13 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mem"
+	"github.com/madappgang/identifo/model"
 )
 
 //this server works only with memory storages and generated data
@@ -19,12 +21,15 @@ func main() {
 	tokenStorage := mem.NewTokenStorage()
 
 	app := mem.MakeAppData("59fd884d8f6b180001f5b4e2", "secret", true, "Test app", []string{"offline", "smartrun"}, true, "", 0, 0)
-	appStorage.AddNewApp(app)
+	if _, err := appStorage.AddNewApp(app); err != nil {
+		panic(err)
+	}
 
 	tokenService, _ := jwt.NewTokenService(
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
 		"identifo.madappgang.com",
+		model.TokenServiceAlgorithmAuto,
 		tokenStorage,
 		appStorage,
 		userStorage,
@@ -33,8 +38,10 @@ func main() {
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if err != nil {
-		log.Fata(err)
+		log.Fatal(err)
 	}
 
-	http.ListenAndServe(":8080", r)
+	if err := http.ListenAndServe(":8080", r); err != nil {
+		panic(err)
+	}
 }

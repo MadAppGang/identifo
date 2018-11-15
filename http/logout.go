@@ -20,13 +20,19 @@ func (ar *apiRouter) Logout() http.HandlerFunc {
 			return
 		}
 		if len(d.RefreshToken) > 0 {
-			ar.tokenStorage.RevokeToken(d.RefreshToken)
+			if err := ar.tokenStorage.RevokeToken(d.RefreshToken); err != nil {
+				ar.logger.Println("Cannot revoke refresh token")
+			}
 		}
 		if tokenString, ok := r.Context().Value(TokenRawContextKey).(string); ok {
-			ar.tokenStorage.RevokeToken(tokenString)
+			if err := ar.tokenStorage.RevokeToken(tokenString); err != nil {
+				ar.logger.Println("Cannot revoke token")
+			}
 		}
 		if len(d.DeviceToken) > 0 {
-			ar.userStorage.DetachDeviceToken(d.DeviceToken)
+			if err := ar.userStorage.DetachDeviceToken(d.DeviceToken); err != nil {
+				ar.logger.Println("Cannot detach device token")
+			}
 		}
 		response := logoutResponse{
 			Message: "Done",

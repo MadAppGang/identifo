@@ -15,9 +15,7 @@ var (
 
 //NewAppStorage creates new mongo AppStorage implementation
 func NewAppStorage(db *DB) (model.AppStorage, error) {
-	as := AppStorage{}
-	as.db = db
-	return &as, nil
+	return &AppStorage{db: db}, nil
 }
 
 //AppStorage is fully functional app storage in mongo
@@ -120,7 +118,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 	if !bson.IsObjectIdHex(data.ID()) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData{
+	return AppData{appData: appData{
 		ID:                   bson.ObjectIdHex(data.ID()),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
@@ -135,11 +133,11 @@ func NewAppData(data model.AppData) (AppData, error) {
 
 //AppDataFromJSON deserializes data from JSON
 func AppDataFromJSON(d []byte) (AppData, error) {
-	add := appData{}
-	if err := json.Unmarshal(d, &add); err != nil {
+	apd := appData{}
+	if err := json.Unmarshal(d, &apd); err != nil {
 		return AppData{}, err
 	}
-	return AppData{add}, nil
+	return AppData{appData: apd}, nil
 }
 
 //Marshal serialize data to byte array
@@ -152,7 +150,17 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
-	return AppData{appData{bson.ObjectIdHex(id), secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}, nil
+	return AppData{appData: appData{
+		ID:                   bson.ObjectIdHex(id),
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
+	}}, nil
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID.Hex() }

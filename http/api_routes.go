@@ -42,5 +42,13 @@ func (ar *apiRouter) initRoutes() {
 	))
 	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
 
+	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
+	r.PathPrefix("/.well-known").Handler(negroni.New(
+		ar.DumpRequest(),
+		negroni.Wrap(oidc),
+	))
+	oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
+	oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods("GET")
+
 	ar.router.UseHandler(r)
 }

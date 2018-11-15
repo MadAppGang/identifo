@@ -16,10 +16,11 @@ var (
 )
 
 const (
-	//SignatureAlg is hardcoded signature algorithm
+	//SignatureAlgES is hardcoded signature algorithm
 	//there is a number of options, we are stick to this value
 	//see https://tools.ietf.org/html/rfc7516 for details
-	SignatureAlg = "ES256"
+	SignatureAlgES = "ES256"
+	SignatureAlgRS = "RS256"
 )
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
@@ -32,11 +33,11 @@ var TimeFunc = time.Now
 //issues - this server name, should be the same as iss of JWT token
 //userID - user, who have made the request, if the field is empty, we are not validating it
 func NewValidator(appID, issuer, userID string) model.Validator {
-	v := Validator{}
-	v.appID = appID
-	v.issuer = issuer
-	v.userID = userID
-	return &v
+	return &Validator{
+		appID:  appID,
+		issuer: issuer,
+		userID: userID,
+	}
 }
 
 //Validator JWT token validator
@@ -65,7 +66,7 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	//check the signature algorithm attack is not passing through
-	if token.JWT.Method.Alg() != SignatureAlg {
+	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
 		return ErrTokenInvalid
 	}
 
@@ -75,19 +76,19 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	now := TimeFunc().Unix()
-	if claims.VerifyExpiresAt(now, true) == false {
+	if !claims.VerifyExpiresAt(now, true) {
 		return ErrTokenValidationNoExpire
 	}
 
-	if claims.VerifyIssuedAt(now, true) == false {
+	if !claims.VerifyIssuedAt(now, true) {
 		return ErrTokenValidationNoIAT
 	}
 
-	if claims.VerifyAudience(v.appID, true) == false {
+	if !claims.VerifyAudience(v.appID, true) {
 		return ErrTokenValidationInvalidAudience
 	}
 
-	if claims.VerifyIssuer(v.issuer, true) == false {
+	if !claims.VerifyIssuer(v.issuer, true) {
 		return ErrTokenValidationInvalidIssuer
 	}
 
@@ -96,4 +97,13 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	return nil
+}
+
+//ValidateString validates string representation of the token
+func (v *Validator) ValidateString(t string, publicKey interface{}) error {
+	token, err := ParseTokenWithPublicKey(t, publicKey)
+	if err != nil {
+		return err
+	}
+	return v.Validate(token)
 }
