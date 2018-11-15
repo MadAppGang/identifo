@@ -110,6 +110,12 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
+//Scopes returns supported scopes, could be static data of database
+func (us *UserStorage) Scopes() []string {
+	//we allow all scopes for embedded database, you could implement your own logic in external service
+	return []string{"offline", "user"}
+}
+
 //UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	var res User

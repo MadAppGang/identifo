@@ -65,6 +65,18 @@ func (ts *TokenService) Issuer() string {
 	return ts.issuer
 }
 
+//Algorithm - return signature algorithm
+func (ts *TokenService) Algorithm() string {
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		return "ES256"
+	case model.TokenServiceAlgorithmRS256:
+		return "RS256"
+	default:
+		return ""
+	}
+}
+
 //Parse parses token data from string representation
 func (ts *TokenService) Parse(s string) (model.Token, error) {
 	tokenString := strings.TrimSpace(s)

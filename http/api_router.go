@@ -13,12 +13,13 @@ import (
 
 //apiRoutes - router that handles all API request
 type apiRouter struct {
-	router       *negroni.Negroni
-	logger       *log.Logger
-	appStorage   model.AppStorage
-	userStorage  model.UserStorage
-	tokenStorage model.TokenStorage
-	tokenService model.TokenService
+	router            *negroni.Negroni
+	logger            *log.Logger
+	appStorage        model.AppStorage
+	userStorage       model.UserStorage
+	tokenStorage      model.TokenStorage
+	tokenService      model.TokenService
+	oidcConfiguration *OIDCConfiguration
 }
 
 //ServeHTTP identifo.Router protocol implementation

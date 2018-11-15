@@ -30,6 +30,7 @@ type TokenService interface {
 	Parse(string) (Token, error)
 	String(Token) (string, error)
 	Issuer() string
+	Algorithm() string
 }
 
 //Token is app token to give user chan

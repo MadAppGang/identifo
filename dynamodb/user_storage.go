@@ -126,6 +126,12 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
+//Scopes returns supported scopes, could be static data of database
+func (us *UserStorage) Scopes() []string {
+	//we allow all scopes for embedded database, you could implement your own logic in external service
+	return []string{"offline", "user"}
+}
+
 func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) {
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
