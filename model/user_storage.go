@@ -7,10 +7,12 @@ type UserStorage interface {
 	DetachDeviceToken(token string) error
 	UserByNamePassword(name, password string) (User, error)
 	AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (User, error)
-	RequestScopes(userID string, scopes []string) ([]string, error)
 	CheckIfUserExistByName(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id string) (User, error)
+
+	RequestScopes(userID string, scopes []string) ([]string, error)
+	Scopes() []string
 }
 
 //User is abstract representation of the user in auth layer

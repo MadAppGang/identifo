@@ -94,6 +94,12 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
+//Scopes returns supported scopes, could be static data of database
+func (us *UserStorage) Scopes() []string {
+	//we allow all scopes for embedded database, you could implement your own logic in external service
+	return []string{"offline", "user"}
+}
+
 //UserByNamePassword returns  user by name and password
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
@@ -138,26 +144,19 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{}
-	u.Active = true
-	u.Name = name
-	u.Profile = profile
-	return us.AddNewUser(&User{u}, password)
+	u := userData{Active: true, Name: name, Profile: profile}
+	return us.AddNewUser(&User{userData: u}, password)
 }
 
 //AddUserWithFederatedID add new user with social ID
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
-	_, err := us.UserByFederatedID(provider, federatedID)
 	//if there is no error, it means user already exists
-	if err == nil {
+	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return nil, model.ErrorUserExists
 	}
 	sid := string(provider) + ":" + federatedID
-	u := userData{}
-	u.Active = true
-	u.Name = sid
-	u.FederatedIDs = []string{sid}
-	return us.AddNewUser(&User{u}, "")
+	u := userData{Active: true, Name: sid, FederatedIDs: []string{sid}}
+	return us.AddNewUser(&User{userData: u}, "")
 
 }
 
@@ -188,7 +187,7 @@ func UserFromJSON(d []byte) (*User, error) {
 	if err := json.Unmarshal(d, &user); err != nil {
 		return &User{}, err
 	}
-	return &User{user}, nil
+	return &User{userData: user}, nil
 }
 
 //model.User interface implementation

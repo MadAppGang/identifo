@@ -15,12 +15,10 @@ const (
 
 //NewAppStorage creates new embedded AppStorage implementation
 func NewAppStorage(db *bolt.DB) (model.AppStorage, error) {
-	as := AppStorage{}
-	as.db = db
+	as := AppStorage{db: db}
 	//ensure we have app's bucket in the database
 	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(AppBucket))
-		if err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(AppBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
@@ -119,7 +117,7 @@ type AppData struct {
 
 //NewAppData instantiate app data memory model from general one
 func NewAppData(data model.AppData) AppData {
-	return AppData{appData{
+	return AppData{appData: appData{
 		ID:                   data.ID(),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
@@ -134,11 +132,11 @@ func NewAppData(data model.AppData) AppData {
 
 //AppDataFromJSON deserializes data from JSON
 func AppDataFromJSON(d []byte) (AppData, error) {
-	add := appData{}
-	if err := json.Unmarshal(d, &add); err != nil {
+	apd := appData{}
+	if err := json.Unmarshal(d, &apd); err != nil {
 		return AppData{}, err
 	}
-	return AppData{add}, nil
+	return AppData{appData: apd}, nil
 }
 
 //Marshal serialize data to byte array
@@ -148,8 +146,17 @@ func (ad AppData) Marshal() ([]byte, error) {
 
 //MakeAppData creates new memory app data instance
 func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) AppData {
-	return AppData{appData{id, secret, active, description, scopes, offline, redirectURL, refreshTokenLifespan, tokenLifespan}}
-
+	return AppData{appData: appData{
+		ID:                   id,
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
+	}}
 }
 
 func (ad AppData) ID() string                  { return ad.appData.ID }

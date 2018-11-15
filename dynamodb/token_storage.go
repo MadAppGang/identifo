@@ -1,6 +1,9 @@
 package dynamodb
 
 import (
+	"fmt"
+	"log"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
@@ -14,9 +17,9 @@ const (
 
 //NewTokenStorage creates mew dynamodb storage
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
-	ts := TokenStorage{}
-	ts.db = db
-	return &ts, nil
+	ts := &TokenStorage{db: db}
+	err := ts.ensureTable()
+	return ts, err
 
 }
 
@@ -29,6 +32,7 @@ type TokenStorage struct {
 func (ts *TokenStorage) ensureTable() error {
 	exists, err := ts.db.isTableExists(TokensTableName)
 	if err != nil {
+		log.Println(err)
 		return err
 	}
 	if !exists {
@@ -53,6 +57,7 @@ func (ts *TokenStorage) ensureTable() error {
 			TableName: aws.String(TokensTableName),
 		}
 		_, err = ts.db.C.CreateTable(input)
+		fmt.Println("21", err)
 		return err
 	}
 	return nil
@@ -70,6 +75,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	t := Token{Token: token}
 	tv, err := dynamodbattribute.MarshalMap(t)
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 
@@ -79,6 +85,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	}
 	_, err = ts.db.C.PutItem(input)
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil
@@ -100,6 +107,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return false
 	}
 	//empty result
@@ -123,6 +131,7 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 		},
 	})
 	if err != nil {
+		log.Println(err)
 		return ErrorInternalError
 	}
 	return nil

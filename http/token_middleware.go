@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/madappgang/identifo/jwt"
 	"github.com/urfave/negroni"
@@ -12,8 +11,6 @@ import (
 const (
 	//TokenHeaderKey header key to keep Bearer token
 	TokenHeaderKey = "Authorization"
-	//TokenHeaderKeyPrefix token prefix regarding RFCXXX
-	TokenHeaderKeyPrefix = "BEARER "
 	//TokenTypeRefresh is to handle refresh as bearer token
 	TokenTypeRefresh = "refresh"
 	//TokenTypeAccess is to handle access token type as bearer token
@@ -31,7 +28,7 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		tstr := extractToken(r.Header.Get(TokenHeaderKey))
+		tstr := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
 		if tstr == nil {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
 			return
@@ -56,15 +53,4 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
-}
-
-func extractToken(token string) []byte {
-	token = strings.TrimSpace(token)
-	if (len(token) <= len(TokenHeaderKeyPrefix)) ||
-		(strings.ToUpper(token[0:len(TokenHeaderKeyPrefix)]) != TokenHeaderKeyPrefix) {
-		return nil
-	}
-
-	token = token[len(TokenHeaderKeyPrefix):]
-	return []byte(token)
 }
