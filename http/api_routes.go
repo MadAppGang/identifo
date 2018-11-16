@@ -48,7 +48,7 @@ func (ar *apiRouter) initRoutes() {
 		negroni.Wrap(oidc),
 	))
 	oidc.Path("/{openid-configuration:openid-configuration\\/?}").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
-	oidc.Path("/jwks.json:jwks.json\\/?}").HandlerFunc(ar.OIDCJwks()).Methods("GET")
+	oidc.Path("/{jwks.json:jwks.json\\/?}").HandlerFunc(ar.OIDCJwks()).Methods("GET")
 
 	ar.router.UseHandler(r)
 }
