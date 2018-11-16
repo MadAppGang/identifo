@@ -39,19 +39,19 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:          "./static/login.html",
+		Registration:   "./static/registration.html",
+		ForgotPassword: "./static/forgot-password.html",
+		ResetPassword:  "./static/reset-password.html",
 	}
 
 	return ServeStaticPages(staticPages)
 }
 
 func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
-	ar.handler.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
-	ar.handler.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
-	ar.handler.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
-	ar.handler.HandleFunc("/password/reset", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
+	ar.handler.HandleFunc("/{login:login\\/?}", ar.ServeTemplate(sp.Login)).Methods("GET")
+	ar.handler.HandleFunc("/{register:login\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
+	ar.handler.HandleFunc("/{password:password\\/?}/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
+	ar.handler.HandleFunc("/{password:password\\/?}/{reset:forgot\\/?}", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
 	return nil
 }

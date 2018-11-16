@@ -40,7 +40,7 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeDefaultStaticPages())
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if err != nil {
 		log.Fatal(err)

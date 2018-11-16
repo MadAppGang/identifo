@@ -31,19 +31,23 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ar.router.ServeHTTP(w, r)
 }
 
+func defaultOptions() []func(*apiRouter) error {
+	return []func(*apiRouter) error{ServeDefaultStaticPages()}
+}
+
 //NewRouter created and initiates new router
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) (model.Router, error) {
 	ar := apiRouter{
 		router:       negroni.Classic(),
+		handler:      mux.NewRouter(),
 		appStorage:   appStorage,
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
-		handler:      mux.NewRouter(),
 	}
 	ar.router.UseHandler(ar.handler)
 
-	for _, option := range options {
+	for _, option := range append(options, defaultOptions()...) {
 		if err := option(&ar); err != nil {
 			return nil, err
 		}
