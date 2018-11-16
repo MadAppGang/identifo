@@ -3,7 +3,6 @@ package http
 import (
 	"crypto/ecdsa"
 	"crypto/rsa"
-	"crypto/x509"
 	"encoding/base64"
 	"math/big"
 	"net/http"
@@ -86,15 +85,7 @@ func (ar *apiRouter) OIDCJwks() http.HandlerFunc {
 			ar.jwk = &jwk{
 				Use: "sig",
 				Alg: ar.tokenService.Algorithm(),
-			}
-			if der, err := x509.MarshalPKIXPublicKey(ar.tokenService.PublicKey()); err == nil {
-				ar.jwk.X5c = []string{base64.RawURLEncoding.EncodeToString(der)}
-				ar.jwk.X5t = ar.tokenService.KeyID()
-				ar.jwk.Kid = ar.jwk.X5t
-			} else {
-				e := map[string]interface{}{"error": err}
-				ar.ServeJSON(w, http.StatusInternalServerError, e)
-				return
+				Kid: ar.tokenService.KeyID(),
 			}
 
 			switch pub := ar.tokenService.PublicKey().(type) {
