@@ -11,7 +11,7 @@ import (
 	"github.com/madappgang/identifo/mongo"
 )
 
-func initDB() model.Router {
+func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := mongo.NewDB("localhost:27017", "identifo")
 	if err != nil {
 		log.Fatal(err)
@@ -29,18 +29,29 @@ func initDB() model.Router {
 		appStorage,
 		userStorage,
 	)
-	r := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if _, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2"); err != nil {
 		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
 		createData(db, userStorage.(*mongo.UserStorage), appStorage)
 	}
-	return r
+	return appStorage, userStorage, tokenStorage, tokenService
+}
+
+func initRouter() model.Router {
+	appStorage, userStorage, tokenStorage, tokenService := initServices()
+
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	return router
 }
 
 func main() {
 	fmt.Println("mongodb server started")
-	r := initDB()
+	r := initRouter()
 
 	if err := http.ListenAndServe(":8080", r); err != nil {
 		panic(err)
