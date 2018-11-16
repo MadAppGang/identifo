@@ -36,8 +36,24 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	}
 }
 
+<<<<<<< HEAD
 func (ar *apiRouter) serveStatic(sp StaticPages) error {
 	//setup routes for templates
+=======
+// ServeDefaultStaticPages serves default HTML pages
+func ServeDefaultStaticPages() func(*apiRouter) error {
+	staticPages := StaticPages{
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
+	}
+
+	return ServeStaticPages(staticPages)
+}
+
+func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
+>>>>>>> add-templates
 	ar.handler.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
 	ar.handler.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
