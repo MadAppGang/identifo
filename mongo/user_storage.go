@@ -63,12 +63,13 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return &User{userData: u}, nil
 }
 
-//CheckIfUserExistByName checks if user exist with presented name.
-func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+//IsNameInUse checks if user exist with presented name.
+func (us *UserStorage) IsNameInUse(name string) bool {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	q := bson.M{"$regex": bson.RegEx{Pattern: createStrictRegex(name), Options: "i"}}
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	var u userData
 	err := s.C.Find(bson.M{"name": q}).One(&u)
 
@@ -106,7 +107,8 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	defer s.Close()
 
 	var u userData
-	q := bson.M{"$regex": bson.RegEx{Pattern: name, Options: "i"}}
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
 		return nil, model.ErrorNotFound
 	}
@@ -201,8 +203,4 @@ func (u *User) Active() bool                    { return u.userData.Active }
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
-}
-
-func createStrictRegex(str string) string {
-	return "^" + str + "$"
 }

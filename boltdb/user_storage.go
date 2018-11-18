@@ -92,8 +92,8 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return res, nil
 }
 
-//CheckIfUserExistByName checks does user exist with presented name
-func (us *UserStorage) CheckIfUserExistByName(name string) bool {
+//IsNameInUse checks does user exist with presented name
+func (us *UserStorage) IsNameInUse(name string) bool {
 	err := us.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(UserByNameAndPassword))
 		ub := tx.Bucket([]byte(UserBucket))
