@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
@@ -19,6 +20,7 @@ type apiRouter struct {
 	userStorage       model.UserStorage
 	tokenStorage      model.TokenStorage
 	tokenService      model.TokenService
+	handler           *mux.Router
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
 }
@@ -29,17 +31,23 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	ar.router.ServeHTTP(w, r)
 }
 
+func defaultOptions() []func(*apiRouter) error {
+	return []func(*apiRouter) error{ServeDefaultStaticPages()}
+}
+
 //NewRouter created and initiates new router
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) (model.Router, error) {
 	ar := apiRouter{
 		router:       negroni.Classic(),
+		handler:      mux.NewRouter(),
 		appStorage:   appStorage,
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
 	}
+	ar.router.UseHandler(ar.handler)
 
-	for _, option := range options {
+	for _, option := range append(defaultOptions(), options...) {
 		if err := option(&ar); err != nil {
 			return nil, err
 		}
