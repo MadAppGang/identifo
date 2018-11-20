@@ -32,37 +32,33 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 // ServeStaticPages serves static provided pages
 func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	return func(ar *apiRouter) error {
-		return ar.serveStatic(sp)
+		return ar.serveStaticPages(sp)
 	}
 }
 
-<<<<<<< HEAD
-func (ar *apiRouter) serveStatic(sp StaticPages) error {
-	//setup routes for templates
-=======
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:          "./static/login.html",
+		Registration:   "./static/registration.html",
+		ForgotPassword: "./static/forgot-password.html",
+		ResetPassword:  "./static/reset-password.html",
 	}
 
 	return ServeStaticPages(staticPages)
 }
 
 func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
->>>>>>> add-templates
-	ar.handler.HandleFunc("/login", ar.ServeTemplate(sp.Login)).Methods("GET")
-	ar.handler.HandleFunc("/register", ar.ServeTemplate(sp.Registration)).Methods("GET")
-	ar.handler.HandleFunc("/password/forgot", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
-	ar.handler.HandleFunc("/password/reset", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
+	//setup routes for templates
+	ar.handler.HandleFunc("/{login:login\\/?}", ar.ServeTemplate(sp.Login)).Methods("GET")
+	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
+	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
+	ar.handler.HandleFunc("/password/{reset:reset\\/?}", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
 
 	//setup routes for static files
 	handler := http.FileServer(http.Dir("../../static"))
-	ar.handler.PathPrefix("/css").Handler(handler)
-	ar.handler.PathPrefix("/js").Handler(handler)
+	ar.handler.PathPrefix("/{css:css\\/?}").Handler(handler)
+	ar.handler.PathPrefix("/{js:js\\/?}").Handler(handler)
 
 	return nil
 }
