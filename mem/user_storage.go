@@ -26,8 +26,8 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
-//IsNameInUse always returns true
-func (us *UserStorage) IsNameInUse(name string) bool {
+//UserExists always returns true
+func (us *UserStorage) UserExists(name string) bool {
 	return true
 }
 

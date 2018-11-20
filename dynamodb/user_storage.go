@@ -107,8 +107,8 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return us.UserByID(userID)
 }
 
-//IsNameInUse checks does user exist with presented name
-func (us *UserStorage) IsNameInUse(name string) bool {
+//UserExists checks does user exist with presented name
+func (us *UserStorage) UserExists(name string) bool {
 	_, err := us.userIdxByName(name)
 
 	return err == nil

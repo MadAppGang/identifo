@@ -63,8 +63,8 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return &User{userData: u}, nil
 }
 
-//IsNameInUse checks if user exist with presented name.
-func (us *UserStorage) IsNameInUse(name string) bool {
+//UserExists checks if user exist with presented name.
+func (us *UserStorage) UserExists(name string) bool {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
