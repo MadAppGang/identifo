@@ -92,6 +92,27 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return res, nil
 }
 
+//UserExists checks does user exist with presented name
+func (us *UserStorage) UserExists(name string) bool {
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserByNameAndPassword))
+		ub := tx.Bucket([]byte(UserBucket))
+		userID := b.Get([]byte(name))
+
+		if userID == nil {
+			return model.ErrorNotFound
+		}
+
+		if u := ub.Get([]byte(userID)); u == nil {
+			return model.ErrorNotFound
+		}
+
+		return nil
+	})
+
+	return err == nil
+}
+
 //AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here

@@ -107,6 +107,13 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return us.UserByID(userID)
 }
 
+//UserExists checks does user exist with presented name
+func (us *UserStorage) UserExists(name string) bool {
+	_, err := us.userIdxByName(name)
+
+	return err == nil
+}
+
 //AttachDeviceToken do nothing here
 //TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
