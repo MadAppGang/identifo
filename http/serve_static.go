@@ -13,6 +13,12 @@ type StaticPages struct {
 	ResetPassword  string
 }
 
+// StaticFiles holds paths to static files
+type StaticFiles struct {
+	StylesDirectory  string
+	ScriptsDirectory string
+}
+
 // ServeTemplate receives path to a template and serves it over http
 func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path)
@@ -36,13 +42,20 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	}
 }
 
+// ServeStaticFiles serves styles and scripts from provided directories
+func ServeStaticFiles(sf StaticFiles) func(*apiRouter) error {
+	return func(ar *apiRouter) error {
+		return ar.serveStaticFiles(sf)
+	}
+}
+
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
-		Login:          "./static/login.html",
-		Registration:   "./static/registration.html",
-		ForgotPassword: "./static/forgot-password.html",
-		ResetPassword:  "./static/reset-password.html",
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
 	}
 
 	return ServeStaticPages(staticPages)
