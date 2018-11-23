@@ -32,7 +32,7 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultOptions() []func(*apiRouter) error {
-	return []func(*apiRouter) error{ServeDefaultStaticPages()}
+	return []func(*apiRouter) error{ServeDefaultStaticPages(), ServeDefaultStaticFiles()}
 }
 
 //NewRouter created and initiates new router
