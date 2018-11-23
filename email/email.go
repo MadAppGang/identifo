@@ -1,4 +1,4 @@
-package email
+package mailgun
 
 import (
 	"github.com/madappgang/identifo/model"
