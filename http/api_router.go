@@ -61,7 +61,6 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 
 	ar.initRoutes()
 	ar.router.UseHandler(ar.handler)
-
 	return &ar, nil
 }
 
