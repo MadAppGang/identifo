@@ -41,7 +41,6 @@ func (t *Token) Type() string {
 //Claims extended claims structure
 type Claims struct {
 	UserProfile string `json:"user_profile,omitempty"`
-	Username    string `json:"username,omitempty"`
 	Scopes      string `json:"scopes,omitempty"`
 	Type        string `json:"type,omitempty"` //could be empty, "access" or "refresh" or "reset-password" only
 	KeyID       string `json:"kid,omitempty"`  //optional keyID

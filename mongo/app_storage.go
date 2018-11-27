@@ -97,16 +97,15 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 }
 
 type appData struct {
-	ID                         bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
-	Secret                     string        `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active                     bool          `bson:"active,omitempty" json:"active,omitempty"`
-	Description                string        `bson:"description,omitempty" json:"description,omitempty"`
-	Scopes                     []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
-	Offline                    bool          `bson:"offline,omitempty" json:"offline,omitempty"`
-	RedirectURL                string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
-	RefreshTokenLifespan       int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
-	ResetPasswordTokenLifespan int64         `bson:"reset_password_token_lifespan,omitempty" json:"reset_password_token_lifespan,omitempty"`
-	TokenLifespan              int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
+	ID                   bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
+	Secret               string        `bson:"secret,omitempty" json:"secret,omitempty"`
+	Active               bool          `bson:"active,omitempty" json:"active,omitempty"`
+	Description          string        `bson:"description,omitempty" json:"description,omitempty"`
+	Scopes               []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	Offline              bool          `bson:"offline,omitempty" json:"offline,omitempty"`
+	RedirectURL          string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
+	RefreshTokenLifespan int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	TokenLifespan        int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 }
 
 //AppData is mongo model for model.AppData
@@ -120,16 +119,15 @@ func NewAppData(data model.AppData) (AppData, error) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                         bson.ObjectIdHex(data.ID()),
-		Secret:                     data.Secret(),
-		Active:                     data.Active(),
-		Description:                data.Description(),
-		Scopes:                     data.Scopes(),
-		Offline:                    data.Offline(),
-		RedirectURL:                data.RedirectURL(),
-		RefreshTokenLifespan:       data.RefreshTokenLifespan(),
-		ResetPasswordTokenLifespan: data.ResetPasswordTokenLifespan(),
-		TokenLifespan:              data.TokenLifespan(),
+		ID:                   bson.ObjectIdHex(data.ID()),
+		Secret:               data.Secret(),
+		Active:               data.Active(),
+		Description:          data.Description(),
+		Scopes:               data.Scopes(),
+		Offline:              data.Offline(),
+		RedirectURL:          data.RedirectURL(),
+		RefreshTokenLifespan: data.RefreshTokenLifespan(),
+		TokenLifespan:        data.TokenLifespan(),
 	}}, nil
 }
 
@@ -148,31 +146,29 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 //MakeAppData creates new mongo app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, resetPasswordTokenLifespan, tokenLifespan int64) (AppData, error) {
+func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                         bson.ObjectIdHex(id),
-		Secret:                     secret,
-		Active:                     active,
-		Description:                description,
-		Scopes:                     scopes,
-		Offline:                    offline,
-		RedirectURL:                redirectURL,
-		RefreshTokenLifespan:       refreshTokenLifespan,
-		ResetPasswordTokenLifespan: resetPasswordTokenLifespan,
-		TokenLifespan:              tokenLifespan,
+		ID:                   bson.ObjectIdHex(id),
+		Secret:               secret,
+		Active:               active,
+		Description:          description,
+		Scopes:               scopes,
+		Offline:              offline,
+		RedirectURL:          redirectURL,
+		RefreshTokenLifespan: refreshTokenLifespan,
+		TokenLifespan:        tokenLifespan,
 	}}, nil
 }
 
-func (ad AppData) ID() string                        { return ad.appData.ID.Hex() }
-func (ad AppData) Secret() string                    { return ad.appData.Secret }
-func (ad AppData) Active() bool                      { return ad.appData.Active }
-func (ad AppData) Description() string               { return ad.appData.Description }
-func (ad AppData) Scopes() []string                  { return ad.appData.Scopes }
-func (ad AppData) Offline() bool                     { return ad.appData.Offline }
-func (ad AppData) RedirectURL() string               { return ad.appData.RedirectURL }
-func (ad AppData) RefreshTokenLifespan() int64       { return ad.appData.RefreshTokenLifespan }
-func (ad AppData) ResetPasswordTokenLifespan() int64 { return ad.appData.ResetPasswordTokenLifespan }
-func (ad AppData) TokenLifespan() int64              { return ad.appData.TokenLifespan }
+func (ad AppData) ID() string                  { return ad.appData.ID.Hex() }
+func (ad AppData) Secret() string              { return ad.appData.Secret }
+func (ad AppData) Active() bool                { return ad.appData.Active }
+func (ad AppData) Description() string         { return ad.appData.Description }
+func (ad AppData) Scopes() []string            { return ad.appData.Scopes }
+func (ad AppData) Offline() bool               { return ad.appData.Offline }
+func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
+func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
+func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }

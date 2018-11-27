@@ -27,19 +27,20 @@ var (
 	//RefreshTokenLifespan default expire time for refresh token, one year
 	RefreshTokenLifespan = int64(31557600)
 	//ResetPasswordTokenLifespan default expire time for refresh token, 2 hours
-	ResetPasswordTokenLifespan = int64(7200)
+	defaultResetPasswordTokenLifespan = int64(7200)
 )
 
 //NewTokenService returns new JWT token service
 //private is path to private key in pem format, please keep it in secret place
 //public is path to the public key
 //now we support only ES256 and RS256 keypairs
-func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgorithm, storage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (model.TokenService, error) {
+func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgorithm, storage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, resetPasswordTokenLifespan int64) (model.TokenService, error) {
 	t := TokenService{}
 	t.issuer = issuer
 	t.appStorage = appStorage
 	t.userStorage = userStorage
 	t.tokenStorage = storage
+	t.resetPasswordTokenLifespan = resetPasswordTokenLifespan
 
 	//trying to guess algo from the private file
 	if alg == model.TokenServiceAlgorithmAuto {
@@ -73,13 +74,14 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 
 //TokenService JWT token service
 type TokenService struct {
-	privateKey   interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
-	publicKey    interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
-	tokenStorage model.TokenStorage
-	appStorage   model.AppStorage
-	userStorage  model.UserStorage
-	algorithm    model.TokenServiceAlgorithm
-	issuer       string
+	privateKey                 interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
+	publicKey                  interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
+	tokenStorage               model.TokenStorage
+	appStorage                 model.AppStorage
+	userStorage                model.UserStorage
+	algorithm                  model.TokenServiceAlgorithm
+	issuer                     string
+	resetPasswordTokenLifespan int64
 }
 
 //Issuer returns issuer name
@@ -286,24 +288,22 @@ func (ts *TokenService) RefreshToken(refreshToken model.Token) (model.Token, err
 }
 
 //NewResetPasswordToken creates new token for reset password
-func (ts *TokenService) NewResetPasswordToken(username string, scopes []string, app model.AppData) (model.Token, error) {
+func (ts *TokenService) NewResetPasswordToken(userID string) (model.Token, error) {
 	now := TimeFunc().Unix()
 
-	lifespan := app.ResetPasswordTokenLifespan()
+	lifespan := ts.resetPasswordTokenLifespan
 	if lifespan == 0 {
-		lifespan = ResetPasswordTokenLifespan
+		lifespan = defaultResetPasswordTokenLifespan
 	}
 
 	claims := Claims{
-		Scopes:   strings.Join(scopes, " "),
-		Username: username,
-		Type:     model.ResetPasswordTokenType,
-		KeyID:    ts.KeyID(),
+		Type:  model.ResetPasswordTokenType,
+		KeyID: ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   username,
-			Audience:  app.ID(),
+			Subject:   userID,
+			Audience:  "identifo",
 			IssuedAt:  now,
 		},
 	}
