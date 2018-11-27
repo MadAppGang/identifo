@@ -7,6 +7,8 @@ const (
 	RefrestTokenType = "refresh"
 	//AccessTokenType access token type value
 	AccessTokenType = "access"
+	//ResetPasswordTokenType reset password token type value
+	ResetPasswordTokenType = "reset-password"
 )
 
 //TokenServiceAlgorithm - we support only two now

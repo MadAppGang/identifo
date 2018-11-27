@@ -43,15 +43,16 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 }
 
 type appData struct {
-	ID                   string   `json:"id,omitempty"`
-	Secret               string   `json:"secret,omitempty"`
-	Active               bool     `json:"active,omitempty"`
-	Description          string   `json:"description,omitempty"`
-	Scopes               []string `json:"scopes,omitempty"`
-	Offline              bool     `json:"offline,omitempty"`
-	RedirectURL          string   `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan int64    `json:"refresh_token_lifespan,omitempty"`
-	TokenLifespan        int64    `json:"token_lifespan,omitempty"`
+	ID                         string   `json:"id,omitempty"`
+	Secret                     string   `json:"secret,omitempty"`
+	Active                     bool     `json:"active,omitempty"`
+	Description                string   `json:"description,omitempty"`
+	Scopes                     []string `json:"scopes,omitempty"`
+	Offline                    bool     `json:"offline,omitempty"`
+	RedirectURL                string   `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan       int64    `json:"refresh_token_lifespan,omitempty"`
+	ResetPasswordTokenLifespan int64    `json:"reset_password_token_lifespan,omitempty"`
+	TokenLifespan              int64    `json:"token_lifespan,omitempty"`
 }
 
 //AppData is memory model for model.AppData
@@ -62,42 +63,45 @@ type AppData struct {
 //NewAppData instantiate app data memory model from general one
 func NewAppData(data model.AppData) AppData {
 	return AppData{appData: appData{
-		ID:                   data.ID(),
-		Secret:               data.Secret(),
-		Active:               data.Active(),
-		Description:          data.Description(),
-		Scopes:               data.Scopes(),
-		Offline:              data.Offline(),
-		RedirectURL:          data.RedirectURL(),
-		RefreshTokenLifespan: data.RefreshTokenLifespan(),
-		TokenLifespan:        data.TokenLifespan(),
+		ID:                         data.ID(),
+		Secret:                     data.Secret(),
+		Active:                     data.Active(),
+		Description:                data.Description(),
+		Scopes:                     data.Scopes(),
+		Offline:                    data.Offline(),
+		RedirectURL:                data.RedirectURL(),
+		RefreshTokenLifespan:       data.RefreshTokenLifespan(),
+		ResetPasswordTokenLifespan: data.ResetPasswordTokenLifespan(),
+		TokenLifespan:              data.TokenLifespan(),
 	}}
 }
 
 //MakeAppData creates new memory app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) AppData {
+func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, resetPasswordTokenLifespan, tokenLifespan int64) AppData {
 	return AppData{appData: appData{
-		ID:                   id,
-		Secret:               secret,
-		Active:               active,
-		Description:          description,
-		Scopes:               scopes,
-		Offline:              offline,
-		RedirectURL:          redirectURL,
-		RefreshTokenLifespan: refreshTokenLifespan,
-		TokenLifespan:        tokenLifespan,
+		ID:                         id,
+		Secret:                     secret,
+		Active:                     active,
+		Description:                description,
+		Scopes:                     scopes,
+		Offline:                    offline,
+		RedirectURL:                redirectURL,
+		RefreshTokenLifespan:       refreshTokenLifespan,
+		ResetPasswordTokenLifespan: resetPasswordTokenLifespan,
+		TokenLifespan:              tokenLifespan,
 	}}
 }
 
-func (ad AppData) ID() string                  { return ad.appData.ID }
-func (ad AppData) Secret() string              { return ad.appData.Secret }
-func (ad AppData) Active() bool                { return ad.appData.Active }
-func (ad AppData) Description() string         { return ad.appData.Description }
-func (ad AppData) Scopes() []string            { return ad.appData.Scopes }
-func (ad AppData) Offline() bool               { return ad.appData.Offline }
-func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
-func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
-func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }
+func (ad AppData) ID() string                        { return ad.appData.ID }
+func (ad AppData) Secret() string                    { return ad.appData.Secret }
+func (ad AppData) Active() bool                      { return ad.appData.Active }
+func (ad AppData) Description() string               { return ad.appData.Description }
+func (ad AppData) Scopes() []string                  { return ad.appData.Scopes }
+func (ad AppData) Offline() bool                     { return ad.appData.Offline }
+func (ad AppData) RedirectURL() string               { return ad.appData.RedirectURL }
+func (ad AppData) RefreshTokenLifespan() int64       { return ad.appData.RefreshTokenLifespan }
+func (ad AppData) ResetPasswordTokenLifespan() int64 { return ad.appData.ResetPasswordTokenLifespan }
+func (ad AppData) TokenLifespan() int64              { return ad.appData.TokenLifespan }
 
 //AddAppDataFromFile loads appdata from JSON file and save it to the storage
 func AddAppDataFromFile(as model.AppStorage, file string) {

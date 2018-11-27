@@ -26,6 +26,8 @@ var (
 	TokenLifespan = int64(604800)
 	//RefreshTokenLifespan default expire time for refresh token, one year
 	RefreshTokenLifespan = int64(31557600)
+	//ResetPasswordTokenLifespan default expire time for refresh token, 2 hours
+	ResetPasswordTokenLifespan = int64(7200)
 )
 
 //NewTokenService returns new JWT token service
@@ -281,6 +283,45 @@ func (ts *TokenService) RefreshToken(refreshToken model.Token) (model.Token, err
 		return nil, ErrSavingToken
 	}
 	return token, nil
+}
+
+//NewResetPasswordToken creates new token for reset password
+func (ts *TokenService) NewResetPasswordToken(username string, scopes []string, app model.AppData) (model.Token, error) {
+	now := TimeFunc().Unix()
+
+	lifespan := app.ResetPasswordTokenLifespan()
+	if lifespan == 0 {
+		lifespan = ResetPasswordTokenLifespan
+	}
+
+	claims := Claims{
+		Scopes:   strings.Join(scopes, " "),
+		Username: username,
+		Type:     model.ResetPasswordTokenType,
+		KeyID:    ts.KeyID(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: (now + lifespan),
+			Issuer:    ts.issuer,
+			Subject:   username,
+			Audience:  app.ID(),
+			IssuedAt:  now,
+		},
+	}
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := jwt.NewWithClaims(sm, claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+
+	return &Token{JWT: token, new: true}, nil
 }
 
 func (ts *TokenService) String(t model.Token) (string, error) {
