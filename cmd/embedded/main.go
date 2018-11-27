@@ -12,6 +12,22 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
+func staticPages() ihttp.StaticPages {
+	return ihttp.StaticPages{
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
+	}
+}
+
+func staticFiles() ihttp.StaticFiles {
+	return ihttp.StaticFiles{
+		StylesDirectory:  "../../static/css",
+		ScriptsDirectory: "../../static/js",
+	}
+}
+
 func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
 	db, err := boltdb.InitDB("db.db")
 	if err != nil {
@@ -44,10 +60,13 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 func initRouter() model.Router {
 	appStorage, userStorage, tokenStorage, tokenService := initServices()
 
-	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+	sp := staticPages()
+	sf := staticFiles()
+
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
 
 	if err != nil {
-		log.Fata(err)
+		log.Fatal(err)
 	}
 
 	return router
