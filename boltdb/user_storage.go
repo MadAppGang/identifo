@@ -238,6 +238,42 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(User{userData: u}, password)
 }
 
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	var id string
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserByNameAndPassword))
+		ub := tx.Bucket([]byte(UserBucket))
+		userID := b.Get([]byte(name))
+
+		if userID == nil {
+			return model.ErrorNotFound
+		}
+
+		u := ub.Get([]byte(userID))
+		if u == nil {
+			return model.ErrorNotFound
+		}
+
+		user, err := UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+
+		if !user.Active() {
+			return ErrorInactiveUser
+		}
+
+		id = user.ID()
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return id, nil
+}
+
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`

@@ -6,4 +6,7 @@ type Error string
 //Error - implementation of std.Error protocol
 func (e Error) Error() string { return string(e) }
 
-const ()
+const (
+	// ErrorInactiveUser means user is inactive
+	ErrorInactiveUser = Error("User is inactive")
+)

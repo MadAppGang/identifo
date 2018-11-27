@@ -172,6 +172,27 @@ type userData struct {
 	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
 }
 
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return "", model.ErrorNotFound
+	}
+
+	user := &User{userData: u}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
+}
+
 //User user data structure for mongodb storage
 type User struct {
 	userData
