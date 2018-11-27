@@ -28,4 +28,6 @@ type AppData interface {
 	TokenLifespan() int64
 	//RefreshTokenLifespan RefreshToken lifespan in seconds, if 0 - use default one
 	RefreshTokenLifespan() int64
+	//ResetPasswordTokenLifespan ResetPasswordToken lifespan in seconds, if 0 - use default one
+	ResetPasswordTokenLifespan() int64
 }

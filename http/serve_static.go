@@ -39,10 +39,10 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
-		Login:          "./static/login.html",
-		Registration:   "./static/registration.html",
-		ForgotPassword: "./static/forgot-password.html",
-		ResetPassword:  "./static/reset-password.html",
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
 	}
 
 	return ServeStaticPages(staticPages)

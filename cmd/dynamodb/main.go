@@ -80,6 +80,7 @@ func createData(db *dynamodb.DB, us *dynamodb.UserStorage, as model.AppStorage) 
 		"offline":true,
 		"redirect_url":"myapp://loginhook",
 		"refresh_token_lifespan":9000000,
+		"reset_password_token_lifespan": 7200,
 		"token_lifespan":9000
 	}`)
 	app, err := dynamodb.AppDataFromJSON(ad)

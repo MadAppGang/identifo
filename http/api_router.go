@@ -45,7 +45,6 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
 	}
-	ar.router.UseHandler(ar.handler)
 
 	for _, option := range append(defaultOptions(), options...) {
 		if err := option(&ar); err != nil {
@@ -59,6 +58,8 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	}
 
 	ar.initRoutes()
+	ar.router.UseHandler(ar.handler)
+
 	return &ar, nil
 }
 

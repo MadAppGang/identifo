@@ -20,7 +20,7 @@ func main() {
 	userStorage := mem.NewUserStorage()
 	tokenStorage := mem.NewTokenStorage()
 
-	app := mem.MakeAppData("59fd884d8f6b180001f5b4e2", "secret", true, "Test app", []string{"offline", "smartrun"}, true, "", 0, 0)
+	app := mem.MakeAppData("59fd884d8f6b180001f5b4e2", "secret", true, "Test app", []string{"offline", "smartrun"}, true, "", 0, 0, 0)
 	if _, err := appStorage.AddNewApp(app); err != nil {
 		panic(err)
 	}
