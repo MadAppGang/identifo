@@ -8,4 +8,6 @@ func (e Error) Error() string { return string(e) }
 
 const (
 	ErrorWrongDataFormat = Error("wrong data format")
+	// ErrorInactiveUser means user is inactive
+	ErrorInactiveUser = Error("User is inactive")
 )
