@@ -238,6 +238,29 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(User{userData: u}, password)
 }
 
+// ResetPassword sets new user's passwors
+func (us *UserStorage) ResetPassword(id, password string) error {
+	return us.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserBucket))
+		v := b.Get([]byte(id))
+		if v == nil {
+			return model.ErrorNotFound
+		}
+		user, err := UserFromJSON(v)
+		if err != nil {
+			return err
+		}
+
+		user.userData.Pswd = PasswordHash(password)
+
+		u, err := user.Marshal()
+		if err != nil {
+			return err
+		}
+		return b.Put([]byte(user.ID()), u)
+	})
+}
+
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`

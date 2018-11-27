@@ -10,6 +10,7 @@ type UserStorage interface {
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id string) (User, error)
+	ResetPassword(id, password string) error
 
 	RequestScopes(userID string, scopes []string) ([]string, error)
 	Scopes() []string

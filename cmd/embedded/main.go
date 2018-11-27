@@ -47,7 +47,7 @@ func initRouter() model.Router {
 	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
 
 	if err != nil {
-		log.Fata(err)
+		log.Fatal(err)
 	}
 
 	return router

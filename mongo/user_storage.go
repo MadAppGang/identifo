@@ -159,7 +159,19 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	sid := string(provider) + ":" + federatedID
 	u := userData{Active: true, Name: sid, FederatedIDs: []string{sid}}
 	return us.AddNewUser(&User{userData: u}, "")
+}
 
+// ResetPassword sets new user's passwors
+func (us *UserStorage) ResetPassword(id, password string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	hash := PasswordHash(password)
+	update := bson.M{"$set": bson.M{"pswd": hash}}
+	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 
 //data implementation

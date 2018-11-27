@@ -72,6 +72,11 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return randUser(), nil
 }
 
+// ResetPassword does nothing here
+func (us *UserStorage) ResetPassword(id, password string) error {
+	return nil
+}
+
 func randUser() *user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),
