@@ -11,6 +11,22 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
+func staticPages() ihttp.StaticPages {
+	return ihttp.StaticPages{
+		Login:          "../../static/login.html",
+		Registration:   "../../static/registration.html",
+		ForgotPassword: "../../static/forgot-password.html",
+		ResetPassword:  "../../static/reset-password.html",
+	}
+}
+
+func staticFiles() ihttp.StaticFiles {
+	return ihttp.StaticFiles{
+		StylesDirectory:  "../../static/css",
+		ScriptsDirectory: "../../static/js",
+	}
+}
+
 func initDB() model.Router {
 	db, err := dynamodb.NewDB("http://localhost:8000", "")
 	if err != nil {
@@ -40,7 +56,11 @@ func initDB() model.Router {
 		appStorage,
 		userStorage,
 	)
-	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
+
+	sp := staticPages()
+	sf := staticFiles()
+
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
 
 	if err != nil {
 		log.Fatal(err)
