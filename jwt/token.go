@@ -42,7 +42,7 @@ func (t *Token) Type() string {
 type Claims struct {
 	UserProfile string `json:"user_profile,omitempty"`
 	Scopes      string `json:"scopes,omitempty"`
-	Type        string `json:"type,omitempty"` //could be empty, "access" or "refresh" only
+	Type        string `json:"type,omitempty"` //could be empty, "access" or "refresh" or "reset-password" only
 	KeyID       string `json:"kid,omitempty"`  //optional keyID
 	jwt.StandardClaims
 }
