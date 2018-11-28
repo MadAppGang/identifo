@@ -114,6 +114,14 @@
   revision = "0b12d6b5"
 
 [[projects]]
+  digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
+  name = "github.com/joho/godotenv"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "23d116af351c84513e1946b527c88823e476be13"
+  version = "v1.3.0"
+
+[[projects]]
   digest = "1:6ad77325212e02cc2c76bc974fcfb59a227018afddbd3bc78ea3cc53dadb2554"
   name = "github.com/mailgun/mailgun-go"
   packages = ["."]
@@ -216,6 +224,7 @@
     "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
+    "github.com/joho/godotenv",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
     "github.com/rs/cors",

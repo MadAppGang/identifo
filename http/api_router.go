@@ -20,6 +20,7 @@ type apiRouter struct {
 	userStorage       model.UserStorage
 	tokenStorage      model.TokenStorage
 	tokenService      model.TokenService
+	emailService      model.EmailService
 	handler           *mux.Router
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
@@ -36,7 +37,7 @@ func defaultOptions() []func(*apiRouter) error {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, options ...func(*apiRouter) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*apiRouter) error) (model.Router, error) {
 	ar := apiRouter{
 		router:       negroni.Classic(),
 		handler:      mux.NewRouter(),
@@ -44,6 +45,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
+		emailService: emailService,
 	}
 
 	for _, option := range append(options, defaultOptions()...) {
