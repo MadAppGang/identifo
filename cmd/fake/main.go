@@ -33,7 +33,6 @@ func main() {
 		tokenStorage,
 		appStorage,
 		userStorage,
-		0,
 	)
 
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService)
