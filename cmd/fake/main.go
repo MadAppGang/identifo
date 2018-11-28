@@ -49,7 +49,6 @@ func main() {
 		tokenStorage,
 		appStorage,
 		userStorage,
-		0,
 	)
 
 	sp := staticPages()

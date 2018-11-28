@@ -55,7 +55,6 @@ func initDB() model.Router {
 		tokenStorage,
 		appStorage,
 		userStorage,
-		0,
 	)
 
 	sp := staticPages()

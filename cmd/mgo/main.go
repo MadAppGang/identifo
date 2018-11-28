@@ -28,7 +28,6 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 		tokenStorage,
 		appStorage,
 		userStorage,
-		0,
 	)
 
 	if _, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2"); err != nil {

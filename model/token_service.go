@@ -7,8 +7,8 @@ const (
 	RefrestTokenType = "refresh"
 	//AccessTokenType access token type value
 	AccessTokenType = "access"
-	//ResetPasswordTokenType reset password token type value
-	ResetPasswordTokenType = "reset-password"
+	//ResetTokenType reset password token type value
+	ResetTokenType = "reset"
 )
 
 //TokenServiceAlgorithm - we support only two now
@@ -29,6 +29,8 @@ type TokenService interface {
 	NewToken(u User, scopes []string, app AppData) (Token, error)
 	//NewRefreshToken creates new refresh token for the user
 	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
+	// NewRestToken creates new reset password token
+	NewResetToken(userID string) (Token, error)
 	//RefreshToken issues the new access token with access token
 	RefreshToken(token Token) (Token, error)
 	Parse(string) (Token, error)
