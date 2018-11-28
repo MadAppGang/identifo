@@ -4,10 +4,13 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/dynamodb"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -47,6 +50,16 @@ func initDB() model.Router {
 		log.Fatal(err)
 	}
 
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	domain := os.Getenv("MAILGUN_DOMAIN")
+	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
+	publicKey := os.Getenv("MAILGUN_PUBLIC_KEY")
+	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@mail.com")
+
 	tokenService, err := jwt.NewTokenService(
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
@@ -60,7 +73,7 @@ func initDB() model.Router {
 	sp := staticPages()
 	sf := staticFiles()
 
-	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
 
 	if err != nil {
 		log.Fatal(err)
