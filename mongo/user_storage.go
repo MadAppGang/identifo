@@ -159,17 +159,19 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	sid := string(provider) + ":" + federatedID
 	u := userData{Active: true, Name: sid, FederatedIDs: []string{sid}}
 	return us.AddNewUser(&User{userData: u}, "")
-
 }
 
-//data implementation
-type userData struct {
-	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
-	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
-	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
-	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
-	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
+// ResetPassword sets new user's passwors
+func (us *UserStorage) ResetPassword(id, password string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	hash := PasswordHash(password)
+	update := bson.M{"$set": bson.M{"pswd": hash}}
+	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 
 // IDByName return userId by name
@@ -191,6 +193,16 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	}
 
 	return user.ID(), nil
+}
+
+//data implementation
+type userData struct {
+	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
+	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
+	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
 }
 
 //User user data structure for mongodb storage
