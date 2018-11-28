@@ -26,6 +26,11 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
+//UserExists always returns true
+func (us *UserStorage) UserExists(name string) bool {
+	return true
+}
+
 //AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return nil
