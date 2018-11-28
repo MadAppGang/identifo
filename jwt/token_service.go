@@ -6,7 +6,6 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -77,7 +76,6 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 		}
 	}
 
-	fmt.Println(t.resetTokenLifespan)
 	return &t, nil
 }
 
