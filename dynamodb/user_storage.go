@@ -296,6 +296,25 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return resultUser, nil
 }
 
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	userIndex, err := us.userIdxByName(name)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := us.UserByID(userIndex.ID)
+	if err != nil {
+		return "", err
+	}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
+}
+
 //userIndexByNameData represents index projected data
 type userIndexByNameData struct {
 	ID   string `json:"id,omitempty"`

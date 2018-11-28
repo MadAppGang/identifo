@@ -3,6 +3,7 @@ package model
 //UserStorage introduces user storage service
 type UserStorage interface {
 	UserByID(id string) (User, error)
+	IDByName(name string) (string, error)
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
 	UserByNamePassword(name, password string) (User, error)
