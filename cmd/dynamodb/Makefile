@@ -6,7 +6,6 @@ list_tables:
 apps:
 	aws dynamodb scan --table-name Applications --endpoint-url http://localhost:8000 --region=us-west-2
 
-
 users:
 	aws dynamodb scan --table-name Users --endpoint-url http://localhost:8000 --region=us-west-2
 

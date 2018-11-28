@@ -13,6 +13,12 @@ type StaticPages struct {
 	ResetPassword  string
 }
 
+// StaticFiles holds paths to static files
+type StaticFiles struct {
+	StylesDirectory  string
+	ScriptsDirectory string
+}
+
 // ServeTemplate receives path to a template and serves it over http
 func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path)
@@ -36,6 +42,13 @@ func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	}
 }
 
+// ServeStaticFiles serves styles and scripts from provided directories
+func ServeStaticFiles(sf StaticFiles) func(*apiRouter) error {
+	return func(ar *apiRouter) error {
+		return ar.serveStaticFiles(sf)
+	}
+}
+
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
@@ -49,9 +62,31 @@ func ServeDefaultStaticPages() func(*apiRouter) error {
 }
 
 func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
+	//setup routes for templates
 	ar.handler.HandleFunc("/{login:login\\/?}", ar.ServeTemplate(sp.Login)).Methods("GET")
 	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
 	ar.handler.HandleFunc("/password/{reset:reset\\/?}", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
+	return nil
+}
+
+// ServeDefaultStaticFiles serves styles and scripts from default path
+func ServeDefaultStaticFiles() func(*apiRouter) error {
+	staticFiles := StaticFiles{
+		StylesDirectory:  "./static/css",
+		ScriptsDirectory: "./static/js",
+	}
+
+	return ServeStaticFiles(staticFiles)
+}
+
+func (ar *apiRouter) serveStaticFiles(sf StaticFiles) error {
+	stylesHandler := http.FileServer(http.Dir(sf.StylesDirectory))
+	scriptsHandler := http.FileServer(http.Dir(sf.ScriptsDirectory))
+
+	//setup routes for static files
+	ar.handler.PathPrefix("/{css:css\\/?}").Handler(http.StripPrefix("/css/", stylesHandler))
+	ar.handler.PathPrefix("/{js:js\\/?}").Handler(http.StripPrefix("/js/", scriptsHandler))
+
 	return nil
 }

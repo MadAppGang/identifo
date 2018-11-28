@@ -18,6 +18,13 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	us := UserStorage{}
 	us.db = db
 	//TODO: ensure indexes
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	if err := s.C.EnsureIndexKey("name"); err != nil {
+		return nil, err
+	}
+
 	return &us, nil
 }
 
@@ -56,6 +63,19 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return &User{userData: u}, nil
 }
 
+//UserExists checks if user exist with presented name.
+func (us *UserStorage) UserExists(name string) bool {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
+	var u userData
+	err := s.C.Find(bson.M{"name": q}).One(&u)
+
+	return err == nil
+}
+
 //AttachDeviceToken do nothing here
 //TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
@@ -87,7 +107,8 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	defer s.Close()
 
 	var u userData
-	q := bson.M{"$regex": bson.RegEx{Pattern: name, Options: "i"}}
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
 		return nil, model.ErrorNotFound
 	}
@@ -149,6 +170,27 @@ type userData struct {
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
 	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
+}
+
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return "", model.ErrorNotFound
+	}
+
+	user := &User{userData: u}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
 }
 
 //User user data structure for mongodb storage

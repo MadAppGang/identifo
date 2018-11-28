@@ -92,6 +92,27 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return res, nil
 }
 
+//UserExists checks does user exist with presented name
+func (us *UserStorage) UserExists(name string) bool {
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserByNameAndPassword))
+		ub := tx.Bucket([]byte(UserBucket))
+		userID := b.Get([]byte(name))
+
+		if userID == nil {
+			return model.ErrorNotFound
+		}
+
+		if u := ub.Get([]byte(userID)); u == nil {
+			return model.ErrorNotFound
+		}
+
+		return nil
+	})
+
+	return err == nil
+}
+
 //AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	//we are not supporting devices for users here
@@ -215,6 +236,42 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	}
 	u := userData{Active: true, Name: name, Profile: profile, ID: name}
 	return us.AddNewUser(User{userData: u}, password)
+}
+
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	var id string
+	err := us.db.View(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(UserByNameAndPassword))
+		ub := tx.Bucket([]byte(UserBucket))
+		userID := b.Get([]byte(name))
+
+		if userID == nil {
+			return model.ErrorNotFound
+		}
+
+		u := ub.Get([]byte(userID))
+		if u == nil {
+			return model.ErrorNotFound
+		}
+
+		user, err := UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+
+		if !user.Active() {
+			return ErrorInactiveUser
+		}
+
+		id = user.ID()
+		return nil
+	})
+
+	if err != nil {
+		return "", err
+	}
+	return id, nil
 }
 
 //data implementation

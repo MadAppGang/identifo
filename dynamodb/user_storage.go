@@ -107,6 +107,13 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return us.UserByID(userID)
 }
 
+//UserExists checks does user exist with presented name
+func (us *UserStorage) UserExists(name string) bool {
+	_, err := us.userIdxByName(name)
+
+	return err == nil
+}
+
 //AttachDeviceToken do nothing here
 //TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
@@ -255,6 +262,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 			log.Println(err)
 			return nil, independentError
 		}
+		uu = &userIndexByNameData{}
 		uu.ID = uuu.ID()
 		uu.Name = uuu.Name()
 		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
@@ -286,6 +294,25 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	udata := userData{ID: uu.ID, Name: uu.Name, Active: true}
 	resultUser := &User{userData: udata}
 	return resultUser, nil
+}
+
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	userIndex, err := us.userIdxByName(name)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := us.UserByID(userIndex.ID)
+	if err != nil {
+		return "", err
+	}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
 }
 
 //userIndexByNameData represents index projected data

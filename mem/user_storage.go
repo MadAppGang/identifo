@@ -26,6 +26,11 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
+//UserExists always returns true
+func (us *UserStorage) UserExists(name string) bool {
+	return true
+}
+
 //AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return nil
@@ -65,6 +70,11 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 // AddUserWithFederatedID returns randomly generated user.
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	return randUser(), nil
+}
+
+// IDByName return random id
+func (us *UserStorage) IDByName(name string) (string, error) {
+	return randomdata.StringNumber(2, "-"), nil
 }
 
 func randUser() *user {
