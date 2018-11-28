@@ -174,6 +174,27 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return "", model.ErrorNotFound
+	}
+
+	user := &User{userData: u}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
+}
+
 //data implementation
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`

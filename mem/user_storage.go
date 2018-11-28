@@ -77,6 +77,11 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return nil
 }
 
+// IDByName return random id
+func (us *UserStorage) IDByName(name string) (string, error) {
+	return randomdata.StringNumber(2, "-"), nil
+}
+
 func randUser() *user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),

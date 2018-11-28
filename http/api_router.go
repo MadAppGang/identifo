@@ -32,7 +32,7 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultOptions() []func(*apiRouter) error {
-	return []func(*apiRouter) error{ServeDefaultStaticPages()}
+	return []func(*apiRouter) error{ServeDefaultStaticPages(), ServeDefaultStaticFiles()}
 }
 
 //NewRouter created and initiates new router
@@ -46,7 +46,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		tokenService: tokenService,
 	}
 
-	for _, option := range append(defaultOptions(), options...) {
+	for _, option := range append(options, defaultOptions()...) {
 		if err := option(&ar); err != nil {
 			return nil, err
 		}
@@ -59,6 +59,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 
 	ar.initRoutes()
 	ar.router.UseHandler(ar.handler)
+
 	return &ar, nil
 }
 

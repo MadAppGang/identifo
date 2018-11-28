@@ -9,4 +9,6 @@ func (e Error) Error() string { return string(e) }
 const (
 	//ErrorInternalError internal error
 	ErrorInternalError = Error("Internal error")
+	// ErrorInactiveUser means user is inactive
+	ErrorInactiveUser = Error("User is inactive")
 )

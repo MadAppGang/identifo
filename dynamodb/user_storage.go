@@ -262,6 +262,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 			log.Println(err)
 			return nil, independentError
 		}
+		uu = &userIndexByNameData{}
 		uu.ID = uuu.ID()
 		uu.Name = uuu.Name()
 		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
@@ -317,6 +318,25 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 
 	return err
+}
+
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	userIndex, err := us.userIdxByName(name)
+	if err != nil {
+		return "", err
+	}
+
+	user, err := us.UserByID(userIndex.ID)
+	if err != nil {
+		return "", err
+	}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
 }
 
 //userIndexByNameData represents index projected data
