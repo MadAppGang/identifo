@@ -255,6 +255,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 			log.Println(err)
 			return nil, independentError
 		}
+		uu = &userIndexByNameData{}
 		uu.ID = uuu.ID()
 		uu.Name = uuu.Name()
 		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
