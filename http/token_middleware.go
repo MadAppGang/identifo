@@ -3,7 +3,6 @@ package http
 import (
 	"context"
 	"net/http"
-	"path"
 
 	"github.com/madappgang/identifo/model"
 
@@ -58,7 +57,7 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 }
 
 func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
-	errorPath := path.Join("password", "error")
+	errorPath := "./error"
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {
@@ -66,7 +65,7 @@ func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
 			tstr = r.URL.Query().Get("token")
 		case http.MethodPost:
 			err := r.ParseForm()
-			if err == nil {
+			if err != nil {
 				break
 			}
 

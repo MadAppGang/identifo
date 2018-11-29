@@ -3,6 +3,8 @@ package http
 import (
 	"html/template"
 	"net/http"
+
+	"github.com/urfave/negroni"
 )
 
 // StaticPages holds together all paths to a static pages
@@ -44,6 +46,29 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 	}
 }
 
+func (ar *apiRouter) ServeResetPasswordTemplate(path string) http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		errorMessage, err := GetFlash(w, r, ErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		token := r.Context().Value(TokenRawContextKey)
+		data := map[string]interface{}{"Error": errorMessage, "Token": token}
+		err = tmpl.Execute(w, data)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
+	}
+}
+
 // ServeStaticPages serves static provided pages
 func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	return func(ar *apiRouter) error {
@@ -78,8 +103,11 @@ func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
 	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
 	ar.handler.HandleFunc("/password/forgot/{success:success\\/?}", ar.ServeTemplate(sp.ForgotPasswordSuccess)).Methods("GET")
-	ar.handler.HandleFunc("/password/{reset:reset\\/?}", ar.ServeTemplate(sp.ResetPassword))
-	ar.handler.HandleFunc("/password/{error:error\\/?}", ar.ServeTemplate(sp.TokenError))
+	ar.handler.HandleFunc("/password/{error:error\\/?}", ar.ServeTemplate(sp.TokenError)).Methods("GET")
+	ar.handler.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
+		ar.ResetToken(),
+		negroni.WrapFunc(ar.ServeResetPasswordTemplate(sp.ResetPassword)),
+	)).Methods("GET")
 
 	return nil
 }
