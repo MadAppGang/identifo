@@ -59,7 +59,7 @@ func initDB() model.Router {
 	domain := os.Getenv("MAILGUN_DOMAIN")
 	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
 	publicKey := os.Getenv("MAILGUN_PUBLIC_KEY")
-	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@mail.com")
+	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@identifo.com")
 
 	tokenService, err := jwt.NewTokenService(
 		"../../jwt/private.pem",

@@ -4,20 +4,24 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
 	"github.com/boltdb/bolt"
+	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/boltdb"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
 )
 
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:                 "../../static/login.html",
+		Registration:          "../../static/registration.html",
+		ForgotPassword:        "../../static/forgot-password.html",
+		ResetPassword:         "../../static/reset-password.html",
+		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
 	}
 }
 
@@ -28,7 +32,7 @@ func staticFiles() ihttp.StaticFiles {
 	}
 }
 
-func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService) {
+func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, model.TokenService, model.EmailService) {
 	db, err := boltdb.InitDB("db.db")
 	if err != nil {
 		log.Fatal(err)
@@ -47,6 +51,16 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 		userStorage,
 	)
 
+	err = godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	domain := os.Getenv("MAILGUN_DOMAIN")
+	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
+	publicKey := os.Getenv("MAILGUN_PUBLIC_KEY")
+	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@identifo.com")
+
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
 
 	if err != nil {
@@ -54,16 +68,16 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 		createData(db, userStorage.(*boltdb.UserStorage), appStorage)
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenService
+	return appStorage, userStorage, tokenStorage, tokenService, emailService
 }
 
 func initRouter() model.Router {
-	appStorage, userStorage, tokenStorage, tokenService := initServices()
+	appStorage, userStorage, tokenStorage, tokenService, emailService := initServices()
 
 	sp := staticPages()
 	sf := staticFiles()
 
-	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+	router, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
 
 	if err != nil {
 		log.Fatal(err)
