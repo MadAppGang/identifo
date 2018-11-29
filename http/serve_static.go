@@ -39,6 +39,29 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 	}
 }
 
+func (ar *apiRouter) ServeResetPasswordTemplate(path string) http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		errorMessage, err := GetFlash(w, r, ErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		token := r.Context().Value(TokenRawContextKey)
+		data := map[string]interface{}{"Error": errorMessage, "Token": token}
+		err = tmpl.Execute(w, data)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
+	}
+}
+
 // ServeStaticPages serves static provided pages
 func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	return func(ar *apiRouter) error {
