@@ -13,10 +13,11 @@ import (
 
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:                 "../../static/login.html",
+		Registration:          "../../static/registration.html",
+		ForgotPassword:        "../../static/forgot-password.html",
+		ResetPassword:         "../../static/reset-password.html",
+		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
 	}
 }
 
@@ -50,7 +51,7 @@ func initDB() model.Router {
 	tokenService, err := jwt.NewTokenService(
 		"../../jwt/private.pem",
 		"../../jwt/public.pem",
-		"identifo.madappgang.com",
+		"http://localhost:8080",
 		model.TokenServiceAlgorithmAuto,
 		tokenStorage,
 		appStorage,

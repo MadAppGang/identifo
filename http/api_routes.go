@@ -18,6 +18,11 @@ func (ar *apiRouter) initRoutes() {
 	//setup root routes
 	ar.handler.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 	ar.handler.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
+	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.SendResetToken()).Methods("POST")
+	ar.handler.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
+		ar.ResetToken(),
+		negroni.WrapFunc(ar.ResetPassword()),
+	)).Methods("POST")
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
