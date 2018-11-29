@@ -58,6 +58,7 @@ func staticPages() ihttp.StaticPages {
 		ResetPassword:         "../../static/reset-password.html",
 		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
 		TokenError:            "../../static/token-error.html",
+		ResetSuccess:          "../../static/reset-success.html",
 	}
 }
 

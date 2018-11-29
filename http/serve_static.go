@@ -15,6 +15,7 @@ type StaticPages struct {
 	ForgotPasswordSuccess string
 	ResetPassword         string
 	TokenError            string
+	ResetSuccess          string
 }
 
 // StaticFiles holds paths to static files
@@ -85,6 +86,7 @@ func ServeDefaultStaticPages() func(*apiRouter) error {
 		ResetPassword:         "./static/reset-password.html",
 		ForgotPasswordSuccess: "./static/forgot-password-success.html",
 		TokenError:            "./static/token-error.html",
+		ResetSuccess:          "./static/reset-success.html",
 	}
 
 	return ServeStaticPages(staticPages)
