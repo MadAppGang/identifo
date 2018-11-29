@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	//ErrorMessageKey flash message key to keep error message across pages
+	ErrorMessageKey = "error"
+)
+
 // SetFlash sets new flash message
 func SetFlash(w http.ResponseWriter, name, value string) {
 	c := &http.Cookie{Name: name, Value: encode(value), MaxAge: 600}

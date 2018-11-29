@@ -73,18 +73,3 @@ func (ar *apiRouter) parseResetToken(tstr string) (model.Token, error) {
 
 	return token, nil
 }
-
-//Token middleware extracts token and validates it
-func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		tstr := r.URL.Query().Get("token")
-		_, err := ar.parseResetToken(tstr)
-		if err != nil {
-			// TODO: Redirect to the error page with flash message
-		}
-
-		ctx := context.WithValue(r.Context(), TemplateDataContextKey, map[string]string{"Token": tstr})
-		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
-	}
-}
