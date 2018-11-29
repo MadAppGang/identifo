@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/madappgang/identifo/model"
+
 	"github.com/madappgang/identifo/jwt"
 	"github.com/urfave/negroni"
 )
@@ -52,5 +54,37 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 		ctx = context.WithValue(r.Context(), TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
+	}
+}
+
+func (ar *apiRouter) parseResetToken(tstr string) (model.Token, error) {
+	if tstr == "" {
+		return nil, Error("Token is invalid")
+	}
+
+	token, err := ar.tokenService.Parse(string(tstr))
+	if err != nil {
+		return nil, Error("Token is invalid")
+	}
+
+	if model.ResetTokenType != token.Type() {
+		return nil, Error("Token is invalid")
+	}
+
+	return token, nil
+}
+
+//Token middleware extracts token and validates it
+func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		tstr := r.URL.Query().Get("token")
+		_, err := ar.parseResetToken(tstr)
+		if err != nil {
+			// TODO: Redirect to the error page with flash message
+		}
+
+		ctx := context.WithValue(r.Context(), TemplateDataContextKey, map[string]string{"Token": tstr})
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	}
 }
