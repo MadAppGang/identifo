@@ -1,10 +1,7 @@
 package http
 
 import (
-	"fmt"
 	"net/http"
-
-	"github.com/madappgang/identifo/model"
 )
 
 func (ar *apiRouter) ResetPassword() http.HandlerFunc {
@@ -13,9 +10,19 @@ func (ar *apiRouter) ResetPassword() http.HandlerFunc {
 		if err := StrongPswd(password); err != nil {
 			SetFlash(w, ErrorMessageKey, err.Error())
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
 		}
 
-		userID := r.Context().Value(TokenContextKey).(model.Token).UserID()
-		fmt.Println(userID)
+		tokenString := r.Context().Value(TokenRawContextKey).(string)
+		token, _ := ar.tokenService.Parse(tokenString)
+
+		err := ar.userStorage.ResetPassword(token.UserID(), password)
+		if err != nil {
+			SetFlash(w, ErrorMessageKey, "Server Error")
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
+		}
+
+		http.Redirect(w, r, "./reset/success", http.StatusMovedPermanently)
 	}
 }

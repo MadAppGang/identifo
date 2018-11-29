@@ -57,7 +57,7 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 }
 
 func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
-	errorPath := "./error"
+	errorPath := "./reset/error"
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {
@@ -94,8 +94,7 @@ func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), TokenContextKey, token)
-		ctx = context.WithValue(r.Context(), TokenRawContextKey, tstr)
+		ctx := context.WithValue(r.Context(), TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	}

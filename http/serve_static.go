@@ -15,6 +15,7 @@ type StaticPages struct {
 	ForgotPasswordSuccess string
 	ResetPassword         string
 	TokenError            string
+	ResetSuccess          string
 }
 
 // StaticFiles holds paths to static files
@@ -92,6 +93,7 @@ func ServeDefaultStaticPages() func(*apiRouter) error {
 		ResetPassword:         "./static/reset-password.html",
 		ForgotPasswordSuccess: "./static/forgot-password-success.html",
 		TokenError:            "./static/token-error.html",
+		ResetSuccess:          "./static/reset-success.html",
 	}
 
 	return ServeStaticPages(staticPages)
@@ -103,7 +105,8 @@ func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
 	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
 	ar.handler.HandleFunc("/password/forgot/{success:success\\/?}", ar.ServeTemplate(sp.ForgotPasswordSuccess)).Methods("GET")
-	ar.handler.HandleFunc("/password/{error:error\\/?}", ar.ServeTemplate(sp.TokenError)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset/{error:error\\/?}", ar.ServeTemplate(sp.TokenError)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset/{success:success\\/?}", ar.ServeTemplate(sp.ResetSuccess)).Methods("GET")
 	ar.handler.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
 		ar.ResetToken(),
 		negroni.WrapFunc(ar.ServeResetPasswordTemplate(sp.ResetPassword)),
