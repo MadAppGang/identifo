@@ -7,10 +7,11 @@ import (
 
 // StaticPages holds together all paths to a static pages
 type StaticPages struct {
-	Login          string
-	Registration   string
-	ForgotPassword string
-	ResetPassword  string
+	Login                 string
+	Registration          string
+	ForgotPassword        string
+	ForgotPasswordSuccess string
+	ResetPassword         string
 }
 
 // StaticFiles holds paths to static files
@@ -28,7 +29,14 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 			return
 		}
 
-		err := tmpl.Execute(w, nil)
+		errorMessage, err := GetFlash(w, r, ErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		data := map[string]interface{}{"Error": errorMessage}
+		err = tmpl.Execute(w, data)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 		}
@@ -52,10 +60,11 @@ func ServeStaticFiles(sf StaticFiles) func(*apiRouter) error {
 // ServeDefaultStaticPages serves default HTML pages
 func ServeDefaultStaticPages() func(*apiRouter) error {
 	staticPages := StaticPages{
-		Login:          "./static/login.html",
-		Registration:   "./static/registration.html",
-		ForgotPassword: "./static/forgot-password.html",
-		ResetPassword:  "./static/reset-password.html",
+		Login:                 "./static/login.html",
+		Registration:          "./static/registration.html",
+		ForgotPassword:        "./static/forgot-password.html",
+		ResetPassword:         "./static/reset-password.html",
+		ForgotPasswordSuccess: "./static/forgot-password-success.html",
 	}
 
 	return ServeStaticPages(staticPages)
@@ -66,7 +75,8 @@ func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
 	ar.handler.HandleFunc("/{login:login\\/?}", ar.ServeTemplate(sp.Login)).Methods("GET")
 	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
-	ar.handler.HandleFunc("/password/{reset:reset\\/?}", ar.ServeTemplate(sp.ResetPassword)).Methods("GET")
+	ar.handler.HandleFunc("/password/forgot/{success:success\\/?}", ar.ServeTemplate(sp.ForgotPasswordSuccess)).Methods("GET")
+
 	return nil
 }
 

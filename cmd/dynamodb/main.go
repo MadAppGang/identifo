@@ -16,10 +16,11 @@ import (
 
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:                 "../../static/login.html",
+		Registration:          "../../static/registration.html",
+		ForgotPassword:        "../../static/forgot-password.html",
+		ResetPassword:         "../../static/reset-password.html",
+		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
 	}
 }
 
@@ -58,7 +59,7 @@ func initDB() model.Router {
 	domain := os.Getenv("MAILGUN_DOMAIN")
 	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
 	publicKey := os.Getenv("MAILGUN_PUBLIC_KEY")
-	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@mail.com")
+	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@identifo.com")
 
 	tokenService, err := jwt.NewTokenService(
 		"../../jwt/private.pem",

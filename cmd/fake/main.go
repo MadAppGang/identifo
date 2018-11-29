@@ -4,19 +4,23 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
 
+	"github.com/joho/godotenv"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
 )
 
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
-		Login:          "../../static/login.html",
-		Registration:   "../../static/registration.html",
-		ForgotPassword: "../../static/forgot-password.html",
-		ResetPassword:  "../../static/reset-password.html",
+		Login:                 "../../static/login.html",
+		Registration:          "../../static/registration.html",
+		ForgotPassword:        "../../static/forgot-password.html",
+		ResetPassword:         "../../static/reset-password.html",
+		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
 	}
 }
 
@@ -51,10 +55,20 @@ func main() {
 		userStorage,
 	)
 
+	err := godotenv.Load()
+	if err != nil {
+		log.Fatal("Error loading .env file")
+	}
+
+	domain := os.Getenv("MAILGUN_DOMAIN")
+	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
+	publicKey := os.Getenv("MAILGUN_PUBLIC_KEY")
+	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@identifo.com")
+
 	sp := staticPages()
 	sf := staticFiles()
 
-	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
 
 	if err != nil {
 		log.Fatal(err)
