@@ -1,16 +1,41 @@
 package http
 
 import (
+	"bytes"
 	"fmt"
+	"html/template"
 	"net/http"
 	"net/url"
 	"path"
+	"regexp"
 )
 
+const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
+
 func (ar *apiRouter) SendResetToken() http.HandlerFunc {
+	tmpl, err := template.New("reset").Parse("Hi! we got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password")
+	emailRegexp, regexpErr := regexp.Compile(emailExpr)
+
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.ParseForm()
+		if err != nil || regexpErr != nil {
+			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
+		}
+
+		err = r.ParseForm()
+		if err != nil {
+			SetFlash(w, ErrorMessageKey, "Invalid request")
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+		}
+
 		name := r.FormValue("email")
+		if !emailRegexp.MatchString(name) {
+			SetFlash(w, ErrorMessageKey, "Invalid email")
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
+		}
+
 		userExists := ar.userStorage.UserExists(name)
 		if !userExists {
 			SetFlash(w, ErrorMessageKey, "This Email is unregistred")
@@ -47,9 +72,14 @@ func (ar *apiRouter) SendResetToken() http.HandlerFunc {
 			RawQuery: query,
 		}
 
-		mb := messageBody(u.String())
+		var tpl bytes.Buffer
+		if err = tmpl.Execute(&tpl, u.String()); err != nil {
+			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			return
+		}
 
-		_, _, err = ar.emailService.SendHTML("Reset Password", mb, name)
+		_, _, err = ar.emailService.SendHTML("Reset Password", tpl.String(), name)
 		if err != nil {
 			SetFlash(w, ErrorMessageKey, "Error sending email")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
@@ -60,9 +90,4 @@ func (ar *apiRouter) SendResetToken() http.HandlerFunc {
 		http.Redirect(w, r, url, http.StatusMovedPermanently)
 		return
 	}
-}
-
-func messageBody(link string) string {
-	message := "Hi! we got a request to reset your password. Click <a href=\"%s\">here</a> to reset your password"
-	return fmt.Sprintf(message, link)
 }
