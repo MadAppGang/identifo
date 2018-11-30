@@ -32,19 +32,19 @@ var TimeFunc = time.Now
 //appID - application ID who have made the request, should be in audience field of JWT token
 //issues - this server name, should be the same as iss of JWT token
 //userID - user, who have made the request, if the field is empty, we are not validating it
-func NewValidator(appID, issuer, userID string) model.Validator {
+func NewValidator(audience, issuer, userID string) model.Validator {
 	return &Validator{
-		appID:  appID,
-		issuer: issuer,
-		userID: userID,
+		audience: audience,
+		issuer:   issuer,
+		userID:   userID,
 	}
 }
 
 //Validator JWT token validator
 type Validator struct {
-	appID  string
-	issuer string
-	userID string
+	audience string
+	issuer   string
+	userID   string
 }
 
 //Validate validates token
@@ -84,7 +84,7 @@ func (v *Validator) Validate(t model.Token) error {
 		return ErrTokenValidationNoIAT
 	}
 
-	if !claims.VerifyAudience(v.appID, true) {
+	if !claims.VerifyAudience(v.audience, true) {
 		return ErrTokenValidationInvalidAudience
 	}
 

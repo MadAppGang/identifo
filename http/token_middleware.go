@@ -4,6 +4,8 @@ import (
 	"context"
 	"net/http"
 
+	"github.com/madappgang/identifo/model"
+
 	"github.com/madappgang/identifo/jwt"
 	"github.com/urfave/negroni"
 )
@@ -19,7 +21,6 @@ const (
 
 //Token middleware extracts token and validates it
 func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
-
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := appFromContext(r.Context())
 		if app == nil {
@@ -52,5 +53,49 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 		ctx = context.WithValue(r.Context(), TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
+	}
+}
+
+func (ar *apiRouter) ResetToken() negroni.HandlerFunc {
+	errorPath := "./reset/error"
+	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		tstr := ""
+		switch r.Method {
+		case http.MethodGet:
+			tstr = r.URL.Query().Get("token")
+		case http.MethodPost:
+			err := r.ParseForm()
+			if err != nil {
+				break
+			}
+
+			tstr = r.FormValue("token")
+		}
+
+		if tstr == "" {
+			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			return
+		}
+
+		v := jwt.NewValidator("identifo", ar.tokenService.Issuer(), "")
+		token, err := ar.tokenService.Parse(string(tstr))
+		if err != nil {
+			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			return
+		}
+
+		if err := v.Validate(token); err != nil {
+			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			return
+		}
+
+		if model.ResetTokenType != token.Type() {
+			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			return
+		}
+
+		ctx := context.WithValue(r.Context(), TokenRawContextKey, tstr)
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
 	}
 }

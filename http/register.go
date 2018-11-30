@@ -39,7 +39,7 @@ func (ar *apiRouter) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		//validate password
-		if err := strongPswd(d.Password); err != nil {
+		if err := StrongPswd(d.Password); err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
@@ -104,7 +104,8 @@ func (ar *apiRouter) RegisterWithPassword() http.HandlerFunc {
 	}
 }
 
-func strongPswd(pswd string) error {
+// StrongPswd validates password
+func StrongPswd(pswd string) error {
 	seven, number, uppper, _, invalid := verifyPassword(pswd)
 	if invalid {
 		return ErrorPasswordWrongSymbols

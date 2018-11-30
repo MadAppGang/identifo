@@ -13,7 +13,7 @@ import (
 const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
 func (ar *apiRouter) SendResetToken() http.HandlerFunc {
-	tmpl, err := template.New("reset").Parse("Hi! we got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password")
+	tmpl, err := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
 	emailRegexp, regexpErr := regexp.Compile(emailExpr)
 
 	return func(w http.ResponseWriter, r *http.Request) {

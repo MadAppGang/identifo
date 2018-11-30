@@ -3,6 +3,8 @@ package http
 import (
 	"html/template"
 	"net/http"
+
+	"github.com/urfave/negroni"
 )
 
 // StaticPages holds together all paths to a static pages
@@ -12,6 +14,8 @@ type StaticPages struct {
 	ForgotPassword        string
 	ForgotPasswordSuccess string
 	ResetPassword         string
+	TokenError            string
+	ResetSuccess          string
 }
 
 // StaticFiles holds paths to static files
@@ -43,6 +47,29 @@ func (ar *apiRouter) ServeTemplate(path string) http.HandlerFunc {
 	}
 }
 
+func (ar *apiRouter) ServeResetPasswordTemplate(path string) http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path)
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		errorMessage, err := GetFlash(w, r, ErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		token := r.Context().Value(TokenRawContextKey)
+		data := map[string]interface{}{"Error": errorMessage, "Token": token}
+		err = tmpl.Execute(w, data)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
+	}
+}
+
 // ServeStaticPages serves static provided pages
 func ServeStaticPages(sp StaticPages) func(*apiRouter) error {
 	return func(ar *apiRouter) error {
@@ -65,6 +92,8 @@ func ServeDefaultStaticPages() func(*apiRouter) error {
 		ForgotPassword:        "./static/forgot-password.html",
 		ResetPassword:         "./static/reset-password.html",
 		ForgotPasswordSuccess: "./static/forgot-password-success.html",
+		TokenError:            "./static/token-error.html",
+		ResetSuccess:          "./static/reset-success.html",
 	}
 
 	return ServeStaticPages(staticPages)
@@ -76,6 +105,12 @@ func (ar *apiRouter) serveStaticPages(sp StaticPages) error {
 	ar.handler.HandleFunc("/{register:register\\/?}", ar.ServeTemplate(sp.Registration)).Methods("GET")
 	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.ServeTemplate(sp.ForgotPassword)).Methods("GET")
 	ar.handler.HandleFunc("/password/forgot/{success:success\\/?}", ar.ServeTemplate(sp.ForgotPasswordSuccess)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset/{error:error\\/?}", ar.ServeTemplate(sp.TokenError)).Methods("GET")
+	ar.handler.HandleFunc("/password/reset/{success:success\\/?}", ar.ServeTemplate(sp.ResetSuccess)).Methods("GET")
+	ar.handler.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
+		ar.ResetToken(),
+		negroni.WrapFunc(ar.ServeResetPasswordTemplate(sp.ResetPassword)),
+	)).Methods("GET")
 
 	return nil
 }
