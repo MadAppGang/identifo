@@ -1,4 +1,4 @@
-package http
+package api
 
 import "github.com/rs/cors"
 
@@ -11,6 +11,6 @@ func Cors(options cors.Options) func(*apiRouter) error {
 
 func (ar *apiRouter) setCORS(options cors.Options) error {
 	c := cors.New(options)
-	ar.router.Use(c)
+	ar.middleware.Use(c)
 	return nil
 }

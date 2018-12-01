@@ -1,4 +1,4 @@
-package http
+package html
 
 import (
 	"net/http"
@@ -7,10 +7,11 @@ import (
 	"github.com/urfave/negroni"
 )
 
-func (ar *apiRouter) DumpRequest() negroni.HandlerFunc {
+//DumpRequest dumps request to logger
+func (ar *Router) DumpRequest() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		dump, _ := httputil.DumpRequest(r, true)
-		ar.logger.Printf("Request: %s\n", string(dump))
+		ar.Logger.Printf("Request: %s\n", string(dump))
 		next(rw, r)
 	}
 }

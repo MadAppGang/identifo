@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"github.com/gorilla/mux"
@@ -13,20 +13,15 @@ func (ar *apiRouter) initRoutes() {
 	}
 
 	//all API routes should have appID in it
-	apiMiddlewares := ar.router.With(ar.DumpRequest(), ar.AppID())
+	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
 	//setup root routes
-	ar.handler.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
-	ar.handler.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
-	ar.handler.HandleFunc("/password/{forgot:forgot\\/?}", ar.SendResetToken()).Methods("POST")
-	ar.handler.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
-		ar.ResetToken(),
-		negroni.WrapFunc(ar.ResetPassword()),
-	)).Methods("POST")
+	ar.router.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
+	ar.router.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
 
 	//setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
-	ar.handler.PathPrefix("/auth").Handler(apiMiddlewares.With(
+	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
 		negroni.Wrap(auth),
 	))
@@ -40,7 +35,7 @@ func (ar *apiRouter) initRoutes() {
 	)).Methods("GET")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
-	ar.handler.PathPrefix("/me").Handler(apiMiddlewares.With(
+	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(meRouter),
@@ -49,7 +44,7 @@ func (ar *apiRouter) initRoutes() {
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
-	ar.handler.PathPrefix("/.well-known").Handler(negroni.New(
+	ar.router.PathPrefix("/.well-known").Handler(negroni.New(
 		ar.DumpRequest(),
 		negroni.Wrap(oidc),
 	))

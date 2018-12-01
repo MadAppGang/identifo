@@ -1,4 +1,4 @@
-package http
+package model
 
 //ContextKey enumerates all context keys
 type ContextKey int

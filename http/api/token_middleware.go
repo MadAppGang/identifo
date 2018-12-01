@@ -1,12 +1,11 @@
-package http
+package api
 
 import (
 	"context"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
-
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
 
@@ -49,8 +48,8 @@ func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), TokenContextKey, token)
-		ctx = context.WithValue(r.Context(), TokenRawContextKey, tstr)
+		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
+		ctx = context.WithValue(r.Context(), model.TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}

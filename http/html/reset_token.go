@@ -1,4 +1,4 @@
-package http
+package html
 
 import (
 	"bytes"
@@ -12,54 +12,55 @@ import (
 
 const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
-func (ar *apiRouter) SendResetToken() http.HandlerFunc {
+//SendResetToken POST form request handle with password request handle
+func (ar *Router) SendResetToken() http.HandlerFunc {
 	tmpl, err := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
 	emailRegexp, regexpErr := regexp.Compile(emailExpr)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil || regexpErr != nil {
-			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
 		err = r.ParseForm()
 		if err != nil {
-			SetFlash(w, ErrorMessageKey, "Invalid request")
+			SetFlash(w, FlashErrorMessageKey, "Invalid request")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 		}
 
 		name := r.FormValue("email")
 		if !emailRegexp.MatchString(name) {
-			SetFlash(w, ErrorMessageKey, "Invalid email")
+			SetFlash(w, FlashErrorMessageKey, "Invalid email")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
-		userExists := ar.userStorage.UserExists(name)
+		userExists := ar.UserStorage.UserExists(name)
 		if !userExists {
-			SetFlash(w, ErrorMessageKey, "This Email is unregistred")
+			SetFlash(w, FlashErrorMessageKey, "This Email is unregistered")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
-		id, err := ar.userStorage.IDByName(name)
+		id, err := ar.UserStorage.IDByName(name)
 		if err != nil {
-			SetFlash(w, ErrorMessageKey, "This Email is unregistred")
+			SetFlash(w, FlashErrorMessageKey, "This Email is unregistered")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
-		t, err := ar.tokenService.NewResetToken(id)
+		t, err := ar.TokenService.NewResetToken(id)
 		if err != nil {
-			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
-		token, err := ar.tokenService.String(t)
+		token, err := ar.TokenService.String(t)
 		if err != nil {
-			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
@@ -74,14 +75,14 @@ func (ar *apiRouter) SendResetToken() http.HandlerFunc {
 
 		var tpl bytes.Buffer
 		if err = tmpl.Execute(&tpl, u.String()); err != nil {
-			SetFlash(w, ErrorMessageKey, "Server Error. Try later please")
+			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
 
-		_, _, err = ar.emailService.SendHTML("Reset Password", tpl.String(), name)
+		_, _, err = ar.EmailService.SendHTML("Reset Password", tpl.String(), name)
 		if err != nil {
-			SetFlash(w, ErrorMessageKey, "Error sending email")
+			SetFlash(w, FlashErrorMessageKey, "Error sending email")
 			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
 			return
 		}
