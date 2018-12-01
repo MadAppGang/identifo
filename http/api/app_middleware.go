@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"context"
@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+
 	"github.com/urfave/negroni"
 )
 
@@ -29,7 +30,7 @@ func (ar *apiRouter) AppID() negroni.HandlerFunc {
 			ar.Error(rw, ErrorRequestInactiveApp, http.StatusBadRequest, "")
 			return
 		}
-		ctx := context.WithValue(r.Context(), AppDataContextKey, app)
+		ctx := context.WithValue(r.Context(), model.AppDataContextKey, app)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
@@ -37,5 +38,5 @@ func (ar *apiRouter) AppID() negroni.HandlerFunc {
 
 //appFromContext returns app data from request conntext
 func appFromContext(ctx context.Context) model.AppData {
-	return ctx.Value(AppDataContextKey).(model.AppData)
+	return ctx.Value(model.AppDataContextKey).(model.AppData)
 }

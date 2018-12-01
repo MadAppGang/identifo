@@ -1,4 +1,4 @@
-package http
+package api
 
 //Error - http level error type
 type Error string
@@ -17,15 +17,6 @@ const (
 	ErrorRequestInactiveApp = Error("Requesting app is inactive")
 	//ErrorRequestInvalidToken invalid or empty token
 	ErrorRequestInvalidToken = Error("Incorrect or empty Bearer token")
-
-	//ErrorPasswordShouldHave7Letter strong password  validation
-	ErrorPasswordShouldHave7Letter = Error("Password should have at least seven letters")
-	//ErrorPasswordNoNumbers strong password validation
-	ErrorPasswordNoNumbers = Error("Password should have at least one number")
-	//ErrorPasswordNoUppercase strong password validation
-	ErrorPasswordNoUppercase = Error("Password should have at least one uppercase symbol")
-	//ErrorPasswordWrongSymbols strong password validation
-	ErrorPasswordWrongSymbols = Error("Password contains wrong symbols")
 
 	//ErrorFederatedProviderIsNotSupported federated ID provider is not supported
 	ErrorFederatedProviderIsNotSupported = Error("Federated provider is not supported")

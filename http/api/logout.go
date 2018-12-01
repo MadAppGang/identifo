@@ -1,7 +1,9 @@
-package http
+package api
 
 import (
 	"net/http"
+
+	"github.com/madappgang/identifo/model"
 )
 
 //Logout logouts user, deactivates his tokens
@@ -24,7 +26,7 @@ func (ar *apiRouter) Logout() http.HandlerFunc {
 				ar.logger.Println("Cannot revoke refresh token")
 			}
 		}
-		if tokenString, ok := r.Context().Value(TokenRawContextKey).(string); ok {
+		if tokenString, ok := r.Context().Value(model.TokenRawContextKey).(string); ok {
 			if err := ar.tokenStorage.RevokeToken(tokenString); err != nil {
 				ar.logger.Println("Cannot revoke token")
 			}

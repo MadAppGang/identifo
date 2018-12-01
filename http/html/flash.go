@@ -1,4 +1,4 @@
-package http
+package html
 
 import (
 	"encoding/base64"
@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	//ErrorMessageKey flash message key to keep error message across pages
-	ErrorMessageKey = "error"
+	//FlashErrorMessageKey flash message key to keep error message across pages
+	FlashErrorMessageKey = "error"
 )
 
 // SetFlash sets new flash message

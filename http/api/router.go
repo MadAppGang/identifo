@@ -1,4 +1,4 @@
-package http
+package api
 
 import (
 	"encoding/json"
@@ -14,14 +14,14 @@ import (
 
 //apiRoutes - router that handles all API request
 type apiRouter struct {
-	router            *negroni.Negroni
+	middleware        *negroni.Negroni
 	logger            *log.Logger
+	router            *mux.Router
 	appStorage        model.AppStorage
 	userStorage       model.UserStorage
 	tokenStorage      model.TokenStorage
 	tokenService      model.TokenService
 	emailService      model.EmailService
-	handler           *mux.Router
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
 }
@@ -33,14 +33,14 @@ func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultOptions() []func(*apiRouter) error {
-	return []func(*apiRouter) error{ServeDefaultStaticPages(), ServeDefaultStaticFiles()}
+	return []func(*apiRouter) error{}
 }
 
 //NewRouter created and initiates new router
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*apiRouter) error) (model.Router, error) {
 	ar := apiRouter{
-		router:       negroni.Classic(),
-		handler:      mux.NewRouter(),
+		middleware:   negroni.Classic(),
+		router:       mux.NewRouter(),
 		appStorage:   appStorage,
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
@@ -60,7 +60,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	}
 
 	ar.initRoutes()
-	ar.router.UseHandler(ar.handler)
+	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
 }
