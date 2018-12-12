@@ -25,7 +25,7 @@ const (
 //SignatureHandler returns middleware, that hanles
 //Digest: SHA-256=X48E9qOokqqrvdts8nOJRJN3OWDUoyWxBf7kbu9DBPE=
 //https://identifo.madappgang.com/#ca6498ab-b3dc-4c1e-a5b0-2dd633831e2d
-func (ar *apiRouter) SignatureHandler() negroni.HandlerFunc {
+func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := appFromContext(r.Context())

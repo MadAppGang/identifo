@@ -6,52 +6,28 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-/*
- * Password rules:
- * at least 7 letters
- * at least 1 number
- * at least 1 upper case
- * at least 1 special character
- */
+//LoginWithPassword - login user with email and password
+func (ar *Router) LoginWithPassword() http.HandlerFunc {
 
-//RegisterWithPassword register new user with password
-func (ar *apiRouter) RegisterWithPassword() http.HandlerFunc {
-
-	type registrationData struct {
-		Username string                 `json:"username,omitempty" validate:"required,gte=6,lte=50"`
-		Password string                 `json:"password,omitempty" validate:"required,gte=7,lte=50"`
-		Profile  map[string]interface{} `json:"user_profile,omitempty"`
-		Scope    []string               `json:"scope,omitempty"`
+	type loginData struct {
+		Username    string   `json:"username,omitempty" validate:"required,gte=6,lte=130"`
+		Password    string   `json:"password,omitempty" validate:"required,gte=6,lte=130"`
+		DeviceToken string   `json:"device_token,omitempty"`
+		Scopes      []string `json:"scopes,omitempty"`
 	}
-
-	type registrationResponse struct {
-		AccessToken  string     `json:"access_token,omitempty"`
-		RefreshToken string     `json:"refresh_token,omitempty"`
-		User         model.User `json:"user,omitempty"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		//parse data
-		d := registrationData{}
+		d := loginData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
-		//validate password
-		if err := model.StrongPswd(d.Password); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
-			return
-		}
-
-		//create new user
-		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		user, err := ar.userStorage.UserByNamePassword(d.Username, d.Password)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		//do login flow
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scope)
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
@@ -69,7 +45,6 @@ func (ar *apiRouter) RegisterWithPassword() http.HandlerFunc {
 			ar.Error(w, err, http.StatusUnauthorized, "")
 			return
 		}
-
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
@@ -91,14 +66,10 @@ func (ar *apiRouter) RegisterWithPassword() http.HandlerFunc {
 			}
 		}
 
-		user.Sanitize()
-
-		result := registrationResponse{
+		result := AuthResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
-			User:         user,
 		}
-
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

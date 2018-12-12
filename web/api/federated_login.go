@@ -27,7 +27,7 @@ type AuthResponse struct {
 //and then searching the user with this federated identity ID in the user pool
 //if there is not the user with such identity, function returns 404 (user not found)
 //uf register_if_new presents - function creates new user with no  username/password, there is dedicated endpoint to link username/password with federated account
-func (ar *apiRouter) FederatedLogin() http.HandlerFunc {
+func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 	var federatedProviders = map[string]bool{
 		strings.ToLower(string(model.FacebookIDProvider)): true,

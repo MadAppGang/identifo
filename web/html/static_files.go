@@ -60,6 +60,14 @@ func DefaultStaticPathOptions() func(r *Router) error {
 	}
 }
 
+// StaticPathOptions set  static files locations
+func StaticPathOptions(path StaticFilesPath) func(r *Router) error {
+	return func(r *Router) error {
+		r.StaticFilesPath = path
+		return nil
+	}
+}
+
 // HTMLFileHandler receives path to a template and serves it over http
 func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 

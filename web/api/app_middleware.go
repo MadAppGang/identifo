@@ -15,7 +15,7 @@ const (
 	HeaderKeyAppID = "X-Identifo-Clientid"
 )
 
-func (ar *apiRouter) AppID() negroni.HandlerFunc {
+func (ar *Router) AppID() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
 		app, err := ar.appStorage.AppByID(appID)

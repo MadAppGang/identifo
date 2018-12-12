@@ -8,28 +8,19 @@ import (
 
 	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/dynamodb"
-	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web"
+	"github.com/madappgang/identifo/web/html"
 )
 
-func staticPages() ihttp.StaticPages {
-	return ihttp.StaticPages{
-		Login:                 "../../static/login.html",
-		Registration:          "../../static/registration.html",
-		ForgotPassword:        "../../static/forgot-password.html",
-		ResetPassword:         "../../static/reset-password.html",
-		ForgotPasswordSuccess: "../../static/forgot-password-success.html",
-		TokenError:            "../../static/token-error.html",
-		ResetSuccess:          "../../static/reset-success.html",
-	}
-}
-
-func staticFiles() ihttp.StaticFiles {
-	return ihttp.StaticFiles{
-		StylesDirectory:  "../../static/css",
-		ScriptsDirectory: "../../static/js",
+func staticPath() html.StaticFilesPath {
+	return html.StaticFilesPath{
+		StylesPath:  "../../static/css",
+		ScriptsPath: "../../static/js",
+		PagesPath:   "../../static",
+		ImagesPath:  "../../static/img",
 	}
 }
 
@@ -73,10 +64,17 @@ func initDB() model.Router {
 		userStorage,
 	)
 
-	sp := staticPages()
-	sf := staticFiles()
-
-	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+	routerSettings := web.RouterSetting{
+		AppStorage:   appStorage,
+		UserStorage:  userStorage,
+		TokenStorage: tokenStorage,
+		TokenService: tokenService,
+		EmailService: emailService,
+		WebRouterSettings: []func(*html.Router) error{
+			html.StaticPathOptions(staticPath()),
+		},
+	}
+	r, err := web.NewRouter(routerSettings)
 
 	if err != nil {
 		log.Fatal(err)

@@ -7,7 +7,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
-func (ar *apiRouter) DumpRequest() negroni.HandlerFunc {
+func (ar *Router) DumpRequest() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		dump, _ := httputil.DumpRequest(r, true)
 		ar.logger.Printf("Request: %s\n", string(dump))

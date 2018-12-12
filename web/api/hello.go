@@ -6,7 +6,7 @@ import (
 )
 
 //HandleHello - returns hello message
-func (ar *apiRouter) HandleHello() http.HandlerFunc {
+func (ar *Router) HandleHello() http.HandlerFunc {
 	type helloResponse struct {
 		Answer string    `json:"answer,omitempty"`
 		Date   time.Time `json:"date,omitempty"`
@@ -23,7 +23,7 @@ func (ar *apiRouter) HandleHello() http.HandlerFunc {
 }
 
 //HandleHello - returns pong message
-func (ar *apiRouter) HandlePing() http.HandlerFunc {
+func (ar *Router) HandlePing() http.HandlerFunc {
 	type pongResponse struct {
 		Message string    `json:"message,omitempty"`
 		Date    time.Time `json:"date,omitempty"`

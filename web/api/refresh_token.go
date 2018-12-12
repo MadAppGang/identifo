@@ -5,7 +5,7 @@ import (
 )
 
 //RefreshToken - refresh access token
-func (ar *apiRouter) RefreshToken() http.HandlerFunc {
+func (ar *Router) RefreshToken() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := appFromContext(r.Context())

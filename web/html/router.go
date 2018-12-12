@@ -87,7 +87,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	<h2>Error</h2></br>
 	<h3>
 	` +
-		fmt.Sprintf("Error: %s, code: %d, userInfo: $s", err.Error(), code, userInfo) +
+		fmt.Sprintf("Error: %s, code: %d, userInfo: %s", err.Error(), code, userInfo) +
 		`
 	</h3>
 	</body>

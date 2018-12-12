@@ -7,7 +7,7 @@ import (
 )
 
 //Logout logouts user, deactivates his tokens
-func (ar *apiRouter) Logout() http.HandlerFunc {
+func (ar *Router) Logout() http.HandlerFunc {
 	type logoutData struct {
 		RefreshToken string `json:"refresh_token,omitempty"`
 		DeviceToken  string `json:"device_token,omitempty"`

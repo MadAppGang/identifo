@@ -12,8 +12,8 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//apiRoutes - router that handles all API request
-type apiRouter struct {
+//Router - router that handles all API request
+type Router struct {
 	middleware        *negroni.Negroni
 	logger            *log.Logger
 	router            *mux.Router
@@ -27,18 +27,18 @@ type apiRouter struct {
 }
 
 //ServeHTTP identifo.Router protocol implementation
-func (ar *apiRouter) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
 	ar.router.ServeHTTP(w, r)
 }
 
-func defaultOptions() []func(*apiRouter) error {
-	return []func(*apiRouter) error{}
+func defaultOptions() []func(*Router) error {
+	return []func(*Router) error{}
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*apiRouter) error) (model.Router, error) {
-	ar := apiRouter{
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+	ar := Router{
 		middleware:   negroni.Classic(),
 		router:       mux.NewRouter(),
 		appStorage:   appStorage,
@@ -66,7 +66,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 }
 
 //ServeJSON send status code, headers and data and send it back to the user
-func (ar *apiRouter) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
+func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
 		ar.Error(w, err, http.StatusInternalServerError, "")
@@ -81,7 +81,7 @@ func (ar *apiRouter) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 }
 
 // Error writes an API error message to the response and logger.
-func (ar *apiRouter) Error(w http.ResponseWriter, err error, code int, userInfo string) {
+func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo string) {
 	// errorResponse is a generic response for sending a error.
 	type errorResponse struct {
 		Error string `json:"error,omitempty"`

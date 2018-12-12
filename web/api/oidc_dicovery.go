@@ -50,7 +50,7 @@ type jwk struct {
 //it should return  RFC5785 compatible documentation (https://tools.ietf.org/html/rfc5785)
 //this endpoint allows use Identifo as Federated identity provider
 //for example AWS AppSync (https://docs.aws.amazon.com/appsync/latest/devguide/security.html#openid-connect-authorization)
-func (ar *apiRouter) OIDCConfiguration() http.HandlerFunc {
+func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if ar.oidcConfiguration == nil {
@@ -77,7 +77,7 @@ func (ar *apiRouter) OIDCConfiguration() http.HandlerFunc {
 //https://YOUR_IDENTIFO_DOMAIN/.well-known/jwks.json.
 //Currently Identifo only supports a single JWK for signing,
 //however it is important to assume this endpoint technically could contain multiple JWKs.
-func (ar *apiRouter) OIDCJwks() http.HandlerFunc {
+func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 

@@ -19,7 +19,7 @@ const (
 )
 
 //Token middleware extracts token and validates it
-func (ar *apiRouter) Token(tokenType string) negroni.HandlerFunc {
+func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := appFromContext(r.Context())
 		if app == nil {

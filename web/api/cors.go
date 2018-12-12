@@ -3,13 +3,13 @@ package api
 import "github.com/rs/cors"
 
 // Cors sets cors headers for the router
-func Cors(options cors.Options) func(*apiRouter) error {
-	return func(ar *apiRouter) error {
+func Cors(options cors.Options) func(*Router) error {
+	return func(ar *Router) error {
 		return ar.setCORS(options)
 	}
 }
 
-func (ar *apiRouter) setCORS(options cors.Options) error {
+func (ar *Router) setCORS(options cors.Options) error {
 	c := cors.New(options)
 	ar.middleware.Use(c)
 	return nil

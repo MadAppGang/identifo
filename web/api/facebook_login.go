@@ -5,7 +5,7 @@ import (
 )
 
 //FacebookLogin implements federated facebook login
-func (ar *apiRouter) FacebookUserID(accessToken string) (string, error) {
+func (ar *Router) FacebookUserID(accessToken string) (string, error) {
 	fb := facebook.NewClient(accessToken)
 	fbProfile, err := fb.MyProfile()
 	if err != nil {

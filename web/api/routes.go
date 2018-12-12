@@ -6,7 +6,7 @@ import (
 )
 
 //setup all routes
-func (ar *apiRouter) initRoutes() {
+func (ar *Router) initRoutes() {
 	//do nothing on empty router (or should panic?)
 	if ar.router == nil {
 		return
