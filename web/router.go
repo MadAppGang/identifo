@@ -55,7 +55,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 
 	//TODO: Admin panel router
 	r.APIRouterPath = "/api"
-	r.WebRouterPath = "/w"
+	r.WebRouterPath = "/web"
 	r.AdminRouterPath = "/admin"
 	r.setupRoutes()
 	return &r, nil
@@ -81,7 +81,8 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
-	ar.RootRouter.Handle(ar.APIRouterPath+"/", http.StripPrefix(ar.APIRouterPath, ar.APIRouter))
 	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
+	ar.RootRouter.Handle("/", ar.APIRouter)
+
 	//TODO: add admin panel router
 }

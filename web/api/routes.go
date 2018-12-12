@@ -16,7 +16,6 @@ func (ar *Router) initRoutes() {
 	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
 	//setup root routes
-	ar.router.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 	ar.router.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
 
 	//setup auth routes

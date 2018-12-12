@@ -44,10 +44,10 @@ func initDB() model.Router {
 		log.Fatal(err)
 	}
 
-	err = godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	_ = godotenv.Load()
+	// if err != nil {
+	// 	log.Fatalf("Error loading .env file: %v", err)
+	// }
 
 	domain := os.Getenv("MAILGUN_DOMAIN")
 	privateKey := os.Getenv("MAILGUN_PRIVATE_KEY")
@@ -89,9 +89,8 @@ func initDB() model.Router {
 }
 
 func main() {
-	fmt.Println("dynamoDB server started")
 	r := initDB()
-
+	fmt.Println("dynamoDB server started")
 	log.Fatal(http.ListenAndServe(":8080", r))
 }
 
