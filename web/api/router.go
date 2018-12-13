@@ -113,6 +113,9 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	// Log error.
 	ar.logger.Printf("api error: %v (code=%d)", err, code)
 
+	if err == nil {
+		err = identifo.ErrorInternal
+	}
 	// Hide error from client if it is internal.
 	if code == http.StatusInternalServerError {
 		err = identifo.ErrorInternal

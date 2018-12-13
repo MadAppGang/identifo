@@ -25,17 +25,17 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := resetRequestEmail{}
 		if ar.MustParseJSON(w, r, &d) != nil {
-			ar.Error(w, nil, http.StatusBadRequest, "Invalid input data")
+			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid input data")
 			return
 		}
 		if !emailRegexp.MatchString(d.Email) {
-			ar.Error(w, nil, http.StatusBadRequest, "Invalid Email")
+			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid Email")
 			return
 		}
 
 		userExists := ar.userStorage.UserExists(d.Email)
 		if !userExists {
-			ar.Error(w, nil, http.StatusBadRequest, "User with with email is not registered")
+			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "User with with email is not registered")
 			return
 		}
 
