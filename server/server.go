@@ -8,6 +8,7 @@ import (
 
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/ses"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/html"
 )
@@ -110,6 +111,8 @@ func mailService(serviceType model.MailServiceType) (model.EmailService, error) 
 	switch serviceType {
 	case model.MailServiceMailgun:
 		return mailgun.NewEmailServiceFromEnv(), nil
+	case model.MailServiceAWS:
+		return ses.NewEmailServiceFromEnv()
 	default:
 		return nil, model.ErrorNotImplemented
 	}

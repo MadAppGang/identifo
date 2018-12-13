@@ -41,13 +41,15 @@ func NewEmailService(domain, apiKey, publicAPIKey, sender string) model.EmailSer
 	return es
 }
 
-func (es emailService) SendMessage(subject, body, recipient string) (string, string, error) {
+func (es emailService) SendMessage(subject, body, recipient string) error {
 	message := es.mailgun.NewMessage(es.sender, subject, body, recipient)
-	return es.mailgun.Send(message)
+	_, _, err := es.mailgun.Send(message)
+	return err
 }
 
-func (es emailService) SendHTML(subject, html, recipient string) (string, string, error) {
+func (es emailService) SendHTML(subject, html, recipient string) error {
 	message := es.mailgun.NewMessage(es.sender, subject, "", recipient)
 	message.SetHtml(html)
-	return es.mailgun.Send(message)
+	_, _, err := es.mailgun.Send(message)
+	return err
 }

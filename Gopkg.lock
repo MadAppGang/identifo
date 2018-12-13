@@ -15,7 +15,7 @@
   version = "v1.8.0"
 
 [[projects]]
-  digest = "1:7030f82786dc7058230fd731d3bcbf04d0cee1046529a9cf5a81a8380d97628c"
+  digest = "1:2b409d6f7792a706f66fc0320526965f7c4e4fdcb5fecfd8858c994ef079ef2b"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -51,11 +51,12 @@
     "private/protocol/xml/xmlutil",
     "service/dynamodb",
     "service/dynamodb/dynamodbattribute",
+    "service/ses",
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "c4e0e593d5f18b478f17ff0e86b56d41a70ced2d"
-  version = "v1.16.2"
+  revision = "a00e7512a2533cd96e525fe50607f9fe98badec3"
+  version = "v1.16.4"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -114,14 +115,6 @@
   packages = ["."]
   pruneopts = "UT"
   revision = "c2b33e84"
-
-[[projects]]
-  digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
-  name = "github.com/joho/godotenv"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23d116af351c84513e1946b527c88823e476be13"
-  version = "v1.3.0"
 
 [[projects]]
   digest = "1:6782ffc812e8e700e6952ede1e60487ff1fd9da489eff762985be662a7cfc431"
@@ -192,11 +185,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:e52bdb638551e9a3d12b62c90ede03f09dc19348902cb6acd3aad8d0f45d1d5a"
+  digest = "1:57155adf6e39c5ea209e43df1399cd29d4d450a4c092f2f11b6f83b1574de73a"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "2a47403f2ae58167c4d75973960ccc62b28cb0d8"
+  revision = "b05ddf57801d2239d6ab0ee35f9d981e0420f4ac"
 
 [[projects]]
   digest = "1:8abc978192c2fca4d6a74260c3a8f4aa34d25bd3c548c938745b91b8b20cda1d"
@@ -231,10 +224,10 @@
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/dynamodb",
     "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
+    "github.com/aws/aws-sdk-go/service/ses",
     "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
-    "github.com/joho/godotenv",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
     "github.com/rs/cors",
