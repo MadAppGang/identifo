@@ -31,7 +31,7 @@ func initDB() model.Server {
 
 func main() {
 	r := initDB()
-	fmt.Println("dynamoDB server started")
+	fmt.Println("MongoDB server started")
 	log.Fatal(http.ListenAndServe(":8080", r.Router()))
 }
 
