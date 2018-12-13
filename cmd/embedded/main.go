@@ -23,8 +23,8 @@ func initDB() model.Server {
 
 	_, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
-		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
-		createData(server.UserStorage().(*boltdb.UserStorage), server.AppStorage())
+		server.ImportApps("../import/apps.json")
+		server.ImportUsers("../import/users.json")
 	}
 	return server
 }

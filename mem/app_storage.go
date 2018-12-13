@@ -1,6 +1,11 @@
 package mem
 
-import "github.com/madappgang/identifo/model"
+import (
+	"encoding/json"
+	"log"
+
+	"github.com/madappgang/identifo/model"
+)
 
 //NewAppStorage creates new memory AppStorage implementation
 func NewAppStorage() model.AppStorage {
@@ -39,6 +44,22 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	delete(as.storage, oldAppID)
 	as.storage[newApp.ID()] = NewAppData(newApp)
+	return nil
+}
+
+//ImportJSON import data from JSON
+func (as *AppStorage) ImportJSON(data []byte) error {
+	apd := []appData{}
+	if err := json.Unmarshal(data, &apd); err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, a := range apd {
+		_, err := as.AddNewApp(AppData{appData: a})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

@@ -3,6 +3,7 @@ package boltdb
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
@@ -96,6 +97,22 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 		}
 		return b.Put([]byte(res.ID()), data)
 	})
+}
+
+//ImportJSON import data from JSON
+func (as *AppStorage) ImportJSON(data []byte) error {
+	apd := []appData{}
+	if err := json.Unmarshal(data, &apd); err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, a := range apd {
+		_, err := as.AddNewApp(AppData{appData: a})
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 type appData struct {

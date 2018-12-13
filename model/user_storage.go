@@ -15,6 +15,7 @@ type UserStorage interface {
 
 	RequestScopes(userID string, scopes []string) ([]string, error)
 	Scopes() []string
+	ImportJSON(data []byte) error
 }
 
 //User is abstract representation of the user in auth layer

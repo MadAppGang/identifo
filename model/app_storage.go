@@ -7,6 +7,7 @@ type AppStorage interface {
 	AddNewApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(oldAppID string, newApp AppData) error
+	ImportJSON(data []byte) error
 }
 
 //AppData represents Application data information

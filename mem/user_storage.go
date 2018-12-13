@@ -82,6 +82,11 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil
 }
 
+//ImportJSON import data from JSON
+func (us *UserStorage) ImportJSON(data []byte) error {
+	return nil
+}
+
 func randUser() *user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),

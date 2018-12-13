@@ -297,6 +297,23 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return id, nil
 }
 
+//ImportJSON import data from JSON
+func (us *UserStorage) ImportJSON(data []byte) error {
+	ud := []userData{}
+	if err := json.Unmarshal(data, &ud); err != nil {
+		return err
+	}
+	for _, u := range ud {
+		pswd := u.Pswd
+		u.Pswd = ""
+		_, err := us.AddNewUser(&User{userData: u}, pswd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
