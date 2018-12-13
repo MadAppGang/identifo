@@ -10,6 +10,7 @@ import (
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/ses"
 	"github.com/madappgang/identifo/web"
+	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 )
 
@@ -22,6 +23,7 @@ var DefaultSettings = model.ServerSettings{
 	Algorithm:        model.TokenServiceAlgorithmAuto,
 	Issuer:           "identifo",
 	MailService:      model.MailServiceMailgun,
+	Host:             "http://localhost:8080",
 }
 
 //DatabaseComposer init database stack
@@ -51,6 +53,12 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		return nil, err
 	}
 
+	//env variable could rewrite this option
+	hostName := os.Getenv("HOST_NAME")
+	if len(hostName) == 0 {
+		hostName = setting.Host
+	}
+
 	staticFiles := html.StaticFilesPath{
 		StylesPath:  path.Join(setting.StaticFolderPath, "css"),
 		ScriptsPath: path.Join(setting.StaticFolderPath, "js"),
@@ -66,9 +74,12 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		EmailService: ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
+			html.HostOption(hostName),
+		},
+		APIRouterSettings: []func(*api.Router) error{
+			api.HostOption(hostName),
 		},
 	}
-	// fmt.Printf("%+v", staticFiles)
 	r, err := web.NewRouter(routerSettings)
 	s.MainRouter = r.(*web.Router)
 

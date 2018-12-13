@@ -9,6 +9,7 @@ type ServerSettings struct {
 	Algorithm        TokenServiceAlgorithm
 	Issuer           string
 	MailService      MailServiceType
+	Host             string
 }
 
 //MailServiceType - how to send email to clients
