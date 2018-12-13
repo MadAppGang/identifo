@@ -15,7 +15,7 @@ const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{
 //RequestResetPassword - request reset password
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
-	tmpl, err := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
+	tmpl, _ := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
 	emailRegexp, _ := regexp.Compile(emailExpr)
 
 	type resetRequestEmail struct {
@@ -25,17 +25,17 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := resetRequestEmail{}
 		if ar.MustParseJSON(w, r, &d) != nil {
-			ar.Error(w, err, http.StatusBadRequest, "Invalid input data")
+			ar.Error(w, nil, http.StatusBadRequest, "Invalid input data")
 			return
 		}
 		if !emailRegexp.MatchString(d.Email) {
-			ar.Error(w, err, http.StatusBadRequest, "Invalid Email")
+			ar.Error(w, nil, http.StatusBadRequest, "Invalid Email")
 			return
 		}
 
 		userExists := ar.userStorage.UserExists(d.Email)
 		if !userExists {
-			ar.Error(w, err, http.StatusBadRequest, "User with with email is not registered")
+			ar.Error(w, nil, http.StatusBadRequest, "User with with email is not registered")
 			return
 		}
 
