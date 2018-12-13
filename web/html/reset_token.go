@@ -18,7 +18,7 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 	emailRegexp, regexpErr := regexp.Compile(emailExpr)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		upath := path.Join("/", ar.PathPrefix, r.URL.String())
+		upath := path.Join(ar.PathPrefix, r.URL.String())
 		if err != nil || regexpErr != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
@@ -67,10 +67,12 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 		}
 
 		query := fmt.Sprintf("token=%s", token)
+		host, _ := url.Parse(ar.Host)
+
 		u := &url.URL{
-			Scheme:   "http",
-			Host:     r.Host,
-			Path:     "password/reset",
+			Scheme:   host.Scheme,
+			Host:     host.Host,
+			Path:     path.Join(ar.PathPrefix, "password/reset"),
 			RawQuery: query,
 		}
 
@@ -81,6 +83,7 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 			return
 		}
 
+		fmt.Println("I dont know what is going on")
 		err = ar.EmailService.SendHTML("Reset Password", tpl.String(), name)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Error sending email")

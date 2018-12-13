@@ -26,13 +26,15 @@ type Router struct {
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
 	PathPrefix      string
+	Host            string
 }
 
 func defaultOptions() []func(*Router) error {
 	return []func(*Router) error{
 		DefaultStaticPagesOptions(),
 		DefaultStaticPathOptions(),
-		PathPrefixOptions("web"),
+		PathPrefixOptions("/web"),
+		HostOption("http://localhost:8080"),
 	}
 }
 
@@ -40,6 +42,14 @@ func defaultOptions() []func(*Router) error {
 func PathPrefixOptions(prefix string) func(r *Router) error {
 	return func(r *Router) error {
 		r.PathPrefix = prefix
+		return nil
+	}
+}
+
+// HostOption set hostname
+func HostOption(host string) func(r *Router) error {
+	return func(r *Router) error {
+		r.Host = host
 		return nil
 	}
 }

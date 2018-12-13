@@ -2,20 +2,70 @@
     // Use IntelliSense to learn about possible attributes.
     // Hover to view descriptions of existing attributes.
     // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
-    "version": "0.2.0",
+    "version": "0.3.0",
     "configurations": [
         {
-            "name": "Launch",
+            "name": "DynamoDB",
             "type": "go",
             "request": "launch",
-            "mode": "auto",
+            "mode": "debug",
             "remotePath": "",
             "port": 2345,
             "host": "127.0.0.1",
-            "program": "${fileDirname}",
+            "program": "${workspaceFolder}/cmd/dynamodb/main.go",
+            "cwd": "${workspaceFolder}/cmd/dynamodb",
+            "env": {
+                "SES_REGION": "us-east-1",
+                "SES_SENDER": "noreply@cco.link",
+                "AWS_PROFILE": "cc"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "embedded",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/cmd/embedded/main.go",
+            "cwd": "${workspaceFolder}/cmd/embedded/",
+            "env": {
+                "SES_REGION": "us-east-1",
+                "SES_SENDER": "noreply@cco.link"
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "fake",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/cmd/fake/main.go",
+            "cwd": "${workspaceFolder}/cmd/fake/",
             "env": {},
             "args": [],
-            "showLog": false
+            "showLog": true
+        },
+        {
+            "name": "mongoDB",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/cmd/mgo/main.go",
+            "cwd": "${workspaceFolder}/cmd/mgo/",
+            "env": {},
+            "args": [],
+            "showLog": true
         }
     ]
 }

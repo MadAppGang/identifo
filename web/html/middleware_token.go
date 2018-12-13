@@ -12,7 +12,7 @@ import (
 
 //ResetTokenMiddleware checks token in questy and validate it
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
-	errorPath := path.Join(".", ar.PathPrefix, "/reset/error")
+	errorPath := path.Join(ar.PathPrefix, "/reset/error")
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {

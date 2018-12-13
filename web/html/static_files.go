@@ -72,8 +72,7 @@ func StaticPathOptions(path StaticFilesPath) func(r *Router) error {
 func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
-	prefix := path.Join("/", ar.PathPrefix)
-	prefix = path.Clean(prefix)
+	prefix := path.Clean(ar.PathPrefix)
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
@@ -116,7 +115,11 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 		}
 
 		token := r.Context().Value(model.TokenRawContextKey)
-		data := map[string]interface{}{"Error": errorMessage, "Token": token}
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Token":  token,
+			"Prefix": ar.PathPrefix,
+		}
 		err = tmpl.Execute(w, data)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")

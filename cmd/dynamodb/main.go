@@ -14,6 +14,7 @@ func initDB() model.Server {
 	settings.StaticFolderPath = "../../static"
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
+	settings.MailService = model.MailServiceAWS
 
 	server, err := dynamodb.NewServer(settings)
 	if err != nil {

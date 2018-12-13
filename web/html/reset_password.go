@@ -28,7 +28,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 			return
 		}
 
-		successPath := path.Join(".", ar.PathPrefix, "/reset/success")
+		successPath := path.Join(ar.PathPrefix, "password/reset/success")
 		http.Redirect(w, r, successPath, http.StatusMovedPermanently)
 	}
 
