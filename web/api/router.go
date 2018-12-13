@@ -24,6 +24,8 @@ type Router struct {
 	emailService      model.EmailService
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
+	Host              string
+	WebRouterPrefix   string
 }
 
 //ServeHTTP identifo.Router protocol implementation
@@ -33,7 +35,26 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultOptions() []func(*Router) error {
-	return []func(*Router) error{}
+	return []func(*Router) error{
+		HostOption("http://localhost:8080"),
+		WebRouterPrefixOption("/web"),
+	}
+}
+
+//HostOption sets host value
+func HostOption(host string) func(*Router) error {
+	return func(r *Router) error {
+		r.Host = host
+		return nil
+	}
+}
+
+//WebRouterPrefixOption sets web prefix host value
+func WebRouterPrefixOption(prefix string) func(*Router) error {
+	return func(r *Router) error {
+		r.WebRouterPrefix = prefix
+		return nil
+	}
 }
 
 //NewRouter created and initiates new router
@@ -48,7 +69,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		emailService: emailService,
 	}
 
-	for _, option := range append(options, defaultOptions()...) {
+	for _, option := range append(defaultOptions(), options...) {
 		if err := option(&ar); err != nil {
 			return nil, err
 		}
@@ -90,7 +111,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	}
 
 	// Log error.
-	ar.logger.Printf("http error: %s (code=%d)", err, code)
+	ar.logger.Printf("api error: %s (code=%d)", err.Error(), code)
 
 	// Hide error from client if it is internal.
 	if code == http.StatusInternalServerError {
