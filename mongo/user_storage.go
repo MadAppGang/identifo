@@ -168,10 +168,55 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	}
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
+<<<<<<< HEAD
 
 	hash := PasswordHash(password)
 	update := bson.M{"$set": bson.M{"pswd": hash}}
 	return s.C.UpdateId(bson.ObjectIdHex(id), update)
+=======
+
+	hash := PasswordHash(password)
+	update := bson.M{"$set": bson.M{"pswd": hash}}
+	return s.C.UpdateId(bson.ObjectIdHex(id), update)
+}
+
+// IDByName return userId by name
+func (us *UserStorage) IDByName(name string) (string, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	strictPattern := "^" + name + "$"
+	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
+	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+		return "", model.ErrorNotFound
+	}
+
+	user := &User{userData: u}
+
+	if !user.Active() {
+		return "", ErrorInactiveUser
+	}
+
+	return user.ID(), nil
+}
+
+//ImportJSON import data from JSON
+func (us *UserStorage) ImportJSON(data []byte) error {
+	ud := []userData{}
+	if err := json.Unmarshal(data, &ud); err != nil {
+		return err
+	}
+	for _, u := range ud {
+		pswd := u.Pswd
+		u.Pswd = ""
+		_, err := us.AddNewUser(&User{userData: u}, pswd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 }
 
 //data implementation

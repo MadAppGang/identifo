@@ -72,11 +72,27 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return randUser(), nil
 }
 
+<<<<<<< HEAD
+=======
+// ResetPassword does nothing here
+func (us *UserStorage) ResetPassword(id, password string) error {
+	return nil
+}
+
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 // IDByName return random id
 func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil
 }
 
+<<<<<<< HEAD
+=======
+//ImportJSON import data from JSON
+func (us *UserStorage) ImportJSON(data []byte) error {
+	return nil
+}
+
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 func randUser() *user {
 	profile := map[string]interface{}{
 		"name":    randomdata.SillyName(),

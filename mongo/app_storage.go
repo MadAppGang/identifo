@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"encoding/json"
+	"log"
 
 	"github.com/madappgang/identifo/model"
 	mgo "gopkg.in/mgo.v2"
@@ -93,6 +94,22 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 		return err
 	}
 	//maybe return updated data?
+	return nil
+}
+
+//ImportJSON import data from JSON
+func (as *AppStorage) ImportJSON(data []byte) error {
+	apd := []appData{}
+	if err := json.Unmarshal(data, &apd); err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, a := range apd {
+		_, err := as.AddNewApp(AppData{appData: a})
+		if err != nil {
+			return err
+		}
+	}
 	return nil
 }
 

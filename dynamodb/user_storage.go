@@ -296,6 +296,30 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return resultUser, nil
 }
 
+// ResetPassword sets new user's passwors
+func (us *UserStorage) ResetPassword(id, password string) error {
+	idx, err := xid.FromString(id)
+	if err != nil {
+		log.Println("wrong user ID: ", id)
+		return model.ErrorWrongDataFormat
+	}
+
+	hash := PasswordHash(password)
+	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
+		TableName: aws.String(UsersTableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {S: aws.String(idx.String())},
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":p": {S: aws.String(hash)},
+		},
+		UpdateExpression: aws.String("set pswd = :p"),
+		ReturnValues:     aws.String("NONE"),
+	})
+
+	return err
+}
+
 // IDByName return userId by name
 func (us *UserStorage) IDByName(name string) (string, error) {
 	userIndex, err := us.userIdxByName(name)
@@ -313,6 +337,23 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	}
 
 	return user.ID(), nil
+}
+
+//ImportJSON import data from JSON
+func (us *UserStorage) ImportJSON(data []byte) error {
+	ud := []userData{}
+	if err := json.Unmarshal(data, &ud); err != nil {
+		return err
+	}
+	for _, u := range ud {
+		pswd := u.Pswd
+		u.Pswd = ""
+		_, err := us.AddNewUser(&User{userData: u}, pswd)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
 }
 
 //userIndexByNameData represents index projected data

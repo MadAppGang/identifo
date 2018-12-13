@@ -6,14 +6,19 @@ import (
 	"net/http"
 	"os"
 
+<<<<<<< HEAD
 	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/dynamodb"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mailgun"
+=======
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/server/dynamodb"
 )
 
+<<<<<<< HEAD
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
 		Login:                 "../../static/login.html",
@@ -77,54 +82,29 @@ func initDB() model.Router {
 	sf := staticFiles()
 
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+=======
+func initDB() model.Server {
+	settings := dynamodb.DefaultSettings
+	settings.StaticFolderPath = "../.."
+	settings.PEMFolderPath = "../../jwt"
+	settings.Issuer = "http://localhost:8080"
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 
+	server, err := dynamodb.NewServer(settings)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
+	_, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2")
 	if err != nil {
-		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
-		createData(db, userStorage.(*dynamodb.UserStorage), appStorage)
+		server.ImportApps("../import/apps.json")
+		server.ImportUsers("../import/users.json")
 	}
-	return r
+	return server
 }
 
 func main() {
-	fmt.Println("dynamoDB server started")
 	r := initDB()
-
-	log.Fatal(http.ListenAndServe(":8080", r))
-}
-
-func createData(db *dynamodb.DB, us *dynamodb.UserStorage, as model.AppStorage) {
-	u1d := []byte(`{"username":"test@madappgang.com","active":true}`)
-	u1, _ := dynamodb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "secret")
-
-	u1d = []byte(`{"username":"User2","active":false}`)
-	u1, _ = dynamodb.UserFromJSON(u1d)
-	us.AddNewUser(u1, "other_password")
-
-	ad := []byte(`{
-		"id":"59fd884d8f6b180001f5b4e2",
-		"secret":"secret",
-		"name":"iOS App",
-		"active":true, 
-		"description":"Amazing ios app", 
-		"scopes":["smartrun"],
-		"offline":true,
-		"redirect_url":"myapp://loginhook",
-		"refresh_token_lifespan":9000000,
-		"token_lifespan":9000
-	}`)
-	app, err := dynamodb.AppDataFromJSON(ad)
-	if err != nil {
-		log.Fatal(err)
-	}
-	fmt.Printf("app data: %+v", app)
-	_, err = as.AddNewApp(app)
-	if err != nil {
-		log.Fatal(err)
-	}
+	fmt.Println("DynamoDB server started")
+	log.Fatal(http.ListenAndServe(":8080", r.Router()))
 }

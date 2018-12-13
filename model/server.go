@@ -5,8 +5,12 @@ import (
 )
 
 //Server holds together all dependencies
-type Server struct {
-	Router Router
+type Server interface {
+	Router() Router
+	AppStorage() AppStorage
+	UserStorage() UserStorage
+	ImportApps(filename string) error
+	ImportUsers(filename string) error
 }
 
 //Router is class to handle all incoming http requests

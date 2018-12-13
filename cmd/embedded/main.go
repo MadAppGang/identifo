@@ -6,15 +6,21 @@ import (
 	"net/http"
 	"os"
 
+<<<<<<< HEAD
 	"github.com/boltdb/bolt"
 	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/boltdb"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mailgun"
+=======
+	"github.com/madappgang/identifo/boltdb"
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/server/embedded"
 )
 
+<<<<<<< HEAD
 func staticPages() ihttp.StaticPages {
 	return ihttp.StaticPages{
 		Login:                 "../../static/login.html",
@@ -64,12 +70,20 @@ func initServices() (model.AppStorage, model.UserStorage, model.TokenStorage, mo
 	emailService := mailgun.NewEmailService(domain, privateKey, publicKey, "sender@identifo.com")
 
 	_, err = appStorage.AppByID("59fd884d8f6b180001f5b4e2")
+=======
+func initDB() model.Server {
+	settings := embedded.DefaultSettings
+	settings.StaticFolderPath = "../.."
+	settings.PEMFolderPath = "../../jwt"
+	settings.Issuer = "http://localhost:8080"
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 
+	server, err := embedded.NewServer(settings)
 	if err != nil {
-		fmt.Printf("Creating data because got error trying to get app: %+v\n", err)
-		createData(db, userStorage.(*boltdb.UserStorage), appStorage)
+		log.Fatal(err)
 	}
 
+<<<<<<< HEAD
 	return appStorage, userStorage, tokenStorage, tokenService, emailService
 }
 
@@ -83,21 +97,22 @@ func initRouter() model.Router {
 
 	if err != nil {
 		log.Fatal(err)
+=======
+	_, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2")
+	if err != nil {
+		server.ImportApps("../import/apps.json")
+		server.ImportUsers("../import/users.json")
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 	}
-
-	return router
+	return server
 }
-
 func main() {
+	r := initDB()
 	fmt.Println("Embedded server started")
-	r := initRouter()
-
-	if err := http.ListenAndServe(":8080", r); err != nil {
-		panic(err)
-	}
+	log.Fatal(http.ListenAndServe(":8080", r.Router()))
 }
 
-func createData(db *bolt.DB, us *boltdb.UserStorage, as model.AppStorage) {
+func createData(us *boltdb.UserStorage, as model.AppStorage) {
 	u1d := []byte(`{"id":"12345","name":"test@madappgang.com","active":true}`)
 	u1, err := boltdb.UserFromJSON(u1d)
 	if err != nil {

@@ -1,17 +1,20 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 	"os"
 
+<<<<<<< HEAD
 	"github.com/joho/godotenv"
 	ihttp "github.com/madappgang/identifo/http"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
+=======
+	"github.com/madappgang/identifo/server/fake"
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 )
 
 func staticPages() ihttp.StaticPages {
@@ -36,8 +39,8 @@ func staticFiles() ihttp.StaticFiles {
 //this server works only with memory storages and generated data
 //should be used for test and CI environments only
 func main() {
-	fmt.Println("Fake server started")
 
+<<<<<<< HEAD
 	appStorage := mem.NewAppStorage()
 	userStorage := mem.NewUserStorage()
 	tokenStorage := mem.NewTokenStorage()
@@ -71,12 +74,19 @@ func main() {
 	sf := staticFiles()
 
 	r, err := ihttp.NewRouter(nil, appStorage, userStorage, tokenStorage, tokenService, emailService, ihttp.ServeStaticPages(sp), ihttp.ServeStaticFiles(sf))
+=======
+	settings := fake.DefaultSettings
+	settings.StaticFolderPath = "../.."
+	settings.PEMFolderPath = "../../jwt"
+	settings.Issuer = "http://localhost:8080"
+>>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 
+	server, err := fake.NewServer(settings)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	if err := http.ListenAndServe(":8080", r); err != nil {
+	if err := http.ListenAndServe(":8080", server.Router()); err != nil {
 		panic(err)
 	}
 }
