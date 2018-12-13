@@ -1,17 +1,12 @@
 package mailgun
 
 import (
-<<<<<<< HEAD
-=======
 	"os"
 
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 	"github.com/madappgang/identifo/model"
 	mailgun "github.com/mailgun/mailgun-go"
 )
 
-<<<<<<< HEAD
-=======
 const (
 	MailgunDomainKey  = "MAILGUN_DOMAIN"
 	MailgunPrivateKey = "MAILGUN_PRIVATE_KEY"
@@ -19,14 +14,11 @@ const (
 	MAilgunSenderKey  = "MAILGUN_SENDER"
 )
 
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 type emailService struct {
 	mailgun mailgun.Mailgun
 	sender  string
 }
 
-<<<<<<< HEAD
-=======
 //NewEmailServiceFromEnv create mail service getting all settings from env
 func NewEmailServiceFromEnv() model.EmailService {
 	es := emailService{}
@@ -40,7 +32,6 @@ func NewEmailServiceFromEnv() model.EmailService {
 	return es
 }
 
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 // NewEmailService creates and intiate email service
 func NewEmailService(domain, apiKey, publicAPIKey, sender string) model.EmailService {
 	es := emailService{}
