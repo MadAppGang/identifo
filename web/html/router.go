@@ -25,10 +25,23 @@ type Router struct {
 	EmailService    model.EmailService
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
+	PathPrefix      string
 }
 
 func defaultOptions() []func(*Router) error {
-	return []func(*Router) error{DefaultStaticPagesOptions(), DefaultStaticPathOptions()}
+	return []func(*Router) error{
+		DefaultStaticPagesOptions(),
+		DefaultStaticPathOptions(),
+		PathPrefixOptions("web"),
+	}
+}
+
+// PathPrefixOptions set path prefix options
+func PathPrefixOptions(prefix string) func(r *Router) error {
+	return func(r *Router) error {
+		r.PathPrefix = prefix
+		return nil
+	}
 }
 
 //NewRouter created and initiates new router
@@ -43,7 +56,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		EmailService: emailService,
 	}
 
-	for _, option := range append(options, defaultOptions()...) {
+	for _, option := range append(defaultOptions(), options...) {
 		if err := option(&ar); err != nil {
 			return nil, err
 		}

@@ -2,6 +2,7 @@ package html
 
 import (
 	"net/http"
+	"path"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -13,7 +14,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		password := r.FormValue("password")
 		if err := model.StrongPswd(password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
-			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
 		}
 
@@ -23,11 +24,12 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		err := ar.UserStorage.ResetPassword(token.UserID(), password)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
-			http.Redirect(w, r, r.URL.String(), http.StatusMovedPermanently)
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
 		}
 
-		http.Redirect(w, r, "./reset/success", http.StatusMovedPermanently)
+		successPath := path.Join(".", ar.PathPrefix, "/reset/success")
+		http.Redirect(w, r, successPath, http.StatusMovedPermanently)
 	}
 
 }

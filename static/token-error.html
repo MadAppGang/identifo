@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta http-equiv="X-UA-Compatible" content="ie=edge">
   <title>Error</title>
-  <link rel="stylesheet" href="/css/forgot-password.css">
+  <link rel="stylesheet" href="{{.Prefix}}/css/forgot-password.css">
   <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,700" rel="stylesheet">
 </head>
 <body>
@@ -13,7 +13,7 @@
     <div class="card">
       <header class="card__header card__header--large">Error</header>
       <p class="card__text">
-        Looks like your reset password token is invalid. Try to <a href="/password/forgot" class="card__link">create a new one</a>.
+        Looks like your reset password token is invalid. Try to <a href="{{.Prefix}}/password/forgot" class="card__link">create a new one</a>.
       </p>
     </div>
   </main>

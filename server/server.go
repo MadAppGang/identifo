@@ -68,6 +68,7 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 			html.StaticPathOptions(staticFiles),
 		},
 	}
+	// fmt.Printf("%+v", staticFiles)
 	r, err := web.NewRouter(routerSettings)
 	s.MainRouter = r.(*web.Router)
 

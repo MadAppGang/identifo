@@ -12,7 +12,7 @@ import (
 
 func initDB() model.Server {
 	settings := embedded.DefaultSettings
-	settings.StaticFolderPath = "../.."
+	settings.StaticFolderPath = "../../static"
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
 

@@ -72,6 +72,8 @@ func StaticPathOptions(path StaticFilesPath) func(r *Router) error {
 func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
+	prefix := path.Join("/", ar.PathPrefix)
+	prefix = path.Clean(prefix)
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
@@ -84,7 +86,10 @@ func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		data := map[string]interface{}{"Error": errorMessage}
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Prefix": prefix,
+		}
 		err = tmpl.Execute(w, data)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
