@@ -16,6 +16,8 @@ func server() model.Server {
 	settings.Issuer = "http://localhost:8080"
 	settings.DBEndpoint = "localhost:27017"
 	settings.DBName = "identifo"
+	settings.MailService = model.MailServiceAWS
+	settings.EmailTemplatesPath = "../../email_templates"
 
 	server, err := mgo.NewServer(settings)
 	if err != nil {
