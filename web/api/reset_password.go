@@ -1,9 +1,7 @@
 package api
 
 import (
-	"bytes"
 	"fmt"
-	"html/template"
 	"net/http"
 	"net/url"
 	"path"
@@ -15,7 +13,6 @@ const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{
 //RequestResetPassword - request reset password
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
-	tmpl, _ := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
 	emailRegexp, _ := regexp.Compile(emailExpr)
 
 	type resetRequestEmail struct {
@@ -67,13 +64,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			RawQuery: query,
 		}
 
-		var tpl bytes.Buffer
-		if err = tmpl.Execute(&tpl, u.String()); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "Email template compile error:"+err.Error())
-			return
-		}
-
-		err = ar.emailService.SendHTML("Reset Password", tpl.String(), d.Email)
+		err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String())
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "Email sending error:"+err.Error())
 			return

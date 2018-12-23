@@ -19,12 +19,20 @@ type StaticPages struct {
 	ResetSuccess          string
 }
 
+//EmailTemplates store email templates
+type EmailTemplates struct {
+	Welcome       string
+	ResetPassword string
+	VerifyEmail   string
+}
+
 // StaticFilesPath holds paths to static files
 type StaticFilesPath struct {
-	StylesPath  string
-	ScriptsPath string
-	PagesPath   string
-	ImagesPath  string
+	StylesPath     string
+	ScriptsPath    string
+	PagesPath      string
+	ImagesPath     string
+	EmailTemplates string
 }
 
 var defaultStaticPath = StaticFilesPath{

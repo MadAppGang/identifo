@@ -25,6 +25,7 @@ type Router struct {
 	EmailService    model.EmailService
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
+	EmailTemplates  EmailTemplates
 	PathPrefix      string
 	Host            string
 }

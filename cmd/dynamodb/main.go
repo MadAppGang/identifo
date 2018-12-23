@@ -15,6 +15,7 @@ func initDB() model.Server {
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
 	settings.MailService = model.MailServiceAWS
+	settings.EmailTemplatesPath = "../../email_templates"
 
 	server, err := dynamodb.NewServer(settings)
 	if err != nil {

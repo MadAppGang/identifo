@@ -2,14 +2,16 @@ package model
 
 //ServerSettings server settings
 type ServerSettings struct {
-	StaticFolderPath string
-	PEMFolderPath    string
-	PrivateKey       string
-	PublicKey        string
-	Algorithm        TokenServiceAlgorithm
-	Issuer           string
-	MailService      MailServiceType
-	Host             string
+	StaticFolderPath   string
+	EmailTemplatesPath string
+	EmailTemplates     EmailTemplates
+	PEMFolderPath      string
+	PrivateKey         string
+	PublicKey          string
+	Algorithm          TokenServiceAlgorithm
+	Issuer             string
+	MailService        MailServiceType
+	Host               string
 }
 
 //MailServiceType - how to send email to clients

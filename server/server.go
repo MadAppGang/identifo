@@ -16,14 +16,16 @@ import (
 
 //DefaultSettings default serve settings
 var DefaultSettings = model.ServerSettings{
-	StaticFolderPath: "./static",
-	PEMFolderPath:    "./pem",
-	PrivateKey:       "private.pem",
-	PublicKey:        "public.pem",
-	Algorithm:        model.TokenServiceAlgorithmAuto,
-	Issuer:           "identifo",
-	MailService:      model.MailServiceMailgun,
-	Host:             "http://localhost:8080",
+	StaticFolderPath:   "./static",
+	PEMFolderPath:      "./pem",
+	PrivateKey:         "private.pem",
+	PublicKey:          "public.pem",
+	Algorithm:          model.TokenServiceAlgorithmAuto,
+	Issuer:             "identifo",
+	MailService:        model.MailServiceMailgun,
+	Host:               "http://localhost:8080",
+	EmailTemplatesPath: "./email_templates",
+	EmailTemplates:     model.DefaultEmailTemplates,
 }
 
 //DatabaseComposer init database stack
@@ -48,7 +50,7 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 	s.AppStrg = appStorage
 	s.UserStrg = userStorage
 
-	ms, err := mailService(setting.MailService)
+	ms, err := mailService(setting.MailService, setting.EmailTemplates, setting.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -119,12 +121,16 @@ func (s *Server) UserStorage() model.UserStorage {
 	return s.UserStrg
 }
 
-func mailService(serviceType model.MailServiceType) (model.EmailService, error) {
+func mailService(serviceType model.MailServiceType, templates model.EmailTemplates, templatesPath string) (model.EmailService, error) {
+	tpltr, err := model.NewEmailTemplater(templates, templatesPath)
+	if err != nil {
+		return nil, err
+	}
 	switch serviceType {
 	case model.MailServiceMailgun:
-		return mailgun.NewEmailServiceFromEnv(), nil
+		return mailgun.NewEmailServiceFromEnv(tpltr)
 	case model.MailServiceAWS:
-		return ses.NewEmailServiceFromEnv()
+		return ses.NewEmailServiceFromEnv(tpltr)
 	default:
 		return nil, model.ErrorNotImplemented
 	}
