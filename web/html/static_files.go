@@ -19,12 +19,20 @@ type StaticPages struct {
 	ResetSuccess          string
 }
 
+//EmailTemplates store email templates
+type EmailTemplates struct {
+	Welcome       string
+	ResetPassword string
+	VerifyEmail   string
+}
+
 // StaticFilesPath holds paths to static files
 type StaticFilesPath struct {
-	StylesPath  string
-	ScriptsPath string
-	PagesPath   string
-	ImagesPath  string
+	StylesPath     string
+	ScriptsPath    string
+	PagesPath      string
+	ImagesPath     string
+	EmailTemplates string
 }
 
 var defaultStaticPath = StaticFilesPath{
@@ -72,6 +80,7 @@ func StaticPathOptions(path StaticFilesPath) func(r *Router) error {
 func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
+	prefix := path.Clean(ar.PathPrefix)
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
@@ -84,7 +93,10 @@ func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		data := map[string]interface{}{"Error": errorMessage}
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Prefix": prefix,
+		}
 		err = tmpl.Execute(w, data)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
@@ -111,7 +123,11 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 		}
 
 		token := r.Context().Value(model.TokenRawContextKey)
-		data := map[string]interface{}{"Error": errorMessage, "Token": token}
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Token":  token,
+			"Prefix": ar.PathPrefix,
+		}
 		err = tmpl.Execute(w, data)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")

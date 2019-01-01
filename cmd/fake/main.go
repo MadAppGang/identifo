@@ -4,6 +4,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server/fake"
 )
 
@@ -34,6 +35,8 @@ func main() {
 	settings.StaticFolderPath = "../.."
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
+	settings.MailService = model.MailServiceAWS
+	settings.EmailTemplatesPath = "../../email_templates"
 
 	server, err := fake.NewServer(settings)
 	if err != nil {

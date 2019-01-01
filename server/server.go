@@ -8,19 +8,24 @@ import (
 
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/ses"
 	"github.com/madappgang/identifo/web"
+	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 )
 
 //DefaultSettings default serve settings
 var DefaultSettings = model.ServerSettings{
-	StaticFolderPath: "./static",
-	PEMFolderPath:    "./pem",
-	PrivateKey:       "private.pem",
-	PublicKey:        "public.pem",
-	Algorithm:        model.TokenServiceAlgorithmAuto,
-	Issuer:           "identifo",
-	MailService:      model.MailServiceMailgun,
+	StaticFolderPath:   "./static",
+	PEMFolderPath:      "./pem",
+	PrivateKey:         "private.pem",
+	PublicKey:          "public.pem",
+	Algorithm:          model.TokenServiceAlgorithmAuto,
+	Issuer:             "identifo",
+	MailService:        model.MailServiceMailgun,
+	Host:               "http://localhost:8080",
+	EmailTemplatesPath: "./email_templates",
+	EmailTemplates:     model.DefaultEmailTemplates,
 }
 
 //DatabaseComposer init database stack
@@ -45,9 +50,15 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 	s.AppStrg = appStorage
 	s.UserStrg = userStorage
 
-	ms, err := mailService(setting.MailService)
+	ms, err := mailService(setting.MailService, setting.EmailTemplates, setting.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
+	}
+
+	//env variable could rewrite this option
+	hostName := os.Getenv("HOST_NAME")
+	if len(hostName) == 0 {
+		hostName = setting.Host
 	}
 
 	staticFiles := html.StaticFilesPath{
@@ -65,6 +76,10 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		EmailService: ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
+			html.HostOption(hostName),
+		},
+		APIRouterSettings: []func(*api.Router) error{
+			api.HostOption(hostName),
 		},
 	}
 	r, err := web.NewRouter(routerSettings)
@@ -106,10 +121,16 @@ func (s *Server) UserStorage() model.UserStorage {
 	return s.UserStrg
 }
 
-func mailService(serviceType model.MailServiceType) (model.EmailService, error) {
+func mailService(serviceType model.MailServiceType, templates model.EmailTemplates, templatesPath string) (model.EmailService, error) {
+	tpltr, err := model.NewEmailTemplater(templates, templatesPath)
+	if err != nil {
+		return nil, err
+	}
 	switch serviceType {
 	case model.MailServiceMailgun:
-		return mailgun.NewEmailServiceFromEnv(), nil
+		return mailgun.NewEmailServiceFromEnv(tpltr)
+	case model.MailServiceAWS:
+		return ses.NewEmailServiceFromEnv(tpltr)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

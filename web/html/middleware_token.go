@@ -3,6 +3,7 @@ package html
 import (
 	"context"
 	"net/http"
+	"path"
 
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -11,7 +12,7 @@ import (
 
 //ResetTokenMiddleware checks token in questy and validate it
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
-	errorPath := "./reset/error"
+	errorPath := path.Join(ar.PathPrefix, "/reset/error")
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {
