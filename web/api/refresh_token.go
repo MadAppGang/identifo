@@ -4,9 +4,11 @@ import (
 	"net/http"
 )
 
-//RefreshToken - refresh access token
+// RefreshToken - refresh access token
 func (ar *Router) RefreshToken() http.HandlerFunc {
-
+	type responseData struct {
+		AccessToken string `json:"access_token"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := appFromContext(r.Context())
 		if app == nil {
@@ -15,6 +17,19 @@ func (ar *Router) RefreshToken() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, app)
+		token := tokenFromContext(r.Context())
+
+		accessToken, err := ar.tokenService.RefreshToken(token)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		tokenStr, err := ar.tokenService.String(accessToken)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		ar.ServeJSON(w, http.StatusOK, responseData{tokenStr})
 	}
 }
