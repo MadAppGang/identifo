@@ -125,6 +125,7 @@ type appData struct {
 	RedirectURL          string   `json:"redirect_url,omitempty"`
 	RefreshTokenLifespan int64    `json:"refresh_token_lifespan,omitempty"`
 	TokenLifespan        int64    `json:"token_lifespan,omitempty"`
+	TokenPayload         []string `json:"token_payload,omitempty"`
 }
 
 //AppData is memory model for model.AppData
@@ -144,6 +145,7 @@ func NewAppData(data model.AppData) AppData {
 		RedirectURL:          data.RedirectURL(),
 		RefreshTokenLifespan: data.RefreshTokenLifespan(),
 		TokenLifespan:        data.TokenLifespan(),
+		TokenPayload:         data.TokenPayload(),
 	}}
 }
 
@@ -162,7 +164,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 //MakeAppData creates new memory app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) AppData {
+func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
 	return AppData{appData: appData{
 		ID:                   id,
 		Secret:               secret,
@@ -173,6 +175,7 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 		RedirectURL:          redirectURL,
 		RefreshTokenLifespan: refreshTokenLifespan,
 		TokenLifespan:        tokenLifespan,
+		TokenPayload:         tokenPayload,
 	}}
 }
 
@@ -185,3 +188,4 @@ func (ad AppData) Offline() bool               { return ad.appData.Offline }
 func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
 func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }
+func (ad AppData) TokenPayload() []string      { return ad.appData.TokenPayload }

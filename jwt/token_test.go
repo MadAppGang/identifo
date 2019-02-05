@@ -19,7 +19,7 @@ func TestNewTokenService(t *testing.T) {
 	us := mem.NewUserStorage()
 	tstor := mem.NewTokenStorage()
 	as := mem.NewAppStorage()
-	ts, _ := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
+	ts, _ := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	type args struct {
 		private string
 		public  string
@@ -38,7 +38,7 @@ func TestNewTokenService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewTokenService(tt.args.private, tt.args.public, testIssuer, tstor, as, us)
+			got, err := NewTokenService(tt.args.private, tt.args.public, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -54,7 +54,7 @@ func TestParseString(t *testing.T) {
 	us := mem.NewUserStorage()
 	tstor := mem.NewTokenStorage()
 	as := mem.NewAppStorage()
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -87,7 +87,7 @@ func TestTokenToString(t *testing.T) {
 	us := mem.NewUserStorage()
 	tstor := mem.NewTokenStorage()
 	as := mem.NewAppStorage()
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -131,18 +131,19 @@ func TestNewToken(t *testing.T) {
 	us := mem.NewUserStorage()
 	tstor := mem.NewTokenStorage()
 	as := mem.NewAppStorage()
-	ts, err := NewTokenService(privateKey, publicKey, testIssuer, tstor, as, us)
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
 	ustg := mem.NewUserStorage()
-	user, _ := ustg.UserByNamePassword("name", "password")
+	user, _ := ustg.UserByNamePassword("username", "password")
 	//generate random user until we get active user
 	for !user.Active() {
-		user, _ = ustg.UserByNamePassword("name", "password")
+		user, _ = ustg.UserByNamePassword("username", "password")
 	}
 	scopes := []string{"scope1", "scope2"}
-	app := mem.MakeAppData("123456", "1", true, "test", scopes, true, "", 0, 0)
+	tokenPayload := []string{"name"}
+	app := mem.MakeAppData("123456", "1", true, "test", scopes, true, "", 0, 0, tokenPayload)
 	token, err := ts.NewToken(user, scopes, app)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
@@ -160,8 +161,8 @@ func TestNewToken(t *testing.T) {
 	}
 	t2, _ := token2.(*Token)
 	claims2, _ := t2.JWT.Claims.(*Claims)
-	if len(claims2.UserProfile) == 0 {
-		t.Errorf("Claims = %+v, want not zero", claims2.UserProfile)
+	if _, ok := claims2.Payload["name"]; !ok {
+		t.Errorf("Claims payload = %+v, want name in payload.", claims2.Payload)
 	}
 	if claims2.Issuer != testIssuer {
 		t.Errorf("Issuer = %+v, want %+v", claims2.Issuer, testIssuer)
