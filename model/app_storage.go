@@ -29,4 +29,7 @@ type AppData interface {
 	TokenLifespan() int64
 	//RefreshTokenLifespan RefreshToken lifespan in seconds, if 0 - use default one
 	RefreshTokenLifespan() int64
+	// Payload is a list of fields that are included in token
+	// if it's empty there is no any fields in payload
+	TokenPayload() []string
 }
