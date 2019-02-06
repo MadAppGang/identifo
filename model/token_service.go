@@ -46,6 +46,7 @@ type Token interface {
 	Validate() error
 	UserID() string
 	Type() string
+	Payload() map[string]string
 }
 
 //Validator calidate token with external requester
