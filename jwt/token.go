@@ -29,6 +29,15 @@ func (t *Token) UserID() string {
 	return claims.Subject
 }
 
+//Payload returns payload of the token
+func (t *Token) Payload() map[string]string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return make(map[string]string)
+	}
+	return claims.Payload
+}
+
 //Type returns token type, could be empty or "refresh" only
 func (t *Token) Type() string {
 	claims, ok := t.JWT.Claims.(*Claims)
