@@ -4,7 +4,6 @@ import (
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
-	"encoding/json"
 	"errors"
 	"strings"
 
@@ -26,6 +25,10 @@ var (
 	TokenLifespan = int64(604800)
 	//RefreshTokenLifespan default expire time for refresh token, one year
 	RefreshTokenLifespan = int64(31557600)
+)
+
+const (
+	PayloadName = "name"
 )
 
 //NewTokenService returns new JWT token service
@@ -151,12 +154,10 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 		return nil, ErrInvalidUser
 	}
 
-	profileString := ""
-	profileBytes, err := json.Marshal(u.Profile())
-	if err != nil {
-		return nil, ErrCreatingToken
+	payload := make(map[string]string)
+	if contains(app.TokenPayload(), PayloadName) {
+		payload[PayloadName] = u.Name()
 	}
-	profileString = string(profileBytes)
 	now := TimeFunc().Unix()
 
 	lifespan := app.TokenLifespan()
@@ -165,10 +166,10 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 	}
 
 	claims := Claims{
-		Scopes:      strings.Join(scopes, " "),
-		UserProfile: profileString,
-		Type:        model.AccessTokenType,
-		KeyID:       ts.KeyID(),
+		Scopes:  strings.Join(scopes, " "),
+		Payload: payload,
+		Type:    model.AccessTokenType,
+		KeyID:   ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -207,12 +208,11 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 	if !u.Active() {
 		return nil, ErrInvalidUser
 	}
-	profileString := ""
-	profileBytes, err := json.Marshal(u.Profile())
-	if err != nil {
-		return nil, ErrCreatingToken
+
+	payload := make(map[string]string)
+	if contains(app.TokenPayload(), PayloadName) {
+		payload[PayloadName] = u.Name()
 	}
-	profileString = string(profileBytes)
 	now := TimeFunc().Unix()
 
 	lifespan := app.RefreshTokenLifespan()
@@ -221,10 +221,10 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 	}
 
 	claims := Claims{
-		Scopes:      strings.Join(scopes, " "),
-		UserProfile: profileString,
-		Type:        model.RefrestTokenType,
-		KeyID:       ts.KeyID(),
+		Scopes:  strings.Join(scopes, " "),
+		Payload: payload,
+		Type:    model.RefrestTokenType,
+		KeyID:   ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,

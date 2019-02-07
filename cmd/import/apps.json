@@ -9,6 +9,7 @@
 		"offline":true,
 		"redirect_url": "http://localhost:8090/callback",
 		"refresh_token_lifespan":9000000,
-		"token_lifespan":9000
+		"token_lifespan":9000,
+		"token_payload":["name", "email"]
 	}
 ]

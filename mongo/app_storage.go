@@ -123,6 +123,7 @@ type appData struct {
 	RedirectURL          string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
 	RefreshTokenLifespan int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
 	TokenLifespan        int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
+	TokenPayload         []string      `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 }
 
 //AppData is mongo model for model.AppData
@@ -145,6 +146,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		RedirectURL:          data.RedirectURL(),
 		RefreshTokenLifespan: data.RefreshTokenLifespan(),
 		TokenLifespan:        data.TokenLifespan(),
+		TokenPayload:         data.TokenPayload(),
 	}}, nil
 }
 
@@ -163,7 +165,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 //MakeAppData creates new mongo app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
+func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
@@ -177,6 +179,7 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 		RedirectURL:          redirectURL,
 		RefreshTokenLifespan: refreshTokenLifespan,
 		TokenLifespan:        tokenLifespan,
+		TokenPayload:         tokenPayload,
 	}}, nil
 }
 
@@ -189,3 +192,4 @@ func (ad AppData) Offline() bool               { return ad.appData.Offline }
 func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
 func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }
+func (ad AppData) TokenPayload() []string      { return ad.appData.TokenPayload }

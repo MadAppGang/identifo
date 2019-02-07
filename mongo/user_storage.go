@@ -6,6 +6,7 @@ import (
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
 	"gopkg.in/mgo.v2/bson"
+	"gopkg.in/mgo.v2"
 )
 
 const (
@@ -21,7 +22,10 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	if err := s.C.EnsureIndexKey("name"); err != nil {
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:[]string{"name"},
+		Unique:true,
+	}); err != nil {
 		return nil, err
 	}
 
