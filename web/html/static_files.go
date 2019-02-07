@@ -17,6 +17,7 @@ type StaticPages struct {
 	ResetPassword         string
 	TokenError            string
 	ResetSuccess          string
+	Misconfiguration      string
 }
 
 //EmailTemplates store email templates
@@ -50,6 +51,7 @@ var defaultStaticPages = StaticPages{
 	ForgotPasswordSuccess: "forgot-password-success.html",
 	TokenError:            "token-error.html",
 	ResetSuccess:          "reset-success.html",
+	Misconfiguration:      "misconfiguration.html",
 }
 
 // DefaultStaticPagesOptions set default HTML pages
@@ -127,6 +129,38 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 			"Error":  errorMessage,
 			"Token":  token,
 			"Prefix": ar.PathPrefix,
+		}
+		err = tmpl.Execute(w, data)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
+	}
+}
+
+//LoginHandler handles login page request
+func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		scopes := r.URL.Query().Get("scopes")
+		app := appFromContext(r.Context())
+
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Prefix": ar.PathPrefix,
+			"Scopes": scopes,
+			"AppId":  app.ID(),
 		}
 		err = tmpl.Execute(w, data)
 		if err != nil {

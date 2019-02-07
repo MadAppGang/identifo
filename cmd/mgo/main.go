@@ -11,7 +11,7 @@ import (
 
 func server() model.Server {
 	settings := mgo.DefaultSettings
-	settings.StaticFolderPath = "../.."
+	settings.StaticFolderPath = "../../static"
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
 	settings.DBEndpoint = "localhost:27017"

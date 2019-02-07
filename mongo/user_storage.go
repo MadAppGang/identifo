@@ -71,7 +71,7 @@ func (us *UserStorage) UserExists(name string) bool {
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	var u userData
-	err := s.C.Find(bson.M{"name": q}).One(&u)
+	err := s.C.Find(bson.M{"username": q}).One(&u)
 
 	return err == nil
 }
@@ -109,7 +109,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	var u userData
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
-	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
 		return nil, model.ErrorNotFound
 	}
 	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
@@ -182,7 +182,7 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	var u userData
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
-	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
 		return "", model.ErrorNotFound
 	}
 
@@ -215,11 +215,11 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 //data implementation
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Name         string                 `bson:"username,omitempty" json:"username,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
-	FederatedIDs []string               `bson:"deferated_ids,omitempty" json:"deferated_ids,omitempty"`
+	FederatedIDs []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 }
 
 //User user data structure for mongodb storage

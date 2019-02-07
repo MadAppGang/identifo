@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:8b4d009bfb2d13472dad368bf7520c482dd7f8a190436da4e6d52111c0a2e697"
+  digest = "1:afb77c095b4e0ba815f114f7e7ef99ffb52a62414a5f86c2ad97371bdcf245de"
   name = "github.com/aws/aws-lambda-go"
   packages = [
     "events",
@@ -11,23 +11,11 @@
     "lambdacontext",
   ]
   pruneopts = "UT"
-<<<<<<< HEAD
-  revision = "fb8f88d824489a878aee1e0badde7d8e129f8767"
-  version = "v1.7.0"
+  revision = "527f5d301d2993af078be6d0b63372786b3fc18f"
+  version = "v1.8.2"
 
 [[projects]]
-  digest = "1:0645f339a61f3f6e79ffe31e2189aa46fdaee544a884874e42147c60758c13d8"
-=======
-  revision = "9e3676ee8ca83aee500682f382e10b9d03660093"
-  version = "v1.8.0"
-
-[[projects]]
-<<<<<<< HEAD
-  digest = "1:7030f82786dc7058230fd731d3bcbf04d0cee1046529a9cf5a81a8380d97628c"
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
-=======
-  digest = "1:2b409d6f7792a706f66fc0320526965f7c4e4fdcb5fecfd8858c994ef079ef2b"
->>>>>>> 9f925d7b773956b159c59731845f1bf39b8c51ec
+  digest = "1:1409db2fc0cf4ea7b71ca470da3c0cbf2e4245c43fea6474f277b46d2a7b4aa4"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -67,8 +55,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "a00e7512a2533cd96e525fe50607f9fe98badec3"
-  version = "v1.16.4"
+  revision = "81f3829f5a9d041041bdf56e55926691309d7699"
+  version = "v1.16.26"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -106,20 +94,12 @@
   version = "v0.16.0"
 
 [[projects]]
-  digest = "1:c79fb010be38a59d657c48c6ba1d003a8aa651fa56b579d959d74573b7dff8e1"
-  name = "github.com/gorilla/context"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "08b5f424b9271eedf6f9f0ce86cb9396ed337a42"
-  version = "v1.1.1"
-
-[[projects]]
-  digest = "1:e73f5b0152105f18bc131fba127d9949305c8693f8a762588a82a48f61756f5f"
+  digest = "1:ca59b1175189b3f0e9f1793d2c350114be36eaabbe5b9f554b35edee1de50aea"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "e3702bed27f0d39777b0b37b664b6280e8ef8fbf"
-  version = "v1.6.2"
+  revision = "a7962380ca08b5a188038c69871b8d3fbdf31e89"
+  version = "v1.7.0"
 
 [[projects]]
   digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
@@ -129,19 +109,6 @@
   revision = "c2b33e84"
 
 [[projects]]
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-  digest = "1:ecd9aa82687cf31d1585d4ac61d0ba180e42e8a6182b85bd785fcca8dfeefc1b"
-  name = "github.com/joho/godotenv"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "23d116af351c84513e1946b527c88823e476be13"
-  version = "v1.3.0"
-
-[[projects]]
-=======
->>>>>>> 9f925d7b773956b159c59731845f1bf39b8c51ec
   digest = "1:6782ffc812e8e700e6952ede1e60487ff1fd9da489eff762985be662a7cfc431"
   name = "github.com/leodido/go-urn"
   packages = ["."]
@@ -150,7 +117,6 @@
   version = "v1.1.0"
 
 [[projects]]
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
   digest = "1:6ad77325212e02cc2c76bc974fcfb59a227018afddbd3bc78ea3cc53dadb2554"
   name = "github.com/mailgun/mailgun-go"
   packages = ["."]
@@ -159,12 +125,7 @@
   version = "v1.1.1"
 
 [[projects]]
-<<<<<<< HEAD
-  branch = "master"
-  digest = "1:0e5b66364c5559101d270c0ed5f0196ca6ce910cf89247b9315c6305f15f29d5"
-=======
   digest = "1:ddaeea4ba16546053455f7139c27b9efe16a6a739353043cc2af76a9437d73b2"
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
   name = "github.com/pallinder/go-randomdata"
   packages = ["."]
   pruneopts = "UT"
@@ -172,20 +133,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
+  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
-
-[[projects]]
-  digest = "1:40e195917a951a8bf867cd05de2a46aaf1806c50cf92eebf4c16f78cd196f747"
-  name = "github.com/pkg/errors"
-  packages = ["."]
-  pruneopts = "UT"
-  revision = "645ef00459ed84a119197bfb8d8205042c6df63d"
-  version = "v0.8.0"
+  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
+  version = "v0.8.1"
 
 [[projects]]
   digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
@@ -220,23 +173,23 @@
     "blowfish",
   ]
   pruneopts = "UT"
-  revision = "505ab145d0a99da450461ae2c1a9f6cd10d1f447"
+  revision = "b8fe1690c61389d7d2a8074a507d1d40c5d30448"
 
 [[projects]]
   branch = "master"
-  digest = "1:57155adf6e39c5ea209e43df1399cd29d4d450a4c092f2f11b6f83b1574de73a"
+  digest = "1:aba2486bbebaadd1f62bde3c363ddbd984efade895833d86ed069f586fd9e899"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "b05ddf57801d2239d6ab0ee35f9d981e0420f4ac"
+  revision = "2970a3744de33489e46eba373c73655bc2377116"
 
 [[projects]]
-  digest = "1:8abc978192c2fca4d6a74260c3a8f4aa34d25bd3c548c938745b91b8b20cda1d"
+  digest = "1:718abca23a6d23b21b30197dd2c2bd2ee3ba88081b12caed1edb0d6bb5ef843a"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "0277b12d53df79c9dbf7311cb07fa9c81ed621bb"
-  version = "v9.24.0"
+  revision = "774d09c3863ffb2e137ebe4c39ba27648d208f80"
+  version = "v9.26.0"
 
 [[projects]]
   branch = "v2"
@@ -267,13 +220,6 @@
     "github.com/boltdb/bolt",
     "github.com/dgrijalva/jwt-go",
     "github.com/gorilla/mux",
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
-    "github.com/joho/godotenv",
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
-=======
->>>>>>> 9f925d7b773956b159c59731845f1bf39b8c51ec
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
     "github.com/rs/cors",
