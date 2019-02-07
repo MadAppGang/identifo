@@ -238,8 +238,6 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(User{userData: u}, password)
 }
 
-<<<<<<< HEAD
-=======
 // ResetPassword sets new user's passwors
 func (us *UserStorage) ResetPassword(id, password string) error {
 	return us.db.Update(func(tx *bolt.Tx) error {
@@ -263,7 +261,6 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 }
 
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 // IDByName return userId by name
 func (us *UserStorage) IDByName(name string) (string, error) {
 	var id string
@@ -300,8 +297,6 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return id, nil
 }
 
-<<<<<<< HEAD
-=======
 //ImportJSON import data from JSON
 func (us *UserStorage) ImportJSON(data []byte) error {
 	ud := []userData{}
@@ -319,7 +314,6 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
->>>>>>> 110cf49475c488a82de8b113bee667d971b4b81e
 //data implementation
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
