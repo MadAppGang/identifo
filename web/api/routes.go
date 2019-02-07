@@ -32,7 +32,7 @@ func (ar *Router) initRoutes() {
 	auth.Path("/{token:token\\/?}").Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
-	)).Methods("GET")
+	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(

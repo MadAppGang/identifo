@@ -18,7 +18,7 @@ const (
 	TokenTypeAccess = "access"
 )
 
-//Token middleware extracts token and validates it
+// Token middleware extracts token and validates it
 func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := appFromContext(r.Context())
@@ -53,4 +53,9 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
+}
+
+// tokenFromContext returns token from request context
+func tokenFromContext(ctx context.Context) model.Token {
+	return ctx.Value(model.TokenContextKey).(model.Token)
 }
