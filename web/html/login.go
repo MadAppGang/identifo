@@ -56,7 +56,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		}
 		tokenString, err := ar.TokenService.String(token)
 		if err != nil {
-			ar.Logger.Printf("Error creating token: %v", err)
+			ar.Logger.Printf("Error stringifying token: %v", err)
 			ar.Error(w, err, http.StatusInternalServerError, "Server error, try later please")
 			return
 		}
