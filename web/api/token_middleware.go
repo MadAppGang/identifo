@@ -49,7 +49,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		}
 
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
-		ctx = context.WithValue(r.Context(), model.TokenRawContextKey, tstr)
+		ctx = context.WithValue(ctx, model.TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
