@@ -5,17 +5,17 @@ import (
 	"github.com/madappgang/identifo/server"
 )
 
-//Settings is extended settings for memory server
+// Settings are the extended settings for in-memory server.
 type Settings struct {
 	model.ServerSettings
 }
 
-//DefaultSettings default server settings
+// DefaultSettings are default server settings.
 var DefaultSettings = Settings{
 	ServerSettings: server.DefaultSettings,
 }
 
-//NewServer create memory backend service
+// NewServer creates new in-memory backend service.
 func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
 	dbComposer, err := NewComposer(setting)
 	if err != nil {
