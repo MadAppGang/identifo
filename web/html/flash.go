@@ -7,7 +7,7 @@ import (
 )
 
 const (
-	//FlashErrorMessageKey flash message key to keep error message across pages
+	// FlashErrorMessageKey flash message key to keep error message across pages.
 	FlashErrorMessageKey = "error"
 )
 

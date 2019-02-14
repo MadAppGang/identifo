@@ -10,7 +10,7 @@ const usernameKey = "email"
 const passwordKey = "password"
 const scopesKey = "scopes"
 
-// Login login user with email and password
+// Login logins user with email and password.
 func (ar *Router) Login() http.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 
@@ -21,8 +21,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		scopes := []string{}
 		app := appFromContext(r.Context())
 
-		err := json.Unmarshal([]byte(scopesJSON), &scopes)
-		if err != nil {
+		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
 			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
 			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
 			return

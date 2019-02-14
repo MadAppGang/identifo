@@ -11,11 +11,11 @@ import (
 )
 
 const (
-	//FormKeyAppID form key to keep application ID
+	//FormKeyAppID form key to keep application ID.
 	FormKeyAppID = "appId"
 )
 
-// AppID gets app id from the request body
+// AppID gets app id from the request body.
 func (ar *Router) AppID() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
@@ -24,8 +24,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		case http.MethodGet:
 			appID = strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
 		case http.MethodPost:
-			err := r.ParseForm()
-			if err != nil {
+			if err := r.ParseForm(); err != nil {
 				break
 			}
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
@@ -56,7 +55,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 	}
 }
 
-//appFromContext returns app data from request conntext
+// appFromContext returns app data from request conntext.
 func appFromContext(ctx context.Context) model.AppData {
 	return ctx.Value(model.AppDataContextKey).(model.AppData)
 }

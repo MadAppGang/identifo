@@ -137,7 +137,7 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 	}
 }
 
-//LoginHandler handles login page request
+// LoginHandler handles login page request.
 func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 
@@ -162,8 +162,8 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			"Scopes": scopes,
 			"AppId":  app.ID(),
 		}
-		err = tmpl.Execute(w, data)
-		if err != nil {
+
+		if err = tmpl.Execute(w, data); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 		}
 	}
