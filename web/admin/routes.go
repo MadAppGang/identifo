@@ -19,4 +19,8 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.LoginHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.AdminLogin)),
 	)).Methods("GET")
 
+	ar.router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+		negroni.WrapFunc(ar.Logout()),
+	)).Methods("POST")
+
 }
