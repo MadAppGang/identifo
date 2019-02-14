@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"encoding/base64"
 	"net/http"
 )
 
@@ -52,8 +51,4 @@ func (ar *Router) Login() http.HandlerFunc {
 		// TODO: redirect to success page.
 		return
 	}
-}
-
-func encode(src string) string {
-	return base64.URLEncoding.EncodeToString([]byte(src))
 }
