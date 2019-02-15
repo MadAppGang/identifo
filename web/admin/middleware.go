@@ -33,8 +33,6 @@ func (ar *Router) Session() negroni.HandlerFunc {
 			return
 		}
 
-		session, err := ar.sessionStorage.GetSession(sessionID)
-
 		if session.ExpirationDate.Before(time.Now()) {
 			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
 			return
