@@ -34,7 +34,7 @@ func (ar *Router) Session() negroni.HandlerFunc {
 		}
 
 		if session.ExpirationDate.Before(time.Now()) {
-			http.Redirect(w, r, ar.RedirectURL, http.StatusMovedPermanently)
+			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
 			return
 		}
 

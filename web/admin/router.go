@@ -15,24 +15,20 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	middleware      *negroni.Negroni
-	logger          *log.Logger
-	router          *mux.Router
-	sessionService  model.SessionService
-	sessionStorage  model.SessionStorage
-	StaticPages     StaticPages
-	StaticFilesPath StaticFilesPath
-	ConfigPath      string
-	RedirectURL     string
-	PathPrefix      string
-	Host            string
+	middleware     *negroni.Negroni
+	logger         *log.Logger
+	router         *mux.Router
+	sessionService model.SessionService
+	sessionStorage model.SessionStorage
+	ConfigPath     string
+	RedirectURL    string
+	PathPrefix     string
+	Host           string
 }
 
 func defaultOptions() []func(*Router) error {
 	return []func(*Router) error{
 		PathPrefixOptions("/admin"),
-		DefaultStaticPagesOptions(),
-		DefaultStaticPathOptions(),
 		HostOption("http://localhost:8080"),
 		RedirectURLOption("/login"),
 	}
