@@ -13,4 +13,6 @@ const (
 	ErrorInternalError = Error("Internal error")
 	// ErrorIncorrectLogin is for incorrect login and password.
 	ErrorIncorrectLogin = Error("Incorrect login information")
+	// ErrorNotAuthorized is for non-authorized access intents.
+	ErrorNotAuthorized = Error("Not authorized")
 )

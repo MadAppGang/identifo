@@ -4,11 +4,6 @@ import (
 	"net/http"
 )
 
-const (
-	adminFormKey    = "email" // TODO: change to 'admin' when admin-login.html template is provided.
-	passwordFormKey = "password"
-)
-
 type adminData struct {
 	Admin    string `yaml:"admin"`
 	Password string `yaml:"password"`
@@ -16,16 +11,22 @@ type adminData struct {
 
 // Login logins admin with admin name and password.
 func (ar *Router) Login() http.HandlerFunc {
+	type loginData struct {
+		Email    string `json:"email,omitempty" validate:"required,gte=6,lte=130"`
+		Password string `json:"password,omitempty" validate:"required,gte=6,lte=130"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminData)
 		if ar.getConf(w, conf) != nil {
 			return
 		}
 
-		username := r.FormValue(adminFormKey)
-		password := r.FormValue(passwordFormKey)
+		ld := loginData{}
+		if ar.mustParseJSON(w, r, &ld) != nil {
+			return
+		}
 
-		if (conf.Admin != username) || (conf.Password != password) {
+		if (conf.Admin != ld.Email) || (conf.Password != ld.Password) {
 			ar.Error(w, ErrorIncorrectLogin, http.StatusBadRequest, "")
 			return
 		}
@@ -48,7 +49,6 @@ func (ar *Router) Login() http.HandlerFunc {
 			HttpOnly: true,
 		}
 		http.SetCookie(w, c)
-		// TODO: redirect to success page.
 		return
 	}
 }
