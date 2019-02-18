@@ -24,10 +24,14 @@ func server() model.Server {
 		log.Fatal(err)
 	}
 
-	_, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2")
-	if err != nil {
-		server.ImportApps("../import/apps.json")
-		server.ImportUsers("../import/users.json")
+	if _, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2"); err != nil {
+		log.Println("Error getting app storage:", err)
+		if err = server.ImportApps("../import/apps.json"); err != nil {
+			log.Println("Error importing apps:", err)
+		}
+		if err = server.ImportUsers("../import/users.json"); err != nil {
+			log.Println("Error importing users:", err)
+		}
 	}
 	return server
 }

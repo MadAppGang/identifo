@@ -4,6 +4,10 @@ import (
 	"encoding/base64"
 )
 
+const (
+	cookieName = "SessionID"
+)
+
 func encode(src string) string {
 	return base64.URLEncoding.EncodeToString([]byte(src))
 }

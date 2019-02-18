@@ -8,10 +8,9 @@ import (
 	"github.com/madappgang/identifo/server/fake"
 )
 
-//this server works only with memory storages and generated data
-//should be used for test and CI environments only
+// This server works only with in-memory storages and generated data.
+// It should be used for test and CI environments only.
 func main() {
-
 	settings := fake.DefaultSettings
 	settings.StaticFolderPath = "../.."
 	settings.PEMFolderPath = "../../jwt"
