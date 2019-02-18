@@ -36,3 +36,11 @@ ignored = ["github.com/madappgang/identifo", "github.com/madappgang/identifo/mod
 [[constraint]]
   name = "github.com/mailgun/mailgun-go"
   version = "1.1.1"
+
+[[constraint]]
+  name = "gopkg.in/yaml.v2"
+  version = "2.2.2"
+
+[[constraint]]
+  name = "github.com/go-redis/redis"
+  version = "6.15.1"

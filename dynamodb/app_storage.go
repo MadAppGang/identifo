@@ -206,6 +206,7 @@ type appData struct {
 	RedirectURL          string   `json:"redirect_url,omitempty"`
 	RefreshTokenLifespan int64    `json:"refresh_token_lifespan,omitempty"`
 	TokenLifespan        int64    `json:"token_lifespan,omitempty"`
+	TokenPayload         []string `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 }
 
 //AppData is mongo model for model.AppData
@@ -230,6 +231,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		RedirectURL:          data.RedirectURL(),
 		RefreshTokenLifespan: data.RefreshTokenLifespan(),
 		TokenLifespan:        data.TokenLifespan(),
+		TokenPayload:         data.TokenPayload(),
 	}}, nil
 }
 
@@ -276,3 +278,4 @@ func (ad AppData) Offline() bool               { return ad.appData.Offline }
 func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
 func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }
+func (ad AppData) TokenPayload() []string      { return ad.appData.TokenPayload }

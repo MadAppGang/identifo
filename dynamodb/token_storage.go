@@ -1,7 +1,6 @@
 package dynamodb
 
 import (
-	"fmt"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -11,28 +10,27 @@ import (
 )
 
 const (
-	//TokensTableName is collection to store refresh tokens
+	//TokensTableName is a table to store refresh tokens.
 	TokensTableName = "RefreshTokens"
 )
 
-//NewTokenStorage creates mew dynamodb storage
+// NewTokenStorage creates new DynamoDB token storage.
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
 	ts := &TokenStorage{db: db}
 	err := ts.ensureTable()
 	return ts, err
-
 }
 
-//TokenStorage is dynamodb token storage
+// TokenStorage is a DynamoDB token storage.
 type TokenStorage struct {
 	db *DB
 }
 
-//ensureTable ensures app storage table is exists in database
+// ensureTable ensures that token storage exists in the database.
 func (ts *TokenStorage) ensureTable() error {
 	exists, err := ts.db.isTableExists(TokensTableName)
 	if err != nil {
-		log.Println(err)
+		log.Printf("Error while checking if %s exists: %v", TokensTableName, err)
 		return err
 	}
 	if !exists {
@@ -56,14 +54,15 @@ func (ts *TokenStorage) ensureTable() error {
 			},
 			TableName: aws.String(TokensTableName),
 		}
-		_, err = ts.db.C.CreateTable(input)
-		fmt.Println("21", err)
-		return err
+		if _, err = ts.db.C.CreateTable(input); err != nil {
+			log.Printf("Error while creating %s table: %v", TokensTableName, err)
+			return err
+		}
 	}
 	return nil
 }
 
-//SaveToken save token in database
+// SaveToken saves token in the database.
 func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
 		return model.ErrorWrongDataFormat
@@ -72,27 +71,25 @@ func (ts *TokenStorage) SaveToken(token string) error {
 		return nil
 	}
 
-	t := Token{Token: token}
-	tv, err := dynamodbattribute.MarshalMap(t)
+	t, err := dynamodbattribute.MarshalMap(Token{Token: token})
 	if err != nil {
 		log.Println(err)
 		return ErrorInternalError
 	}
 
 	input := &dynamodb.PutItemInput{
-		Item:      tv,
+		Item:      t,
 		TableName: aws.String(TokensTableName),
 	}
-	_, err = ts.db.C.PutItem(input)
-	if err != nil {
-		log.Println(err)
+
+	if _, err = ts.db.C.PutItem(input); err != nil {
+		log.Println("Error while putting token to db:", err)
 		return ErrorInternalError
 	}
 	return nil
-
 }
 
-//HasToken returns true if the token in the storage
+// HasToken returns true if token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	if len(token) == 0 {
 		return false
@@ -107,7 +104,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 		},
 	})
 	if err != nil {
-		log.Println(err)
+		log.Println("Error while fetching token from db:", err)
 		return false
 	}
 	//empty result
@@ -117,28 +114,26 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return true
 }
 
-//RevokeToken removes token from the storage
+// RevokeToken removes token from the storage.
 func (ts *TokenStorage) RevokeToken(token string) error {
 	if !ts.HasToken(token) {
 		return model.ErrorNotFound
 	}
-	_, err := ts.db.C.DeleteItem(&dynamodb.DeleteItemInput{
+	if _, err := ts.db.C.DeleteItem(&dynamodb.DeleteItemInput{
 		TableName: aws.String(TokensTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String(token),
 			},
 		},
-	})
-	if err != nil {
-		log.Println(err)
+	}); err != nil {
+		log.Println("Error while deleting token from db:", err)
 		return ErrorInternalError
 	}
 	return nil
-
 }
 
-//Token is struct to store tokens in database
+// Token is a struct to store tokens in the database.
 type Token struct {
 	Token string `json:"token,omitempty"`
 }
