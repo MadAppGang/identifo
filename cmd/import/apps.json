@@ -7,7 +7,7 @@
 		"description":"Amazing ios app", 
 		"scopes":["smartrun"],
 		"offline":true,
-		"redirect_url":"myapp://loginhook",
+		"redirect_url":"http://localhost:3000/callback",
 		"refresh_token_lifespan":9000000,
 		"token_lifespan":9000,
 		"token_payload":["name", "email"]

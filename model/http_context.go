@@ -10,4 +10,6 @@ const (
 	TokenContextKey
 	//TokenRawContextKey bearer token context key in raw format
 	TokenRawContextKey
+	// AppIDError context key to keep error from app_middleware
+	AppIDError
 )

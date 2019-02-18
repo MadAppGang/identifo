@@ -2,6 +2,7 @@ package html
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"path"
 	"strings"
@@ -11,8 +12,10 @@ import (
 )
 
 const (
-	//FormKeyAppID form key to keep application ID.
+	// FormKeyAppID form key to keep application ID.
 	FormKeyAppID = "appId"
+	// ResponseMode from key to keep response_mode.
+	ResponseMode = "response_mode"
 )
 
 // AppID gets app id from the request body.
@@ -20,6 +23,12 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := ""
+		responseMode := strings.TrimSpace(r.URL.Query().Get(ResponseMode))
+		onError := func(message string) {
+			ar.Logger.Print(message)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+		}
+
 		switch r.Method {
 		case http.MethodGet:
 			appID = strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
@@ -30,22 +39,29 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
+		if responseMode == "web_message" {
+			onError = func(message string) {
+				ctx := context.WithValue(r.Context(), model.AppIDError, message)
+				r = r.WithContext(ctx)
+				next.ServeHTTP(w, r)
+			}
+		}
+
 		if appID == "" {
-			ar.Logger.Printf("Error: empty appId param")
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			onError("Error: empty appId param")
 			return
 		}
 
 		app, err := ar.AppStorage.AppByID(appID)
 		if err != nil {
-			ar.Logger.Printf("Error getting App by ID %v", err)
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			message := fmt.Sprintf("Error getting App by ID: %v", err)
+			onError(message)
 			return
 		}
 
 		if !app.Active() {
-			ar.Logger.Printf("App with ID: %v is inactive", app.ID())
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
+			message := fmt.Sprintf("App with ID: %v is inactive", app.ID())
+			onError(message)
 			return
 		}
 
@@ -57,5 +73,21 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 
 // appFromContext returns app data from request conntext.
 func appFromContext(ctx context.Context) model.AppData {
-	return ctx.Value(model.AppDataContextKey).(model.AppData)
+	value := ctx.Value(model.AppDataContextKey)
+
+	if value == nil {
+		return nil
+	}
+
+	return value.(model.AppData)
+}
+
+func appIDErrorFromContext(ctx context.Context) string {
+	value := ctx.Value(model.AppIDError)
+
+	if value == nil {
+		return ""
+	}
+
+	return value.(string)
 }
