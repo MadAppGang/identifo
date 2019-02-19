@@ -1,1 +1,1 @@
-hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/random >> key
+hexdump -n 16 -e '4/4 "%08X" 1 "\n"' /dev/random >> key.key
