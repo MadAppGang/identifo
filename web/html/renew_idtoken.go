@@ -8,9 +8,9 @@ import (
 	"strings"
 )
 
-// Authorize authorizes user.
-func (ar *Router) Authorize() http.HandlerFunc {
-	tmpl, err := template.ParseFiles("../../static/pm.html")
+// RenewIDToken creates new id_token if user is already authenticated.
+func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
+	tmpl, err := template.ParseFiles(pathComponents...)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serveTemplate := func(errorMessage, IDToken, callbackURL string) {
@@ -33,18 +33,22 @@ func (ar *Router) Authorize() http.HandlerFunc {
 			}
 		}
 
-		context := r.Context()
+		appID := strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
 
-		if err := appIDErrorFromContext(context); err != "" {
-			ar.Logger.Printf(err)
-			serveTemplate(err, "", "")
+		if appID == "" {
+			serveTemplate("Empty appId param", "", "")
 			return
 		}
 
-		app := appFromContext(context)
-		if app == nil {
-			message := "Error getting App"
-			ar.Logger.Println(message)
+		app, err := ar.AppStorage.AppByID(appID)
+		if err != nil {
+			message := fmt.Sprintf("Error getting App by ID: %v", err)
+			serveTemplate(message, "", "")
+			return
+		}
+
+		if !app.Active() {
+			message := fmt.Sprintf("App with ID: %v is inactive", app.ID())
 			serveTemplate(message, "", "")
 			return
 		}

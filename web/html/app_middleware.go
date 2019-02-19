@@ -14,8 +14,6 @@ import (
 const (
 	// FormKeyAppID form key to keep application ID.
 	FormKeyAppID = "appId"
-	// ResponseMode from key to keep response_mode.
-	ResponseMode = "response_mode"
 )
 
 // AppID gets app id from the request body.
@@ -23,7 +21,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := ""
-		responseMode := strings.TrimSpace(r.URL.Query().Get(ResponseMode))
+
 		onError := func(message string) {
 			ar.Logger.Print(message)
 			http.Redirect(w, r, errorPath, http.StatusFound)
@@ -39,16 +37,8 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
-		if responseMode == "web_message" {
-			onError = func(message string) {
-				ctx := context.WithValue(r.Context(), model.AppIDError, message)
-				r = r.WithContext(ctx)
-				next.ServeHTTP(w, r)
-			}
-		}
-
 		if appID == "" {
-			onError("Error: empty appId param")
+			onError("Empty appId param")
 			return
 		}
 
@@ -80,14 +70,4 @@ func appFromContext(ctx context.Context) model.AppData {
 	}
 
 	return value.(model.AppData)
-}
-
-func appIDErrorFromContext(ctx context.Context) string {
-	value := ctx.Value(model.AppIDError)
-
-	if value == nil {
-		return ""
-	}
-
-	return value.(string)
 }

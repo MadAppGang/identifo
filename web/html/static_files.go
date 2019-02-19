@@ -139,7 +139,7 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 	}
 }
 
-// LoginHandler handles login page request.
+// LoginHandler handles login page request or redirects to the callback_url if user is already authenticated.
 func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
