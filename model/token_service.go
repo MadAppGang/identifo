@@ -49,7 +49,7 @@ type Token interface {
 	Payload() map[string]string
 }
 
-//Validator calidate token with external requester
+//Validator validate token with external requester
 type Validator interface {
 	Validate(Token) error
 }

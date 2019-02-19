@@ -35,6 +35,7 @@ type DatabaseComposer interface {
 		model.UserStorage,
 		model.TokenStorage,
 		model.TokenService,
+		model.Encryptor,
 		error,
 	)
 }
@@ -43,7 +44,7 @@ type DatabaseComposer interface {
 func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
 	s := Server{}
 
-	appStorage, userStorage, tokenStorage, tokenService, err := db.Compose()
+	appStorage, userStorage, tokenStorage, tokenService, encryptor, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -74,6 +75,7 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		TokenStorage: tokenStorage,
 		TokenService: tokenService,
 		EmailService: ms,
+		Encryptor:    encryptor,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),

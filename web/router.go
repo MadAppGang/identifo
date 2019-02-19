@@ -16,6 +16,7 @@ type RouterSetting struct {
 	TokenStorage      model.TokenStorage
 	TokenService      model.TokenService
 	EmailService      model.EmailService
+	Encryptor         model.Encryptor
 	Logger            *log.Logger
 	APIRouterSettings []func(*api.Router) error
 	WebRouterSettings []func(*html.Router) error
@@ -46,6 +47,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.TokenStorage,
 		settings.TokenService,
 		settings.EmailService,
+		settings.Encryptor,
 		settings.WebRouterSettings...,
 	)
 
