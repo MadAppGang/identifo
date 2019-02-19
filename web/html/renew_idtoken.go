@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"html/template"
 	"net/http"
+	"path"
 	"strings"
 )
 
 // RenewIDToken creates new id_token if user is already authenticated.
 func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
-	tmpl, err := template.ParseFiles(pathComponents...)
+	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serveTemplate := func(errorMessage, IDToken, callbackURL string) {

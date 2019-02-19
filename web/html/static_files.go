@@ -160,7 +160,7 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 
 		app := appFromContext(r.Context())
 		if app == nil {
-			ar.Error(w, nil, http.StatusInternalServerError, "Error getting app from context")
+			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
 		}
 
 		serveTemplate := func() {

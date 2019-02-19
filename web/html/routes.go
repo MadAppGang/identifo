@@ -36,6 +36,10 @@ func (ar *Router) initRoutes() {
 	)).Methods("GET")
 
 	ar.Router.HandleFunc("/idtoken/{renew:renew\\/?}", ar.RenewIDToken(ar.StaticFilesPath.PagesPath, "/web-message.html")).Methods("GET")
+	ar.Router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.Logout()),
+	)).Methods("GET")
 
 	ar.Router.HandleFunc("/{register:register\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)).Methods("GET")
 	ar.Router.HandleFunc("/password/{forgot:forgot\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPassword)).Methods("GET")
