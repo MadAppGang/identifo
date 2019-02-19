@@ -18,6 +18,7 @@ func server() model.Server {
 	settings.DBName = "identifo"
 	settings.MailService = model.MailServiceAWS
 	settings.EmailTemplatesPath = "../../email_templates"
+	settings.EncryptionKeyPath = "../../encryptor/key.key"
 
 	server, err := mgo.NewServer(settings)
 	if err != nil {

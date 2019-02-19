@@ -182,11 +182,23 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			}
 		}
 
-		userID, err := getCookie(r, "identifo-user")
-		if err != nil || userID == "" {
+		encryptedID, err := getCookie(r, CookieKeyUserID)
+		if err != nil || encryptedID == "" {
+			ar.Logger.Printf("Error getting user session cookie: %v", err)
+			deleteCookie(w, CookieKeyUserID)
 			serveTemplate()
 			return
 		}
+
+		uID, err := ar.Encryptor.Decrypt([]byte(encryptedID))
+		if err != nil {
+			ar.Logger.Printf("Error: decrypting userID %v", err)
+			deleteCookie(w, CookieKeyUserID)
+			serveTemplate()
+			return
+		}
+
+		userID := string(uID)
 
 		user, err := ar.UserStorage.UserByID(userID)
 		if err != nil {

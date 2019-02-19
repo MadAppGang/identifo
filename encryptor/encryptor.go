@@ -67,5 +67,5 @@ func NewEncryptor(keyPath string) (model.Encryptor, error) {
 
 	es.key = key
 
-	return es, nil
+	return &es, nil
 }

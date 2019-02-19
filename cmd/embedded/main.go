@@ -16,6 +16,7 @@ func initDB() model.Server {
 	settings.Issuer = "http://localhost:8080"
 	settings.MailService = model.MailServiceAWS
 	settings.EmailTemplatesPath = "../../email_templates"
+	settings.EncryptionKeyPath = "../../encryptor/key.key"
 
 	server, err := embedded.NewServer(settings)
 	if err != nil {

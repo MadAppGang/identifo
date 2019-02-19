@@ -20,6 +20,7 @@ var DefaultSettings = model.ServerSettings{
 	PEMFolderPath:      "./pem",
 	PrivateKey:         "private.pem",
 	PublicKey:          "public.pem",
+	EncryptionKeyPath:  "./encryptor/key.key",
 	Algorithm:          model.TokenServiceAlgorithmAuto,
 	Issuer:             "identifo",
 	MailService:        model.MailServiceMailgun,

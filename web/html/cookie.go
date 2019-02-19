@@ -6,6 +6,11 @@ import (
 	"time"
 )
 
+const (
+	// CookieKeyUserID cookie key to keep authenticated user's ID.
+	CookieKeyUserID = "identifo-user"
+)
+
 func encode(src string) string {
 	return base64.URLEncoding.EncodeToString([]byte(src))
 }

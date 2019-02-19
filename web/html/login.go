@@ -50,7 +50,9 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		setCookie(w, "identifo-user", user.ID(), 60*60*24*2)
+		cipher, err := ar.Encryptor.Encrypt([]byte(user.ID()))
+
+		setCookie(w, CookieKeyUserID, string(cipher), 60*60*24*2)
 		redirectToLogin()
 	}
 }

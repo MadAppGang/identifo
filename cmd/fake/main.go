@@ -18,6 +18,7 @@ func main() {
 	settings.Issuer = "http://localhost:8080"
 	settings.MailService = model.MailServiceAWS
 	settings.EmailTemplatesPath = "../../email_templates"
+	settings.EncryptionKeyPath = "../../encryptor/key.key"
 
 	server, err := fake.NewServer(settings)
 	if err != nil {

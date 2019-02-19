@@ -34,7 +34,6 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 		}
 
 		appID := strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
-
 		if appID == "" {
 			serveTemplate("Empty appId param", "", "")
 			return
@@ -53,15 +52,25 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		userID, err := getCookie(r, "identifo-user")
-		if err != nil || userID == "" {
+		encryptedID, err := getCookie(r, CookieKeyUserID)
+		if err != nil || encryptedID == "" {
 			serveTemplate("not authorized", "", app.RedirectURL())
+			deleteCookie(w, CookieKeyUserID)
 			return
 		}
 
+		uID, err := ar.Encryptor.Decrypt([]byte(encryptedID))
+		if err != nil {
+			serveTemplate("not authorized", "", app.RedirectURL())
+			deleteCookie(w, CookieKeyUserID)
+			return
+		}
+
+		userID := string(uID)
 		user, err := ar.UserStorage.UserByID(userID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
+			deleteCookie(w, CookieKeyUserID)
 			serveTemplate("invalid user token", "", app.RedirectURL())
 			return
 		}
@@ -74,9 +83,9 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
+		scopes, err = ar.UserStorage.RequestScopes(userID, scopes)
 		if err != nil {
-			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
+			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, userID)
 			message := fmt.Sprintf("user not allowed to access this scopes %v", scopes)
 			serveTemplate(message, "", app.RedirectURL())
 			return
