@@ -6,22 +6,21 @@ import (
 )
 
 const (
-	//TokensCollection is collection to store refresh tokens
+	// TokensCollection is a collection to store refresh tokens.
 	TokensCollection = "RefreshTokens"
 )
 
-//NewTokenStorage created in embedded token sotrage
+// NewTokenStorage creates a MongoDB token storage.
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
-	ts := TokenStorage{db: db}
-	return &ts, nil
+	return &TokenStorage{db: db}, nil
 }
 
-//TokenStorage omnogbased token storage
+// TokenStorage is a MongoDB token storage.
 type TokenStorage struct {
 	db *DB
 }
 
-//SaveToken save token in database
+// SaveToken saves token in the database.
 func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
 		return model.ErrorWrongDataFormat
@@ -29,23 +28,18 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	s := ts.db.Session(TokensCollection)
 	defer s.Close()
 
-	var t Token
-	t.Token = token
-	t.ID = bson.NewObjectId()
-	if err := s.C.Insert(t); err != nil {
-		return err
-	}
-	return nil
+	var t = Token{Token: token, ID: bson.NewObjectId()}
+	err := s.C.Insert(t)
+	return err
 }
 
-//HasToken returns true if the token in the storage
+// HasToken returns true if the token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	s := ts.db.Session(TokensCollection)
 	defer s.Close()
 
 	var t Token
-	q := bson.M{"token": token}
-	if err := s.C.Find(q).One(&t); err != nil {
+	if err := s.C.Find(bson.M{"token": token}).One(&t); err != nil {
 		return false
 	}
 	if t.Token == token {
@@ -55,20 +49,18 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return false
 }
 
-//RevokeToken removes token from the storage
+// RevokeToken removes token from the storage.
 func (ts *TokenStorage) RevokeToken(token string) error {
 	s := ts.db.Session(TokensCollection)
 	defer s.Close()
 
-	q := bson.M{"token": token}
-	if _, err := s.C.RemoveAll(q); err != nil {
+	if _, err := s.C.RemoveAll(bson.M{"token": token}); err != nil {
 		return err
 	}
 	return nil
-
 }
 
-//Token is struct to store tokens in database
+// Token is struct to store tokens in database.
 type Token struct {
 	ID    bson.ObjectId `bson:"_id,omitempty"`
 	Token string        `bson:"token,omitempty"`
