@@ -109,7 +109,7 @@ func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 
 }
 
-//ResetPasswordHandler handles reset password request
+// ResetPasswordHandler handles reset password request
 func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFunc {
 
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
@@ -139,7 +139,7 @@ func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFun
 	}
 }
 
-// LoginHandler handles login page request or redirects to the callback_url if user is already authenticated.
+// LoginHandler serves login page or redirects to the callback_url if user is already authenticated.
 func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
