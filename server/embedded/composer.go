@@ -9,7 +9,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-//NewComposer creates new database composer
+// NewComposer creates new database composer.
 func NewComposer(settings Settings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings: settings,
@@ -17,12 +17,12 @@ func NewComposer(settings Settings) (*DatabaseComposer, error) {
 	return &c, nil
 }
 
-//DatabaseComposer composes BoltDB services
+// DatabaseComposer composes BoltDB services.
 type DatabaseComposer struct {
 	settings Settings
 }
 
-//Compose composes all services with BoltDB support
+// Compose composes all services with BoltDB support.
 func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,

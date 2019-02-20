@@ -5,19 +5,19 @@ import (
 	"github.com/madappgang/identifo/server"
 )
 
-//Settings is extended settings for BoltDB serve
+// Settings are the extended settings for BoltDB server.
 type Settings struct {
 	model.ServerSettings
 	DBPath string
 }
 
-//DefaultSettings default server settings
+// DefaultSettings are default server settings.
 var DefaultSettings = Settings{
 	ServerSettings: server.DefaultSettings,
 	DBPath:         "db.db",
 }
 
-//NewServer creates BoltDB backend service
+// NewServer creates new backend service with BoltDB support.
 func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
 	dbComposer, err := NewComposer(setting)
 	if err != nil {

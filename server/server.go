@@ -5,16 +5,20 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"time"
 
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/ses"
+	mem "github.com/madappgang/identifo/sessions/mem"
+	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
+	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 )
 
-//DefaultSettings default serve settings
+// DefaultSettings are the default server settings.
 var DefaultSettings = model.ServerSettings{
 	StaticFolderPath:   "./static",
 	PEMFolderPath:      "./pem",
@@ -24,12 +28,15 @@ var DefaultSettings = model.ServerSettings{
 	Algorithm:          model.TokenServiceAlgorithmAuto,
 	Issuer:             "identifo",
 	MailService:        model.MailServiceMailgun,
+	SessionStorage:     model.SessionStorageMem,
+	SessionDuration:    5 * time.Minute,
 	Host:               "http://localhost:8080",
+	ConfigPath:         "../../server/conf.yaml",
 	EmailTemplatesPath: "./email_templates",
 	EmailTemplates:     model.DefaultEmailTemplates,
 }
 
-//DatabaseComposer init database stack
+// DatabaseComposer inits database stack.
 type DatabaseComposer interface {
 	Compose() (
 		model.AppStorage,
@@ -41,16 +48,20 @@ type DatabaseComposer interface {
 	)
 }
 
-//NewServer create backend service
+// NewServer creates backend service.
 func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
-	s := Server{}
 
 	appStorage, userStorage, tokenStorage, tokenService, encryptor, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
-	s.AppStrg = appStorage
-	s.UserStrg = userStorage
+	s := Server{AppStrg: appStorage, UserStrg: userStorage}
+
+	sessionStorage, err := sessionStorage(setting.SessionStorage)
+	if err != nil {
+		return nil, err
+	}
+	sessionService := model.NewSessionManager(setting.SessionDuration, sessionStorage)
 
 	ms, err := mailService(setting.MailService, setting.EmailTemplates, setting.EmailTemplatesPath)
 	if err != nil {
@@ -71,12 +82,14 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 	}
 
 	routerSettings := web.RouterSetting{
-		AppStorage:   appStorage,
-		UserStorage:  userStorage,
-		TokenStorage: tokenStorage,
-		TokenService: tokenService,
-		EmailService: ms,
-		Encryptor:    encryptor,
+		AppStorage:     appStorage,
+		UserStorage:    userStorage,
+		TokenStorage:   tokenStorage,
+		TokenService:   tokenService,
+		SessionService: sessionService,
+		SessionStorage: sessionStorage,
+		Encryptor:      encryptor,
+		EmailService:   ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),
@@ -84,8 +97,15 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 		},
+		AdminRouterSettings: []func(*admin.Router) error{
+			admin.HostOption(hostName),
+			admin.ConfigPathOption(setting.ConfigPath),
+		},
 	}
 	r, err := web.NewRouter(routerSettings)
+	if err != nil {
+		return nil, err
+	}
 	s.MainRouter = r.(*web.Router)
 
 	for _, option := range options {
@@ -95,7 +115,6 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 	}
 
 	return &s, nil
-
 }
 
 //Server is DynamoDB backed server
@@ -134,6 +153,17 @@ func mailService(serviceType model.MailServiceType, templates model.EmailTemplat
 		return mailgun.NewEmailServiceFromEnv(tpltr)
 	case model.MailServiceAWS:
 		return ses.NewEmailServiceFromEnv(tpltr)
+	default:
+		return nil, model.ErrorNotImplemented
+	}
+}
+
+func sessionStorage(storageType model.SessionStorageType) (model.SessionStorage, error) {
+	switch storageType {
+	case model.SessionStorageRedis:
+		return redis.NewSessionStorageFromEnv()
+	case model.SessionStorageMem:
+		return mem.NewSessionStorage()
 	default:
 		return nil, model.ErrorNotImplemented
 	}

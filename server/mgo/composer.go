@@ -9,7 +9,7 @@ import (
 	"github.com/madappgang/identifo/mongo"
 )
 
-//NewComposer creates new database composer
+// NewComposer creates new database composer.
 func NewComposer(settings Settings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings: settings,
@@ -17,12 +17,12 @@ func NewComposer(settings Settings) (*DatabaseComposer, error) {
 	return &c, nil
 }
 
-//DatabaseComposer composes mongoDB services
+// DatabaseComposer composes MongoDB services.
 type DatabaseComposer struct {
 	settings Settings
 }
 
-//Compose composes all services with mongoDB support
+// Compose composes all services with MongoDB support.
 func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,

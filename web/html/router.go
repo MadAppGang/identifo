@@ -87,13 +87,6 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 
 // Error writes an API error message to the response and logger.
 func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo string) {
-	// errorResponse is a generic response for sending a error.
-	type errorResponse struct {
-		Error string `json:"error,omitempty"`
-		Info  string `json:"info,omitempty"`
-		Code  int    `json:"code,omitempty"`
-	}
-
 	// Log error.
 	ar.Logger.Printf("http error: %s (code=%d)", err, code)
 

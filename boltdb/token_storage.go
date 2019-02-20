@@ -8,34 +8,31 @@ import (
 )
 
 const (
-	//TokenBucket bucket name with refresh tokens
+	// TokenBucket is a name for bucket with tokens.
 	TokenBucket = "Tokens"
 )
 
-//NewTokenStorage created in embedded token sotrage
+// NewTokenStorage creates a BoltDB token storage.
 func NewTokenStorage(db *bolt.DB) (model.TokenStorage, error) {
-	ts := TokenStorage{}
-	ts.db = db
-	//ensure we have app's bucket in the database
+	ts := &TokenStorage{db: db}
+	// ensure that we have needed bucket in the database
 	if err := db.Update(func(tx *bolt.Tx) error {
-		_, err := tx.CreateBucketIfNotExists([]byte(TokenBucket))
-		if err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(TokenBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
 	}); err != nil {
 		return nil, err
 	}
-	return &ts, nil
-
+	return ts, nil
 }
 
-//TokenStorage  embedded token storage
+// TokenStorage is a BoltDB token storage.
 type TokenStorage struct {
 	db *bolt.DB
 }
 
-//SaveToken save token in database
+// SaveToken saves token in the storage.
 func (ts *TokenStorage) SaveToken(token string) error {
 	return ts.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
@@ -44,7 +41,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	})
 }
 
-//HasToken returns true if the token in the storage
+// HasToken returns true if the token in present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	var res bool
 	if err := ts.db.View(func(tx *bolt.Tx) error {
@@ -59,7 +56,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return res
 }
 
-//RevokeToken removes token from the storage
+// RevokeToken removes token from the storage.
 func (ts *TokenStorage) RevokeToken(token string) error {
 	return ts.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))

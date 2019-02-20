@@ -5,28 +5,32 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 )
 
-//RouterSetting settings for root http router
+// RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	AppStorage        model.AppStorage
-	UserStorage       model.UserStorage
-	TokenStorage      model.TokenStorage
-	TokenService      model.TokenService
-	EmailService      model.EmailService
-	Encryptor         model.Encryptor
-	Logger            *log.Logger
-	APIRouterSettings []func(*api.Router) error
-	WebRouterSettings []func(*html.Router) error
+	Encryptor           model.Encryptor
+	AppStorage          model.AppStorage
+	UserStorage         model.UserStorage
+	TokenStorage        model.TokenStorage
+	TokenService        model.TokenService
+	EmailService        model.EmailService
+	SessionService      model.SessionService
+	SessionStorage      model.SessionStorage
+	Logger              *log.Logger
+	APIRouterSettings   []func(*api.Router) error
+	WebRouterSettings   []func(*html.Router) error
+	AdminRouterSettings []func(*admin.Router) error
 }
 
-//NewRouter create and init root http router
+// NewRouter creates and inits root http router.
 func NewRouter(settings RouterSetting) (model.Router, error) {
-
 	r := Router{}
 	var err error
+
 	r.APIRouter, err = api.NewRouter(
 		settings.Logger,
 		settings.AppStorage,
@@ -55,7 +59,17 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		return nil, err
 	}
 
-	//TODO: Admin panel router
+	r.AdminRouter, err = admin.NewRouter(
+		settings.Logger,
+		settings.SessionService,
+		settings.SessionStorage,
+		settings.AdminRouterSettings...,
+	)
+
+	if err != nil {
+		return nil, err
+	}
+
 	r.APIRouterPath = "/api"
 	r.WebRouterPath = "/web"
 	r.AdminRouterPath = "/admin"
@@ -63,7 +77,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	return &r, nil
 }
 
-//Router - root router to handle REST API, web and admin
+// Router is a root router to handle REST API, web, and admin requests.
 type Router struct {
 	APIRouter   model.Router
 	WebRouter   model.Router
@@ -75,7 +89,7 @@ type Router struct {
 	AdminRouterPath string
 }
 
-//ServeHTTP identifo.Router protocol implementation
+// ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
 	ar.RootRouter.ServeHTTP(w, r)
@@ -83,8 +97,7 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
-	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
 	ar.RootRouter.Handle("/", ar.APIRouter)
-
-	//TODO: add admin panel router
+	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
+	ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
 }
