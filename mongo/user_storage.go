@@ -5,8 +5,8 @@ import (
 
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/mgo.v2/bson"
 	"gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -23,8 +23,8 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	defer s.Close()
 
 	if err := s.C.EnsureIndex(mgo.Index{
-		Key:[]string{"name"},
-		Unique:true,
+		Key:    []string{"name"},
+		Unique: true,
 	}); err != nil {
 		return nil, err
 	}
@@ -197,6 +197,19 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	}
 
 	return user.ID(), nil
+}
+
+// DeleteUser deletes user by id.
+func (us *UserStorage) DeleteUser(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	objectID := bson.ObjectIdHex(id)
+	err := s.C.RemoveId(objectID)
+	return err
 }
 
 //ImportJSON import data from JSON

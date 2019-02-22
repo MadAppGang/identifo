@@ -82,6 +82,11 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil
 }
 
+// DeleteUser does nothing here.
+func (us *UserStorage) DeleteUser(id string) error {
+	return nil
+}
+
 //ImportJSON import data from JSON
 func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil

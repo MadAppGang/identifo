@@ -65,6 +65,15 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return res, nil
 }
 
+// DeleteUser deletes user by ID.
+func (us *UserStorage) DeleteUser(id string) error {
+	err := us.db.Update(func(tx *bolt.Tx) error {
+		ub := tx.Bucket([]byte(UserBucket))
+		return ub.Delete([]byte(id))
+	})
+	return err
+}
+
 //UserByFederatedID returns user by federated ID
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	var res User
