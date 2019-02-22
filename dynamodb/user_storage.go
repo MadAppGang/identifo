@@ -14,32 +14,31 @@ import (
 )
 
 const (
-	//UsersTableName where to store users
+	// UsersTableName is a table where to store users.
 	UsersTableName = "Users"
-	//UserTableEmailIndexName user table global index name to access by email
+	// UserTableEmailIndexName is a user table global index name to access by users by email.
 	UserTableEmailIndexName = "EmailIndex"
-	//UsersFederatedIDTableName table to store federatedId's for user
-	//beacuse Dynamodb does not support
+	// UsersFederatedIDTableName is a table to store federated ids.
 	UsersFederatedIDTableName = "UsersByFederatedID"
 )
 
-//NewUserStorage crates and provision new user storage instance
+// NewUserStorage creates and provisions new user storage instance.
 func NewUserStorage(db *DB) (model.UserStorage, error) {
 	us := &UserStorage{db: db}
 	err := us.ensureTable()
 	return us, err
 }
 
-//UserStorage stores and manages data in dynamodb sotrage
+// UserStorage stores and manages data in DynamoDB storage.
 type UserStorage struct {
 	db *DB
 }
 
-//UserByID returns user by it's ID
+// UserByID returns user by its ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	idx, err := xid.FromString(id)
 	if err != nil {
-		log.Println("wrong user ID: ", id)
+		log.Println("Incorrect user ID: ", id)
 		return nil, model.ErrorWrongDataFormat
 	}
 
@@ -52,17 +51,16 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		},
 	})
 	if err != nil {
-		log.Println(err)
+		log.Println("Error getting item from DynamoDB:", err)
 		return nil, ErrorInternalError
 	}
-	//empty result
 	if result.Item == nil {
 		return nil, model.ErrorNotFound
 	}
+
 	userdata := userData{}
-	err = dynamodbattribute.UnmarshalMap(result.Item, &userdata)
-	if err != nil {
-		log.Println(err)
+	if err = dynamodbattribute.UnmarshalMap(result.Item, &userdata); err != nil {
+		log.Println("Error unmarshalling item:", err)
 		return nil, ErrorInternalError
 	}
 	return &User{userData: userdata}, nil
@@ -79,23 +77,22 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 		},
 	})
 	if err != nil {
-		log.Println(err)
+		log.Println("Error getting item from DynamoDB:", err)
 		return "", ErrorInternalError
 	}
-	//empty result
 	if result.Item == nil {
 		return "", model.ErrorNotFound
 	}
-	fidd := federatedUserID{}
-	err = dynamodbattribute.UnmarshalMap(result.Item, &fidd)
-	if err != nil || len(fidd.UserID) == 0 {
-		log.Println(err)
+
+	fedData := federatedUserID{}
+	if err = dynamodbattribute.UnmarshalMap(result.Item, &fedData); err != nil || len(fedData.UserID) == 0 {
+		log.Println("Error unmarshalling item:", err)
 		return "", ErrorInternalError
 	}
-	return fidd.UserID, nil
+	return fedData.UserID, nil
 }
 
-//UserByFederatedID returns user by federated ID
+// UserByFederatedID returns user by federated ID.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	userID, err := us.userIDByFederatedID(provider, id)
 	if err != nil {
@@ -107,10 +104,9 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return us.UserByID(userID)
 }
 
-//UserExists checks does user exist with presented name
+// UserExists checks if user with provided name exists.
 func (us *UserStorage) UserExists(name string) bool {
 	_, err := us.userIdxByName(name)
-
 	return err == nil
 }
 
@@ -133,12 +129,13 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
-//Scopes returns supported scopes, could be static data of database
+// Scopes returns supported scopes, could be static data of database.
 func (us *UserStorage) Scopes() []string {
-	//we allow all scopes for embedded database, you could implement your own logic in external service
+	// we allow all scopes for embedded database, you could implement your own logic in external service
 	return []string{"offline", "user"}
 }
 
+// userIdxByName returns user data projected on the email index.
 func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) {
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
@@ -148,54 +145,54 @@ func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) 
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
 		},
-		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), //retrieve all attributes, because we need to make local check.
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), // retrieve all attributes, because we need to make local check.
 	})
 	if err != nil {
-		log.Println(err)
+		log.Println("Error querying for items:", err)
 		return nil, ErrorInternalError
 	}
-	//empty result
 	if len(result.Items) == 0 {
 		return nil, model.ErrorNotFound
 	}
+
 	item := result.Items[0]
-	userdata := userIndexByNameData{}
-	err = dynamodbattribute.UnmarshalMap(item, &userdata)
-	if err != nil {
-		log.Println(err)
+	userdata := new(userIndexByNameData)
+	if err = dynamodbattribute.UnmarshalMap(item, userdata); err != nil {
+		log.Println("Error unmarshalling item:", err)
 		return nil, ErrorInternalError
 	}
-	return &userdata, nil
+	return userdata, nil
 }
 
-//UserByNamePassword returns  user by name and password
+// UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	name = strings.ToLower(name)
 	userIdx, err := us.userIdxByName(name)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error getting user by name:", err)
 		return nil, err
 	}
-	//if password is incorrect, returning not found error for secure reason
+	// if password is incorrect, return 'not found' error for security reasons.
 	if bcrypt.CompareHashAndPassword([]byte(userIdx.Pswd), []byte(password)) != nil {
 		return nil, model.ErrorNotFound
 	}
+
 	user, err := us.UserByID(userIdx.ID)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error querying user by id:", err)
 		return nil, ErrorInternalError
 	}
 	user.Sanitize()
 	return user, nil
 }
 
-//AddNewUser adds new user
+// AddNewUser adds new user.
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
 	u, ok := usr.(*User)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
 	}
-	//generate new ID if it's not set
+	// generate new ID if it's not set
 	if _, err := xid.FromString(u.ID()); err != nil {
 		u.userData.ID = xid.New().String()
 	}
@@ -206,7 +203,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	u.userData.Name = strings.ToLower(u.userData.Name)
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error marshalling user:", err)
 		return nil, ErrorInternalError
 	}
 
@@ -215,14 +212,14 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		TableName: aws.String(UsersTableName),
 	}
 	if _, err = us.db.C.PutItem(input); err != nil {
-		log.Println(err)
+		log.Println("Error putting item:", err)
 		return nil, ErrorInternalError
 	}
 	u.Sanitize()
 	return u, nil
 }
 
-//AddUserByNameAndPassword register new user
+// AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
 	_, err := us.userIdxByName(name)
@@ -236,11 +233,11 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
-//AddUserWithFederatedID add new user with social ID
+// AddUserWithFederatedID adds new user with social ID.
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
 	if err != nil && err != model.ErrorNotFound {
-		log.Println(err)
+		log.Println("Error getting user by name:", err)
 		return nil, err
 	} else if err == nil {
 		return nil, model.ErrorUserExists
@@ -248,32 +245,29 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	fid := string(provider) + ":" + federatedID
 
-	uu, err := us.userIdxByName(fid)
-	//error getting user
+	user, err := us.userIdxByName(fid)
 	if err != nil && err != model.ErrorNotFound {
-		log.Println(err)
+		log.Println("Error getting user by name:", err)
 		return nil, err
 	} else if err == model.ErrorNotFound {
-		//no such user, let's create it
-		u := userData{Name: fid, Active: true}
-		var independentError error
-		uuu, independentError := us.AddNewUser(&User{userData: u}, "")
-		if independentError != nil {
-			log.Println(err)
-			return nil, independentError
+		// no such user, let's create it
+		uData := userData{Name: fid, Active: true}
+		u, creationErr := us.AddNewUser(&User{userData: uData}, "")
+		if creationErr != nil {
+			log.Println("Error adding new user:", creationErr)
+			return nil, creationErr
 		}
-		uu = &userIndexByNameData{}
-		uu.ID = uuu.ID()
-		uu.Name = uuu.Name()
-		// uu = &(uuu.(*User).userData) //yep, looks like old C :-), payment for interfaces
+		user = &userIndexByNameData{ID: u.ID(), Name: u.Name()}
+		// user = &(u.(*User).userData) //yep, looks like old C :-), payment for interfaces
 	}
-	//if no error it means there is already user for this federated id somehow,
-	//the only possible way for that is faulty creation of the federated accout before
 
-	fedData := federatedUserID{FederatedID: fid, UserID: uu.ID}
+	// Nil error means that there already is a user with this federated id.
+	// The only possible way for that is faulty creation of the federated accout before.
+
+	fedData := federatedUserID{FederatedID: fid, UserID: user.ID}
 	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error marshalling federated data:", err)
 		return nil, ErrorInternalError
 	}
 
@@ -282,25 +276,23 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		TableName: aws.String(UsersFederatedIDTableName),
 	}
 	if _, err = us.db.C.PutItem(input); err != nil {
-		log.Println(err)
+		log.Println("Error putting item:", err)
 		return nil, ErrorInternalError
 	}
-	//just in case
-	if uu == nil {
+	// just in case
+	if user == nil {
 		return nil, ErrorInternalError
 	}
 
-	//construct result user to return
-	udata := userData{ID: uu.ID, Name: uu.Name, Active: true}
-	resultUser := &User{userData: udata}
-	return resultUser, nil
+	udata := userData{ID: user.ID, Name: user.Name, Active: true}
+	return &User{userData: udata}, nil
 }
 
-// ResetPassword sets new user's passwors
+// ResetPassword sets new user password.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	idx, err := xid.FromString(id)
 	if err != nil {
-		log.Println("wrong user ID: ", id)
+		log.Println("Incorrect user ID: ", id)
 		return model.ErrorWrongDataFormat
 	}
 
@@ -320,7 +312,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return err
 }
 
-// IDByName return userId by name
+// IDByName returns userID by name.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	userIndex, err := us.userIdxByName(name)
 	if err != nil {
@@ -339,7 +331,13 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return user.ID(), nil
 }
 
-//ImportJSON import data from JSON
+// FetchUsers does nothing here for a while.
+// Implementing case-insensitive search in DynamoDB seems to be a separate task.
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
+	return []model.User{}, nil
+}
+
+// ImportJSON imports data from JSON.
 func (us *UserStorage) ImportJSON(data []byte) error {
 	ud := []userData{}
 	if err := json.Unmarshal(data, &ud); err != nil {
@@ -348,22 +346,21 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	for _, u := range ud {
 		pswd := u.Pswd
 		u.Pswd = ""
-		_, err := us.AddNewUser(&User{userData: u}, pswd)
-		if err != nil {
+		if _, err := us.AddNewUser(&User{userData: u}, pswd); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-//userIndexByNameData represents index projected data
+// userIndexByNameData represents index projected user data.
 type userIndexByNameData struct {
 	ID   string `json:"id,omitempty"`
 	Pswd string `json:"pswd,omitempty"`
 	Name string `json:"username,omitempty"`
 }
 
-//data implementation
+// User data implementation.
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"username,omitempty"`
@@ -372,55 +369,63 @@ type userData struct {
 	Active  bool                   `json:"active,omitempty"`
 }
 
-//federatedUserID is storage for federated if to user mapping implementation
+// federatedUserID is a struct for mapping federated id to user id.
 type federatedUserID struct {
 	FederatedID string `json:"federated_id,omitempty"`
 	UserID      string `json:"user_id,omitempty"`
 }
 
-//User user data structure for dynamodb storage
+// User is a user data structure for DynamoDB storage.
 type User struct {
 	userData
 }
 
-//Sanitize removes sensitive data
+// Sanitize removes sensitive data.
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 }
 
-//UserFromJSON deserializes data
+// UserFromJSON deserializes user data from JSON.
 func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
-		log.Println(err)
+		log.Println("Error unmarshalling user:", err)
 		return &User{}, err
 	}
 	return &User{userData: user}, nil
 }
 
-//model.User interface implementation
-func (u *User) ID() string                      { return u.userData.ID }
-func (u *User) Name() string                    { return u.userData.Name }
-func (u *User) PasswordHash() string            { return u.userData.Pswd }
-func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
-func (u *User) Active() bool                    { return u.userData.Active }
+// ID implements model.User interface.
+func (u *User) ID() string { return u.userData.ID }
 
-//PasswordHash creates hash with salt for password
+// Name implements model.User interface.
+func (u *User) Name() string { return u.userData.Name }
+
+// PasswordHash implements model.User interface.
+func (u *User) PasswordHash() string { return u.userData.Pswd }
+
+// Profile implements model.User interface.
+func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
+
+// Active implements model.User interface.
+func (u *User) Active() bool { return u.userData.Active }
+
+// PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
 }
 
-//ensureTable ensures app storage table is exists in database
-//I'm hiding it in the end of the file, because AWS devs, you are killing me with this API
+// ensureTable ensures that app storage table exists in the database.
+// I'm hiding it in the end of the file, because AWS devs, you are killing me with this API.
 func (us *UserStorage) ensureTable() error {
 	exists, err := us.db.isTableExists(UsersTableName)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error checking for table existence:", err)
 		return err
 	}
 	if !exists {
-		//create table, AWS DynamoDB table creation is overcomplicated for sure
+		// create table, AWS DynamoDB table creation is overcomplicated for sure
 		input := &dynamodb.CreateTableInput{
 			AttributeDefinitions: []*dynamodb.AttributeDefinition{
 				{
@@ -467,21 +472,20 @@ func (us *UserStorage) ensureTable() error {
 			},
 			TableName: aws.String(UsersTableName),
 		}
-		_, err = us.db.C.CreateTable(input)
-		if err != nil {
-			log.Println(err)
+		if _, err = us.db.C.CreateTable(input); err != nil {
+			log.Println("Error creating table:", err)
 			return err
 		}
 	}
 
-	//create table to handle federated ID's
+	// create table to handle federated ID's
 	exists, err = us.db.isTableExists(UsersFederatedIDTableName)
 	if err != nil {
-		log.Println(err)
+		log.Println("Error checking for table existence:", err)
 		return err
 	}
 	if !exists {
-		//create table, AWS DynamoDB table creation is overcomplicated for sure
+		// create table, AWS DynamoDB table creation is overcomplicated for sure
 		input := &dynamodb.CreateTableInput{
 			AttributeDefinitions: []*dynamodb.AttributeDefinition{
 				{
@@ -501,9 +505,8 @@ func (us *UserStorage) ensureTable() error {
 			},
 			TableName: aws.String(UsersFederatedIDTableName),
 		}
-		_, err = us.db.C.CreateTable(input)
-		if err != nil {
-			log.Println(err)
+		if _, err = us.db.C.CreateTable(input); err != nil {
+			log.Println("Error creating table:", err)
 			return err
 		}
 	}

@@ -1,7 +1,6 @@
 package admin
 
 import (
-	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
@@ -16,11 +15,15 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
 
+	ar.router.Path("/{users:users\\/?}").Handler(ar.middleware.With(
+		ar.Session(),
+		negroni.WrapFunc(ar.FetchUsers()),
+	)).Methods("GET")
+
 	// setup users routes
-	users := mux.NewRouter().PathPrefix("/users").Subrouter()
-	ar.router.PathPrefix("/users").Handler(negroni.New(
+	users := ar.router.PathPrefix("/users").Subrouter()
+	ar.router.PathPrefix("/users").Handler(ar.middleware.With(
 		ar.Session(),
 		negroni.Wrap(users),
 	))
-	users.PathPrefix("/").HandlerFunc(ar.FetchUsers()).Methods("GET")
 }

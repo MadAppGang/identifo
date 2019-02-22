@@ -17,19 +17,19 @@ func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		cookie, err := r.Cookie(cookieName)
 		if err != nil {
-			http.Redirect(w, r, ar.RedirectURL, http.StatusMovedPermanently)
+			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
 			return
 		}
 
 		sessionID, err := decode(cookie.Value)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
+			ar.Error(w, err, http.StatusInternalServerError, err.Error())
 			return
 		}
 
 		session, err := ar.sessionStorage.GetSession(sessionID)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
+			ar.Error(w, err, http.StatusUnauthorized, err.Error())
 			return
 		}
 
