@@ -162,6 +162,9 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 		var err error
 		res, err = UserFromJSON(u)
+		if err != nil {
+			return err
+		}
 		if err = bcrypt.CompareHashAndPassword([]byte(res.PasswordHash()), []byte(password)); err != nil {
 			// return this error to hide the existence of the user.
 			return model.ErrorNotFound
