@@ -7,10 +7,6 @@ import (
 	"github.com/urfave/negroni"
 )
 
-const (
-	cookieName = "SessionID"
-)
-
 // Session is a middleware to check if admin is logged in with valid cookie.
 // If not, forces to login.
 func (ar *Router) Session() negroni.HandlerFunc {
