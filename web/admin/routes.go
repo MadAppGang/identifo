@@ -15,6 +15,10 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
 
+	ar.router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+		negroni.WrapFunc(ar.Logout()),
+	)).Methods("POST")
+
 	ar.router.Path("/{users:users\\/?}").Handler(ar.middleware.With(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchUsers()),
@@ -26,8 +30,4 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.Wrap(users),
 	))
-	ar.router.Path("/{logout:logout\\/?}").Handler(negroni.New(
-		negroni.WrapFunc(ar.Logout()),
-	)).Methods("POST")
-
 }
