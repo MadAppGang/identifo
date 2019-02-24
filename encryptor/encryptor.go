@@ -16,7 +16,7 @@ type EncryptitonService struct {
 	key []byte
 }
 
-// Encrypt encrypts plaintext with symmetric encryption method
+// Encrypt encrypts plaintext with symmetric encryption method.
 func (es *EncryptitonService) Encrypt(plaintext []byte) ([]byte, error) {
 	c, err := aes.NewCipher(es.key)
 	if err != nil {
@@ -36,7 +36,7 @@ func (es *EncryptitonService) Encrypt(plaintext []byte) ([]byte, error) {
 	return gcm.Seal(nonce, nonce, plaintext, nil), nil
 }
 
-// Decrypt decrypts chiphertext with symmetric encryption method
+// Decrypt decrypts chiphertext with symmetric encryption method.
 func (es *EncryptitonService) Decrypt(ciphertext []byte) ([]byte, error) {
 	c, err := aes.NewCipher(es.key)
 	if err != nil {
@@ -57,7 +57,7 @@ func (es *EncryptitonService) Decrypt(ciphertext []byte) ([]byte, error) {
 	return gcm.Open(nil, nonce, ciphertext, nil)
 }
 
-// NewEncryptor creates a new encryptor
+// NewEncryptor creates a new encryptor.
 func NewEncryptor(keyPath string) (model.Encryptor, error) {
 	es := EncryptitonService{}
 	key, err := ioutil.ReadFile(keyPath)

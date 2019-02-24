@@ -6,9 +6,12 @@ import (
 	"path"
 )
 
-const usernameKey = "email"
-const passwordKey = "password"
-const scopesKey = "scopes"
+const (
+	usernameKey      = "email"
+	passwordKey      = "password"
+	scopesKey        = "scopes"
+	twoDaysInSeconds = 60 * 60 * 24 * 2
+)
 
 // Login logins user with email and password.
 func (ar *Router) Login() http.HandlerFunc {
@@ -52,7 +55,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		cipher, err := ar.Encryptor.Encrypt([]byte(user.ID()))
 
-		setCookie(w, CookieKeyUserID, string(cipher), 60*60*24*2)
+		setCookie(w, CookieKeyUserID, string(cipher), twoDaysInSeconds)
 		redirectToLogin()
 	}
 }

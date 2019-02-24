@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	// FormKeyAppID form key to keep application ID.
+	// FormKeyAppID is a form key to keep application ID.
 	FormKeyAppID = "appId"
 )
 
