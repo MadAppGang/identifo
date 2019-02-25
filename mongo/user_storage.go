@@ -207,8 +207,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	objectID := bson.ObjectIdHex(id)
-	err := s.C.RemoveId(objectID)
+	err := s.C.RemoveId(bson.ObjectIdHex(id))
 	return err
 }
 
