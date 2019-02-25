@@ -45,7 +45,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
 
-	q := bson.M{"name": bson.RegEx{Pattern: filterString, Options: "i"}}
+	q := bson.M{"name": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
 	orderByField := "name"
 
