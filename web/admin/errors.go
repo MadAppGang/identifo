@@ -1,9 +1,9 @@
 package admin
 
-//Error - http level error type
+// Error is an http level error type.
 type Error string
 
-//Error - implementation of std.Error protocol
+// Error is an implementation of std.Error interface.
 func (e Error) Error() string { return string(e) }
 
 const (
