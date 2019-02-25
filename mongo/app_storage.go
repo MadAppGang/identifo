@@ -182,32 +182,32 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 	}}, nil
 }
 
-// ID implements app data interface.
+// ID implements model.AppData interface.
 func (ad AppData) ID() string { return ad.appData.ID.Hex() }
 
-// Secret implements app data interface.
+// Secret implements model.AppData interface.
 func (ad AppData) Secret() string { return ad.appData.Secret }
 
-// Active implements app data interface.
+// Active implements model.AppData interface.
 func (ad AppData) Active() bool { return ad.appData.Active }
 
-// Description implements app data interface.
+// Description implements model.AppData interface.
 func (ad AppData) Description() string { return ad.appData.Description }
 
-// Scopes implements app data interface.
+// Scopes implements model.AppData interface.
 func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 
-// Offline implements app data interface.
+// Offline implements model.AppData interface.
 func (ad AppData) Offline() bool { return ad.appData.Offline }
 
-// RedirectURL implements app data interface.
+// RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
 
-// RefreshTokenLifespan implements app data interface.
+// RefreshTokenLifespan implements model.AppData interface.
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
 
-// TokenLifespan implements app data interface.
+// TokenLifespan implements model.AppData interface.
 func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 
-// TokenPayload implements app data interface.
+// TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }

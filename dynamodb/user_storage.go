@@ -337,7 +337,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(UsersTableName),
 		IndexName:              aws.String(UserTableEmailIndexName),
-		KeyConditionExpression: aws.String("contains(username, :filterStr"),
+		KeyConditionExpression: aws.String("contains(username, :filterStr)"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":filterStr": {S: aws.String(filterString)},
 		},

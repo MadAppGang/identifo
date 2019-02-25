@@ -206,7 +206,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	q := bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}
+	q := bson.M{"name": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
 	orderByField := "name"
 
