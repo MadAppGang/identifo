@@ -39,6 +39,29 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	return AppData{appData: ad}, nil
 }
 
+// FetchApps fetches apps which name satisfies provided filterString.
+// Supports pagination.
+func (us *UserStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+	s := us.db.Session(AppsCollection)
+	defer s.Close()
+
+	q := bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}
+
+	orderByField := "name"
+
+	var appsData []appData
+	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&appsData); err != nil {
+		return nil, err
+	}
+
+	apps := make([]model.AppData, len(appsData))
+	for i := 0; i < len(appsData); i++ {
+		apps[i] = AppData{appData: appsData[i]}
+	}
+
+	return apps, nil
+}
+
 //AddNewApp add new app to mongo storage
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
