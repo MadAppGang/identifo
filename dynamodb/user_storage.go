@@ -331,10 +331,33 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return user.ID(), nil
 }
 
-// FetchUsers does nothing here for a while.
-// Implementing case-insensitive search in DynamoDB seems to be a separate task.
+// FetchUsers fetches users which name satisfies provided filterString.
+// Supports pagination. Search is case-senstive for now.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
-	return []model.User{}, nil
+	result, err := us.db.C.Query(&dynamodb.QueryInput{
+		TableName:              aws.String(UsersTableName),
+		IndexName:              aws.String(UserTableEmailIndexName),
+		KeyConditionExpression: aws.String("contains(username, :filterStr"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":filterStr": {S: aws.String(filterString)},
+		},
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"),
+	})
+	if err != nil {
+		log.Println("Error querying for users:", err)
+		return nil, ErrorInternalError
+	}
+
+	users := make([]model.User, len(result.Items))
+	for i := 0; i < len(result.Items); i++ {
+		user := new(User)
+		if err = dynamodbattribute.UnmarshalMap(result.Items[i], user); err != nil {
+			log.Println("Error unmarshalling user:", err)
+			return nil, ErrorInternalError
+		}
+		users[i] = user
+	}
+	return users, nil
 }
 
 // ImportJSON imports data from JSON.
