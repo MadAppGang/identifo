@@ -7,7 +7,7 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
-	// ErrorWrongInput is for corrupted request data
+	// ErrorWrongInput is for corrupted request data.
 	ErrorWrongInput = Error("Wrong input data")
 	// ErrorRequestInvalidCookie is for invalid cookie.
 	ErrorRequestInvalidCookie = Error("Invalid cookie")
