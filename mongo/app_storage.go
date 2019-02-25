@@ -41,11 +41,11 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (us *UserStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
-	s := us.db.Session(AppsCollection)
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+	s := as.db.Session(AppsCollection)
 	defer s.Close()
 
-	q := bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}
+	q := bson.M{"name": bson.RegEx{Pattern: filterString, Options: "i"}}
 
 	orderByField := "name"
 
@@ -140,6 +140,7 @@ type appData struct {
 	ID                   bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
 	Secret               string        `bson:"secret,omitempty" json:"secret,omitempty"`
 	Active               bool          `bson:"active,omitempty" json:"active,omitempty"`
+	Name                 string        `bson:"name,omitempty" json:"name,omitempty"`
 	Description          string        `bson:"description,omitempty" json:"description,omitempty"`
 	Scopes               []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
 	Offline              bool          `bson:"offline,omitempty" json:"offline,omitempty"`
@@ -163,6 +164,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		ID:                   bson.ObjectIdHex(data.ID()),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
+		Name:                 data.Name(),
 		Description:          data.Description(),
 		Scopes:               data.Scopes(),
 		Offline:              data.Offline(),
@@ -188,7 +190,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 //MakeAppData creates new mongo app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
@@ -196,6 +198,7 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 		ID:                   bson.ObjectIdHex(id),
 		Secret:               secret,
 		Active:               active,
+		Name:                 name,
 		Description:          description,
 		Scopes:               scopes,
 		Offline:              offline,
@@ -206,9 +209,12 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 	}}, nil
 }
 
-func (ad AppData) ID() string                  { return ad.appData.ID.Hex() }
-func (ad AppData) Secret() string              { return ad.appData.Secret }
-func (ad AppData) Active() bool                { return ad.appData.Active }
+func (ad AppData) ID() string     { return ad.appData.ID.Hex() }
+func (ad AppData) Secret() string { return ad.appData.Secret }
+func (ad AppData) Active() bool   { return ad.appData.Active }
+
+// Name implements model.AppData interface.
+func (ad AppData) Name() string                { return ad.appData.Name }
 func (ad AppData) Description() string         { return ad.appData.Description }
 func (ad AppData) Scopes() []string            { return ad.appData.Scopes }
 func (ad AppData) Offline() bool               { return ad.appData.Offline }

@@ -3,6 +3,7 @@ package mem
 import (
 	"encoding/json"
 	"log"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -47,6 +48,17 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	return nil
 }
 
+// FetchApps returns randomly generated app data enclosed in slice.
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+	apps := []model.AppData{}
+	for _, app := range as.storage {
+		if strings.Contains(strings.ToLower(app.Name()), strings.ToLower(filterString)) {
+			apps = append(apps, app)
+		}
+	}
+	return apps, nil
+}
+
 //ImportJSON import data from JSON
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
@@ -67,6 +79,7 @@ type appData struct {
 	ID                   string   `json:"id,omitempty"`
 	Secret               string   `json:"secret,omitempty"`
 	Active               bool     `json:"active,omitempty"`
+	Name                 string   `json:"name,omitempty"`
 	Description          string   `json:"description,omitempty"`
 	Scopes               []string `json:"scopes,omitempty"`
 	Offline              bool     `json:"offline,omitempty"`
@@ -87,6 +100,7 @@ func NewAppData(data model.AppData) AppData {
 		ID:                   data.ID(),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
+		Name:                 data.Name(),
 		Description:          data.Description(),
 		Scopes:               data.Scopes(),
 		Offline:              data.Offline(),
@@ -98,11 +112,12 @@ func NewAppData(data model.AppData) AppData {
 }
 
 //MakeAppData creates new memory app data instance
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
 	return AppData{appData: appData{
 		ID:                   id,
 		Secret:               secret,
 		Active:               active,
+		Name:                 name,
 		Description:          description,
 		Scopes:               scopes,
 		Offline:              offline,
@@ -113,9 +128,12 @@ func MakeAppData(id, secret string, active bool, description string, scopes []st
 	}}
 }
 
-func (ad AppData) ID() string                  { return ad.appData.ID }
-func (ad AppData) Secret() string              { return ad.appData.Secret }
-func (ad AppData) Active() bool                { return ad.appData.Active }
+func (ad AppData) ID() string     { return ad.appData.ID }
+func (ad AppData) Secret() string { return ad.appData.Secret }
+func (ad AppData) Active() bool   { return ad.appData.Active }
+
+// Name implements model.AppData interface.
+func (ad AppData) Name() string                { return ad.appData.Name }
 func (ad AppData) Description() string         { return ad.appData.Description }
 func (ad AppData) Scopes() []string            { return ad.appData.Scopes }
 func (ad AppData) Offline() bool               { return ad.appData.Offline }
