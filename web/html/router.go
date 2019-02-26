@@ -23,7 +23,6 @@ type Router struct {
 	TokenStorage    model.TokenStorage
 	TokenService    model.TokenService
 	EmailService    model.EmailService
-	Encryptor       model.Encryptor
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
 	EmailTemplates  EmailTemplates
@@ -57,7 +56,7 @@ func HostOption(host string) func(r *Router) error {
 }
 
 //NewRouter created and initiates new router
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, encryptor model.Encryptor, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		Middleware:   negroni.Classic(),
 		Router:       mux.NewRouter(),
@@ -66,7 +65,6 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		TokenStorage: tokenStorage,
 		TokenService: tokenService,
 		EmailService: emailService,
-		Encryptor:    encryptor,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

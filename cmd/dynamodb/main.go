@@ -16,7 +16,6 @@ func initDB() model.Server {
 	settings.Issuer = "http://localhost:8080"
 	settings.MailService = model.MailServiceAWS
 	settings.EmailTemplatesPath = "../../email_templates"
-	settings.EncryptionKeyPath = "../../encryptor/key.key"
 
 	server, err := dynamodb.NewServer(settings)
 	if err != nil {

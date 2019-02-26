@@ -12,7 +12,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		deleteCookie(w, CookieKeyUserID)
+		deleteCookie(w, CookieKeyAuthToken)
 
 		app := appFromContext(r.Context())
 		if app == nil {

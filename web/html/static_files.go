@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -182,27 +183,40 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			}
 		}
 
-		encryptedID, err := getCookie(r, CookieKeyUserID)
-		if err != nil || encryptedID == "" {
-			ar.Logger.Printf("Error getting user session cookie: %v", err)
-			deleteCookie(w, CookieKeyUserID)
+		tstr, err := getCookie(r, CookieKeyAuthToken)
+		if err != nil || tstr == "" {
+			ar.Logger.Printf("Error getting auth token cookie: %v", err)
+			deleteCookie(w, CookieKeyAuthToken)
 			serveTemplate()
 			return
 		}
 
-		uID, err := ar.Encryptor.Decrypt([]byte(encryptedID))
+		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
+		authToken, err := ar.TokenService.Parse(string(tstr))
 		if err != nil {
-			ar.Logger.Printf("Error: decrypting userID %v", err)
-			deleteCookie(w, CookieKeyUserID)
+			ar.Logger.Printf("Error parsing auth token %v", err)
+			deleteCookie(w, CookieKeyAuthToken)
 			serveTemplate()
 			return
 		}
 
-		userID := string(uID)
+		if err := v.Validate(authToken); err != nil {
+			ar.Logger.Printf("Error validating auth token %v", err)
+			deleteCookie(w, CookieKeyAuthToken)
+			serveTemplate()
+			return
+		}
 
-		user, err := ar.UserStorage.UserByID(userID)
+		if authToken.Type() != model.AuthTokenType {
+			ar.Logger.Printf("Token has a wrong type")
+			deleteCookie(w, CookieKeyAuthToken)
+			serveTemplate()
+			return
+		}
+
+		user, err := ar.UserStorage.UserByID(authToken.UserID())
 		if err != nil {
-			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
+			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, authToken.UserID())
 			serveTemplate()
 			return
 		}

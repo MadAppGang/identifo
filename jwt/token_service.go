@@ -43,6 +43,8 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 	t.tokenStorage = storage
 	// 2 hours is default expire time for refresh token
 	t.resetTokenLifespan = int64(7200)
+	// 2 days is default expire time for auth token
+	t.authTokenLifespan = int64(60 * 60 * 24 * 2)
 
 	//trying to guess algo from the private file
 	if alg == model.TokenServiceAlgorithmAuto {
@@ -92,6 +94,7 @@ type TokenService struct {
 	algorithm          model.TokenServiceAlgorithm
 	issuer             string
 	resetTokenLifespan int64
+	authTokenLifespan  int64
 }
 
 //Issuer returns issuer name
@@ -123,6 +126,11 @@ func (ts *TokenService) KeyID() string {
 		return base64.RawURLEncoding.EncodeToString(s[:]) //slice from [20]byte
 	}
 	return ""
+}
+
+// AuthTokenLifespan return auth token lifespan
+func (ts *TokenService) AuthTokenLifespan() int64 {
+	return ts.authTokenLifespan
 }
 
 //Parse parses token data from string representation
@@ -328,6 +336,44 @@ func (ts *TokenService) NewResetToken(userID string) (model.Token, error) {
 	return &Token{JWT: token, new: true}, nil
 }
 
+// NewAuthToken creates auth token
+func (ts *TokenService) NewAuthToken(u model.User) (model.Token, error) {
+	//check user
+	if !u.Active() {
+		return nil, ErrInvalidUser
+	}
+	now := TimeFunc().Unix()
+	lifespan := ts.resetTokenLifespan
+
+	claims := Claims{
+		Type:  model.AuthTokenType,
+		KeyID: ts.KeyID(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: (now + lifespan),
+			Issuer:    ts.issuer,
+			Subject:   u.ID(),
+			Audience:  "identifo",
+			IssuedAt:  now,
+		},
+	}
+
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := jwt.NewWithClaims(sm, claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+
+	return &Token{JWT: token, new: true}, nil
+}
+
 func (ts *TokenService) String(t model.Token) (string, error) {
 	token, ok := t.(*Token)
 	if !ok {
@@ -351,6 +397,14 @@ func (ts *TokenService) String(t model.Token) (string, error) {
 func ResetTokenLifespan(lifespan int64) func(*TokenService) error {
 	return func(ts *TokenService) error {
 		ts.resetTokenLifespan = lifespan
+		return nil
+	}
+}
+
+// AuthTokenLifespan sets custom lifespan in seconds for the auth token
+func AuthTokenLifespan(lifespan int64) func(*TokenService) error {
+	return func(ts *TokenService) error {
+		ts.authTokenLifespan = lifespan
 		return nil
 	}
 }

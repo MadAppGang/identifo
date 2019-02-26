@@ -24,7 +24,6 @@ var DefaultSettings = model.ServerSettings{
 	PEMFolderPath:      "./pem",
 	PrivateKey:         "private.pem",
 	PublicKey:          "public.pem",
-	EncryptionKeyPath:  "./encryptor/key.key",
 	Algorithm:          model.TokenServiceAlgorithmAuto,
 	Issuer:             "identifo",
 	MailService:        model.MailServiceMailgun,
@@ -43,7 +42,6 @@ type DatabaseComposer interface {
 		model.UserStorage,
 		model.TokenStorage,
 		model.TokenService,
-		model.Encryptor,
 		error,
 	)
 }
@@ -51,7 +49,7 @@ type DatabaseComposer interface {
 // NewServer creates backend service.
 func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
 
-	appStorage, userStorage, tokenStorage, tokenService, encryptor, err := db.Compose()
+	appStorage, userStorage, tokenStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +86,6 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		TokenService:   tokenService,
 		SessionService: sessionService,
 		SessionStorage: sessionStorage,
-		Encryptor:      encryptor,
 		EmailService:   ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),

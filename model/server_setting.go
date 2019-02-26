@@ -9,7 +9,6 @@ type ServerSettings struct {
 	StaticFolderPath   string
 	EmailTemplatesPath string
 	EmailTemplates     EmailTemplates
-	EncryptionKeyPath  string
 	PEMFolderPath      string
 	PrivateKey         string
 	PublicKey          string

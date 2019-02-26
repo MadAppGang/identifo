@@ -9,6 +9,8 @@ const (
 	AccessTokenType = "access"
 	//ResetTokenType reset password token type value
 	ResetTokenType = "reset"
+	//AuthTokenType auth token type value
+	AuthTokenType = "auth"
 )
 
 //TokenServiceAlgorithm - we support only two now
@@ -33,10 +35,12 @@ type TokenService interface {
 	NewResetToken(userID string) (Token, error)
 	//RefreshToken issues the new access token with access token
 	RefreshToken(token Token) (Token, error)
+	NewAuthToken(u User) (Token, error)
 	Parse(string) (Token, error)
 	String(Token) (string, error)
 	Issuer() string
 	Algorithm() string
+	AuthTokenLifespan() int64
 	PublicKey() interface{} //we are not using crypto.PublicKey here to avoid dependencies
 	KeyID() string
 }

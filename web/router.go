@@ -12,7 +12,6 @@ import (
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	Encryptor           model.Encryptor
 	AppStorage          model.AppStorage
 	UserStorage         model.UserStorage
 	TokenStorage        model.TokenStorage
@@ -51,7 +50,6 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.TokenStorage,
 		settings.TokenService,
 		settings.EmailService,
-		settings.Encryptor,
 		settings.WebRouterSettings...,
 	)
 

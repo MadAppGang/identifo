@@ -7,6 +7,9 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 )
 
 // RenewIDToken creates new id_token if user is already authenticated.
@@ -53,25 +56,39 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		encryptedID, err := getCookie(r, CookieKeyUserID)
-		if err != nil || encryptedID == "" {
+		tstr, err := getCookie(r, CookieKeyAuthToken)
+		if err != nil || tstr == "" {
+			deleteCookie(w, CookieKeyAuthToken)
 			serveTemplate("not authorized", "", app.RedirectURL())
-			deleteCookie(w, CookieKeyUserID)
 			return
 		}
 
-		uID, err := ar.Encryptor.Decrypt([]byte(encryptedID))
+		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
+		authToken, err := ar.TokenService.Parse(string(tstr))
 		if err != nil {
+			deleteCookie(w, CookieKeyAuthToken)
 			serveTemplate("not authorized", "", app.RedirectURL())
-			deleteCookie(w, CookieKeyUserID)
 			return
 		}
 
-		userID := string(uID)
+		if err := v.Validate(authToken); err != nil {
+			deleteCookie(w, CookieKeyAuthToken)
+			serveTemplate("not authorized", "", app.RedirectURL())
+			return
+		}
+
+		if authToken.Type() != model.AuthTokenType {
+			deleteCookie(w, CookieKeyAuthToken)
+			serveTemplate("not authorized", "", app.RedirectURL())
+			return
+		}
+
+		userID := authToken.UserID()
+
 		user, err := ar.UserStorage.UserByID(userID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
-			deleteCookie(w, CookieKeyUserID)
+			deleteCookie(w, CookieKeyAuthToken)
 			serveTemplate("invalid user token", "", app.RedirectURL())
 			return
 		}

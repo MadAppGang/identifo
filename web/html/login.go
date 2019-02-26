@@ -7,10 +7,9 @@ import (
 )
 
 const (
-	usernameKey      = "email"
-	passwordKey      = "password"
-	scopesKey        = "scopes"
-	twoDaysInSeconds = 60 * 60 * 24 * 2
+	usernameKey = "email"
+	passwordKey = "password"
+	scopesKey   = "scopes"
 )
 
 // Login logins user with email and password.
@@ -53,9 +52,21 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		cipher, err := ar.Encryptor.Encrypt([]byte(user.ID()))
+		token, err := ar.TokenService.NewAuthToken(user)
+		if err != nil {
+			ar.Logger.Printf("Error creating auth token %v", err)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
 
-		setCookie(w, CookieKeyUserID, string(cipher), twoDaysInSeconds)
+		tokenString, err := ar.TokenService.String(token)
+		if err != nil {
+			ar.Logger.Printf("Error stringifying token: %v", err)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
+		setCookie(w, CookieKeyAuthToken, tokenString, int(ar.TokenService.AuthTokenLifespan()))
 		redirectToLogin()
 	}
 }
