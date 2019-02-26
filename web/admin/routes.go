@@ -14,4 +14,9 @@ func (ar *Router) initRoutes() {
 	ar.router.Path("/{login:login\\/?}").Handler(negroni.New(
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
+
+	ar.router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+		negroni.WrapFunc(ar.Logout()),
+	)).Methods("POST")
+
 }
