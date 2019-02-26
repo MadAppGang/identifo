@@ -31,3 +31,11 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 		return
 	}
 }
+
+// DeleteApp deletes app from the database by id.
+func (ar *Router) DeleteApp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, nil)
+		return
+	}
+}

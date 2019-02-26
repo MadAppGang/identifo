@@ -133,6 +133,15 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
+// DeleteApp deletes app by ID.
+func (as *AppStorage) DeleteApp(id string) error {
+	err := as.db.Update(func(tx *bolt.Tx) error {
+		ab := tx.Bucket([]byte(AppBucket))
+		return ab.Delete([]byte(id))
+	})
+	return err
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}

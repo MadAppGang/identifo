@@ -62,6 +62,18 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
+// DeleteApp deletes app by id.
+func (as *AppStorage) DeleteApp(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := as.db.Session(AppsCollection)
+	defer s.Close()
+
+	err := s.C.RemoveId(bson.ObjectIdHex(id))
+	return err
+}
+
 //AddNewApp add new app to mongo storage
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)

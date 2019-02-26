@@ -59,6 +59,11 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
+// DeleteApp does nothing here.
+func (as *AppStorage) DeleteApp(id string) error {
+	return nil
+}
+
 //ImportJSON import data from JSON
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
