@@ -7,7 +7,7 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
-	// ErrorRequestInvalidCookie is for invalid or empty cookie.
+	// ErrorRequestInvalidCookie is for invalid cookie.
 	ErrorRequestInvalidCookie = Error("Invalid cookie")
 	// ErrorInternalError is for internal errors.
 	ErrorInternalError = Error("Internal error")

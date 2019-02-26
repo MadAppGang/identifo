@@ -111,7 +111,9 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	</html>
 	`
 	w.WriteHeader(code)
-	io.WriteString(w, responseString)
+	if _, wrErr := io.WriteString(w, responseString); wrErr != nil {
+		ar.Logger.Println("Error writing response string:", wrErr)
+	}
 }
 
 //ServeHTTP identifo.Router protocol implementation

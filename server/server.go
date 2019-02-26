@@ -166,7 +166,7 @@ func sessionStorage(storageType model.SessionStorageType) (model.SessionStorage,
 	}
 }
 
-//ImportApps imports apps from file
+// ImportApps imports apps from file.
 func (s *Server) ImportApps(filename string) error {
 	data, err := dataFromFile(filename)
 	if err != nil {
@@ -175,7 +175,7 @@ func (s *Server) ImportApps(filename string) error {
 	return s.AppStorage().ImportJSON(data)
 }
 
-//ImportUsers import users from file
+// ImportUsers imports users from file.
 func (s *Server) ImportUsers(filename string) error {
 	data, err := dataFromFile(filename)
 	if err != nil {
