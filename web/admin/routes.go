@@ -19,4 +19,8 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("POST")
 
+	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.FetchUsers()),
+	)).Methods("GET")
 }
