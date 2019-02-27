@@ -65,7 +65,7 @@ func (r *redisStorage) InsertSession(session model.Session) error {
 		return err
 	}
 
-	err = r.client.SetNX(session.ID, bs, 0).Err()
+	err = r.client.SetNX(session.ID, bs, time.Until(session.ExpirationDate)).Err()
 	return err
 }
 
@@ -91,6 +91,6 @@ func (r *redisStorage) ProlongSession(id string, newDuration time.Duration) erro
 		return err
 	}
 
-	err = r.client.SetXX(session.ID, bs, 0).Err()
+	err = r.client.SetXX(session.ID, bs, newDuration).Err()
 	return err
 }
