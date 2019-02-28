@@ -86,7 +86,6 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return nil
 }
 
-//ImportJSON import data from JSON
 // FetchUsers returns randomly generated user enclosed in slice.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
 	return []model.User{randUser()}, nil

@@ -76,7 +76,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return err
 }
 
-//UserByFederatedID returns user by federated ID
+// UserByFederatedID returns user by federated ID.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	var res User
 	sid := string(provider) + ":" + id

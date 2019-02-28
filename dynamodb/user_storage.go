@@ -231,7 +231,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return err
 }
 
-//AddUserByNameAndPassword register new user
+// AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
 	_, err := us.userIdxByName(name)

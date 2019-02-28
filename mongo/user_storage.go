@@ -212,7 +212,6 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return err
 }
 
-//ImportJSON import data from JSON
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
