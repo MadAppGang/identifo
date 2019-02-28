@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+
+	"github.com/madappgang/identifo/web/shared"
 )
 
 const (
@@ -21,7 +23,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		password := r.FormValue(passwordKey)
 		scopesJSON := r.FormValue(scopesKey)
 		scopes := []string{}
-		app := appFromContext(r.Context())
+		app := shared.AppFromContext(r.Context())
 
 		redirectToLogin := func() {
 			q := r.URL.Query()
@@ -52,7 +54,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewAuthToken(user)
+		token, err := ar.TokenService.NewWebCookieToken(user)
 		if err != nil {
 			ar.Logger.Printf("Error creating auth token %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
@@ -66,7 +68,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		setCookie(w, CookieKeyAuthToken, tokenString, int(ar.TokenService.AuthTokenLifespan()))
+		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}
 }

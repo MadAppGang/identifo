@@ -7,8 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/shared"
 )
 
 // StaticPages holds together all paths to a static pages
@@ -151,17 +151,17 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
+		app := shared.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
+		}
+
 		scopesJSON := strings.TrimSpace(r.URL.Query().Get("scopes"))
 		scopes := []string{}
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
 			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
-		}
-
-		app := appFromContext(r.Context())
-		if app == nil {
-			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
 		}
 
 		serveTemplate := func() {
@@ -183,47 +183,33 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			}
 		}
 
-		tstr, err := getCookie(r, CookieKeyAuthToken)
+		tstr, err := getCookie(r, CookieKeyWebCookieToken)
 		if err != nil || tstr == "" {
 			ar.Logger.Printf("Error getting auth token cookie: %v", err)
-			deleteCookie(w, CookieKeyAuthToken)
+			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate()
 			return
 		}
 
-		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
-		authToken, err := ar.TokenService.Parse(string(tstr))
+		webCookieToken, err := shared.ParseToken(tstr, ar.TokenService, model.WebCookieTokenType)
 		if err != nil {
-			ar.Logger.Printf("Error parsing auth token %v", err)
-			deleteCookie(w, CookieKeyAuthToken)
+			ar.Logger.Printf("Error invalid token %v", err)
+			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate()
 			return
 		}
 
-		if err := v.Validate(authToken); err != nil {
-			ar.Logger.Printf("Error validating auth token %v", err)
-			deleteCookie(w, CookieKeyAuthToken)
-			serveTemplate()
-			return
-		}
-
-		if authToken.Type() != model.AuthTokenType {
-			ar.Logger.Printf("Token has a wrong type")
-			deleteCookie(w, CookieKeyAuthToken)
-			serveTemplate()
-			return
-		}
-
-		user, err := ar.UserStorage.UserByID(authToken.UserID())
+		userID := webCookieToken.UserID()
+		user, err := ar.UserStorage.UserByID(userID)
 		if err != nil {
-			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, authToken.UserID())
+			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
 			serveTemplate()
 			return
 		}
 
-		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
+		scopes, err = ar.UserStorage.RequestScopes(userID, scopes)
 		if err != nil {
-			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
+			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, userID)
 			serveTemplate()
 			return
 		}

@@ -2,12 +2,12 @@ package html
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"path"
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/shared"
 	"github.com/urfave/negroni"
 )
 
@@ -22,11 +22,6 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := ""
 
-		onError := func(message string) {
-			ar.Logger.Print(message)
-			http.Redirect(w, r, errorPath, http.StatusFound)
-		}
-
 		switch r.Method {
 		case http.MethodGet:
 			appID = strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
@@ -37,21 +32,10 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
-		if appID == "" {
-			onError("Empty appId param")
-			return
-		}
-
-		app, err := ar.AppStorage.AppByID(appID)
+		app, err := shared.AppByID(ar.AppStorage, appID)
 		if err != nil {
-			message := fmt.Sprintf("Error getting App by ID: %v", err)
-			onError(message)
-			return
-		}
-
-		if !app.Active() {
-			message := fmt.Sprintf("App with ID: %v is inactive", app.ID())
-			onError(message)
+			ar.Logger.Print(err)
+			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
@@ -59,15 +43,4 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	}
-}
-
-// appFromContext returns app data from request conntext.
-func appFromContext(ctx context.Context) model.AppData {
-	value := ctx.Value(model.AppDataContextKey)
-
-	if value == nil {
-		return nil
-	}
-
-	return value.(model.AppData)
 }

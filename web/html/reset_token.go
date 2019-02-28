@@ -83,7 +83,6 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println("I dont know what is going on")
 		err = ar.EmailService.SendHTML("Reset Password", tpl.String(), name)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Error sending email")

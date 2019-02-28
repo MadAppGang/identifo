@@ -44,7 +44,7 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 	// 2 hours is default expire time for refresh token
 	t.resetTokenLifespan = int64(7200)
 	// 2 days is default expire time for auth token
-	t.authTokenLifespan = int64(60 * 60 * 24 * 2)
+	t.webCookieTokenLifespan = int64(60 * 60 * 24 * 2)
 
 	//trying to guess algo from the private file
 	if alg == model.TokenServiceAlgorithmAuto {
@@ -86,15 +86,15 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 
 //TokenService JWT token service
 type TokenService struct {
-	privateKey         interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
-	publicKey          interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
-	tokenStorage       model.TokenStorage
-	appStorage         model.AppStorage
-	userStorage        model.UserStorage
-	algorithm          model.TokenServiceAlgorithm
-	issuer             string
-	resetTokenLifespan int64
-	authTokenLifespan  int64
+	privateKey             interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
+	publicKey              interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
+	tokenStorage           model.TokenStorage
+	appStorage             model.AppStorage
+	userStorage            model.UserStorage
+	algorithm              model.TokenServiceAlgorithm
+	issuer                 string
+	resetTokenLifespan     int64
+	webCookieTokenLifespan int64
 }
 
 //Issuer returns issuer name
@@ -128,9 +128,9 @@ func (ts *TokenService) KeyID() string {
 	return ""
 }
 
-// AuthTokenLifespan return auth token lifespan
-func (ts *TokenService) AuthTokenLifespan() int64 {
-	return ts.authTokenLifespan
+// WebCookieTokenLifespan return auth token lifespan
+func (ts *TokenService) WebCookieTokenLifespan() int64 {
+	return ts.webCookieTokenLifespan
 }
 
 //Parse parses token data from string representation
@@ -336,8 +336,8 @@ func (ts *TokenService) NewResetToken(userID string) (model.Token, error) {
 	return &Token{JWT: token, new: true}, nil
 }
 
-// NewAuthToken creates auth token
-func (ts *TokenService) NewAuthToken(u model.User) (model.Token, error) {
+// NewWebCookieToken creates web cookie token
+func (ts *TokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	//check user
 	if !u.Active() {
 		return nil, ErrInvalidUser
@@ -346,7 +346,7 @@ func (ts *TokenService) NewAuthToken(u model.User) (model.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := Claims{
-		Type:  model.AuthTokenType,
+		Type:  model.WebCookieTokenType,
 		KeyID: ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -401,10 +401,10 @@ func ResetTokenLifespan(lifespan int64) func(*TokenService) error {
 	}
 }
 
-// AuthTokenLifespan sets custom lifespan in seconds for the auth token
-func AuthTokenLifespan(lifespan int64) func(*TokenService) error {
+// WebCookieTokenLifespan sets custom lifespan in seconds for the web cookie token
+func WebCookieTokenLifespan(lifespan int64) func(*TokenService) error {
 	return func(ts *TokenService) error {
-		ts.authTokenLifespan = lifespan
+		ts.webCookieTokenLifespan = lifespan
 		return nil
 	}
 }

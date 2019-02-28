@@ -5,7 +5,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/web/shared"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
@@ -32,19 +33,9 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 			return
 		}
 
-		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
-		token, err := ar.TokenService.Parse(string(tstr))
+		_, err := shared.ParseToken(tstr, ar.TokenService, model.RefrestTokenType)
 		if err != nil {
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
-			return
-		}
-
-		if err := v.Validate(token); err != nil {
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
-			return
-		}
-
-		if model.ResetTokenType != token.Type() {
+			ar.Logger.Printf("Error invalid token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
 			return
 		}

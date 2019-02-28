@@ -6,6 +6,7 @@ import (
 
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/shared"
 	"github.com/urfave/negroni"
 )
 
@@ -21,7 +22,7 @@ const (
 // Token middleware extracts token and validates it
 func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		app := appFromContext(r.Context())
+		app := shared.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

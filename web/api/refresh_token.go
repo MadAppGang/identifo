@@ -2,6 +2,8 @@ package api
 
 import (
 	"net/http"
+
+	"github.com/madappgang/identifo/web/shared"
 )
 
 // RefreshToken - refresh access token
@@ -10,7 +12,7 @@ func (ar *Router) RefreshToken() http.HandlerFunc {
 		AccessToken string `json:"access_token"`
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		app := appFromContext(r.Context())
+		app := shared.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

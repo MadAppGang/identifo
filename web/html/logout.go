@@ -5,6 +5,8 @@ import (
 	"net/http"
 	"path"
 	"strings"
+
+	"github.com/madappgang/identifo/web/shared"
 )
 
 // Logout removes user's session.
@@ -12,9 +14,9 @@ func (ar *Router) Logout() http.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		deleteCookie(w, CookieKeyAuthToken)
+		deleteCookie(w, CookieKeyWebCookieToken)
 
-		app := appFromContext(r.Context())
+		app := shared.AppFromContext(r.Context())
 		if app == nil {
 			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
 			return

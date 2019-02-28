@@ -8,7 +8,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/web/shared"
+
 	"github.com/madappgang/identifo/model"
 )
 
@@ -38,57 +39,35 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 		}
 
 		appID := strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
-		if appID == "" {
-			serveTemplate("Empty appId param", "", "")
-			return
-		}
-
-		app, err := ar.AppStorage.AppByID(appID)
+		app, err := shared.AppByID(ar.AppStorage, appID)
 		if err != nil {
 			message := fmt.Sprintf("Error getting App by ID: %v", err)
 			serveTemplate(message, "", "")
 			return
 		}
 
-		if !app.Active() {
-			message := fmt.Sprintf("App with ID: %v is inactive", app.ID())
-			serveTemplate(message, "", "")
-			return
-		}
-
-		tstr, err := getCookie(r, CookieKeyAuthToken)
+		tstr, err := getCookie(r, CookieKeyWebCookieToken)
 		if err != nil || tstr == "" {
-			deleteCookie(w, CookieKeyAuthToken)
+			ar.Logger.Printf("Error getting toke from cookie: %v", err)
+			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate("not authorized", "", app.RedirectURL())
 			return
 		}
 
-		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
-		authToken, err := ar.TokenService.Parse(string(tstr))
+		webCookieToken, err := shared.ParseToken(tstr, ar.TokenService, model.WebCookieTokenType)
 		if err != nil {
-			deleteCookie(w, CookieKeyAuthToken)
+			ar.Logger.Printf("Error invalid token: %v", err)
+			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate("not authorized", "", app.RedirectURL())
 			return
 		}
 
-		if err := v.Validate(authToken); err != nil {
-			deleteCookie(w, CookieKeyAuthToken)
-			serveTemplate("not authorized", "", app.RedirectURL())
-			return
-		}
-
-		if authToken.Type() != model.AuthTokenType {
-			deleteCookie(w, CookieKeyAuthToken)
-			serveTemplate("not authorized", "", app.RedirectURL())
-			return
-		}
-
-		userID := authToken.UserID()
+		userID := webCookieToken.UserID()
 
 		user, err := ar.UserStorage.UserByID(userID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
-			deleteCookie(w, CookieKeyAuthToken)
+			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate("invalid user token", "", app.RedirectURL())
 			return
 		}

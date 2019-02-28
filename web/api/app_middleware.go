@@ -35,8 +35,3 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		next.ServeHTTP(rw, r)
 	}
 }
-
-//appFromContext returns app data from request conntext
-func appFromContext(ctx context.Context) model.AppData {
-	return ctx.Value(model.AppDataContextKey).(model.AppData)
-}

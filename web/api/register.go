@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/shared"
 )
 
 /*
@@ -57,7 +58,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		app := appFromContext(r.Context())
+		app := shared.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

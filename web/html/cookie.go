@@ -7,8 +7,8 @@ import (
 )
 
 const (
-	// CookieKeyAuthToken cookie key to keep authenticated user's ID.
-	CookieKeyAuthToken = "identifo-user"
+	// CookieKeyWebCookieToken cookie key to keep the web cookie token.
+	CookieKeyWebCookieToken = "identifo-user"
 )
 
 func encode(src string) string {
