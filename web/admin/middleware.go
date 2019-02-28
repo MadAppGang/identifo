@@ -11,29 +11,42 @@ import (
 // If not, forces to login.
 func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		cookie, err := r.Cookie(cookieName)
-		if err != nil {
-			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-			return
+		if err := ar.isLoggedIn(w, r); err == nil {
+			next(w, r)
 		}
-
-		sessionID, err := decode(cookie.Value)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		session, err := ar.sessionStorage.GetSession(sessionID)
-		if err != nil {
-			ar.Error(w, err, http.StatusUnauthorized, err.Error())
-			return
-		}
-
-		if session.ExpirationDate.Before(time.Now()) {
-			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-			return
-		}
-
-		next(w, r)
 	}
+}
+
+// IsLoggedIn checks if admin is logged in.
+func (ar *Router) IsLoggedIn() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.isLoggedIn(w, r)
+	}
+}
+
+func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) error {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
+		return err
+	}
+
+	sessionID, err := decode(cookie.Value)
+	if err != nil {
+		ar.Error(w, err, http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	session, err := ar.sessionStorage.GetSession(sessionID)
+	if err != nil {
+		ar.Error(w, err, http.StatusUnauthorized, err.Error())
+		return err
+	}
+
+	if session.ExpirationDate.Before(time.Now()) {
+		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
+		return err
+	}
+
+	return nil
 }

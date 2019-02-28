@@ -11,6 +11,10 @@ func (ar *Router) initRoutes() {
 		return
 	}
 
+	ar.router.Path("/{me:me\\/?}").Handler(negroni.New(
+		negroni.WrapFunc(ar.IsLoggedIn()),
+	)).Methods("GET")
+
 	ar.router.Path("/{login:login\\/?}").Handler(negroni.New(
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
