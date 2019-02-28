@@ -61,6 +61,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.Logger,
 		settings.SessionService,
 		settings.SessionStorage,
+		settings.UserStorage,
 		settings.AdminRouterSettings...,
 	)
 

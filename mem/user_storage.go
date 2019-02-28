@@ -5,33 +5,32 @@ import (
 	randomdata "github.com/pallinder/go-randomdata"
 )
 
-//NewUserStorage creates and inits memory based user storage
-//use it only for test purposes and in DI
-//all data is wiped on exit
+// NewUserStorage creates and inits in-memory user storage.
+// Use it only for test purposes and in CI, all data is wiped on exit.
 func NewUserStorage() model.UserStorage {
 	return &UserStorage{}
 }
 
-//UserStorage implements user storage in memory
+// UserStorage implements user storage in memory.
 type UserStorage struct {
 }
 
-//UserByID returns random generated user
+// UserByID returns randomly generated user.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
-//UserBySocialID returns random generated user
+// UserBySocialID returns randomly generated user.
 func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
-//UserExists always returns true
+// UserExists always returns true.
 func (us *UserStorage) UserExists(name string) bool {
 	return true
 }
 
-//AttachDeviceToken does nothing here.
+// AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return nil
 }
@@ -41,28 +40,28 @@ func (us *UserStorage) DetachDeviceToken(token string) error {
 	return nil
 }
 
-//RequestScopes mem always returns requested scope
+// RequestScopes always returns requested scopes.
 func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, error) {
 	return scopes, nil
 }
 
-//Scopes returns supported scopes, could be static data of database
+// Scopes returns supported scopes, could be static data of database.
 func (us *UserStorage) Scopes() []string {
-	//we allow all scopes for embedded database, you could implement your own logic in external service
+	// we allow all scopes for embedded database, you could implement your own logic in external service
 	return []string{"offline", "user"}
 }
 
-//UserByNamePassword returns random generated user
+// UserByNamePassword returns randomly generated user.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	return randUser(), nil
 }
 
-//AddUserByNameAndPassword returns random generated user
+// AddUserByNameAndPassword returns randomly generated user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	return randUser(), nil
 }
 
-//UserByFederatedID returns randomly generated user.
+// UserByFederatedID returns randomly generated user.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	return randUser(), nil
 }
@@ -72,12 +71,12 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return randUser(), nil
 }
 
-// ResetPassword does nothing here
+// ResetPassword does nothing here.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	return nil
 }
 
-// IDByName return random id
+// IDByName returns random id.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil
 }
@@ -88,6 +87,12 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 //ImportJSON import data from JSON
+// FetchUsers returns randomly generated user enclosed in slice.
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
+	return []model.User{randUser()}, nil
+}
+
+// ImportJSON imports data from JSON.
 func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
@@ -109,7 +114,7 @@ func randUser() *user {
 	}
 }
 
-//data implementation
+// User data implementation.
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"name,omitempty"`
@@ -127,9 +132,17 @@ func (u *user) Sanitize() {
 	u.userData.Active = false
 }
 
-//model.User interface implementation
-func (u *user) ID() string                      { return u.userData.ID }
-func (u *user) Name() string                    { return u.userData.Name }
-func (u *user) PasswordHash() string            { return u.userData.Pswd }
+// ID implements model.User interface.
+func (u *user) ID() string { return u.userData.ID }
+
+// Name implements model.User interface.
+func (u *user) Name() string { return u.userData.Name }
+
+// PasswordHash implements model.User interface.
+func (u *user) PasswordHash() string { return u.userData.Pswd }
+
+// Profile implements model.User interface.
 func (u *user) Profile() map[string]interface{} { return u.userData.Profile }
-func (u *user) Active() bool                    { return u.userData.Active }
+
+// Active implements model.User interface.
+func (u *user) Active() bool { return u.userData.Active }

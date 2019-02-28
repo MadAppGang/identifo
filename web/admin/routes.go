@@ -25,4 +25,8 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(users),
 	))
 
+	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.FetchUsers()),
+	)).Methods("GET")
 }

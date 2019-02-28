@@ -10,14 +10,13 @@ import (
 )
 
 const (
-	//UsersCollection collection name for users
+	// UsersCollection is a collection name for users.
 	UsersCollection = "Users"
 )
 
-//NewUserStorage creates and inits mongodb user storage
+// NewUserStorage creates and inits MongoDB user storage.
 func NewUserStorage(db *DB) (model.UserStorage, error) {
-	us := UserStorage{}
-	us.db = db
+	us := &UserStorage{db: db}
 	//TODO: ensure indexes
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -29,15 +28,15 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 		return nil, err
 	}
 
-	return &us, nil
+	return us, nil
 }
 
-//UserStorage implements user storage in memory
+// UserStorage implements user storage interface.
 type UserStorage struct {
 	db *DB
 }
 
-//UserByID returns user by it's ID
+// UserByID returns user by its ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	if !bson.IsObjectIdHex(id) {
 		return nil, model.ErrorWrongDataFormat
@@ -52,7 +51,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return &User{userData: u}, nil
 }
 
-//UserByFederatedID returns user by federated ID
+// UserByFederatedID returns user by federated ID.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -67,7 +66,7 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	return &User{userData: u}, nil
 }
 
-//UserExists checks if user exist with presented name.
+// UserExists checks if user with provided name exists.
 func (us *UserStorage) UserExists(name string) bool {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -99,13 +98,13 @@ func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, 
 	return scopes, nil
 }
 
-//Scopes returns supported scopes, could be static data of database
+// Scopes returns supported scopes, could be static data of database.
 func (us *UserStorage) Scopes() []string {
-	//we allow all scopes for embedded database, you could implement your own logic in external service
+	// we allow all scopes for embedded database, you could implement your own logic in external service.
 	return []string{"offline", "user"}
 }
 
-//UserByNamePassword returns  user by name and password
+// UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -116,6 +115,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
 		return nil, model.ErrorNotFound
 	}
+
 	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
 		return nil, model.ErrorNotFound
 	}
@@ -124,39 +124,40 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	return &User{userData: u}, nil
 }
 
-//AddNewUser adds new user
+// AddNewUser adds new user to the database.
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
 	u, ok := usr.(*User)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
 	}
+
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
+
 	u.userData.ID = bson.NewObjectId()
 	if len(password) > 0 {
 		u.userData.Pswd = PasswordHash(password)
 	}
+
 	if err := s.C.Insert(u.userData); err != nil {
 		return nil, err
 	}
 	return u, nil
 }
 
-//AddUserByNameAndPassword register new user
+// AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
-	//using user name as a key
-	_, err := us.UserByID(name)
-	//if there is no error, it means user already exists
-	if err == nil {
+	// Using user name as a key. If there is no error, it means user already exists.
+	if _, err := us.UserByID(name); err == nil {
 		return nil, model.ErrorUserExists
 	}
 	u := userData{Active: true, Name: name, Profile: profile}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
-//AddUserWithFederatedID add new user with social ID
+// AddUserWithFederatedID adds new user with social ID.
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
-	//if there is no error, it means user already exists
+	// If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return nil, model.ErrorUserExists
 	}
@@ -165,7 +166,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return us.AddNewUser(&User{userData: u}, "")
 }
 
-// ResetPassword sets new user's passwors
+// ResetPassword sets new user's password.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	if !bson.IsObjectIdHex(id) {
 		return model.ErrorWrongDataFormat
@@ -178,7 +179,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 
-// IDByName return userId by name
+// IDByName returns userID by name.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -212,6 +213,22 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 //ImportJSON import data from JSON
+// FetchUsers fetches users which name satisfies provided filterString.
+// Supports pagination.
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	q := bson.M{"name": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
+
+	orderByField := "name"
+
+	var users []model.User
+	err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users)
+	return users, err
+}
+
+// ImportJSON imports data from JSON.
 func (us *UserStorage) ImportJSON(data []byte) error {
 	ud := []userData{}
 	if err := json.Unmarshal(data, &ud); err != nil {
@@ -220,15 +237,14 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	for _, u := range ud {
 		pswd := u.Pswd
 		u.Pswd = ""
-		_, err := us.AddNewUser(&User{userData: u}, pswd)
-		if err != nil {
+		if _, err := us.AddNewUser(&User{userData: u}, pswd); err != nil {
 			return err
 		}
 	}
 	return nil
 }
 
-//data implementation
+// User data implementation.
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
@@ -238,18 +254,18 @@ type userData struct {
 	FederatedIDs []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 }
 
-//User user data structure for mongodb storage
+// User is a data structure for MongoDB storage.
 type User struct {
 	userData
 }
 
-//Sanitize removes sensitive data
+// Sanitize removes sensitive data.
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
 }
 
-//UserFromJSON deserializes data
+// UserFromJSON deserializes user from JSON.
 func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
@@ -258,14 +274,22 @@ func UserFromJSON(d []byte) (*User, error) {
 	return &User{userData: user}, nil
 }
 
-//model.User interface implementation
-func (u *User) ID() string                      { return u.userData.ID.Hex() }
-func (u *User) Name() string                    { return u.userData.Name }
-func (u *User) PasswordHash() string            { return u.userData.Pswd }
-func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
-func (u *User) Active() bool                    { return u.userData.Active }
+// ID implements model.User interface.
+func (u *User) ID() string { return u.userData.ID.Hex() }
 
-//PasswordHash creates hash with salt for password
+// Name implements model.User interface.
+func (u *User) Name() string { return u.userData.Name }
+
+// PasswordHash implements model.User interface.
+func (u *User) PasswordHash() string { return u.userData.Pswd }
+
+// Profile implements model.User interface.
+func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
+
+// Active implements model.User interface.
+func (u *User) Active() bool { return u.userData.Active }
+
+// PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
