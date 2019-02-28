@@ -3,6 +3,8 @@ package admin
 import (
 	"net/http"
 	"strings"
+
+	"github.com/madappgang/identifo/model"
 )
 
 const (
@@ -29,6 +31,38 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 		ar.ServeJSON(w, http.StatusOK, users)
 		return
+	}
+}
+
+// CreateUser registers new user.
+func (ar *Router) CreateUser() http.HandlerFunc {
+	type registrationData struct {
+		Username string                 `json:"username,omitempty" validate:"required,gte=6,lte=50"`
+		Password string                 `json:"password,omitempty" validate:"required,gte=7,lte=50"`
+		Profile  map[string]interface{} `json:"user_profile,omitempty"`
+		Scope    []string               `json:"scope,omitempty"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		d := registrationData{}
+		if ar.mustParseJSON(w, r, &d) != nil {
+			return
+		}
+
+		if err := model.StrongPswd(d.Password); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		if err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user.Sanitize()
+
+		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
 

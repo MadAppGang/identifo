@@ -23,6 +23,10 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchUsers()),
 	)).Methods("GET")
+	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.CreateUser()),
+	)).Methods("POST")
 
 	users := ar.router.PathPrefix("/users").Subrouter()
 	ar.router.PathPrefix("/users").Handler(negroni.New(
