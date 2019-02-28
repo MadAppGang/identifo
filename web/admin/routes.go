@@ -29,4 +29,5 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.Wrap(users),
 	))
+	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
 }

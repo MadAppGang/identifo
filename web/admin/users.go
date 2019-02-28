@@ -31,3 +31,18 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 		return
 	}
 }
+
+// DeleteUser deletes user from the database.
+func (ar *Router) DeleteUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := getRouteVar("id", r)
+		ar.logger.Println(userID)
+		if err := ar.userStorage.DeleteUser(userID); err != nil {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, nil)
+		return
+	}
+}
