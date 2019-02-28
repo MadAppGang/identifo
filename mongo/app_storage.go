@@ -74,7 +74,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 	return err
 }
 
-//AddNewApp add new app to mongo storage
+// AddNewApp adds new app to MongoDB storage.
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
@@ -201,7 +201,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 // MakeAppData creates new MongoDB app data instance.
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
@@ -228,6 +228,9 @@ func (ad AppData) Secret() string { return ad.appData.Secret }
 
 // Active implements model.AppData interface.
 func (ad AppData) Active() bool { return ad.appData.Active }
+
+// Name implements model.AppData interface.
+func (ad AppData) Name() string { return ad.appData.Name }
 
 // Description implements model.AppData interface.
 func (ad AppData) Description() string { return ad.appData.Description }
