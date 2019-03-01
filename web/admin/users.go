@@ -12,6 +12,26 @@ const (
 	defaultUserLimit = 20
 )
 
+// GetUser fetches user by ID or social ID from the database.
+func (ar *Router) GetUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := getRouteVar("id", r)
+
+		user, err := ar.userStorage.UserByID(userID)
+		if err != nil {
+			if err == model.ErrorNotFound {
+				ar.Error(w, err, http.StatusNotFound, "")
+			} else {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+			}
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, user)
+		return
+	}
+}
+
 // FetchUsers fetches users from the database.
 func (ar *Router) FetchUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -70,11 +90,12 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 func (ar *Router) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
-		ar.logger.Println(userID)
 		if err := ar.userStorage.DeleteUser(userID); err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
+
+		ar.logger.Printf("User %s deleted", userID)
 
 		ar.ServeJSON(w, http.StatusOK, nil)
 		return

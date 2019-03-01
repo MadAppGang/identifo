@@ -11,7 +11,7 @@ import (
 // If not, forces to login.
 func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		if err := ar.isLoggedIn(w, r); err == nil {
+		if ar.isLoggedIn(w, r) {
 			next(w, r)
 		}
 	}
@@ -24,29 +24,29 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	}
 }
 
-func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) error {
+func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 	cookie, err := r.Cookie(cookieName)
 	if err != nil {
 		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-		return err
+		return false
 	}
 
 	sessionID, err := decode(cookie.Value)
 	if err != nil {
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
-		return err
+		return false
 	}
 
 	session, err := ar.sessionStorage.GetSession(sessionID)
 	if err != nil {
 		ar.Error(w, err, http.StatusUnauthorized, err.Error())
-		return err
+		return false
 	}
 
 	if session.ExpirationDate.Before(time.Now()) {
 		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-		return err
+		return false
 	}
 
-	return nil
+	return true
 }
