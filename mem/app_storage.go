@@ -48,7 +48,8 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	return nil
 }
 
-// FetchApps returns randomly generated app data enclosed in slice.
+// FetchApps fetches apps which name satisfies provided filterString.
+// Supports pagination.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
 	apps := []model.AppData{}
 	for _, app := range as.storage {
