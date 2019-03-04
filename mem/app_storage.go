@@ -58,7 +58,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
-//ImportJSON import data from JSON
+// ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
@@ -109,7 +109,7 @@ func NewAppData(data model.AppData) AppData {
 	}}
 }
 
-//MakeAppData creates new memory app data instance
+// MakeAppData creates new in-memory app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
 	return AppData{appData: appData{
 		ID:                   id,
@@ -134,6 +134,9 @@ func (ad AppData) Secret() string { return ad.appData.Secret }
 
 // Active implements model.AppData interface.
 func (ad AppData) Active() bool { return ad.appData.Active }
+
+// Name implements model.AppData interface.
+func (ad AppData) Name() string { return ad.appData.Name }
 
 // Description implements model.AppData interface.
 func (ad AppData) Description() string { return ad.appData.Description }

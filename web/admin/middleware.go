@@ -13,6 +13,12 @@ import (
 func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		if ar.isLoggedIn(w, r) {
+			sessionID, err := ar.getSessionID(r)
+			if err != nil {
+				ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
+				return
+			}
+			ar.prolongSession(w, sessionID)
 			next(w, r)
 		}
 	}
@@ -26,15 +32,9 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 }
 
 func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
-	cookie, err := r.Cookie(cookieName)
+	sessionID, err := ar.getSessionID(r)
 	if err != nil {
-		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-		return false
-	}
-
-	sessionID, err := decode(cookie.Value)
-	if err != nil {
-		ar.Error(w, err, http.StatusInternalServerError, err.Error())
+		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
 		return false
 	}
 
@@ -64,4 +64,14 @@ func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, c)
+}
+
+func (ar *Router) getSessionID(r *http.Request) (string, error) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		return "", err
+	}
+
+	sessionID, err := decode(cookie.Value)
+	return sessionID, err
 }
