@@ -152,6 +152,24 @@ func (ts *TokenService) Parse(s string) (model.Token, error) {
 	return &t, nil
 }
 
+// ValidateTokenString parses token and validates it.
+func (ts *TokenService) ValidateTokenString(tstr string, v Validator, tokenType string) (model.Token, error) {
+	token, err := ts.Parse(tstr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := v.Validate(token); err != nil {
+		return nil, err
+	}
+
+	if token.Type() != tokenType {
+		return nil, err
+	}
+
+	return token, nil
+}
+
 //NewToken creates new token for user
 func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppData) (model.Token, error) {
 	if !app.Active() {

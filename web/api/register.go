@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/shared"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 /*
@@ -58,7 +58,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		app := shared.AppFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

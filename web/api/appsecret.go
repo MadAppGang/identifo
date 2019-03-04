@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/madappgang/identifo/web/shared"
+	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
 )
 
@@ -29,7 +29,7 @@ const (
 func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		app := shared.AppFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

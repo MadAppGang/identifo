@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/shared"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 //FederatedLoginData represents federated login input data
@@ -48,7 +48,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
-		app := shared.AppFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")

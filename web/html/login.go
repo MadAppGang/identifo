@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/madappgang/identifo/web/shared"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 const (
@@ -23,7 +23,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		password := r.FormValue(passwordKey)
 		scopesJSON := r.FormValue(scopesKey)
 		scopes := []string{}
-		app := shared.AppFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 
 		redirectToLogin := func() {
 			q := r.URL.Query()

@@ -35,7 +35,7 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.LoginHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Login)),
 	)).Methods("GET")
 
-	ar.Router.HandleFunc("/idtoken/{renew:renew\\/?}", ar.RenewIDToken(ar.StaticFilesPath.PagesPath, "/web-message.html")).Methods("GET")
+	ar.Router.HandleFunc("/token/{renew:renew\\/?}", ar.RenewToken(ar.StaticFilesPath.PagesPath, "/web-message.html")).Methods("GET")
 	ar.Router.Path("/{logout:logout\\/?}").Handler(negroni.New(
 		ar.AppID(),
 		negroni.WrapFunc(ar.Logout()),

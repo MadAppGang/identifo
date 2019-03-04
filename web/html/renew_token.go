@@ -8,14 +8,14 @@ import (
 	"path"
 	"strings"
 
-	"github.com/madappgang/identifo/web/shared"
-
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
-// RenewIDToken creates new id_token if user is already authenticated.
-func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
+// RenewToken creates new id_token if user is already authenticated.
+func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
+	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serveTemplate := func(errorMessage, IDToken, callbackURL string) {
@@ -39,7 +39,7 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 		}
 
 		appID := strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
-		app, err := shared.AppByID(ar.AppStorage, appID)
+		app, err := ar.AppStorage.ActiveAppByID(appID)
 		if err != nil {
 			message := fmt.Sprintf("Error getting App by ID: %v", err)
 			serveTemplate(message, "", "")
@@ -53,9 +53,15 @@ func (ar *Router) RenewIDToken(pathComponents ...string) http.HandlerFunc {
 			serveTemplate("not authorized", "", app.RedirectURL())
 			return
 		}
-
-		webCookieToken, err := shared.ParseToken(tstr, ar.TokenService, model.WebCookieTokenType)
+		webCookieToken, err := ar.TokenService.Parse(tstr)
 		if err != nil {
+			ar.Logger.Printf("Error invalid token: %v", err)
+			deleteCookie(w, CookieKeyWebCookieToken)
+			serveTemplate("not authorized", "", app.RedirectURL())
+			return
+		}
+
+		if err = tokenValidator.Validate(webCookieToken); err != nil {
 			ar.Logger.Printf("Error invalid token: %v", err)
 			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate("not authorized", "", app.RedirectURL())

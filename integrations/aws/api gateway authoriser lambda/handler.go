@@ -56,7 +56,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	}
 
-	v := jwt.NewValidator(appID, jwtIssuer, "")
+	v := jwt.NewValidator(appID, jwtIssuer, "", "access")
 	tokenV, err := jwt.ParseTokenWithPublicKey(string(tstr), publicKey)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Error parsing token: " + err.Error())
@@ -64,10 +64,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 	if err := v.Validate(tokenV); err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid token:" + err.Error())
 	}
-	//we accept only access token types
-	if tokenV.Type() != "access" {
-		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid token type:" + tokenV.Type())
-	}
+
 	return CreatePolicy(tokenV.UserID(), "Allow", event.MethodArn, nil), nil
 }
 

@@ -7,7 +7,6 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/shared"
 	"github.com/urfave/negroni"
 )
 
@@ -32,7 +31,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
-		app, err := shared.AppByID(ar.AppStorage, appID)
+		app, err := ar.AppStorage.ActiveAppByID(appID)
 		if err != nil {
 			ar.Logger.Print(err)
 			http.Redirect(w, r, errorPath, http.StatusFound)

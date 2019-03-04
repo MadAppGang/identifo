@@ -11,4 +11,8 @@ const (
 	ErrorInternalError = Error("Internal error")
 	// ErrorInactiveUser means user is inactive
 	ErrorInactiveUser = Error("User is inactive")
+	// ErrorEmptyAppID means appID params is empty
+	ErrorEmptyAppID = Error("Empty appID param")
+	// ErrorInactiveApp means app is inactive
+	ErrorInactiveApp = Error("App is inactive")
 )
