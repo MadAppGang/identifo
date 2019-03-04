@@ -20,6 +20,7 @@ type Router struct {
 	router         *mux.Router
 	sessionService model.SessionService
 	sessionStorage model.SessionStorage
+	appStorage     model.AppStorage
 	userStorage    model.UserStorage
 	ConfigPath     string
 	RedirectURL    string
@@ -68,12 +69,13 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionStorage model.SessionStorage, userStorage model.UserStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionStorage model.SessionStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:     negroni.Classic(),
 		router:         mux.NewRouter(),
 		sessionService: sessionService,
 		sessionStorage: sessionStorage,
+		appStorage:     appStorage,
 		userStorage:    userStorage,
 	}
 

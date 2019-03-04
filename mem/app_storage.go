@@ -3,6 +3,7 @@ package mem
 import (
 	"encoding/json"
 	"log"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -45,7 +46,19 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	return nil
 }
 
-// ImportJSON imports data from JSON.
+// FetchApps fetches apps which name satisfies provided filterString.
+// Supports pagination.
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+	apps := []model.AppData{}
+	for _, app := range as.storage {
+		if strings.Contains(strings.ToLower(app.Name()), strings.ToLower(filterString)) {
+			apps = append(apps, app)
+		}
+	}
+	return apps, nil
+}
+
+//ImportJSON import data from JSON
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
@@ -64,6 +77,7 @@ type appData struct {
 	ID                   string   `json:"id,omitempty"`
 	Secret               string   `json:"secret,omitempty"`
 	Active               bool     `json:"active,omitempty"`
+	Name                 string   `json:"name,omitempty"`
 	Description          string   `json:"description,omitempty"`
 	Scopes               []string `json:"scopes,omitempty"`
 	Offline              bool     `json:"offline,omitempty"`
@@ -84,6 +98,7 @@ func NewAppData(data model.AppData) AppData {
 		ID:                   data.ID(),
 		Secret:               data.Secret(),
 		Active:               data.Active(),
+		Name:                 data.Name(),
 		Description:          data.Description(),
 		Scopes:               data.Scopes(),
 		Offline:              data.Offline(),
@@ -94,12 +109,13 @@ func NewAppData(data model.AppData) AppData {
 	}}
 }
 
-// MakeAppData creates new in-memory app data instance.
-func MakeAppData(id, secret string, active bool, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
+//MakeAppData creates new memory app data instance
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
 	return AppData{appData: appData{
 		ID:                   id,
 		Secret:               secret,
 		Active:               active,
+		Name:                 name,
 		Description:          description,
 		Scopes:               scopes,
 		Offline:              offline,
