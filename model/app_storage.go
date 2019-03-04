@@ -7,6 +7,7 @@ type AppStorage interface {
 	AddNewApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(oldAppID string, newApp AppData) error
+	FetchApps(filterString string, skip, limit int) ([]AppData, error)
 	ImportJSON(data []byte) error
 }
 
@@ -15,21 +16,20 @@ type AppData interface {
 	ID() string
 	Secret() string
 	Active() bool
+	Name() string
 	Description() string
-	//Scopes is the list of all allowed scopes
-	//if it's empty, no limitations (opaque scope)
+	// Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
 	Scopes() []string
-	//Offline - indicated could the app has refresh token
-	//don't use refresh tokens with apps, that don't have secure storage
+	// Offline is a boolean value that indicates wheter on not the app supports refresh tokens.
+	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
-	//RedirectURL - redirect URL, where to redirect the user after seccessfull login
-	//useful not only for web apps, mobile and desktop app could use custom scheme for that
+	// RedirectURL is a redirect URL where to redirect the user after successfull login.
+	// Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
 	RedirectURL() string
-	//TokenLifespan Token lifespan in seconds, if 0 - use default one
+	// TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
 	TokenLifespan() int64
-	//RefreshTokenLifespan RefreshToken lifespan in seconds, if 0 - use default one
+	// RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
 	RefreshTokenLifespan() int64
-	// Payload is a list of fields that are included in token
-	// if it's empty there is no any fields in payload
+	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayload() []string
 }
