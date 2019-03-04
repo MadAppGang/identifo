@@ -21,15 +21,8 @@ func (ar *Router) initRoutes() {
 
 	ar.router.Path("/{apps:apps\\/?}").Handler(negroni.New(
 		ar.Session(),
-		negroni.WrapFunc(ar.FetchAppsxw()),
+		negroni.WrapFunc(ar.FetchApps()),
 	)).Methods("GET")
-
-	apps := ar.router.PathPrefix("/apps").Subrouter()
-	ar.router.PathPrefix("/apps").Handler(negroni.New(
-		ar.Session(),
-		negroni.Wrap(apps),
-	))
-	apps.Path("/{id:id\\/?}").HandlerFunc(ar.DeleteApp()).Methods("GET")
 
 	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
 		ar.Session(),

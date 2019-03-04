@@ -21,7 +21,7 @@ type AppData interface {
 	Description() string
 	// Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
 	Scopes() []string
-	// Offline is a boolen value that indicates wheter on not the app supports refresh tokens.
+	// Offline is a boolean value that indicates wheter on not the app supports refresh tokens.
 	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
 	// RedirectURL is a redirect URL where to redirect the user after successfull login.
