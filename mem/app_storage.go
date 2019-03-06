@@ -45,7 +45,7 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	return app, nil
 }
 
-//AddNewApp add new app to memory storage
+// AddNewApp adds new app to in-memory storage.
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	as.storage[app.ID()] = NewAppData(app)
 	return app, nil
