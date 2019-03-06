@@ -12,7 +12,7 @@ const (
 	defaultUserLimit = 20
 )
 
-// GetUser fetches user by ID or social ID from the database.
+// GetUser fetches user by ID from the database.
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
