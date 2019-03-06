@@ -219,6 +219,18 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, nil
 }
 
+// DeleteUser deletes user by id.
+func (us *UserStorage) DeleteUser(id string) error {
+	input := &dynamodb.DeleteItemInput{
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {S: aws.String(id)},
+		},
+		TableName: aws.String(UsersTableName),
+	}
+	_, err := us.db.C.DeleteItem(input)
+	return err
+}
+
 // AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)

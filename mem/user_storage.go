@@ -81,6 +81,11 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil
 }
 
+// DeleteUser does nothing here.
+func (us *UserStorage) DeleteUser(id string) error {
+	return nil
+}
+
 // FetchUsers returns randomly generated user enclosed in slice.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
 	return []model.User{randUser()}, nil

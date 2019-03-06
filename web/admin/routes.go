@@ -12,6 +12,10 @@ func (ar *Router) initRoutes() {
 		return
 	}
 
+	ar.router.Path("/{me:me\\/?}").Handler(negroni.New(
+		negroni.WrapFunc(ar.IsLoggedIn()),
+	)).Methods("GET")
+
 	ar.router.Path("/{login:login\\/?}").Handler(negroni.New(
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
@@ -36,4 +40,16 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchUsers()),
 	)).Methods("GET")
+	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.CreateUser()),
+	)).Methods("POST")
+
+	users := mux.NewRouter().PathPrefix("/users").Subrouter()
+	ar.router.PathPrefix("/users").Handler(negroni.New(
+		ar.Session(),
+		negroni.Wrap(users),
+	))
+	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetUser()).Methods("GET")
+	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
 }

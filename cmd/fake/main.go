@@ -12,7 +12,7 @@ import (
 // It should be used for test and CI environments only.
 func main() {
 	settings := fake.DefaultSettings
-	settings.StaticFolderPath = "../.."
+	settings.StaticFolderPath = "../../static"
 	settings.PEMFolderPath = "../../jwt"
 	settings.Issuer = "http://localhost:8080"
 	settings.MailService = model.MailServiceAWS

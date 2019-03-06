@@ -200,6 +200,18 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return user.ID(), nil
 }
 
+// DeleteUser deletes user by id.
+func (us *UserStorage) DeleteUser(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	err := s.C.RemoveId(bson.ObjectIdHex(id))
+	return err
+}
+
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
@@ -234,7 +246,7 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 // User data implementation.
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Name         string                 `bson:"name,omitempty" json:"username,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`

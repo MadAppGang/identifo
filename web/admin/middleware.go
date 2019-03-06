@@ -12,33 +12,44 @@ import (
 // If not, forces to login.
 func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		cookie, err := r.Cookie(cookieName)
-		if err != nil {
-			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-			return
+		if ar.isLoggedIn(w, r) {
+			sessionID, err := ar.getSessionID(r)
+			if err != nil {
+				ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
+				return
+			}
+			ar.prolongSession(w, sessionID)
+			next(w, r)
 		}
-
-		sessionID, err := decode(cookie.Value)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, err.Error())
-			return
-		}
-
-		session, err := ar.sessionStorage.GetSession(sessionID)
-		if err != nil {
-			ar.Error(w, err, http.StatusUnauthorized, err.Error())
-			return
-		}
-
-		if session.ExpirationDate.Before(time.Now()) {
-			ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
-			return
-		}
-
-		ar.prolongSession(w, sessionID)
-
-		next(w, r)
 	}
+}
+
+// IsLoggedIn checks if admin is logged in.
+func (ar *Router) IsLoggedIn() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.isLoggedIn(w, r)
+	}
+}
+
+func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
+	sessionID, err := ar.getSessionID(r)
+	if err != nil {
+		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
+		return false
+	}
+
+	session, err := ar.sessionStorage.GetSession(sessionID)
+	if err != nil {
+		ar.Error(w, err, http.StatusUnauthorized, err.Error())
+		return false
+	}
+
+	if session.ExpirationDate.Before(time.Now()) {
+		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
+		return false
+	}
+
+	return true
 }
 
 func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
@@ -53,4 +64,14 @@ func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 		HttpOnly: true,
 	}
 	http.SetCookie(w, c)
+}
+
+func (ar *Router) getSessionID(r *http.Request) (string, error) {
+	cookie, err := r.Cookie(cookieName)
+	if err != nil {
+		return "", err
+	}
+
+	sessionID, err := decode(cookie.Value)
+	return sessionID, err
 }

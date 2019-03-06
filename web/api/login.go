@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 //LoginWithPassword - login user with email and password
@@ -33,7 +34,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		app := appFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
