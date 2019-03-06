@@ -81,7 +81,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 	return nil
 }
 
-//ImportJSON import data from JSON
+// ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
