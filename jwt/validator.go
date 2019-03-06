@@ -8,11 +8,12 @@ import (
 )
 
 var (
-	ErrTokenValidationNoExpire        = errors.New("Token is invalid, no expire date")
-	ErrTokenValidationNoIAT           = errors.New("Token is invalid, no issued at date")
-	ErrTokenValidationInvalidIssuer   = errors.New("Token is invalid, issuer is invalid")
-	ErrTokenValidationInvalidAudience = errors.New("Token is invalid, audience is invalid")
-	ErrTokenValidationInvalidSubject  = errors.New("Token is invalid, subject is invalid")
+	ErrTokenValidationNoExpire             = errors.New("Token is invalid, no expire date")
+	ErrTokenValidationNoIAT                = errors.New("Token is invalid, no issued at date")
+	ErrTokenValidationInvalidIssuer        = errors.New("Token is invalid, issuer is invalid")
+	ErrTokenValidationInvalidAudience      = errors.New("Token is invalid, audience is invalid")
+	ErrTokenValidationInvalidSubject       = errors.New("Token is invalid, subject is invalid")
+	ErrorTokenValidatrionTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
 )
 
 const (
@@ -32,19 +33,21 @@ var TimeFunc = time.Now
 //appID - application ID who have made the request, should be in audience field of JWT token
 //issues - this server name, should be the same as iss of JWT token
 //userID - user, who have made the request, if the field is empty, we are not validating it
-func NewValidator(audience, issuer, userID string) model.Validator {
+func NewValidator(audience, issuer, userID, tokenType string) model.Validator {
 	return &Validator{
-		audience: audience,
-		issuer:   issuer,
-		userID:   userID,
+		audience:  audience,
+		issuer:    issuer,
+		userID:    userID,
+		tokenType: tokenType,
 	}
 }
 
 //Validator JWT token validator
 type Validator struct {
-	audience string
-	issuer   string
-	userID   string
+	audience  string
+	issuer    string
+	userID    string
+	tokenType string
 }
 
 //Validate validates token
@@ -94,6 +97,10 @@ func (v *Validator) Validate(t model.Token) error {
 
 	if (len(v.userID) > 0) && (claims.Subject != v.userID) {
 		return ErrTokenValidationInvalidSubject
+	}
+
+	if token.Type() == v.tokenType {
+		return ErrorTokenValidatrionTokenTypeMismatch
 	}
 
 	return nil

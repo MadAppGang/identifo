@@ -17,18 +17,36 @@ func (ar *Router) initRoutes() {
 		ar.ResetTokenMiddleware(),
 		negroni.WrapFunc(ar.ResetPassword()),
 	)).Methods("POST")
+
 	ar.Router.Path("/password/{reset:reset\\/?}").Handler(negroni.New(
 		ar.ResetTokenMiddleware(),
 		negroni.WrapFunc(ar.ResetPasswordHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPassword)),
 	)).Methods("GET")
+
 	ar.Router.HandleFunc("/password/{forgot:forgot\\/?}", ar.SendResetToken()).Methods("POST")
 
-	ar.Router.HandleFunc("/{login:login\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Login)).Methods("GET")
+	ar.Router.Path("/{login:login\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.Login()),
+	)).Methods("POST")
+
+	ar.Router.Path("/{login:login\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.LoginHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Login)),
+	)).Methods("GET")
+
+	ar.Router.HandleFunc("/token/{renew:renew\\/?}", ar.RenewToken(ar.StaticFilesPath.PagesPath, "/web-message.html")).Methods("GET")
+	ar.Router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.Logout()),
+	)).Methods("GET")
+
 	ar.Router.HandleFunc("/{register:register\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)).Methods("GET")
 	ar.Router.HandleFunc("/password/{forgot:forgot\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPassword)).Methods("GET")
 	ar.Router.HandleFunc("/password/forgot/{success:success\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPasswordSuccess)).Methods("GET")
 	ar.Router.HandleFunc("/password/reset/{error:error\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.TokenError)).Methods("GET")
 	ar.Router.HandleFunc("/password/reset/{success:success\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetSuccess)).Methods("GET")
+	ar.Router.HandleFunc("/{misconfiguration:misconfiguration\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Misconfiguration)).Methods("GET")
 
 	stylesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.StylesPath))
 	scriptsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ScriptsPath))

@@ -17,6 +17,7 @@ type StaticPages struct {
 	ResetPassword         string
 	TokenError            string
 	ResetSuccess          string
+	Misconfiguration      string
 }
 
 //EmailTemplates store email templates
@@ -50,6 +51,7 @@ var defaultStaticPages = StaticPages{
 	ForgotPasswordSuccess: "forgot-password-success.html",
 	TokenError:            "token-error.html",
 	ResetSuccess:          "reset-success.html",
+	Misconfiguration:      "misconfiguration.html",
 }
 
 // DefaultStaticPagesOptions set default HTML pages
@@ -105,7 +107,7 @@ func (ar *Router) HTMLFileHandler(pathComponents ...string) http.HandlerFunc {
 
 }
 
-//ResetPasswordHandler handles reset password request
+// ResetPasswordHandler handles reset password request
 func (ar *Router) ResetPasswordHandler(pathComponents ...string) http.HandlerFunc {
 
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))

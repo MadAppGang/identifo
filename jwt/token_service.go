@@ -43,6 +43,8 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 	t.tokenStorage = storage
 	// 2 hours is default expire time for refresh token
 	t.resetTokenLifespan = int64(7200)
+	// 2 days is default expire time for auth token
+	t.webCookieTokenLifespan = int64(60 * 60 * 24 * 2)
 
 	//trying to guess algo from the private file
 	if alg == model.TokenServiceAlgorithmAuto {
@@ -84,14 +86,15 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 
 //TokenService JWT token service
 type TokenService struct {
-	privateKey         interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
-	publicKey          interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
-	tokenStorage       model.TokenStorage
-	appStorage         model.AppStorage
-	userStorage        model.UserStorage
-	algorithm          model.TokenServiceAlgorithm
-	issuer             string
-	resetTokenLifespan int64
+	privateKey             interface{} //*ecdsa.PrivateKey, or *rsa.PrivateKey
+	publicKey              interface{} //*ecdsa.PublicKey, or *rsa.PublicKey
+	tokenStorage           model.TokenStorage
+	appStorage             model.AppStorage
+	userStorage            model.UserStorage
+	algorithm              model.TokenServiceAlgorithm
+	issuer                 string
+	resetTokenLifespan     int64
+	webCookieTokenLifespan int64
 }
 
 //Issuer returns issuer name
@@ -125,6 +128,11 @@ func (ts *TokenService) KeyID() string {
 	return ""
 }
 
+// WebCookieTokenLifespan return auth token lifespan
+func (ts *TokenService) WebCookieTokenLifespan() int64 {
+	return ts.webCookieTokenLifespan
+}
+
 //Parse parses token data from string representation
 func (ts *TokenService) Parse(s string) (model.Token, error) {
 	tokenString := strings.TrimSpace(s)
@@ -142,6 +150,24 @@ func (ts *TokenService) Parse(s string) (model.Token, error) {
 	t := Token{}
 	t.JWT = token
 	return &t, nil
+}
+
+// ValidateTokenString parses token and validates it.
+func (ts *TokenService) ValidateTokenString(tstr string, v Validator, tokenType string) (model.Token, error) {
+	token, err := ts.Parse(tstr)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := v.Validate(token); err != nil {
+		return nil, err
+	}
+
+	if token.Type() != tokenType {
+		return nil, err
+	}
+
+	return token, nil
 }
 
 //NewToken creates new token for user
@@ -328,6 +354,44 @@ func (ts *TokenService) NewResetToken(userID string) (model.Token, error) {
 	return &Token{JWT: token, new: true}, nil
 }
 
+// NewWebCookieToken creates web cookie token
+func (ts *TokenService) NewWebCookieToken(u model.User) (model.Token, error) {
+	//check user
+	if !u.Active() {
+		return nil, ErrInvalidUser
+	}
+	now := TimeFunc().Unix()
+	lifespan := ts.resetTokenLifespan
+
+	claims := Claims{
+		Type:  model.WebCookieTokenType,
+		KeyID: ts.KeyID(),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: (now + lifespan),
+			Issuer:    ts.issuer,
+			Subject:   u.ID(),
+			Audience:  "identifo",
+			IssuedAt:  now,
+		},
+	}
+
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := jwt.NewWithClaims(sm, claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+
+	return &Token{JWT: token, new: true}, nil
+}
+
 func (ts *TokenService) String(t model.Token) (string, error) {
 	token, ok := t.(*Token)
 	if !ok {
@@ -351,6 +415,14 @@ func (ts *TokenService) String(t model.Token) (string, error) {
 func ResetTokenLifespan(lifespan int64) func(*TokenService) error {
 	return func(ts *TokenService) error {
 		ts.resetTokenLifespan = lifespan
+		return nil
+	}
+}
+
+// WebCookieTokenLifespan sets custom lifespan in seconds for the web cookie token
+func WebCookieTokenLifespan(lifespan int64) func(*TokenService) error {
+	return func(ts *TokenService) error {
+		ts.webCookieTokenLifespan = lifespan
 		return nil
 	}
 }

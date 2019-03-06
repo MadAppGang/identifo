@@ -92,7 +92,25 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	return AppData{appData: appdata}, nil
 }
 
-// AddNewApp adds new app to DynamoDB storage.
+// ActiveAppByID returns app by id only if it's active.
+func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
+	if appID == "" {
+		return nil, ErrorEmptyAppID
+	}
+
+	app, err := as.AppByID(appID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !app.Active() {
+		return nil, ErrorInactiveApp
+	}
+
+	return app, nil
+}
+
+// AddNewApp add new app to dynamodb storage.
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
