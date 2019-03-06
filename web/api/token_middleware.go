@@ -6,6 +6,7 @@ import (
 
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
 )
 
@@ -21,7 +22,7 @@ const (
 // Token middleware extracts token and validates it
 func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		app := appFromContext(r.Context())
+		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
@@ -33,7 +34,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
 			return
 		}
-		v := jwt.NewValidator(app.ID(), ar.tokenService.Issuer(), "")
+		v := jwt.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
 		token, err := ar.tokenService.Parse(string(tstr))
 		if err != nil {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
@@ -41,10 +42,6 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		}
 		if err := v.Validate(token); err != nil {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, err.Error())
-			return
-		}
-		if tokenType != token.Type() {
-			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "Invalid token type")
 			return
 		}
 

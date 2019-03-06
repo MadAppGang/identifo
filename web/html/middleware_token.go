@@ -6,6 +6,7 @@ import (
 	"path"
 
 	"github.com/madappgang/identifo/jwt"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
@@ -13,6 +14,7 @@ import (
 //ResetTokenMiddleware checks token in questy and validate it
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/reset/error")
+	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.WebCookieTokenType)
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {
@@ -32,19 +34,15 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 			return
 		}
 
-		v := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "")
-		token, err := ar.TokenService.Parse(string(tstr))
+		token, err := ar.TokenService.Parse(tstr)
 		if err != nil {
+			ar.Logger.Printf("Error invalid token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
 			return
 		}
 
-		if err := v.Validate(token); err != nil {
-			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
-			return
-		}
-
-		if model.ResetTokenType != token.Type() {
+		if err = tokenValidator.Validate(token); err != nil {
+			ar.Logger.Printf("Error invalid token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)
 			return
 		}

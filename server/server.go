@@ -48,6 +48,7 @@ type DatabaseComposer interface {
 
 // NewServer creates backend service.
 func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
+
 	appStorage, userStorage, tokenStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err

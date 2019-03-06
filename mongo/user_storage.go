@@ -246,7 +246,7 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 // User data implementation.
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Name         string                 `bson:"name,omitempty" json:"username,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`

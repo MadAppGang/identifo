@@ -39,6 +39,24 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	return AppData{appData: ad}, nil
 }
 
+// ActiveAppByID returns app by id only if it's active.
+func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
+	if appID == "" {
+		return nil, ErrorEmptyAppID
+	}
+
+	app, err := as.AppByID(appID)
+	if err != nil {
+		return nil, err
+	}
+
+	if !app.Active() {
+		return nil, ErrorInactiveApp
+	}
+
+	return app, nil
+}
+
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {

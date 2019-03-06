@@ -9,6 +9,8 @@ const (
 	AccessTokenType = "access"
 	//ResetTokenType reset password token type value
 	ResetTokenType = "reset"
+	//WebCookieTokenType web-cookie token type value
+	WebCookieTokenType = "web-cookie"
 )
 
 //TokenServiceAlgorithm - we support only two now
@@ -33,10 +35,12 @@ type TokenService interface {
 	NewResetToken(userID string) (Token, error)
 	//RefreshToken issues the new access token with access token
 	RefreshToken(token Token) (Token, error)
+	NewWebCookieToken(u User) (Token, error)
 	Parse(string) (Token, error)
 	String(Token) (string, error)
 	Issuer() string
 	Algorithm() string
+	WebCookieTokenLifespan() int64
 	PublicKey() interface{} //we are not using crypto.PublicKey here to avoid dependencies
 	KeyID() string
 }
@@ -49,7 +53,7 @@ type Token interface {
 	Payload() map[string]string
 }
 
-//Validator calidate token with external requester
+// Validator validates token with external requester.
 type Validator interface {
 	Validate(Token) error
 }
