@@ -8,25 +8,23 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-//NewAppStorage creates new memory AppStorage implementation
+// NewAppStorage creates new in-memory AppStorage implementation.
 func NewAppStorage() model.AppStorage {
-	as := AppStorage{}
-	as.storage = make(map[string]AppData)
-	return &as
+	return &AppStorage{storage: make(map[string]AppData)}
 }
 
-//AppStorage is fully functional app storage
+// AppStorage is a fully functional app storage.
 type AppStorage struct {
 	storage map[string]AppData
 }
 
-//AppByID returns app from memory by ID
+// AppByID returns app by ID from the in-memory storage.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	if a, ok := as.storage[id]; !ok {
+	a, ok := as.storage[id]
+	if !ok {
 		return nil, ErrorNotFound
-	} else {
-		return a, nil
 	}
+	return a, nil
 }
 
 // ActiveAppByID returns app by id only if it's active.
@@ -47,19 +45,19 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	return app, nil
 }
 
-//AddNewApp add new app to memory storage
+// AddNewApp adds new app to in-memory storage.
 func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
 	as.storage[app.ID()] = NewAppData(app)
 	return app, nil
 }
 
-//DisableApp disables app from storage
+// DisableApp deletes app from in-memory storage.
 func (as *AppStorage) DisableApp(app model.AppData) error {
 	delete(as.storage, app.ID())
 	return nil
 }
 
-//UpdateApp updates app in storage
+// UpdateApp updates app in the storage.
 func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 	delete(as.storage, oldAppID)
 	as.storage[newApp.ID()] = NewAppData(newApp)
@@ -78,16 +76,15 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
-//ImportJSON import data from JSON
+// ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println(err)
+		log.Println("Error unmarshalling app data:", err)
 		return err
 	}
 	for _, a := range apd {
-		_, err := as.AddNewApp(AppData{appData: a})
-		if err != nil {
+		if _, err := as.AddNewApp(AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -108,12 +105,12 @@ type appData struct {
 	TokenPayload         []string `json:"token_payload,omitempty"`
 }
 
-//AppData is memory model for model.AppData
+// AppData is an in-memory model for model.AppData.
 type AppData struct {
 	appData
 }
 
-//NewAppData instantiate app data memory model from general one
+// NewAppData instantiates app data in-memory model from the general one.
 func NewAppData(data model.AppData) AppData {
 	return AppData{appData: appData{
 		ID:                   data.ID(),
@@ -130,7 +127,7 @@ func NewAppData(data model.AppData) AppData {
 	}}
 }
 
-//MakeAppData creates new memory app data instance
+// MakeAppData creates new in-memory app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
 	return AppData{appData: appData{
 		ID:                   id,
@@ -147,21 +144,40 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 	}}
 }
 
-func (ad AppData) ID() string     { return ad.appData.ID }
+// ID implements model.AppData interface.
+func (ad AppData) ID() string { return ad.appData.ID }
+
+// Secret implements model.AppData interface.
 func (ad AppData) Secret() string { return ad.appData.Secret }
-func (ad AppData) Active() bool   { return ad.appData.Active }
+
+// Active implements model.AppData interface.
+func (ad AppData) Active() bool { return ad.appData.Active }
 
 // Name implements model.AppData interface.
-func (ad AppData) Name() string                { return ad.appData.Name }
-func (ad AppData) Description() string         { return ad.appData.Description }
-func (ad AppData) Scopes() []string            { return ad.appData.Scopes }
-func (ad AppData) Offline() bool               { return ad.appData.Offline }
-func (ad AppData) RedirectURL() string         { return ad.appData.RedirectURL }
-func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
-func (ad AppData) TokenLifespan() int64        { return ad.appData.TokenLifespan }
-func (ad AppData) TokenPayload() []string      { return ad.appData.TokenPayload }
+func (ad AppData) Name() string { return ad.appData.Name }
 
-//AddAppDataFromFile loads appdata from JSON file and save it to the storage
+// Description implements model.AppData interface.
+func (ad AppData) Description() string { return ad.appData.Description }
+
+// Scopes implements model.AppData interface.
+func (ad AppData) Scopes() []string { return ad.appData.Scopes }
+
+// Offline implements model.AppData interface.
+func (ad AppData) Offline() bool { return ad.appData.Offline }
+
+// RedirectURL implements model.AppData interface.
+func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
+
+// RefreshTokenLifespan implements model.AppData interface.
+func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
+
+// TokenLifespan implements model.AppData interface.
+func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
+
+// TokenPayload implements model.AppData interface.
+func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
+
+// AddAppDataFromFile loads app data from JSON file and saves it to the storage.
 func AddAppDataFromFile(as model.AppStorage, file string) {
 
 }

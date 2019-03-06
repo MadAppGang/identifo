@@ -200,6 +200,18 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	return user.ID(), nil
 }
 
+// DeleteUser deletes user by id.
+func (us *UserStorage) DeleteUser(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	err := s.C.RemoveId(bson.ObjectIdHex(id))
+	return err
+}
+
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {

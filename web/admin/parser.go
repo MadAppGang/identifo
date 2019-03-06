@@ -9,6 +9,7 @@ import (
 	"path/filepath"
 	"strconv"
 
+	"github.com/gorilla/mux"
 	"gopkg.in/go-playground/validator.v9"
 	"gopkg.in/yaml.v2"
 )
@@ -76,6 +77,11 @@ func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, 
 	}
 
 	return skip, limit, nil
+}
+
+// getRouteVar returns the route variable with specified name for the provided request.
+func getRouteVar(name string, r *http.Request) string {
+	return mux.Vars(r)[name]
 }
 
 // getConf reads admin panel configuration file and parses it to adminData struct.

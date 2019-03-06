@@ -67,6 +67,29 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return res, nil
 }
 
+// DeleteUser deletes user by ID.
+func (us *UserStorage) DeleteUser(id string) error {
+	if err := us.db.Update(func(tx *bolt.Tx) error {
+		ub := tx.Bucket([]byte(UserBucket))
+		return ub.Delete([]byte(id))
+	}); err != nil {
+		return err
+	}
+
+	if err := us.db.Update(func(tx *bolt.Tx) error {
+		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		return unpb.Delete([]byte(id))
+	}); err != nil {
+		return err
+	}
+
+	err := us.db.Update(func(tx *bolt.Tx) error {
+		usib := tx.Bucket([]byte(UserBySocialIDBucket))
+		return usib.Delete([]byte(id))
+	})
+	return err
+}
+
 // UserByFederatedID returns user by federated ID.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	var res User
@@ -330,7 +353,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 		for _, uid := range userIDs {
 			u := ub.Get(uid)
 			if u == nil {
-				log.Printf("User %s does not exists in %s, but does exist in %s", uid, UserBucket, UserByNameAndPassword)
+				log.Printf("User %s does not exist in %s, but does exist in %s", uid, UserBucket, UserByNameAndPassword)
 				continue
 			}
 
