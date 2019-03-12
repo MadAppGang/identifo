@@ -28,6 +28,11 @@ type AppStorage struct {
 	db *DB
 }
 
+// NewAppData returns newly created app data.
+func (as *AppStorage) NewAppData() model.AppData {
+	return &AppData{appData: appData{}}
+}
+
 // ensureTable ensures that app table exists in database.
 func (as *AppStorage) ensureTable() error {
 	exists, err := as.db.isTableExists(AppsTable)
@@ -110,8 +115,18 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	return app, nil
 }
 
-// AddNewApp add new app to dynamodb storage.
-func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
+// CreateApp creates new app in DynamoDB.
+func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
+	res, ok := app.(*AppData)
+	if !ok || app == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+	result, err := as.addNewApp(*res)
+	return result, err
+}
+
+// addNewApp adds new app to DynamoDB storage.
+func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
@@ -191,7 +206,7 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 		log.Println("Error disabling old app:", err)
 		return err
 	}
-	_, err := as.AddNewApp(newApp)
+	_, err := as.addNewApp(newApp)
 	return err
 }
 
@@ -243,7 +258,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.AddNewApp(AppData{appData: a}); err != nil {
+		if _, err := as.addNewApp(AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -323,6 +338,12 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		RefreshTokenLifespan: refreshTokenLifespan,
 		TokenLifespan:        tokenLifespan,
 	}}, nil
+}
+
+// Sanitize removes all sensitive data.
+func (ad AppData) Sanitize() model.AppData {
+	ad.appData.Secret = ""
+	return ad
 }
 
 // ID implements model.AppData interface.
