@@ -26,7 +26,7 @@ type AppStorage struct {
 
 // NewAppData returns newly created app data.
 func (as *AppStorage) NewAppData() model.AppData {
-	return AppData{appData: appData{}}
+	return &AppData{appData: appData{}}
 }
 
 // AppByID returns app from MongoDB by ID.
