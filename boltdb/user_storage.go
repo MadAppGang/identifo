@@ -8,6 +8,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
+	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -45,6 +46,11 @@ func NewUserStorage(db *bolt.DB) (model.UserStorage, error) {
 // UserStorage implements user storage interface for BoltDB.
 type UserStorage struct {
 	db *bolt.DB
+}
+
+// NewUser returns pointer to newly created user.
+func (us *UserStorage) NewUser() model.User {
+	return &User{}
 }
 
 // UserByID returns user by ID.
@@ -272,6 +278,39 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	return us.AddNewUser(User{userData: u}, password)
 }
 
+// UpdateUser updates user in BoltDB storage.
+func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+	res, ok := newUser.(*User)
+	if !ok || res == nil {
+		return nil, ErrorWrongDataFormat
+	}
+
+	// generate new ID if it's not set
+	if len(newUser.ID()) == 0 {
+		res.userData.ID = xid.New().String()
+	}
+
+	err := us.db.Update(func(tx *bolt.Tx) error {
+		data, err := res.Marshal()
+		if err != nil {
+			return err
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		if err := ub.Delete([]byte(userID)); err != nil {
+			return err
+		}
+
+		return ub.Put([]byte(res.ID()), data)
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedUser, err := us.UserByID(userID)
+	return updatedUser, err
+}
+
 // ResetPassword sets new user password.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	return us.db.Update(func(tx *bolt.Tx) error {
@@ -417,9 +456,10 @@ func (u User) Marshal() ([]byte, error) {
 }
 
 // Sanitize removes all sensitive data.
-func (u User) Sanitize() {
+func (u User) Sanitize() model.User {
 	u.userData.Pswd = ""
 	u.userData.Active = false
+	return u
 }
 
 // ID implements model.User interface.

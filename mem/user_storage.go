@@ -15,6 +15,11 @@ func NewUserStorage() model.UserStorage {
 type UserStorage struct {
 }
 
+// NewUser returns pointer to newly created user.
+func (us *UserStorage) NewUser() model.User {
+	return &user{}
+}
+
 // UserByID returns randomly generated user.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return randUser(), nil
@@ -69,6 +74,11 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 // AddUserWithFederatedID returns randomly generated user.
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
 	return randUser(), nil
+}
+
+// UpdateUser returns what it receives.
+func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+	return newUser, nil
 }
 
 // ResetPassword does nothing here.
@@ -126,9 +136,10 @@ type user struct {
 	userData
 }
 
-func (u *user) Sanitize() {
+func (u *user) Sanitize() model.User {
 	u.userData.Pswd = ""
 	u.userData.Active = false
+	return u
 }
 
 // ID implements model.User interface.

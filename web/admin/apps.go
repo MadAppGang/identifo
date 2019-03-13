@@ -78,6 +78,26 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 	}
 }
 
+// UpdateApp updates app in the database.
+func (ar *Router) UpdateApp() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		appID := getRouteVar("id", r)
+		ad := ar.appStorage.NewAppData()
+		if ar.mustParseJSON(w, r, ad) != nil {
+			return
+		}
+		if err := ar.appStorage.UpdateApp(appID, ad); err != nil {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.logger.Printf("App %s updated", appID)
+
+		ar.ServeJSON(w, http.StatusOK, nil)
+		return
+	}
+}
+
 // DeleteApp deletes app from the database by id.
 func (ar *Router) DeleteApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {

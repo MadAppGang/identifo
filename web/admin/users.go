@@ -87,6 +87,30 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 	}
 }
 
+// UpdateUser updates user in the database.
+func (ar *Router) UpdateUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := getRouteVar("id", r)
+
+		u := ar.userStorage.NewUser()
+		if ar.mustParseJSON(w, r, u) != nil {
+			return
+		}
+
+		updatedUser, err := ar.userStorage.UpdateUser(userID, u)
+		if err != nil {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.logger.Printf("User %s updated", userID)
+
+		updatedUser = updatedUser.Sanitize()
+		ar.ServeJSON(w, http.StatusOK, updatedUser)
+		return
+	}
+}
+
 // DeleteUser deletes user from the database.
 func (ar *Router) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
