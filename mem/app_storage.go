@@ -19,7 +19,7 @@ type AppStorage struct {
 	storage map[string]AppData
 }
 
-// NewAppData returns newly created app data.
+// NewAppData returns pointer to newly created app data.
 func (as *AppStorage) NewAppData() model.AppData {
 	return &AppData{appData: appData{}}
 }
