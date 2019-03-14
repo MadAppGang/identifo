@@ -83,6 +83,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		user.Sanitize()
 
 		ar.ServeJSON(w, http.StatusOK, user)
+		return
 	}
 }
 

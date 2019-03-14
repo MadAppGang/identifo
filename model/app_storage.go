@@ -5,11 +5,13 @@ type AppStorage interface {
 	//AppByID returns application data by AppID
 	AppByID(id string) (AppData, error)
 	ActiveAppByID(appID string) (AppData, error)
-	AddNewApp(app AppData) (AppData, error)
+	CreateApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(oldAppID string, newApp AppData) error
 	FetchApps(filterString string, skip, limit int) ([]AppData, error)
+	DeleteApp(id string) error
 	ImportJSON(data []byte) error
+	NewAppData() AppData
 }
 
 //AppData represents Application data information
@@ -33,4 +35,5 @@ type AppData interface {
 	RefreshTokenLifespan() int64
 	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayload() []string
+	Sanitize() AppData
 }

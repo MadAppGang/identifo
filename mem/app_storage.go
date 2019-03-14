@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/rs/xid"
 )
 
 // NewAppStorage creates new in-memory AppStorage implementation.
@@ -16,6 +17,11 @@ func NewAppStorage() model.AppStorage {
 // AppStorage is a fully functional app storage.
 type AppStorage struct {
 	storage map[string]AppData
+}
+
+// NewAppData returns pointer to newly created app data.
+func (as *AppStorage) NewAppData() model.AppData {
+	return &AppData{appData: appData{}}
 }
 
 // AppByID returns app by ID from the in-memory storage.
@@ -45,10 +51,28 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	return app, nil
 }
 
-// AddNewApp adds new app to in-memory storage.
-func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
-	as.storage[app.ID()] = NewAppData(app)
-	return app, nil
+// CreateApp creates new app in memory.
+func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
+	res, ok := app.(*AppData)
+	if !ok || app == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+	result, err := as.addNewApp(*res)
+	return result, err
+}
+
+// addNewApp adds new app to in-memory storage.
+func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
+	a, ok := app.(AppData)
+	if !ok {
+		return nil, model.ErrorWrongDataFormat
+	}
+	// generate new ID if it's not set
+	if len(a.ID()) == 0 {
+		a.appData.ID = xid.New().String()
+	}
+	as.storage[a.ID()] = NewAppData(app)
+	return a, nil
 }
 
 // DisableApp deletes app from in-memory storage.
@@ -76,6 +100,11 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
+// DeleteApp does nothing here.
+func (as *AppStorage) DeleteApp(id string) error {
+	return nil
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
@@ -84,7 +113,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.AddNewApp(AppData{appData: a}); err != nil {
+		if _, err := as.addNewApp(AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -142,6 +171,12 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:        tokenLifespan,
 		TokenPayload:         tokenPayload,
 	}}
+}
+
+// Sanitize removes all sensitive data.
+func (ad AppData) Sanitize() model.AppData {
+	ad.appData.Secret = ""
+	return ad
 }
 
 // ID implements model.AppData interface.

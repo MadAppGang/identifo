@@ -24,6 +24,11 @@ type AppStorage struct {
 	db *DB
 }
 
+// NewAppData returns pointer to newly created app data.
+func (as *AppStorage) NewAppData() model.AppData {
+	return &AppData{appData: appData{}}
+}
+
 // AppByID returns app from MongoDB by ID.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if !bson.IsObjectIdHex(id) {
@@ -80,8 +85,30 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
-// AddNewApp adds new app to MongoDB storage.
-func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
+// DeleteApp deletes app by id.
+func (as *AppStorage) DeleteApp(id string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := as.db.Session(AppsCollection)
+	defer s.Close()
+
+	err := s.C.RemoveId(bson.ObjectIdHex(id))
+	return err
+}
+
+// CreateApp creates new app in MongoDB.
+func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
+	res, ok := app.(*AppData)
+	if !ok || app == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+	result, err := as.addNewApp(*res)
+	return result, err
+}
+
+// addNewApp adds new app to MongoDB storage.
+func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 	a, ok := app.(AppData)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
@@ -146,7 +173,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.AddNewApp(AppData{appData: a}); err != nil {
+		if _, err := as.addNewApp(AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -224,6 +251,12 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:        tokenLifespan,
 		TokenPayload:         tokenPayload,
 	}}, nil
+}
+
+// Sanitize removes all sensitive data.
+func (ad AppData) Sanitize() model.AppData {
+	ad.appData.Secret = ""
+	return ad
 }
 
 // ID implements model.AppData interface.

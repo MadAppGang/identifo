@@ -8,6 +8,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
+	"github.com/rs/xid"
 )
 
 const (
@@ -33,6 +34,11 @@ func NewAppStorage(db *bolt.DB) (model.AppStorage, error) {
 // AppStorage is a fully functional app storage.
 type AppStorage struct {
 	db *bolt.DB
+}
+
+// NewAppData returns pointer to newly created app data.
+func (as *AppStorage) NewAppData() model.AppData {
+	return &AppData{appData: appData{}}
 }
 
 // AppByID returns app from memory by ID.
@@ -72,13 +78,27 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	return app, nil
 }
 
-// AddNewApp add new app to memory storage.
-func (as *AppStorage) AddNewApp(app model.AppData) (model.AppData, error) {
+// CreateApp creates new app in BoltDB.
+func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
+	res, ok := app.(*AppData)
+	if !ok || app == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+	result, err := as.addNewApp(*res)
+	return result, err
+}
+
+// addNewApp adds new app to memory storage.
+func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 	res, ok := app.(AppData)
 	if !ok {
 		return nil, ErrorWrongDataFormat
 	}
-	return app, as.db.Update(func(tx *bolt.Tx) error {
+	// generate new ID if it's not set
+	if len(res.ID()) == 0 {
+		res.appData.ID = xid.New().String()
+	}
+	return res, as.db.Update(func(tx *bolt.Tx) error {
 		data, err := res.Marshal()
 		if err != nil {
 			return err
@@ -97,7 +117,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 		return ErrorWrongDataFormat
 	}
 	res.appData.Active = false
-	_, err := as.AddNewApp(res)
+	_, err := as.addNewApp(res)
 	return err
 }
 
@@ -151,6 +171,15 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	return apps, nil
 }
 
+// DeleteApp deletes app by ID.
+func (as *AppStorage) DeleteApp(id string) error {
+	err := as.db.Update(func(tx *bolt.Tx) error {
+		ab := tx.Bucket([]byte(AppBucket))
+		return ab.Delete([]byte(id))
+	})
+	return err
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
@@ -159,7 +188,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.AddNewApp(AppData{appData: a}); err != nil {
+		if _, err := as.addNewApp(AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -231,6 +260,12 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:        tokenLifespan,
 		TokenPayload:         tokenPayload,
 	}}
+}
+
+// Sanitize removes all sensitive data.
+func (ad AppData) Sanitize() model.AppData {
+	ad.appData.Secret = ""
+	return ad
 }
 
 // ID implements model.AppData interface.

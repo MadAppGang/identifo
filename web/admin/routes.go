@@ -28,6 +28,18 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchApps()),
 	)).Methods("GET")
+	ar.router.Path("/{apps:apps\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.CreateApp()),
+	)).Methods("POST")
+
+	apps := mux.NewRouter().PathPrefix("/apps").Subrouter()
+	ar.router.PathPrefix("/apps").Handler(negroni.New(
+		ar.Session(),
+		negroni.Wrap(apps),
+	))
+	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetApp()).Methods("GET")
+	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteApp()).Methods("DELETE")
 
 	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
 		ar.Session(),
