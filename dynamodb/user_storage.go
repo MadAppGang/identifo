@@ -235,7 +235,6 @@ func (us *UserStorage) addNewUser(u *User) (*User, error) {
 		log.Println("Error putting item:", err)
 		return nil, ErrorInternalError
 	}
-	u.Sanitize() //TODO
 	return u, err
 }
 

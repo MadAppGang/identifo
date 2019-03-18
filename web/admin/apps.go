@@ -86,14 +86,16 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 		if ar.mustParseJSON(w, r, ad) != nil {
 			return
 		}
-		if err := ar.appStorage.UpdateApp(appID, ad); err != nil {
+
+		app, err := ar.appStorage.UpdateApp(appID, ad)
+		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
 
 		ar.logger.Printf("App %s updated", appID)
 
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, http.StatusOK, app)
 		return
 	}
 }

@@ -195,19 +195,19 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in DynamoDB storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
+func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) (model.AppData, error) {
 	if _, err := xid.FromString(oldAppID); err != nil {
 		log.Println("Incorrect oldAppID: ", oldAppID)
-		return model.ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 
 	ad := AppData{appData: appData{ID: oldAppID}}
 	if err := as.DisableApp(ad); err != nil {
 		log.Println("Error disabling old app:", err)
-		return err
+		return nil, err
 	}
-	_, err := as.addNewApp(newApp)
-	return err
+	updatedApp, err := as.addNewApp(newApp)
+	return updatedApp, err
 }
 
 // FetchApps fetches apps which name satisfies provided filterString.

@@ -146,9 +146,9 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in MongoDB storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
+func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) (model.AppData, error) {
 	if !bson.IsObjectIdHex(oldAppID) {
-		return model.ErrorWrongDataFormat
+		return nil, model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
@@ -159,10 +159,10 @@ func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
 		ReturnNew: true,
 	}
 	if _, err := s.C.FindId(bson.ObjectId(oldAppID)).Apply(update, &ad); err != nil {
-		return err
+		return nil, err
 	}
-	//maybe return updated data?
-	return nil
+
+	return AppData{appData: ad}, nil
 }
 
 // ImportJSON imports data from JSON.
