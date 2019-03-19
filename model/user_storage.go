@@ -11,9 +11,11 @@ type UserStorage interface {
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id string) (User, error)
+	UpdateUser(userID string, newUser User) (User, error)
 	ResetPassword(id, password string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, error)
+	NewUser() User
 
 	RequestScopes(userID string, scopes []string) ([]string, error)
 	Scopes() []string
@@ -29,5 +31,5 @@ type User interface {
 	PasswordHash() string
 	Profile() map[string]interface{}
 	Active() bool
-	Sanitize()
+	Sanitize() User
 }

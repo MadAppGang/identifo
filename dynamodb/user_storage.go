@@ -34,6 +34,11 @@ type UserStorage struct {
 	db *DB
 }
 
+// NewUser returns pointer to newly created user.
+func (us *UserStorage) NewUser() model.User {
+	return &User{}
+}
+
 // UserByID returns user by its ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	idx, err := xid.FromString(id)
@@ -188,6 +193,20 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 // AddNewUser adds new user.
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
+	preparedUser, err := us.prepareUserForSaving(usr)
+	if err != nil {
+		return nil, err
+	}
+
+	if len(password) > 0 {
+		preparedUser.userData.Pswd = PasswordHash(password)
+	}
+
+	updatedUser, err := us.addNewUser(preparedUser)
+	return updatedUser, err
+}
+
+func (us *UserStorage) prepareUserForSaving(usr model.User) (*User, error) {
 	u, ok := usr.(*User)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
@@ -196,11 +215,12 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	if _, err := xid.FromString(u.ID()); err != nil {
 		u.userData.ID = xid.New().String()
 	}
-	if len(password) > 0 {
-		u.userData.Pswd = PasswordHash(password)
-	}
-
 	u.userData.Name = strings.ToLower(u.userData.Name)
+
+	return u, nil
+}
+
+func (us *UserStorage) addNewUser(u *User) (*User, error) {
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
 		log.Println("Error marshalling user:", err)
@@ -215,8 +235,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		log.Println("Error putting item:", err)
 		return nil, ErrorInternalError
 	}
-	u.Sanitize()
-	return u, nil
+	return u, err
 }
 
 // DeleteUser deletes user by id.
@@ -298,6 +317,37 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	udata := userData{ID: user.ID, Name: user.Name, Active: true}
 	return &User{userData: udata}, nil
+}
+
+// UpdateUser updates user in DynamoDB storage.
+func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+	if _, err := xid.FromString(userID); err != nil {
+		log.Println("Incorrect userID: ", userID)
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	res, ok := newUser.(*User)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.userData.ID = userID
+	}
+
+	if err := us.DeleteUser(userID); err != nil {
+		log.Println("Error deleting old user:", err)
+		return nil, err
+	}
+
+	preparedUser, err := us.prepareUserForSaving(res)
+	if err != nil {
+		return nil, err
+	}
+
+	updatedUser, err := us.addNewUser(preparedUser)
+	return updatedUser, err
 }
 
 // ResetPassword sets new user password.
@@ -416,8 +466,10 @@ type User struct {
 }
 
 // Sanitize removes sensitive data.
-func (u *User) Sanitize() {
+func (u *User) Sanitize() model.User {
 	u.userData.Pswd = ""
+	u.userData.Active = false
+	return u
 }
 
 // UserFromJSON deserializes user data from JSON.

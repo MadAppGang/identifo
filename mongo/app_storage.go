@@ -146,23 +146,34 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in MongoDB storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	if !bson.IsObjectIdHex(oldAppID) {
-		return model.ErrorWrongDataFormat
+func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
+	if !bson.IsObjectIdHex(appID) {
+		return nil, model.ErrorWrongDataFormat
 	}
+
+	res, ok := newApp.(*AppData)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.appData.ID = bson.ObjectId(appID)
+	}
+
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
 
 	var ad appData
 	update := mgo.Change{
-		Update:    bson.M{"$set": newApp},
+		Update:    bson.M{"$set": *res},
 		ReturnNew: true,
 	}
-	if _, err := s.C.FindId(bson.ObjectId(oldAppID)).Apply(update, &ad); err != nil {
-		return err
+	if _, err := s.C.FindId(bson.ObjectId(appID)).Apply(update, &ad); err != nil {
+		return nil, err
 	}
-	//maybe return updated data?
-	return nil
+
+	return AppData{appData: ad}, nil
 }
 
 // ImportJSON imports data from JSON.

@@ -122,24 +122,36 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in the storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) error {
-	res, ok := newApp.(AppData)
-	if !ok {
-		return ErrorWrongDataFormat
+func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
+	res, ok := newApp.(*AppData)
+	if !ok || newApp == nil {
+		return nil, model.ErrorWrongDataFormat
 	}
-	return as.db.Update(func(tx *bolt.Tx) error {
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.appData.ID = appID
+	}
+
+	err := as.db.Update(func(tx *bolt.Tx) error {
 		data, err := res.Marshal()
 		if err != nil {
 			return err
 		}
 
 		ab := tx.Bucket([]byte(AppBucket))
-		if err := ab.Delete([]byte(oldAppID)); err != nil {
+		if err := ab.Delete([]byte(appID)); err != nil {
 			return err
 		}
 
 		return ab.Put([]byte(res.ID()), data)
 	})
+	if err != nil {
+		return nil, err
+	}
+
+	updatedApp, err := as.AppByID(res.ID())
+	return updatedApp, err
+
 }
 
 // FetchApps fetches apps which name satisfies provided filterString.

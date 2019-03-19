@@ -36,6 +36,11 @@ type UserStorage struct {
 	db *DB
 }
 
+// NewUser returns pointer to newly created user.
+func (us *UserStorage) NewUser() model.User {
+	return &User{}
+}
+
 // UserByID returns user by its ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	if !bson.IsObjectIdHex(id) {
@@ -166,6 +171,37 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	return us.AddNewUser(&User{userData: u}, "")
 }
 
+// UpdateUser updates user in MongoDB storage.
+func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+	if !bson.IsObjectIdHex(userID) {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	res, ok := newUser.(*User)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.userData.ID = bson.ObjectId(userID)
+	}
+
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var ud userData
+	update := mgo.Change{
+		Update:    bson.M{"$set": newUser},
+		ReturnNew: true,
+	}
+	if _, err := s.C.FindId(bson.ObjectId(userID)).Apply(update, &ud); err != nil {
+		return nil, err
+	}
+
+	return &User{userData: ud}, nil
+}
+
 // ResetPassword sets new user's password.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	if !bson.IsObjectIdHex(id) {
@@ -259,9 +295,10 @@ type User struct {
 }
 
 // Sanitize removes sensitive data.
-func (u *User) Sanitize() {
+func (u *User) Sanitize() model.User {
 	u.userData.Pswd = ""
 	u.userData.Active = false
+	return u
 }
 
 // UserFromJSON deserializes user from JSON.

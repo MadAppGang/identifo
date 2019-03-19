@@ -27,6 +27,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 			return
 		}
 
+		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 		return
 	}
@@ -47,6 +48,9 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
+		}
+		for i, user := range users {
+			users[i] = user.Sanitize()
 		}
 
 		ar.ServeJSON(w, http.StatusOK, users)
@@ -81,7 +85,30 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		}
 
 		user.Sanitize()
+		ar.ServeJSON(w, http.StatusOK, user)
+		return
+	}
+}
 
+// UpdateUser updates user in the database.
+func (ar *Router) UpdateUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		userID := getRouteVar("id", r)
+
+		u := ar.userStorage.NewUser()
+		if ar.mustParseJSON(w, r, u) != nil {
+			return
+		}
+
+		user, err := ar.userStorage.UpdateUser(userID, u)
+		if err != nil {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.logger.Printf("User %s updated", userID)
+
+		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 		return
 	}

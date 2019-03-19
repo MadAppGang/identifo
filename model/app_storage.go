@@ -7,7 +7,7 @@ type AppStorage interface {
 	ActiveAppByID(appID string) (AppData, error)
 	CreateApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
-	UpdateApp(oldAppID string, newApp AppData) error
+	UpdateApp(appID string, newApp AppData) (AppData, error)
 	FetchApps(filterString string, skip, limit int) ([]AppData, error)
 	DeleteApp(id string) error
 	ImportJSON(data []byte) error
