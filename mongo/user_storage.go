@@ -172,10 +172,21 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 }
 
 // UpdateUser updates user in MongoDB storage.
-func (us *UserStorage) UpdateUser(oldUserID string, newUser model.User) (model.User, error) {
-	if !bson.IsObjectIdHex(oldUserID) {
+func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+	if !bson.IsObjectIdHex(userID) {
 		return nil, model.ErrorWrongDataFormat
 	}
+
+	res, ok := newUser.(*User)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.userData.ID = bson.ObjectId(userID)
+	}
+
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
@@ -184,7 +195,7 @@ func (us *UserStorage) UpdateUser(oldUserID string, newUser model.User) (model.U
 		Update:    bson.M{"$set": newUser},
 		ReturnNew: true,
 	}
-	if _, err := s.C.FindId(bson.ObjectId(oldUserID)).Apply(update, &ud); err != nil {
+	if _, err := s.C.FindId(bson.ObjectId(userID)).Apply(update, &ud); err != nil {
 		return nil, err
 	}
 

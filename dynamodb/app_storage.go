@@ -195,18 +195,29 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in DynamoDB storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) (model.AppData, error) {
-	if _, err := xid.FromString(oldAppID); err != nil {
-		log.Println("Incorrect oldAppID: ", oldAppID)
+func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
+	if _, err := xid.FromString(appID); err != nil {
+		log.Println("Incorrect appID: ", appID)
 		return nil, model.ErrorWrongDataFormat
 	}
 
-	ad := AppData{appData: appData{ID: oldAppID}}
-	if err := as.DisableApp(ad); err != nil {
+	res, ok := newApp.(*AppData)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(newApp.ID()) == 0 {
+		res.appData.ID = appID
+	}
+
+	oldAppData := AppData{appData: appData{ID: appID}}
+	if err := as.DisableApp(oldAppData); err != nil {
 		log.Println("Error disabling old app:", err)
 		return nil, err
 	}
-	updatedApp, err := as.addNewApp(newApp)
+
+	updatedApp, err := as.addNewApp(*res)
 	return updatedApp, err
 }
 

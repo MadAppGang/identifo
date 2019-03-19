@@ -27,6 +27,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 			return
 		}
 
+		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 		return
 	}
@@ -47,6 +48,9 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
+		}
+		for i, user := range users {
+			users[i] = user.Sanitize()
 		}
 
 		ar.ServeJSON(w, http.StatusOK, users)
@@ -81,7 +85,6 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		}
 
 		user.Sanitize()
-
 		ar.ServeJSON(w, http.StatusOK, user)
 		return
 	}
@@ -97,7 +100,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		updatedUser, err := ar.userStorage.UpdateUser(userID, u)
+		user, err := ar.userStorage.UpdateUser(userID, u)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -105,8 +108,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		ar.logger.Printf("User %s updated", userID)
 
-		updatedUser = updatedUser.Sanitize()
-		ar.ServeJSON(w, http.StatusOK, updatedUser)
+		user = user.Sanitize()
+		ar.ServeJSON(w, http.StatusOK, user)
 		return
 	}
 }

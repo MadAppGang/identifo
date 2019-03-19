@@ -326,12 +326,22 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 		return nil, model.ErrorWrongDataFormat
 	}
 
+	res, ok := newUser.(*User)
+	if !ok || res == nil {
+		return nil, model.ErrorWrongDataFormat
+	}
+
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.userData.ID = userID
+	}
+
 	if err := us.DeleteUser(userID); err != nil {
 		log.Println("Error deleting old user:", err)
 		return nil, err
 	}
 
-	preparedUser, err := us.prepareUserForSaving(newUser)
+	preparedUser, err := us.prepareUserForSaving(res)
 	if err != nil {
 		return nil, err
 	}

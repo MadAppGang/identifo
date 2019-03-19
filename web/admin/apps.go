@@ -82,6 +82,7 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 func (ar *Router) UpdateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appID := getRouteVar("id", r)
+
 		ad := ar.appStorage.NewAppData()
 		if ar.mustParseJSON(w, r, ad) != nil {
 			return
@@ -95,6 +96,7 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 
 		ar.logger.Printf("App %s updated", appID)
 
+		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
 		return
 	}

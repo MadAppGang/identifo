@@ -82,8 +82,8 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in the storage.
-func (as *AppStorage) UpdateApp(oldAppID string, newApp model.AppData) (model.AppData, error) {
-	delete(as.storage, oldAppID)
+func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
+	delete(as.storage, appID)
 	updatedApp := NewAppData(newApp)
 	as.storage[newApp.ID()] = updatedApp
 	return updatedApp, nil

@@ -8,7 +8,6 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
-	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -285,9 +284,9 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 		return nil, ErrorWrongDataFormat
 	}
 
-	// generate new ID if it's not set
-	if len(newUser.ID()) == 0 {
-		res.userData.ID = xid.New().String()
+	// use ID from the request if it's not set
+	if len(res.ID()) == 0 {
+		res.userData.ID = userID
 	}
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
@@ -307,7 +306,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 		return nil, err
 	}
 
-	updatedUser, err := us.UserByID(userID)
+	updatedUser, err := us.UserByID(res.ID())
 	return updatedUser, err
 }
 
