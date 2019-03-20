@@ -468,7 +468,6 @@ type User struct {
 // Sanitize removes sensitive data.
 func (u *User) Sanitize() model.User {
 	u.userData.Pswd = ""
-	u.userData.Active = false
 	return u
 }
 

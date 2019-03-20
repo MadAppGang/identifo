@@ -5,7 +5,7 @@ import (
 
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
-	"gopkg.in/mgo.v2"
+	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -297,7 +297,6 @@ type User struct {
 // Sanitize removes sensitive data.
 func (u *User) Sanitize() model.User {
 	u.userData.Pswd = ""
-	u.userData.Active = false
 	return u
 }
 
