@@ -2,6 +2,19 @@ package jwt
 
 import jwt "github.com/dgrijalva/jwt-go"
 
+//NewTokenWithClaims generates new JWT token with claims and keyID
+func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
+	return &jwt.Token{
+		Header: map[string]interface{}{
+			"typ": "JWT",
+			"alg": method.Alg(),
+			"kid": kid,
+		},
+		Claims: claims,
+		Method: method,
+	}
+}
+
 //Token represents JWT token in the system
 type Token struct {
 	JWT *jwt.Token
