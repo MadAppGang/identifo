@@ -18,7 +18,7 @@ func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		serveTemplate := func(errorMessage, IDToken, callbackURL string) {
+		serveTemplate := func(errorMessage, AccessToken, callbackURL string) {
 			if err != nil {
 				ar.Logger.Printf("Error parsing template: %v", err)
 				ar.Error(w, err, 500, "Error parsing template")
@@ -27,7 +27,7 @@ func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 
 			data := map[string]interface{}{
 				"Error":       errorMessage,
-				"IDToken":     IDToken,
+				"AccessToken": AccessToken,
 				"CallbackURL": callbackURL,
 			}
 
