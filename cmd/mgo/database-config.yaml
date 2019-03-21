@@ -1,2 +1,3 @@
-databaseName: identifo
-databaseEndpoint: http://localhost:27017
+type: mongodb
+name: identifo
+endpoint: http://localhost:27017

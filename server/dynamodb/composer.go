@@ -29,7 +29,6 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenService,
 	error,
 ) {
-
 	db, err := dynamodb.NewDB(dc.settings.DBEndpoint, dc.settings.DBRegion)
 	if err != nil {
 		return nil, nil, nil, nil, err

@@ -1,1 +1,2 @@
-databasePath: db.db
+type: boltdb
+path: db.db

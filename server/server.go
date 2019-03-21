@@ -107,7 +107,10 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
 			admin.AccountConfigPathOption(settings.AccountConfigPath),
-			admin.ServerConfigPathOption(settings.ServerConfigPath),
+			admin.DBTypeOptions(settings.DBType),
+			admin.DBNameOptions(settings.DBName),
+			admin.DBEndpointOptions(settings.DBEndpoint),
+			admin.DBRegionOptions(settings.DBRegion),
 		},
 	}
 

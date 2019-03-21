@@ -13,8 +13,8 @@ const databaseConfigPath = "./database-config.yaml"
 // Settings are the extended settings for DynamoDB server.
 type Settings struct {
 	model.ServerSettings
-	DBEndpoint string `yaml:"databaseEndpoint"`
-	DBRegion   string `yaml:"databaseRegion"`
+	DBEndpoint string `yaml:"endpoint"`
+	DBRegion   string `yaml:"region"`
 }
 
 // ServerSettings are default server settings.

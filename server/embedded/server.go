@@ -13,7 +13,7 @@ const databaseConfigPath = "./database-config.yaml"
 // Settings are the extended settings for BoltDB server.
 type Settings struct {
 	model.ServerSettings
-	DBPath string `yaml:"databasePath"`
+	DBPath string `yaml:"path"`
 }
 
 // ServerSettings are default server settings.

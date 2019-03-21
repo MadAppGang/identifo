@@ -28,7 +28,7 @@ type Router struct {
 	WebRouterPrefix   string
 }
 
-//ServeHTTP identifo.Router protocol implementation
+// ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
 	ar.router.ServeHTTP(w, r)
@@ -36,12 +36,11 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 func defaultOptions() []func(*Router) error {
 	return []func(*Router) error{
-		HostOption("http://localhost:8080"),
 		WebRouterPrefixOption("/web"),
 	}
 }
 
-//HostOption sets host value
+// HostOption sets host value.
 func HostOption(host string) func(*Router) error {
 	return func(r *Router) error {
 		r.Host = host
@@ -49,7 +48,7 @@ func HostOption(host string) func(*Router) error {
 	}
 }
 
-//WebRouterPrefixOption sets web prefix host value
+// WebRouterPrefixOption sets web prefix host value.
 func WebRouterPrefixOption(prefix string) func(*Router) error {
 	return func(r *Router) error {
 		r.WebRouterPrefix = prefix
@@ -57,7 +56,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	}
 }
 
-//NewRouter created and initiates new router
+// NewRouter creates and initilizes new router.
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:   negroni.Classic(),
@@ -75,7 +74,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		}
 	}
 
-	//setup default router to stdout
+	// setup logger to stdout.
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -86,7 +85,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 	return &ar, nil
 }
 
-//ServeJSON send status code, headers and data and send it back to the user
+// ServeJSON sends status code, headers and data and send it back to the user
 func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {

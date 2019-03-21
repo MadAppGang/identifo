@@ -15,7 +15,7 @@ type Settings struct {
 	DBName     string `yaml:"databaseName"`
 }
 
-const databaseConfigPath = "./database_config.yaml"
+const databaseConfigPath = "./database-config.yaml"
 
 // ServerSettings are default server settings.
 var ServerSettings = Settings{}
