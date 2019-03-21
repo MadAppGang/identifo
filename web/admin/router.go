@@ -15,17 +15,18 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	middleware     *negroni.Negroni
-	logger         *log.Logger
-	router         *mux.Router
-	sessionService model.SessionService
-	sessionStorage model.SessionStorage
-	appStorage     model.AppStorage
-	userStorage    model.UserStorage
-	ConfigPath     string
-	RedirectURL    string
-	PathPrefix     string
-	Host           string
+	middleware        *negroni.Negroni
+	logger            *log.Logger
+	router            *mux.Router
+	sessionService    model.SessionService
+	sessionStorage    model.SessionStorage
+	appStorage        model.AppStorage
+	userStorage       model.UserStorage
+	AccountConfigPath string
+	ServerConfigPath  string
+	RedirectURL       string
+	PathPrefix        string
+	Host              string
 }
 
 func defaultOptions() []func(*Router) error {
@@ -44,10 +45,18 @@ func HostOption(host string) func(*Router) error {
 	}
 }
 
-// ConfigPathOption sets path to configuration file.
-func ConfigPathOption(configPath string) func(*Router) error {
+// AccountConfigPathOption sets path to configuration file with admin account settings.
+func AccountConfigPathOption(configPath string) func(*Router) error {
 	return func(r *Router) error {
-		r.ConfigPath = configPath
+		r.AccountConfigPath = configPath
+		return nil
+	}
+}
+
+// ServerConfigPathOption sets path to configuration file with server settings.
+func ServerConfigPathOption(configPath string) func(*Router) error {
+	return func(r *Router) error {
+		r.ServerConfigPath = configPath
 		return nil
 	}
 }

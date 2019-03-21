@@ -11,17 +11,17 @@ type Settings struct {
 	DBPath string
 }
 
-// DefaultSettings are default server settings.
-var DefaultSettings = Settings{
-	ServerSettings: server.DefaultSettings,
+// ServerSettings returns  server settings.
+var ServerSettings = Settings{
+	ServerSettings: server.ServerSettings,
 	DBPath:         "db.db",
 }
 
 // NewServer creates new backend service with BoltDB support.
-func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(setting)
+func NewServer(settings Settings, options ...func(*server.Server) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(setting.ServerSettings, dbComposer, options...)
+	return server.NewServer(settings.ServerSettings, dbComposer, options...)
 }

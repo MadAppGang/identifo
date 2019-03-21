@@ -12,14 +12,14 @@ type Settings struct {
 
 // DefaultSettings are default server settings.
 var DefaultSettings = Settings{
-	ServerSettings: server.DefaultSettings,
+	ServerSettings: server.ServerSettings,
 }
 
 // NewServer creates new in-memory backend service.
-func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(setting)
+func NewServer(settings Settings, options ...func(*server.Server) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(setting.ServerSettings, dbComposer, options...)
+	return server.NewServer(settings.ServerSettings, dbComposer, options...)
 }

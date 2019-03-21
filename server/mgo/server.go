@@ -1,6 +1,9 @@
 package mgo
 
 import (
+	"log"
+	"os"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 )
@@ -12,18 +15,26 @@ type Settings struct {
 	DBName     string
 }
 
-// DefaultSettings are default server settings.
-var DefaultSettings = Settings{
-	ServerSettings: server.DefaultSettings,
-	DBEndpoint:     "localhost:27017",
-	DBName:         "identifo",
+const databaseConfigPath = "./database_config.yaml"
+
+// ServerSettings are default server settings.
+var ServerSettings = Settings{}
+
+func init() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalln("Cannot get database configuration file:", err)
+	}
+
+	server.LoadConfiguration(dir, databaseConfigPath, &ServerSettings)
+	ServerSettings.ServerSettings = server.ServerSettings
 }
 
 // NewServer creates new backend service with MongoDB support.
-func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(setting)
+func NewServer(settings Settings, options ...func(*server.Server) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(setting.ServerSettings, dbComposer, options...)
+	return server.NewServer(settings.ServerSettings, dbComposer, options...)
 }

@@ -1,11 +1,13 @@
 package server
 
 import (
+	"errors"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"path"
-	"time"
+	"path/filepath"
 
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
@@ -16,23 +18,32 @@ import (
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
+	"gopkg.in/yaml.v2"
 )
 
-// DefaultSettings are the default server settings.
-var DefaultSettings = model.ServerSettings{
-	StaticFolderPath:   "./static",
-	PEMFolderPath:      "./pem",
-	PrivateKey:         "private.pem",
-	PublicKey:          "public.pem",
-	Algorithm:          model.TokenServiceAlgorithmAuto,
-	Issuer:             "identifo",
-	MailService:        model.MailServiceMailgun,
-	SessionStorage:     model.SessionStorageMem,
-	SessionDuration:    5 * time.Minute,
-	Host:               "http://localhost:8080",
-	ConfigPath:         "../../server/conf.yaml",
-	EmailTemplatesPath: "./email_templates",
-	EmailTemplates:     model.DefaultEmailTemplates,
+const serverConfigPath = "../../server/server-config.yaml"
+
+// ServerSettings are server settings.
+var ServerSettings model.ServerSettings
+
+func init() {
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalln("Cannot get server configuration file:", err)
+	}
+	LoadConfiguration(dir, serverConfigPath, &ServerSettings)
+}
+
+// LoadConfiguration loads configuration from the yaml file and writes it to out variable.
+func LoadConfiguration(dir, configPath string, out interface{}) {
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, serverConfigPath))
+	if err != nil {
+		log.Fatalln("Cannot read server configuration file:", err)
+	}
+
+	if err = yaml.Unmarshal(yamlFile, out); err != nil {
+		log.Fatalln("Cannot unmarshal configuration file:", err)
+	}
 }
 
 // DatabaseComposer inits database stack.
@@ -47,36 +58,35 @@ type DatabaseComposer interface {
 }
 
 // NewServer creates backend service.
-func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
-
+func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
 	appStorage, userStorage, tokenStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
 	s := Server{AppStrg: appStorage, UserStrg: userStorage}
 
-	sessionStorage, err := sessionStorage(setting.SessionStorage)
+	sessionStorage, err := sessionStorage(settings.SessionStorage)
 	if err != nil {
 		return nil, err
 	}
-	sessionService := model.NewSessionManager(setting.SessionDuration, sessionStorage)
+	sessionService := model.NewSessionManager(settings.SessionDuration, sessionStorage)
 
-	ms, err := mailService(setting.MailService, setting.EmailTemplates, setting.EmailTemplatesPath)
+	ms, err := mailService(settings.MailService, settings.EmailTemplateNames, settings.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
 
-	//env variable could rewrite this option
+	// env variable can rewrite host option
 	hostName := os.Getenv("HOST_NAME")
 	if len(hostName) == 0 {
-		hostName = setting.Host
+		hostName = settings.Host
 	}
 
 	staticFiles := html.StaticFilesPath{
-		StylesPath:  path.Join(setting.StaticFolderPath, "css"),
-		ScriptsPath: path.Join(setting.StaticFolderPath, "js"),
-		PagesPath:   setting.StaticFolderPath,
-		ImagesPath:  path.Join(setting.StaticFolderPath, "img"),
+		StylesPath:  path.Join(settings.StaticFolderPath, "css"),
+		ScriptsPath: path.Join(settings.StaticFolderPath, "js"),
+		PagesPath:   settings.StaticFolderPath,
+		ImagesPath:  path.Join(settings.StaticFolderPath, "img"),
 	}
 
 	routerSettings := web.RouterSetting{
@@ -96,9 +106,11 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
-			admin.ConfigPathOption(setting.ConfigPath),
+			admin.AccountConfigPathOption(settings.AccountConfigPath),
+			admin.ServerConfigPathOption(settings.ServerConfigPath),
 		},
 	}
+
 	r, err := web.NewRouter(routerSettings)
 	if err != nil {
 		return nil, err
@@ -114,14 +126,14 @@ func NewServer(setting model.ServerSettings, db DatabaseComposer, options ...fun
 	return &s, nil
 }
 
-//Server is DynamoDB backed server
+// Server is DynamoDB-backed server.
 type Server struct {
 	MainRouter *web.Router
 	AppStrg    model.AppStorage
 	UserStrg   model.UserStorage
 }
 
-//Router return default router
+// Router returns server's main router.
 func (s *Server) Router() model.Router {
 	return s.MainRouter
 }
@@ -130,24 +142,28 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	s.MainRouter.ServeHTTP(w, r)
 }
 
-//AppStorage app storage
+// AppStorage returns server's app storage.
 func (s *Server) AppStorage() model.AppStorage {
 	return s.AppStrg
 }
 
-//UserStorage return user storage
+// UserStorage returns server's user storage.
 func (s *Server) UserStorage() model.UserStorage {
 	return s.UserStrg
 }
 
-func mailService(serviceType model.MailServiceType, templates model.EmailTemplates, templatesPath string) (model.EmailService, error) {
-	tpltr, err := model.NewEmailTemplater(templates, templatesPath)
+func mailService(serviceType model.MailServiceType, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
+	tpltr, err := model.NewEmailTemplater(templateNames, templatesPath)
 	if err != nil {
 		return nil, err
 	}
+	if tpltr == nil {
+		return nil, errors.New("Email templater holds nil value")
+	}
+
 	switch serviceType {
 	case model.MailServiceMailgun:
-		return mailgun.NewEmailServiceFromEnv(tpltr)
+		return mailgun.NewEmailServiceFromEnv(tpltr), nil
 	case model.MailServiceAWS:
 		return ses.NewEmailServiceFromEnv(tpltr)
 	default:

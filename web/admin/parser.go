@@ -43,7 +43,6 @@ func (ar *Router) mustParseJSON(w http.ResponseWriter, r *http.Request, out inte
 // If nonzero maxLimit parameter provided, it is used as an upper bound for the limit parameter.
 // Returns non-nil error if provided strings cannot be converted to integers.
 func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, maxLimit int) (int, int, error) {
-
 	skipStr := r.URL.Query().Get("skip")
 	limitStr := r.URL.Query().Get("limit")
 
@@ -92,7 +91,8 @@ func (ar *Router) getConf(w http.ResponseWriter, ad *adminData) error {
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.ConfigPath))
+
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.AccountConfigPath))
 	if err != nil {
 		ar.logger.Println("Cannot read configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")

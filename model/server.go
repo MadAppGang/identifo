@@ -4,7 +4,7 @@ import (
 	"net/http"
 )
 
-//Server holds together all dependencies
+// Server holds together all dependencies.
 type Server interface {
 	Router() Router
 	AppStorage() AppStorage
@@ -13,7 +13,7 @@ type Server interface {
 	ImportUsers(filename string) error
 }
 
-//Router is class to handle all incoming http requests
+// Router handles all incoming http requests.
 type Router interface {
 	ServeHTTP(http.ResponseWriter, *http.Request)
 }

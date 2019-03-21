@@ -1,39 +1,43 @@
 package model
 
+import (
+	"fmt"
+)
+
 const (
-	//OfflineScope scope value to request refresh token
+	// OfflineScope is a scope value to request refresh token.
 	OfflineScope = "offline"
-	//RefrestTokenType refresh token type value
+	// RefrestTokenType is a refresh token type value.
 	RefrestTokenType = "refresh"
-	//AccessTokenType access token type value
+	// AccessTokenType is an access token type value.
 	AccessTokenType = "access"
-	//ResetTokenType reset password token type value
+	// ResetTokenType is a reset password token type value.
 	ResetTokenType = "reset"
-	//WebCookieTokenType web-cookie token type value
+	// WebCookieTokenType is a web-cookie token type value.
 	WebCookieTokenType = "web-cookie"
 )
 
-//TokenServiceAlgorithm - we support only two now
+// TokenServiceAlgorithm - we support only two now.
 type TokenServiceAlgorithm int
 
 const (
-	//TokenServiceAlgorithmES256 ES256 signature
+	// TokenServiceAlgorithmES256 is a ES256 signature.
 	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota
-	//TokenServiceAlgorithmRS256 RS256 signature
+	// TokenServiceAlgorithmRS256 is a RS256 signature.
 	TokenServiceAlgorithmRS256
-	//TokenServiceAlgorithmAuto try to detect algorithm on the fly
+	// TokenServiceAlgorithmAuto tries to detect algorithm on the fly.
 	TokenServiceAlgorithmAuto
 )
 
-//TokenService manage tokens abstraction layer
+// TokenService manages tokens abstraction layer.
 type TokenService interface {
-	//NewToken creates new access token for the user
+	// NewToken creates new access token for the user.
 	NewToken(u User, scopes []string, app AppData) (Token, error)
-	//NewRefreshToken creates new refresh token for the user
+	// NewRefreshToken creates new refresh token for the user.
 	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
-	// NewRestToken creates new reset password token
+	// NewRestToken creates new reset password token.
 	NewResetToken(userID string) (Token, error)
-	//RefreshToken issues the new access token with access token
+	// RefreshToken issues the new access token with access token.
 	RefreshToken(token Token) (Token, error)
 	NewWebCookieToken(u User) (Token, error)
 	Parse(string) (Token, error)
@@ -41,11 +45,11 @@ type TokenService interface {
 	Issuer() string
 	Algorithm() string
 	WebCookieTokenLifespan() int64
-	PublicKey() interface{} //we are not using crypto.PublicKey here to avoid dependencies
+	PublicKey() interface{} // we are not using crypto.PublicKey here to avoid dependencies
 	KeyID() string
 }
 
-//Token is app token to give user chan
+// Token is an app token to give user chan
 type Token interface {
 	Validate() error
 	UserID() string
@@ -58,6 +62,18 @@ type Validator interface {
 	Validate(Token) error
 }
 
-//TokenMapping is service to match tokens to services. etc
-type TokenMapping interface {
+// TokenMapping is a service for matching tokens to services.
+type TokenMapping interface{}
+
+func (alg TokenServiceAlgorithm) String() string {
+	switch alg {
+	case TokenServiceAlgorithmES256:
+		return "es256"
+	case TokenServiceAlgorithmRS256:
+		return "rs256"
+	case TokenServiceAlgorithmAuto:
+		return "auto"
+	default:
+		return fmt.Sprintf("TokenServiceAlgorithm(%d)", alg)
+	}
 }
