@@ -195,7 +195,6 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    model.AccessTokenType,
-		KeyID:   ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -213,7 +212,7 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 	default:
 		return nil, ErrWrongSignatureAlgorithm
 	}
-	token := jwt.NewWithClaims(sm, claims)
+	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
@@ -250,7 +249,6 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    model.RefrestTokenType,
-		KeyID:   ts.KeyID(),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -268,7 +266,7 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 	default:
 		return nil, ErrWrongSignatureAlgorithm
 	}
-	token := jwt.NewWithClaims(sm, claims)
+	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
@@ -327,8 +325,7 @@ func (ts *TokenService) NewResetToken(userID string) (model.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := Claims{
-		Type:  model.ResetTokenType,
-		KeyID: ts.KeyID(),
+		Type: model.ResetTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -346,7 +343,7 @@ func (ts *TokenService) NewResetToken(userID string) (model.Token, error) {
 	default:
 		return nil, ErrWrongSignatureAlgorithm
 	}
-	token := jwt.NewWithClaims(sm, claims)
+	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
@@ -364,8 +361,7 @@ func (ts *TokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := Claims{
-		Type:  model.WebCookieTokenType,
-		KeyID: ts.KeyID(),
+		Type: model.WebCookieTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -384,7 +380,7 @@ func (ts *TokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	default:
 		return nil, ErrWrongSignatureAlgorithm
 	}
-	token := jwt.NewWithClaims(sm, claims)
+	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}

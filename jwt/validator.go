@@ -99,7 +99,7 @@ func (v *Validator) Validate(t model.Token) error {
 		return ErrTokenValidationInvalidSubject
 	}
 
-	if token.Type() == v.tokenType {
+	if token.Type() != v.tokenType {
 		return ErrorTokenValidatrionTokenTypeMismatch
 	}
 
