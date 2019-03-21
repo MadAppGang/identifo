@@ -78,19 +78,19 @@ func (r *redisStorage) DeleteSession(id string) error {
 	return err
 }
 
-func (r *redisStorage) ProlongSession(id string, newDuration time.Duration) error {
+func (r *redisStorage) ProlongSession(id string, newDuration model.SessionDuration) error {
 	session, err := r.GetSession(id)
 	if err != nil {
 		return err
 	}
 
-	session.ExpirationDate = time.Now().Add(newDuration)
+	session.ExpirationDate = time.Now().Add(newDuration.Duration)
 
 	bs, err := json.Marshal(session)
 	if err != nil {
 		return err
 	}
 
-	err = r.client.SetXX(session.ID, bs, newDuration).Err()
+	err = r.client.SetXX(session.ID, bs, newDuration.Duration).Err()
 	return err
 }

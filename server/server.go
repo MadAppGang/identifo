@@ -36,7 +36,7 @@ func init() {
 
 // LoadConfiguration loads configuration from the yaml file and writes it to out variable.
 func LoadConfiguration(dir, configPath string, out interface{}) {
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, serverConfigPath))
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, configPath))
 	if err != nil {
 		log.Fatalln("Cannot read server configuration file:", err)
 	}

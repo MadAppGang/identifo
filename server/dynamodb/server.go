@@ -8,13 +8,13 @@ import (
 	"github.com/madappgang/identifo/server"
 )
 
-const databaseConfigPath = "./database_config.yaml"
+const databaseConfigPath = "./database-config.yaml"
 
 // Settings are the extended settings for DynamoDB server.
 type Settings struct {
 	model.ServerSettings
-	DBEndpoint string
-	DBRegion   string
+	DBEndpoint string `yaml:"databaseEndpoint"`
+	DBRegion   string `yaml:"databaseRegion"`
 }
 
 // ServerSettings are default server settings.

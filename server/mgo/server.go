@@ -11,8 +11,8 @@ import (
 // Settings are the extended settings for MongoDB server.
 type Settings struct {
 	model.ServerSettings
-	DBEndpoint string
-	DBName     string
+	DBEndpoint string `yaml:"databaseEndpoint"`
+	DBName     string `yaml:"databaseName"`
 }
 
 const databaseConfigPath = "./database_config.yaml"

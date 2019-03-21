@@ -77,3 +77,26 @@ func (alg TokenServiceAlgorithm) String() string {
 		return fmt.Sprintf("TokenServiceAlgorithm(%d)", alg)
 	}
 }
+
+// UnmarshalYAML implements yaml.Unmarshaller.
+func (alg *TokenServiceAlgorithm) UnmarshalYAML(unmarshal func(interface{}) error) error {
+	if alg == nil {
+		return nil
+	}
+
+	var aux string
+	if err := unmarshal(&aux); err != nil {
+		return err
+	}
+
+	algorithm, ok := map[string]TokenServiceAlgorithm{
+		"es256": TokenServiceAlgorithmES256,
+		"rs256": TokenServiceAlgorithmRS256,
+		"auto":  TokenServiceAlgorithmAuto}[aux]
+	if !ok {
+		return fmt.Errorf("Invalid TokenServiceAlgorithm %v", aux)
+	}
+
+	*alg = algorithm
+	return nil
+}

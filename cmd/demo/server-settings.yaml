@@ -1,0 +1,24 @@
+host: http://localhost:8080
+
+pemFolderPath: ./pem
+privateKey: private.pem
+publicKey: public.pem
+issuer: http://localhost:8080
+
+algorithm: auto
+mailService: aws ses
+sessionStorage: memory
+sessionDuration: 300
+
+staticFolderPath: ./static
+emailTemplatesPath: ./email_templates
+emailTemplateNames:
+  welcome: welcome.html
+  resetPassword: reset_password.html
+  verifyEmail: verify_email.html
+
+accountConfigPath:  ../../server/account_config.yaml
+serverConfigPath: ../../server/server_config.yaml
+
+appsImportPath: ./apps.json
+usersImportPath: ./users.json
