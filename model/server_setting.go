@@ -24,10 +24,16 @@ type ServerSettings struct {
 	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty"`
 	AppsImportPath     string                `yaml:"appsImportPath,omitempty"`
 	UsersImportPath    string                `yaml:"usersImportPath,omitempty"`
-	DBType             string                `yaml:"type,omitempty"`
-	DBName             string                `yaml:"name,omitempty"`
-	DBEndpoint         string                `yaml:"endpoint,omitempty"`
-	DBRegion           string                `yaml:"region,omitempty"`
+	DBSettings
+}
+
+// DBSettings holds together all possible database-related settings.
+type DBSettings struct {
+	DBType     string `yaml:"type,omitempty"`
+	DBName     string `yaml:"name,omitempty"`
+	DBEndpoint string `yaml:"endpoint,omitempty"`
+	DBRegion   string `yaml:"region,omitempty"`
+	DBPath     string `yaml:"path,omitempty"`
 }
 
 // GetPort returns port on which host listens to incoming connections.

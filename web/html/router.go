@@ -72,7 +72,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		}
 	}
 
-	// setup default router to stdout
+	// setup logger to stdout.
 	if logger == nil {
 		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -115,7 +115,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	}
 }
 
-//ServeHTTP identifo.Router protocol implementation
+// ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
 	ar.Router.ServeHTTP(w, r)

@@ -31,6 +31,7 @@ func initServer() model.Server {
 			log.Println("Error importing users:", err)
 		}
 	}
+
 	return server
 }
 
