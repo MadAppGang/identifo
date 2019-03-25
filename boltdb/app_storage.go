@@ -208,17 +208,18 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 }
 
 type appData struct {
-	ID                   string   `json:"id,omitempty"`
-	Secret               string   `json:"secret,omitempty"`
-	Active               bool     `json:"active,omitempty"`
-	Name                 string   `json:"name,omitempty"`
-	Description          string   `json:"description,omitempty"`
-	Scopes               []string `json:"scopes,omitempty"`
-	Offline              bool     `json:"offline,omitempty"`
-	RedirectURL          string   `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan int64    `json:"refresh_token_lifespan,omitempty"`
-	TokenLifespan        int64    `json:"token_lifespan,omitempty"`
-	TokenPayload         []string `json:"token_payload,omitempty"`
+	ID                    string   `json:"id,omitempty"`
+	Secret                string   `json:"secret,omitempty"`
+	Active                bool     `json:"active,omitempty"`
+	Name                  string   `json:"name,omitempty"`
+	Description           string   `json:"description,omitempty"`
+	Scopes                []string `json:"scopes,omitempty"`
+	Offline               bool     `json:"offline,omitempty"`
+	RedirectURL           string   `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
+	TokenLifespan         int64    `json:"token_lifespan,omitempty"`
+	TokenPayload          []string `json:"token_payload,omitempty"`
+	RegistrationForbidden bool     `json:"registration_forbidden,omitempty"`
 }
 
 // AppData is an in-memory model for model.AppData.
@@ -229,17 +230,18 @@ type AppData struct {
 // NewAppData instantiates in-memory app data model from the general one.
 func NewAppData(data model.AppData) AppData {
 	return AppData{appData: appData{
-		ID:                   data.ID(),
-		Secret:               data.Secret(),
-		Active:               data.Active(),
-		Name:                 data.Name(),
-		Description:          data.Description(),
-		Scopes:               data.Scopes(),
-		Offline:              data.Offline(),
-		RedirectURL:          data.RedirectURL(),
-		RefreshTokenLifespan: data.RefreshTokenLifespan(),
-		TokenLifespan:        data.TokenLifespan(),
-		TokenPayload:         data.TokenPayload(),
+		ID:                    data.ID(),
+		Secret:                data.Secret(),
+		Active:                data.Active(),
+		Name:                  data.Name(),
+		Description:           data.Description(),
+		Scopes:                data.Scopes(),
+		Offline:               data.Offline(),
+		RedirectURL:           data.RedirectURL(),
+		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
+		TokenLifespan:         data.TokenLifespan(),
+		TokenPayload:          data.TokenPayload(),
+		RegistrationForbidden: data.RegistrationForbidden(),
 	}}
 }
 
@@ -258,19 +260,20 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 // MakeAppData creates new in-memory app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) AppData {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
 	return AppData{appData: appData{
-		ID:                   id,
-		Secret:               secret,
-		Active:               active,
-		Name:                 name,
-		Description:          description,
-		Scopes:               scopes,
-		Offline:              offline,
-		RedirectURL:          redirectURL,
-		RefreshTokenLifespan: refreshTokenLifespan,
-		TokenLifespan:        tokenLifespan,
-		TokenPayload:         tokenPayload,
+		ID:                    id,
+		Secret:                secret,
+		Active:                active,
+		Name:                  name,
+		Description:           description,
+		Scopes:                scopes,
+		Offline:               offline,
+		RedirectURL:           redirectURL,
+		RefreshTokenLifespan:  refreshTokenLifespan,
+		TokenLifespan:         tokenLifespan,
+		TokenPayload:          tokenPayload,
+		RegistrationForbidden: registrationForbidden,
 	}}
 }
 
@@ -312,3 +315,6 @@ func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 
 // TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
+
+// RegistrationForbidden implements model.AppData interface.
+func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
