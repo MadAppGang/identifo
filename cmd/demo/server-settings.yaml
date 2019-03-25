@@ -17,7 +17,7 @@ emailTemplateNames:
   resetPassword: reset_password.html
   verifyEmail: verify_email.html
 
-accountConfigPath:  ../../server/account-config.yaml
+accountConfigPath:  ./account-config.yaml
 
 appsImportPath: ./apps.json
 usersImportPath: ./users.json
