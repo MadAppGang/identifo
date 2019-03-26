@@ -31,7 +31,6 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		redirectToLogin := func() {
-			// create login url
 			r.URL.Path = "login"
 
 			q := r.URL.Query()
