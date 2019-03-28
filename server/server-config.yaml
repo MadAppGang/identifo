@@ -18,6 +18,3 @@ emailTemplateNames:
   verifyEmail: verify_email.html
 
 accountConfigPath:  ../../server/account-config.yaml
-
-appsImportPath: ../import/apps.json
-usersImportPath: ../import/users.json

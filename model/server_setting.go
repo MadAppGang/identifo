@@ -22,8 +22,6 @@ type ServerSettings struct {
 	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty"`
 	Host               string                `yaml:"host,omitempty"`
 	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty"`
-	AppsImportPath     string                `yaml:"appsImportPath,omitempty"`
-	UsersImportPath    string                `yaml:"usersImportPath,omitempty"`
 	DBSettings
 }
 
