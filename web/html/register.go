@@ -9,7 +9,7 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-// Register creates user
+// Register creates user.
 func (ar *Router) Register() http.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 
