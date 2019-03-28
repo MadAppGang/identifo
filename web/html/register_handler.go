@@ -10,7 +10,7 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-// RegistrationHandler serves registration page
+// RegistrationHandler serves registration page.
 func (ar *Router) RegistrationHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
