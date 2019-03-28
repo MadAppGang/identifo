@@ -66,4 +66,5 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(settings),
 	))
 	settings.Path("/database").HandlerFunc(ar.FetchDatabaseSettings()).Methods("GET")
+	settings.Path("/database").HandlerFunc(ar.AlterDatabaseSettings()).Methods("PUT")
 }
