@@ -32,6 +32,17 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.logger.Println("Error getting App")
+			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			return
+		}
+
+		if app.RegistrationForbidden() {
+			ar.Error(w, ErrorRegistrationForbidden, http.StatusForbidden, "")
+		}
+
 		//parse data
 		d := registrationData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
@@ -55,13 +66,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scope)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
-			return
-		}
-
-		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
 			return
 		}
 

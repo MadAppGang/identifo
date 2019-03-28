@@ -19,7 +19,16 @@ func (ar *Router) Register() http.HandlerFunc {
 		scopesJSON := r.FormValue(scopesKey)
 		scopes := []string{}
 
+		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
+			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
 		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
+		}
 
 		redirectToRegister := func() {
 			q := r.URL.Query()
@@ -41,9 +50,9 @@ func (ar *Router) Register() http.HandlerFunc {
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusFound)
 		}
 
-		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
-			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
-			http.Redirect(w, r, errorPath, http.StatusFound)
+		if app.RegistrationForbidden() {
+			SetFlash(w, FlashErrorMessageKey, ErrorRegistrationForbidden.Error())
+			redirectToRegister()
 			return
 		}
 
