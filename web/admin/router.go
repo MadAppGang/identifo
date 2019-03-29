@@ -22,14 +22,11 @@ type Router struct {
 	sessionStorage    model.SessionStorage
 	appStorage        model.AppStorage
 	userStorage       model.UserStorage
+	ServerSettings    *model.ServerSettings
 	AccountConfigPath string
 	RedirectURL       string
 	PathPrefix        string
 	Host              string
-	DBType            string
-	DBName            string
-	DBEndpoint        string
-	DBRegion          string
 }
 
 func defaultOptions() []func(*Router) error {
@@ -55,6 +52,14 @@ func AccountConfigPathOption(configPath string) func(*Router) error {
 	}
 }
 
+// ServerSettingsOption sets path to configuration file with admin account settings.
+func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
+	return func(r *Router) error {
+		r.ServerSettings = settings
+		return nil
+	}
+}
+
 // RedirectURLOption sets redirect url value.
 func RedirectURLOption(redirectURL string) func(*Router) error {
 	return func(r *Router) error {
@@ -67,38 +72,6 @@ func RedirectURLOption(redirectURL string) func(*Router) error {
 func PathPrefixOptions(prefix string) func(r *Router) error {
 	return func(r *Router) error {
 		r.PathPrefix = prefix
-		return nil
-	}
-}
-
-// DBTypeOptions sets database type options.
-func DBTypeOptions(dbtype string) func(r *Router) error {
-	return func(r *Router) error {
-		r.DBType = dbtype
-		return nil
-	}
-}
-
-// DBNameOptions sets database name options.
-func DBNameOptions(name string) func(r *Router) error {
-	return func(r *Router) error {
-		r.DBName = name
-		return nil
-	}
-}
-
-// DBRegionOptions sets database region options. Used in DynamoDB.
-func DBRegionOptions(region string) func(r *Router) error {
-	return func(r *Router) error {
-		r.DBRegion = region
-		return nil
-	}
-}
-
-// DBEndpointOptions sets database region options.
-func DBEndpointOptions(endpoint string) func(r *Router) error {
-	return func(r *Router) error {
-		r.DBEndpoint = endpoint
 		return nil
 	}
 }
