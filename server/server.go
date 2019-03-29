@@ -27,16 +27,17 @@ const serverConfigPath = "../../server/server-config.yaml"
 var ServerSettings model.ServerSettings
 
 func init() {
+	LoadServerConfiguration(&ServerSettings)
+}
+
+// LoadServerConfiguration loads configuration from the yaml file and writes it to out variable.
+func LoadServerConfiguration(out interface{}) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("Cannot get server configuration file:", err)
 	}
-	LoadConfiguration(dir, serverConfigPath, &ServerSettings)
-}
 
-// LoadConfiguration loads configuration from the yaml file and writes it to out variable.
-func LoadConfiguration(dir, configPath string, out interface{}) {
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, configPath))
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, serverConfigPath))
 	if err != nil {
 		log.Fatalln("Cannot read server configuration file:", err)
 	}

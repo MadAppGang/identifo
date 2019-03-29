@@ -8,10 +8,9 @@ import (
 )
 
 // ServerSettings are server settings.
-var ServerSettings model.ServerSettings
+var ServerSettings = server.ServerSettings
 
 func init() {
-	ServerSettings = server.ServerSettings
 	if ServerSettings.DBType != "boltdb" {
 		log.Fatalf("Incorrect database type %s for embedded server", ServerSettings.DBType)
 	}
