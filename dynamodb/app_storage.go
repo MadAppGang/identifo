@@ -277,17 +277,18 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 }
 
 type appData struct {
-	ID                   string   `json:"id,omitempty"`
-	Secret               string   `json:"secret,omitempty"`
-	Active               bool     `json:"active,omitempty"`
-	Name                 string   `json:"name,omitempty"`
-	Description          string   `json:"description,omitempty"`
-	Scopes               []string `json:"scopes,omitempty"`
-	Offline              bool     `json:"offline,omitempty"`
-	RedirectURL          string   `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan int64    `json:"refresh_token_lifespan,omitempty"`
-	TokenLifespan        int64    `json:"token_lifespan,omitempty"`
-	TokenPayload         []string `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	ID                    string   `json:"id,omitempty"`
+	Secret                string   `json:"secret,omitempty"`
+	Active                bool     `json:"active,omitempty"`
+	Name                  string   `json:"name,omitempty"`
+	Description           string   `json:"description,omitempty"`
+	Scopes                []string `json:"scopes,omitempty"`
+	Offline               bool     `json:"offline,omitempty"`
+	RedirectURL           string   `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
+	TokenLifespan         int64    `json:"token_lifespan,omitempty"`
+	TokenPayload          []string `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	RegistrationForbidden bool     `json:"registration_forbidden,omitempty"`
 }
 
 // AppData is DynamoDB model for model.AppData.
@@ -302,17 +303,18 @@ func NewAppData(data model.AppData) (AppData, error) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                   data.ID(),
-		Secret:               data.Secret(),
-		Active:               data.Active(),
-		Name:                 data.Name(),
-		Description:          data.Description(),
-		Scopes:               data.Scopes(),
-		Offline:              data.Offline(),
-		RedirectURL:          data.RedirectURL(),
-		RefreshTokenLifespan: data.RefreshTokenLifespan(),
-		TokenLifespan:        data.TokenLifespan(),
-		TokenPayload:         data.TokenPayload(),
+		ID:                    data.ID(),
+		Secret:                data.Secret(),
+		Active:                data.Active(),
+		Name:                  data.Name(),
+		Description:           data.Description(),
+		Scopes:                data.Scopes(),
+		Offline:               data.Offline(),
+		RedirectURL:           data.RedirectURL(),
+		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
+		TokenLifespan:         data.TokenLifespan(),
+		TokenPayload:          data.TokenPayload(),
+		RegistrationForbidden: data.RegistrationForbidden(),
 	}}, nil
 }
 
@@ -332,22 +334,23 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 // MakeAppData creates new DynamoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, registrationForbidden bool) (AppData, error) {
 	if _, err := xid.FromString(id); err != nil {
 		log.Println("Cannot create ID from the string representation:", err)
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                   id,
-		Secret:               secret,
-		Active:               active,
-		Name:                 name,
-		Description:          description,
-		Scopes:               scopes,
-		Offline:              offline,
-		RedirectURL:          redirectURL,
-		RefreshTokenLifespan: refreshTokenLifespan,
-		TokenLifespan:        tokenLifespan,
+		ID:                    id,
+		Secret:                secret,
+		Active:                active,
+		Name:                  name,
+		Description:           description,
+		Scopes:                scopes,
+		Offline:               offline,
+		RedirectURL:           redirectURL,
+		RefreshTokenLifespan:  refreshTokenLifespan,
+		TokenLifespan:         tokenLifespan,
+		RegistrationForbidden: registrationForbidden,
 	}}, nil
 }
 
@@ -389,3 +392,6 @@ func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 
 // TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
+
+// RegistrationForbidden implements model.AppData interface.
+func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }

@@ -269,10 +269,10 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 // AddUserByNameAndPassword creates new user and saves it in the database.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
-	// Using user name as a key. If there is no error, it means user already exists.
-	if _, err := us.UserByID(name); err == nil {
+	if us.UserExists(name) {
 		return nil, model.ErrorUserExists
 	}
+
 	u := userData{Active: true, Name: name, Profile: profile, ID: name}
 	return us.AddNewUser(User{userData: u}, password)
 }
