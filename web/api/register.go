@@ -41,11 +41,13 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		if app.RegistrationForbidden() {
 			ar.Error(w, ErrorRegistrationForbidden, http.StatusForbidden, "")
+			return
 		}
 
 		//parse data
 		d := registrationData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
+			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
 			return
 		}
 
