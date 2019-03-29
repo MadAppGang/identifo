@@ -19,5 +19,5 @@ emailTemplateNames:
 
 accountConfigPath:  ./account-config.yaml
 
-appsImportPath: ./apps.json
-usersImportPath: ./users.json
+dbType: boltdb
+dbPath: db.db

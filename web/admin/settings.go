@@ -22,6 +22,17 @@ func (ar *Router) FetchDatabaseSettings() http.HandlerFunc {
 			Endpoint: ar.DBEndpoint,
 		}
 
+		switch ar.DBType {
+		case "boltdb":
+			dbset.Region = ""
+			dbset.Name = ""
+			dbset.Endpoint = ""
+		case "mongodb":
+			dbset.Endpoint = ""
+		case "dynamodb":
+			dbset.Name = ""
+		}
+
 		ar.ServeJSON(w, http.StatusOK, dbset)
 		return
 	}

@@ -2,24 +2,19 @@ package dynamodb
 
 import (
 	"log"
-	"os"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 )
 
-const databaseConfigPath = "./database-config.yaml"
-
 // ServerSettings are server settings.
-var ServerSettings = server.ServerSettings
+var ServerSettings model.ServerSettings
 
 func init() {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalln("Cannot get database configuration file:", err)
+	ServerSettings = server.ServerSettings
+	if ServerSettings.DBType != "dynamodb" {
+		log.Fatalf("Incorrect database type %s for DynamoDB-backed server", ServerSettings.DBType)
 	}
-
-	server.LoadConfiguration(dir, databaseConfigPath, &ServerSettings.DBSettings)
 }
 
 // NewServer creates new backend service with DynamoDB support.

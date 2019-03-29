@@ -8,7 +8,11 @@ import (
 	"github.com/madappgang/identifo/server/embedded"
 )
 
-const testAppID = "59fd884d8f6b180001f5b4e2"
+const (
+	testAppID       = "59fd884d8f6b180001f5b4e2"
+	appsImportPath  = "./apps.json"
+	usersImportPath = "./users.json"
+)
 
 var port string
 
@@ -24,10 +28,10 @@ func initServer() model.Server {
 
 	if _, err = server.AppStorage().AppByID(testAppID); err != nil {
 		log.Println("Error getting app storage:", err)
-		if err = server.ImportApps(settings.AppsImportPath); err != nil {
+		if err = server.ImportApps(appsImportPath); err != nil {
 			log.Println("Error importing apps:", err)
 		}
-		if err = server.ImportUsers(settings.UsersImportPath); err != nil {
+		if err = server.ImportUsers(usersImportPath); err != nil {
 			log.Println("Error importing users:", err)
 		}
 	}

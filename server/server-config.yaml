@@ -19,5 +19,8 @@ emailTemplateNames:
 
 accountConfigPath:  ../../server/account-config.yaml
 
-appsImportPath: ../import/apps.json
-usersImportPath: ../import/users.json
+dbType: boltdb
+dbName: identifo
+dbEndpoint: http://localhost:27017
+dbPath: ./db.db
+dbRegion: us-west-2 # full list: https://docs.aws.amazon.com/general/latest/gr/rande.html
