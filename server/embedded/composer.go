@@ -34,17 +34,17 @@ func (dc *DatabaseComposer) Compose() (
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	appStorage, err := boltdb.NewAppStorage(db)
+	appStorage, err := dc.settings.StorageProvider.NewAppStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	userStorage, err := boltdb.NewUserStorage(db)
+	userStorage, err := dc.settings.StorageProvider.NewUserStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	tokenStorage, err := boltdb.NewTokenStorage(db)
+	tokenStorage, err := dc.settings.StorageProvider.NewTokenStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}

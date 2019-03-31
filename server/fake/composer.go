@@ -4,7 +4,6 @@ import (
 	"path"
 
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -30,9 +29,9 @@ func (dc *DatabaseComposer) Compose() (
 	error,
 ) {
 
-	appStorage := mem.NewAppStorage()
-	userStorage := mem.NewUserStorage()
-	tokenStorage := mem.NewTokenStorage()
+	appStorage := dc.settings.StorageProvider.NewAppStorage()
+	userStorage := dc.settings.StorageProvider.NewUserStorage()
+	tokenStorage := dc.settings.StorageProvider.NewTokenStorage()
 
 	tokenService, err := jwt.NewTokenService(
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
