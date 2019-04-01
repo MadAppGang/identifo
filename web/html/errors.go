@@ -3,10 +3,10 @@ package html
 // Error - http level error type.
 type Error string
 
-// Error - implementation of std.Error protocol.
+// Error implements std.Error interface.
 func (e Error) Error() string { return string(e) }
 
 const (
-	// ErrorRegistrationForbidden forbidden registration.
+	// ErrorRegistrationForbidden means that registration is forbidden.
 	ErrorRegistrationForbidden = Error("Registration in this app is forbidden.")
 )
