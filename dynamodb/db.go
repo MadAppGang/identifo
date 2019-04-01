@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -9,20 +10,13 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 )
 
-const (
-
-	//DefaultRegion default AWS region, full list is here: https://docs.aws.amazon.com/general/latest/gr/rande.html
-	DefaultRegion = "us-west-2"
-)
-
-//NewDB creates new database connection
+// NewDB creates new database connection.
 func NewDB(endpoint string, region string) (*DB, error) {
-	r := DefaultRegion
-	if len(region) > 0 {
-		r = region
+	if len(region) == 0 {
+		return nil, errors.New("Empty region string")
 	}
 	config := &aws.Config{
-		Region:   aws.String(r),
+		Region:   aws.String(region),
 		Endpoint: aws.String(endpoint),
 	}
 	sess, err := session.NewSession(config)
@@ -30,17 +24,16 @@ func NewDB(endpoint string, region string) (*DB, error) {
 		log.Println(err)
 		return nil, err
 	}
-	m := DB{}
-	m.C = dynamodb.New(sess)
-	return &m, nil
+
+	return &DB{C: dynamodb.New(sess)}, nil
 }
 
-//DB represents connection to AWS DynamoDB service or local instance
+// DB represents connection to AWS DynamoDB service or local instance.
 type DB struct {
 	C *dynamodb.DynamoDB
 }
 
-//isTableExists checks if table exists database
+// isTableExists checks if table exists.
 func (db *DB) isTableExists(table string) (bool, error) {
 	input := &dynamodb.DescribeTableInput{
 		TableName: aws.String(table),
@@ -58,13 +51,14 @@ func (db *DB) isTableExists(table string) (bool, error) {
 	return true, nil
 }
 
-//awsErrorErrorNotFound check general error type to be dynamodb.ErrCodeResourceNotFoundException
+// awsErrorErrorNotFound checks if error has type dynamodb.ErrCodeResourceNotFoundException.
 func awsErrorErrorNotFound(err error) bool {
-	if err != nil {
-		if aerr, ok := err.(awserr.Error); ok {
-			if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
-				return true
-			}
+	if err == nil {
+		return false
+	}
+	if aerr, ok := err.(awserr.Error); ok {
+		if aerr.Code() == dynamodb.ErrCodeResourceNotFoundException {
+			return true
 		}
 	}
 	return false

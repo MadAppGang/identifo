@@ -13,7 +13,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//Router routes all html files and handles html post requests
+// Router handles incoming http connections.
 type Router struct {
 	Middleware      *negroni.Negroni
 	Logger          *log.Logger
@@ -35,11 +35,10 @@ func defaultOptions() []func(*Router) error {
 		DefaultStaticPagesOptions(),
 		DefaultStaticPathOptions(),
 		PathPrefixOptions("/web"),
-		HostOption("http://localhost:8080"),
 	}
 }
 
-// PathPrefixOptions set path prefix options
+// PathPrefixOptions set path prefix options.
 func PathPrefixOptions(prefix string) func(r *Router) error {
 	return func(r *Router) error {
 		r.PathPrefix = prefix
@@ -47,7 +46,7 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 	}
 }
 
-// HostOption set hostname
+// HostOption sets hostname.
 func HostOption(host string) func(r *Router) error {
 	return func(r *Router) error {
 		r.Host = host
@@ -55,7 +54,7 @@ func HostOption(host string) func(r *Router) error {
 	}
 }
 
-//NewRouter created and initiates new router
+// NewRouter creates and initializes new router.
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		Middleware:   negroni.Classic(),
@@ -73,7 +72,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		}
 	}
 
-	//setup default router to stdout
+	// setup logger to stdout.
 	if logger == nil {
 		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
@@ -116,7 +115,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	}
 }
 
-//ServeHTTP identifo.Router protocol implementation
+// ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	//reroute to our internal implementation
 	ar.Router.ServeHTTP(w, r)

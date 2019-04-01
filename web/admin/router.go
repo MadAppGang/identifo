@@ -15,23 +15,23 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	middleware     *negroni.Negroni
-	logger         *log.Logger
-	router         *mux.Router
-	sessionService model.SessionService
-	sessionStorage model.SessionStorage
-	appStorage     model.AppStorage
-	userStorage    model.UserStorage
-	ConfigPath     string
-	RedirectURL    string
-	PathPrefix     string
-	Host           string
+	middleware        *negroni.Negroni
+	logger            *log.Logger
+	router            *mux.Router
+	sessionService    model.SessionService
+	sessionStorage    model.SessionStorage
+	appStorage        model.AppStorage
+	userStorage       model.UserStorage
+	ServerSettings    *model.ServerSettings
+	AccountConfigPath string
+	RedirectURL       string
+	PathPrefix        string
+	Host              string
 }
 
 func defaultOptions() []func(*Router) error {
 	return []func(*Router) error{
 		PathPrefixOptions("/admin"),
-		HostOption("http://localhost:8080"),
 		RedirectURLOption("/login"),
 	}
 }
@@ -44,10 +44,18 @@ func HostOption(host string) func(*Router) error {
 	}
 }
 
-// ConfigPathOption sets path to configuration file.
-func ConfigPathOption(configPath string) func(*Router) error {
+// AccountConfigPathOption sets path to configuration file with admin account settings.
+func AccountConfigPathOption(configPath string) func(*Router) error {
 	return func(r *Router) error {
-		r.ConfigPath = configPath
+		r.AccountConfigPath = configPath
+		return nil
+	}
+}
+
+// ServerSettingsOption sets path to configuration file with admin account settings.
+func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
+	return func(r *Router) error {
+		r.ServerSettings = settings
 		return nil
 	}
 }

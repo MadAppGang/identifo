@@ -9,7 +9,7 @@ import (
 )
 
 // NewComposer creates new database composer.
-func NewComposer(settings Settings) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings: settings,
 	}
@@ -18,7 +18,7 @@ func NewComposer(settings Settings) (*DatabaseComposer, error) {
 
 // DatabaseComposer composes BoltDB services.
 type DatabaseComposer struct {
-	settings Settings
+	settings model.ServerSettings
 }
 
 // Compose composes all services with BoltDB support.

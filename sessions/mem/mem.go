@@ -44,7 +44,7 @@ func (m *memoryStorage) DeleteSession(id string) error {
 	return nil
 }
 
-func (m *memoryStorage) ProlongSession(id string, newDuration time.Duration) error {
+func (m *memoryStorage) ProlongSession(id string, newDuration model.SessionDuration) error {
 	m.Lock()
 	defer m.Unlock()
 
@@ -53,7 +53,7 @@ func (m *memoryStorage) ProlongSession(id string, newDuration time.Duration) err
 		return model.ErrorNotFound
 	}
 
-	session.ExpirationDate = time.Now().Add(newDuration)
+	session.ExpirationDate = time.Now().Add(newDuration.Duration)
 
 	m.sessions[session.ID] = session
 	return nil

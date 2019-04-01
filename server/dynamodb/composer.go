@@ -9,7 +9,7 @@ import (
 )
 
 // NewComposer creates new database composer.
-func NewComposer(settings Settings) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings: settings,
 	}
@@ -18,7 +18,7 @@ func NewComposer(settings Settings) (*DatabaseComposer, error) {
 
 // DatabaseComposer composes DynamoDB services.
 type DatabaseComposer struct {
-	settings Settings
+	settings model.ServerSettings
 }
 
 // Compose composes all services with DynamoDB support.
@@ -29,7 +29,6 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenService,
 	error,
 ) {
-
 	db, err := dynamodb.NewDB(dc.settings.DBEndpoint, dc.settings.DBRegion)
 	if err != nil {
 		return nil, nil, nil, nil, err

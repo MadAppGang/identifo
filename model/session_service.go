@@ -16,12 +16,12 @@ type SessionService interface {
 
 // SessionManager is a default session service.
 type SessionManager struct {
-	sessionDuration time.Duration
+	sessionDuration SessionDuration
 	sessionStorage  SessionStorage
 }
 
 // NewSessionManager creates new session manager and returns it.
-func NewSessionManager(sessionDuration time.Duration, sessionStorage SessionStorage) SessionService {
+func NewSessionManager(sessionDuration SessionDuration, sessionStorage SessionStorage) SessionService {
 	return &SessionManager{
 		sessionDuration: sessionDuration,
 		sessionStorage:  sessionStorage,
@@ -30,7 +30,7 @@ func NewSessionManager(sessionDuration time.Duration, sessionStorage SessionStor
 
 // NewSession creates new session and returns it.
 func (sm *SessionManager) NewSession() (Session, error) {
-	session := Session{ExpirationDate: time.Now().Add(sm.sessionDuration)}
+	session := Session{ExpirationDate: time.Now().Add(sm.sessionDuration.Duration)}
 
 	id := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, id); err != nil {
@@ -43,7 +43,7 @@ func (sm *SessionManager) NewSession() (Session, error) {
 
 // SessionDurationSeconds returns session duration in seconds.
 func (sm *SessionManager) SessionDurationSeconds() int {
-	return int(sm.sessionDuration / time.Second)
+	return int(sm.sessionDuration.Duration / time.Second)
 }
 
 // ProlongSession prolongs session duration.

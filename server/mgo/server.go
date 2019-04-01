@@ -1,29 +1,26 @@
 package mgo
 
 import (
+	"log"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 )
 
-// Settings are the extended settings for MongoDB server.
-type Settings struct {
-	model.ServerSettings
-	DBEndpoint string
-	DBName     string
-}
+// ServerSettings are server settings.
+var ServerSettings = server.ServerSettings
 
-// DefaultSettings are default server settings.
-var DefaultSettings = Settings{
-	ServerSettings: server.DefaultSettings,
-	DBEndpoint:     "localhost:27017",
-	DBName:         "identifo",
+func init() {
+	if ServerSettings.DBType != "mongodb" {
+		log.Fatalf("Incorrect database type %s for MongoDB-backed server", ServerSettings.DBType)
+	}
 }
 
 // NewServer creates new backend service with MongoDB support.
-func NewServer(setting Settings, options ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(setting)
+func NewServer(settings model.ServerSettings, options ...func(*server.Server) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(setting.ServerSettings, dbComposer, options...)
+	return server.NewServer(settings, dbComposer, options...)
 }

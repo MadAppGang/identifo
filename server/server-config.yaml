@@ -1,0 +1,26 @@
+host: http://localhost:8080
+
+pemFolderPath: ../../jwt
+privateKey: private.pem
+publicKey: public.pem
+issuer: http://localhost:8080
+
+algorithm: auto
+mailService: aws ses
+sessionStorage: memory
+sessionDuration: 300
+
+staticFolderPath: ../../static
+emailTemplatesPath: ../../email_templates
+emailTemplateNames:
+  welcome: welcome.html
+  resetPassword: reset_password.html
+  verifyEmail: verify_email.html
+
+accountConfigPath:  ../../server/account-config.yaml
+
+dbType: boltdb
+dbName: identifo
+dbEndpoint: http://localhost:27017
+dbPath: ./db.db
+dbRegion: us-west-2 # full list: https://docs.aws.amazon.com/general/latest/gr/rande.html

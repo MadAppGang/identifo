@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"net/http"
 
@@ -9,30 +8,40 @@ import (
 	"github.com/madappgang/identifo/server/embedded"
 )
 
-func initDB() model.Server {
-	settings := embedded.DefaultSettings
-	settings.StaticFolderPath = "./static"
-	settings.PEMFolderPath = "./pem"
-	settings.Issuer = "http://localhost:8080"
-	settings.MailService = model.MailServiceAWS
-	settings.EmailTemplatesPath = "./email_templates"
+const (
+	testAppID       = "59fd884d8f6b180001f5b4e2"
+	appsImportPath  = "./apps.json"
+	usersImportPath = "./users.json"
+)
+
+var port string
+
+func initServer() model.Server {
+	settings := embedded.ServerSettings
 
 	server, err := embedded.NewServer(settings)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	_, err = server.AppStorage().AppByID("59fd884d8f6b180001f5b4e2")
-	if err != nil {
-		server.ImportApps("./apps.json")
-		server.ImportUsers("./users.json")
+	port = settings.GetPort()
+
+	if _, err = server.AppStorage().AppByID(testAppID); err != nil {
+		log.Println("Error getting app storage:", err)
+		if err = server.ImportApps(appsImportPath); err != nil {
+			log.Println("Error importing apps:", err)
+		}
+		if err = server.ImportUsers(usersImportPath); err != nil {
+			log.Println("Error importing users:", err)
+		}
 	}
+
 	return server
 }
 
 func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
-	fmt.Println("Demo Identifo server started")
-	r := initDB()
-	log.Fatal(http.ListenAndServe(":8080", r.Router()))
+	s := initServer()
+	log.Println("Demo Identifo server started")
+	log.Fatal(http.ListenAndServe(port, s.Router()))
 }
