@@ -35,13 +35,23 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.LoginHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Login)),
 	)).Methods("GET")
 
+	ar.Router.Path("/{register:register\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.Register()),
+	)).Methods("POST")
+
+	ar.Router.Path("/{register:register\\/?}").Handler(negroni.New(
+		ar.AppID(),
+		negroni.WrapFunc(ar.RegistrationHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)),
+	)).Methods("GET")
+
 	ar.Router.HandleFunc("/token/{renew:renew\\/?}", ar.RenewToken(ar.StaticFilesPath.PagesPath, "/web-message.html")).Methods("GET")
 	ar.Router.Path("/{logout:logout\\/?}").Handler(negroni.New(
 		ar.AppID(),
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("GET")
 
-	ar.Router.HandleFunc("/{register:register\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)).Methods("GET")
+	// ar.Router.HandleFunc("/{register:register\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)).Methods("GET")
 	ar.Router.HandleFunc("/password/{forgot:forgot\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPassword)).Methods("GET")
 	ar.Router.HandleFunc("/password/forgot/{success:success\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPasswordSuccess)).Methods("GET")
 	ar.Router.HandleFunc("/password/reset/{error:error\\/?}", ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.TokenError)).Methods("GET")

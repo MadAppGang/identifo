@@ -192,17 +192,18 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 }
 
 type appData struct {
-	ID                   bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
-	Secret               string        `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active               bool          `bson:"active,omitempty" json:"active,omitempty"`
-	Name                 string        `bson:"name,omitempty" json:"name,omitempty"`
-	Description          string        `bson:"description,omitempty" json:"description,omitempty"`
-	Scopes               []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
-	Offline              bool          `bson:"offline,omitempty" json:"offline,omitempty"`
-	RedirectURL          string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
-	RefreshTokenLifespan int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
-	TokenLifespan        int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
-	TokenPayload         []string      `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	ID                    bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
+	Secret                string        `bson:"secret,omitempty" json:"secret,omitempty"`
+	Active                bool          `bson:"active,omitempty" json:"active,omitempty"`
+	Name                  string        `bson:"name,omitempty" json:"name,omitempty"`
+	Description           string        `bson:"description,omitempty" json:"description,omitempty"`
+	Scopes                []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	Offline               bool          `bson:"offline,omitempty" json:"offline,omitempty"`
+	RedirectURL           string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	TokenLifespan         int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
+	TokenPayload          []string      `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	RegistrationForbidden bool          `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
 }
 
 // AppData is a MongoDb model that implements model.AppData.
@@ -216,17 +217,18 @@ func NewAppData(data model.AppData) (AppData, error) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                   bson.ObjectIdHex(data.ID()),
-		Secret:               data.Secret(),
-		Active:               data.Active(),
-		Name:                 data.Name(),
-		Description:          data.Description(),
-		Scopes:               data.Scopes(),
-		Offline:              data.Offline(),
-		RedirectURL:          data.RedirectURL(),
-		RefreshTokenLifespan: data.RefreshTokenLifespan(),
-		TokenLifespan:        data.TokenLifespan(),
-		TokenPayload:         data.TokenPayload(),
+		ID:                    bson.ObjectIdHex(data.ID()),
+		Secret:                data.Secret(),
+		Active:                data.Active(),
+		Name:                  data.Name(),
+		Description:           data.Description(),
+		Scopes:                data.Scopes(),
+		Offline:               data.Offline(),
+		RedirectURL:           data.RedirectURL(),
+		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
+		TokenLifespan:         data.TokenLifespan(),
+		TokenPayload:          data.TokenPayload(),
+		RegistrationForbidden: data.RegistrationForbidden(),
 	}}, nil
 }
 
@@ -245,22 +247,23 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 // MakeAppData creates new MongoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                   bson.ObjectIdHex(id),
-		Secret:               secret,
-		Active:               active,
-		Name:                 name,
-		Description:          description,
-		Scopes:               scopes,
-		Offline:              offline,
-		RedirectURL:          redirectURL,
-		RefreshTokenLifespan: refreshTokenLifespan,
-		TokenLifespan:        tokenLifespan,
-		TokenPayload:         tokenPayload,
+		ID:                    bson.ObjectIdHex(id),
+		Secret:                secret,
+		Active:                active,
+		Name:                  name,
+		Description:           description,
+		Scopes:                scopes,
+		Offline:               offline,
+		RedirectURL:           redirectURL,
+		RefreshTokenLifespan:  refreshTokenLifespan,
+		TokenLifespan:         tokenLifespan,
+		TokenPayload:          tokenPayload,
+		RegistrationForbidden: registrationForbidden,
 	}}, nil
 }
 
@@ -302,3 +305,6 @@ func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 
 // TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
+
+// RegistrationForbidden implements model.AppData interface.
+func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }

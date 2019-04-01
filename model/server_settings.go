@@ -9,29 +9,29 @@ import (
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty"`
-	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty"`
-	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty"`
-	PEMFolderPath      string                `yaml:"pemFolderPath,omitempty"`
-	PrivateKey         string                `yaml:"privateKey,omitempty"`
-	PublicKey          string                `yaml:"publicKey,omitempty"`
-	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty"`
-	Issuer             string                `yaml:"issuer,omitempty"`
-	MailService        MailServiceType       `yaml:"mailService,omitempty"`
-	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty"`
-	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty"`
-	Host               string                `yaml:"host,omitempty"`
-	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty"`
-	DBSettings         `yaml:"-,inline"`
+	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	PEMFolderPath      string                `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
+	PrivateKey         string                `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
+	PublicKey          string                `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
+	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Issuer             string                `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	MailService        MailServiceType       `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
+	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
+	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
+	Host               string                `yaml:"host,omitempty" json:"host,omitempty"`
+	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
+	DBSettings         `yaml:"-,inline" json:"dbDettings,omitempty"`
 }
 
 // DBSettings holds together all possible database-related settings.
 type DBSettings struct {
-	DBType     string `yaml:"dbType,omitempty"`
-	DBName     string `yaml:"dbName,omitempty"`
-	DBEndpoint string `yaml:"dbEndpoint,omitempty"`
-	DBRegion   string `yaml:"dbRegion,omitempty"`
-	DBPath     string `yaml:"dbPath,omitempty"`
+	DBType     string `yaml:"dbType,omitempty" json:"type,omitempty"`
+	DBName     string `yaml:"dbName,omitempty" json:"name,omitempty"`
+	DBEndpoint string `yaml:"dbEndpoint,omitempty" json:"endpoint,omitempty"`
+	DBRegion   string `yaml:"dbRegion,omitempty" json:"region,omitempty"`
+	DBPath     string `yaml:"dbPath,omitempty" json:"path,omitempty"`
 }
 
 // GetPort returns port on which host listens to incoming connections.
