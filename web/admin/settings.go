@@ -1,8 +1,13 @@
 package admin
 
 import (
-	"fmt"
+	"io/ioutil"
 	"net/http"
+	"os"
+	"path/filepath"
+
+	"github.com/madappgang/identifo/model"
+	"gopkg.in/yaml.v2"
 )
 
 // FetchDatabaseSettings provides info about used database engine.
@@ -16,24 +21,41 @@ func (ar *Router) FetchDatabaseSettings() http.HandlerFunc {
 // AlterDatabaseSettings changes database settings.
 func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		newdbset := new(databaseSettings)
-		if ar.mustParseJSON(w, r, newdbset) != nil {
+		newset := new(model.ServerSettings)
+
+		if ar.mustParseJSON(w, r, newset) != nil {
 			return
 		}
 
-		if newdbset.Type != ar.DBType {
-			ar.Error(w, fmt.Errorf("Database type %s does not match the current one", newdbset.Type), http.StatusBadRequest, "")
+		if ar.updateServerConfigFile(w, newset) != nil {
 			return
 		}
 
-		dbset := databaseSettings{
-			Type:     ar.DBType,
-			Region:   ar.DBRegion,
-			Name:     ar.DBName,
-			Endpoint: ar.DBEndpoint,
-		}
-
-		ar.ServeJSON(w, http.StatusOK, dbset)
+		ar.ServeJSON(w, http.StatusOK, newset)
 		return
 	}
+}
+
+func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *model.ServerSettings) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		ar.logger.Println("Cannot get server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	ss, err := yaml.Marshal(newSettings)
+	if err != nil {
+		ar.logger.Println("Cannot marshall server configuration:", err)
+		ar.Error(w, err, http.StatusBadRequest, "")
+		return err
+	}
+
+	if err = ioutil.WriteFile(filepath.Join(dir, ar.ServerConfigPath), ss, 0644); err != nil {
+		ar.logger.Println("Cannot write server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	return nil
 }

@@ -18,6 +18,7 @@ emailTemplateNames:
   verifyEmail: verify_email.html
 
 accountConfigPath:  ./account-config.yaml
+serverConfigPath:  ./server-config.yaml
 
 dbType: boltdb
 dbPath: db.db

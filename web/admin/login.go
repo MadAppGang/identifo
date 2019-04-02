@@ -17,7 +17,7 @@ func (ar *Router) Login() http.HandlerFunc {
 	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminData)
-		if ar.getConf(w, conf) != nil {
+		if ar.getAccountConf(w, conf) != nil {
 			return
 		}
 

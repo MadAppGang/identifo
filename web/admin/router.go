@@ -22,8 +22,9 @@ type Router struct {
 	sessionStorage    model.SessionStorage
 	appStorage        model.AppStorage
 	userStorage       model.UserStorage
-	ServerSettings    *model.ServerSettings
 	AccountConfigPath string
+	ServerConfigPath  string
+	ServerSettings    *model.ServerSettings
 	RedirectURL       string
 	PathPrefix        string
 	Host              string
@@ -48,6 +49,14 @@ func HostOption(host string) func(*Router) error {
 func AccountConfigPathOption(configPath string) func(*Router) error {
 	return func(r *Router) error {
 		r.AccountConfigPath = configPath
+		return nil
+	}
+}
+
+// ServerConfigPathOption sets path to configuration file with admin server settings.
+func ServerConfigPathOption(configPath string) func(*Router) error {
+	return func(r *Router) error {
+		r.ServerConfigPath = configPath
 		return nil
 	}
 }

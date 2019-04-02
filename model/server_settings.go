@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"net/url"
@@ -9,19 +10,20 @@ import (
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	Host               string                `yaml:"host,omitempty" json:"host,omitempty"`
 	PEMFolderPath      string                `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
 	PrivateKey         string                `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
 	PublicKey          string                `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 	Issuer             string                `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 	MailService        MailServiceType       `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
 	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
 	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
-	Host               string                `yaml:"host,omitempty" json:"host,omitempty"`
+	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
 	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
+	ServerConfigPath   string                `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	DBSettings         `yaml:"-,inline" json:"dbDettings,omitempty"`
 }
 
@@ -58,6 +60,50 @@ const (
 	// MailServiceAWS is an AWS SES service.
 	MailServiceAWS
 )
+
+// String implements Stringer.
+func (mst MailServiceType) String() string {
+	switch mst {
+	case MailServiceMailgun:
+		return "mailgun"
+	case MailServiceAWS:
+		return "aws ses"
+	default:
+		return fmt.Sprintf("MailServiceType(%d)", mst)
+	}
+}
+
+// MarshalJSON implements json.Marshaller.
+func (mst MailServiceType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(mst.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaller.
+func (mst *MailServiceType) UnmarshalJSON(data []byte) error {
+	if mst == nil {
+		return nil
+	}
+
+	var aux string
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	mailServiceType, ok := map[string]MailServiceType{
+		"aws ses": MailServiceAWS,
+		"mailgun": MailServiceMailgun}[aux]
+	if !ok {
+		return fmt.Errorf("Invalid MailServiceType %v", aux)
+	}
+
+	*mst = mailServiceType
+	return nil
+}
+
+// MarshalYAML implements yaml.Marshaller.
+func (mst MailServiceType) MarshalYAML() (interface{}, error) {
+	return mst.String(), nil
+}
 
 // UnmarshalYAML implements yaml.Unmarshaller.
 func (mst *MailServiceType) UnmarshalYAML(unmarshal func(interface{}) error) error {

@@ -60,11 +60,12 @@ func (ar *Router) initRoutes() {
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
 
-	settings := mux.NewRouter().PathPrefix("/settings").Subrouter()
-	ar.router.PathPrefix("/settings").Handler(negroni.New(
+	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
 		ar.Session(),
-		negroni.Wrap(settings),
-	))
-	settings.Path("/database").HandlerFunc(ar.FetchDatabaseSettings()).Methods("GET")
-	settings.Path("/database").HandlerFunc(ar.AlterDatabaseSettings()).Methods("PUT")
+		negroni.WrapFunc(ar.FetchDatabaseSettings()),
+	)).Methods("GET")
+	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.AlterDatabaseSettings()),
+	)).Methods("PUT")
 }
