@@ -62,10 +62,10 @@ func (ar *Router) initRoutes() {
 
 	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
 		ar.Session(),
-		negroni.WrapFunc(ar.FetchDatabaseSettings()),
+		negroni.WrapFunc(ar.FetchServerSettings()),
 	)).Methods("GET")
 	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
 		ar.Session(),
-		negroni.WrapFunc(ar.AlterDatabaseSettings()),
+		negroni.WrapFunc(ar.AlterServerSettings()),
 	)).Methods("PUT")
 }

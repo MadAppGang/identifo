@@ -10,16 +10,16 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// FetchDatabaseSettings provides info about used database engine.
-func (ar *Router) FetchDatabaseSettings() http.HandlerFunc {
+// FetchServerSettings returns server settings.
+func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings)
 		return
 	}
 }
 
-// AlterDatabaseSettings changes database settings.
-func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
+// AlterServerSettings changes server settings.
+func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		newset := new(model.ServerSettings)
 
