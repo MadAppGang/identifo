@@ -74,8 +74,7 @@ func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *mod
 		return err
 	}
 
-	dir = filepath.Join(dir, ar.ServerConfigPath)
-	return ar.updateConfigFile(w, newSettings, dir)
+	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath))
 }
 
 func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *adminData) error {
@@ -86,8 +85,7 @@ func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *ad
 		return err
 	}
 
-	dir = filepath.Join(dir, ar.AccountConfigPath)
-	return ar.updateConfigFile(w, newSettings, dir)
+	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.AccountConfigPath))
 }
 
 func (ar *Router) updateConfigFile(w http.ResponseWriter, in interface{}, dir string) error {
