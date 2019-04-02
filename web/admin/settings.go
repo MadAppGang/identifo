@@ -18,7 +18,7 @@ func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	}
 }
 
-// FetchAccountSettings provides info about used database engine.
+// FetchAccountSettings returns admin account settings.
 func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminData)
