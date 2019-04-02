@@ -68,4 +68,11 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.AlterDatabaseSettings()),
 	)).Methods("PUT")
+
+	settings := mux.NewRouter().PathPrefix("/settings").Subrouter()
+	ar.router.PathPrefix("/settings").Handler(negroni.New(
+		ar.Session(),
+		negroni.Wrap(settings),
+	))
+	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
 }
