@@ -18,6 +18,18 @@ func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	}
 }
 
+// FetchAccountSettings provides info about used database engine.
+func (ar *Router) FetchAccountSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		conf := new(adminData)
+		if ar.getAccountConf(w, conf) != nil {
+			return
+		}
+		ar.ServeJSON(w, http.StatusOK, conf)
+		return
+	}
+}
+
 // AlterServerSettings changes server settings.
 func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
