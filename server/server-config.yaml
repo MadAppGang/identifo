@@ -17,8 +17,8 @@ emailTemplateNames:
   resetPassword: reset_password.html
   verifyEmail: verify_email.html
 
-accountConfigPath:  ../../server/account-config.yaml
-serverConfigPath:  ../../server/server-config.yaml
+accountConfigPath: ../../server/account-config.yaml
+serverConfigPath: ../../server/server-config.yaml
 
 dbType: boltdb
 dbName: identifo

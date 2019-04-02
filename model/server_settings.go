@@ -24,7 +24,7 @@ type ServerSettings struct {
 	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
 	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
 	ServerConfigPath   string                `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	DBSettings         `yaml:"-,inline" json:"dbDettings,omitempty"`
+	DBSettings         `yaml:"-,inline" json:"db_settings,omitempty"`
 }
 
 // DBSettings holds together all possible database-related settings.
@@ -56,7 +56,7 @@ type MailServiceType int
 
 const (
 	// MailServiceMailgun is a Mailgun service.
-	MailServiceMailgun MailServiceType = iota
+	MailServiceMailgun MailServiceType = iota + 1
 	// MailServiceAWS is an AWS SES service.
 	MailServiceAWS
 )
@@ -132,10 +132,54 @@ type SessionStorageType int
 
 const (
 	// SessionStorageMem means to store sessions in memory.
-	SessionStorageMem SessionStorageType = iota
+	SessionStorageMem SessionStorageType = iota + 1
 	// SessionStorageRedis means to store sessions in Redis.
 	SessionStorageRedis
 )
+
+// String implements Stringer.
+func (sst SessionStorageType) String() string {
+	switch sst {
+	case SessionStorageMem:
+		return "memory"
+	case SessionStorageRedis:
+		return "redis"
+	default:
+		return fmt.Sprintf("SessionStorageType(%d)", sst)
+	}
+}
+
+// MarshalJSON implements json.Marshaller.
+func (sst SessionStorageType) MarshalJSON() ([]byte, error) {
+	return json.Marshal(sst.String())
+}
+
+// UnmarshalJSON implements json.Unmarshaller.
+func (sst *SessionStorageType) UnmarshalJSON(data []byte) error {
+	if sst == nil {
+		return nil
+	}
+
+	var aux string
+	if err := json.Unmarshal(data, &aux); err != nil {
+		return err
+	}
+
+	sessionStorageType, ok := map[string]SessionStorageType{
+		"memory": SessionStorageMem,
+		"redis":  SessionStorageRedis}[aux]
+	if !ok {
+		return fmt.Errorf("Invalid SessionStorageType %v", aux)
+	}
+
+	*sst = sessionStorageType
+	return nil
+}
+
+// MarshalYAML implements yaml.Marshaller.
+func (sst SessionStorageType) MarshalYAML() (interface{}, error) {
+	return sst.String(), nil
+}
 
 // UnmarshalYAML implements yaml.Unmarshaller.
 func (sst *SessionStorageType) UnmarshalYAML(unmarshal func(interface{}) error) error {
