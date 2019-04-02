@@ -23,7 +23,7 @@ type TokenServiceAlgorithm int
 
 const (
 	// TokenServiceAlgorithmES256 is a ES256 signature.
-	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota
+	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota + 1
 	// TokenServiceAlgorithmRS256 is a RS256 signature.
 	TokenServiceAlgorithmRS256
 	// TokenServiceAlgorithmAuto tries to detect algorithm on the fly.
