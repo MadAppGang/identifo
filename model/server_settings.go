@@ -17,7 +17,7 @@ type ServerSettings struct {
 	Issuer             string                `yaml:"issuer,omitempty" json:"issuer,omitempty"`
 	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 	MailService        MailServiceType       `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
-	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty" json:"session_storage"`
+	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
 	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
 	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
 	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
