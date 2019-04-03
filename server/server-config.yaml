@@ -22,6 +22,6 @@ serverConfigPath: ../../server/server-config.yaml
 
 dbType: boltdb
 dbName: identifo
-dbEndpoint: http://localhost:27017
+dbEndpoint: localhost:27017
 dbRegion: us-west-2 # full list: https://docs.aws.amazon.com/general/latest/gr/rande.html
 dbPath: ./db.db
