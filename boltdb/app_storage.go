@@ -192,6 +192,18 @@ func (as *AppStorage) DeleteApp(id string) error {
 	return err
 }
 
+// TestDatabaseConnection checks whether we can fetch the first document in the applications bucket.
+func (as *AppStorage) TestDatabaseConnection() error {
+	err := as.db.View(func(tx *bolt.Tx) error {
+		ab := tx.Bucket([]byte(AppBucket))
+		return ab.ForEach(func(k, v []byte) error {
+			_, err := AppDataFromJSON(v)
+			return err
+		})
+	})
+	return err
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}

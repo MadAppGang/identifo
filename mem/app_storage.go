@@ -106,6 +106,11 @@ func (as *AppStorage) DeleteApp(id string) error {
 	return nil
 }
 
+// TestDatabaseConnection is always optimistic about the database connection.
+func (as *AppStorage) TestDatabaseConnection() error {
+	return nil
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
@@ -216,10 +221,8 @@ func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 // TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
-// AddAppDataFromFile loads app data from JSON file and saves it to the storage.
-func AddAppDataFromFile(as model.AppStorage, file string) {
-
-}
+// AddAppDataFromFile implements model.AppData interface.
+func AddAppDataFromFile(as model.AppStorage, file string) {}
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }

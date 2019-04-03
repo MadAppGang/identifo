@@ -66,6 +66,18 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 	}
 }
 
+// TestDatabaseConnection tests database connection.
+func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := ar.appStorage.TestDatabaseConnection(); err != nil {
+			ar.ServeJSON(w, http.StatusInternalServerError, nil)
+		} else {
+			ar.ServeJSON(w, http.StatusOK, nil)
+		}
+		return
+	}
+}
+
 func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *model.ServerSettings) error {
 	dir, err := os.Getwd()
 	if err != nil {

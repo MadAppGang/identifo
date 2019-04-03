@@ -261,6 +261,15 @@ func (as *AppStorage) DeleteApp(id string) error {
 	return err
 }
 
+// TestDatabaseConnection checks whether we can fetch the first document in the applications table.
+func (as *AppStorage) TestDatabaseConnection() error {
+	_, err := as.db.C.Scan(&dynamodb.ScanInput{
+		TableName: aws.String(AppsTable),
+		Limit:     aws.Int64(1),
+	})
+	return err
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}

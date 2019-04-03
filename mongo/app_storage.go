@@ -176,6 +176,20 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 	return AppData{appData: ad}, nil
 }
 
+// TestDatabaseConnection checks whether we can fetch the first document in the applications collection.
+func (as *AppStorage) TestDatabaseConnection() error {
+	s := as.db.Session(AppsCollection)
+	defer s.Close()
+
+	var ad appData
+	err := s.C.Find(nil).One(&ad)
+	if err == mgo.ErrNotFound { // It's OK, collection is empty.
+		return nil
+	}
+
+	return err
+}
+
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
 	apd := []appData{}
