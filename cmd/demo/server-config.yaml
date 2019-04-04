@@ -17,7 +17,8 @@ emailTemplateNames:
   resetPassword: reset_password.html
   verifyEmail: verify_email.html
 
-accountConfigPath:  ./account-config.yaml
+accountConfigPath: ./account-config.yaml
+serverConfigPath: ./server-config.yaml
 
 dbType: boltdb
 dbPath: db.db

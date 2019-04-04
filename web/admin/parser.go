@@ -83,8 +83,8 @@ func getRouteVar(name string, r *http.Request) string {
 	return mux.Vars(r)[name]
 }
 
-// getConf reads admin panel configuration file and parses it to adminData struct.
-func (ar *Router) getConf(w http.ResponseWriter, ad *adminData) error {
+// getAccountConf reads admin account configuration file and parses it to adminData struct.
+func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		ar.logger.Println("Cannot get configuration file:", err)
