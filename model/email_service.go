@@ -49,7 +49,7 @@ type EmailTemplater struct {
 
 // EmailTemplateNames stores email template names.
 type EmailTemplateNames struct {
-	Welcome       string `yaml:"welcome,omitempty"`
-	ResetPassword string `yaml:"resetPassword,omitempty"`
-	VerifyEmail   string `yaml:"verifyEmail,omitempty"`
+	Welcome       string `yaml:"welcome,omitempty" json:"welcome,omitempty"`
+	ResetPassword string `yaml:"resetPassword,omitempty" json:"reset_password,omitempty"`
+	VerifyEmail   string `yaml:"verifyEmail,omitempty" json:"verify_email,omitempty"`
 }
