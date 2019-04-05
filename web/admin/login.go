@@ -5,8 +5,8 @@ import (
 )
 
 type adminData struct {
-	Admin    string `yaml:"admin"`
-	Password string `yaml:"password"`
+	Admin    string `yaml:"admin" json:"admin"`
+	Password string `yaml:"password" json:"password"`
 }
 
 // Login logins admin with admin name and password.
