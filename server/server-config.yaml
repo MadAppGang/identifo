@@ -1,27 +1,50 @@
+# Endpoint of the Indentifo server.
 host: http://localhost:8080
 
+# Folder where public and private keys are stored.
 pemFolderPath: ../../jwt
+# Private key for signing JWT tokens.
 privateKey: private.pem
+# Public key for verifying JWT tokens.
 publicKey: public.pem
+# JWT token issuer.
 issuer: http://localhost:8080
 
+# Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 algorithm: auto
+# Mail service name. Supported values are "mailgun" and "aws ses".
 mailService: aws ses
+# Storage for admin sessions. Supported values are "memory" and "redis".
 sessionStorage: memory
+# Admin session duration in seconds.
+# This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
 sessionDuration: 300
 
+# Folder for the static files.
 staticFolderPath: ../../static
+# Forder for the email templates.
 emailTemplatesPath: ../../email_templates
+# Email template names.
 emailTemplateNames:
   welcome: welcome.html
   resetPassword: reset_password.html
   verifyEmail: verify_email.html
 
+# File with admin account settings.
 accountConfigPath: ../../server/account-config.yaml
+# File with server settings.
 serverConfigPath: ../../server/server-config.yaml
 
+# Database settings holds together settings for all supported database types.
+
+# Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
 dbType: boltdb
+# Name of the database (MongoDB-specific)
 dbName: identifo
+# Endpoint of the database server (MongoDB and DynamoDB specific). For DynamoDB, can be inferred from the region automatically.
 dbEndpoint: localhost:27017
-dbRegion: us-west-2 # full list: https://docs.aws.amazon.com/general/latest/gr/rande.html
+# AWS Region where the database is located in (DynamoDB-specific).
+# Full list of possible values: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+dbRegion: us-west-2
+# Path to the database file (BoltDB-specific).
 dbPath: ./db.db
