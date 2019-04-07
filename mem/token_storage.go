@@ -5,8 +5,8 @@ import (
 )
 
 // NewTokenStorage creates an in-memory token storage.
-func NewTokenStorage() model.TokenStorage {
-	return &TokenStorage{storage: make(map[string]bool)}
+func NewTokenStorage() (model.TokenStorage, error) {
+	return &TokenStorage{storage: make(map[string]bool)}, nil
 }
 
 // TokenStorage is an in-memory token storage.
