@@ -12,6 +12,7 @@ type AppStorage interface {
 	DeleteApp(id string) error
 	ImportJSON(data []byte) error
 	NewAppData() AppData
+	TestDatabaseConnection() error
 }
 
 //AppData represents Application data information

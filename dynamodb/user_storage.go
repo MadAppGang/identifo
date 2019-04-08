@@ -396,15 +396,18 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination. Search is case-senstive for now.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
-	result, err := us.db.C.Query(&dynamodb.QueryInput{
-		TableName:              aws.String(UsersTableName),
-		IndexName:              aws.String(UserTableEmailIndexName),
-		KeyConditionExpression: aws.String("contains(username, :filterStr)"),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+	scanInput := &dynamodb.ScanInput{
+		TableName: aws.String(AppsTable),
+	}
+
+	if len(filterString) != 0 {
+		scanInput.FilterExpression = aws.String("contains(username, :filterStr)")
+		scanInput.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
 			":filterStr": {S: aws.String(filterString)},
-		},
-		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"),
-	})
+		}
+	}
+
+	result, err := us.db.C.Scan(scanInput)
 	if err != nil {
 		log.Println("Error querying for users:", err)
 		return nil, ErrorInternalError

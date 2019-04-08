@@ -224,14 +224,21 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination. Search is case-senstive for now.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
-	result, err := as.db.C.Query(&dynamodb.QueryInput{
-		TableName:              aws.String(AppsTable),
-		KeyConditionExpression: aws.String("contains(name, :filterStr)"),
-		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+	scanInput := &dynamodb.ScanInput{
+		TableName: aws.String(AppsTable),
+	}
+
+	if len(filterString) != 0 {
+		scanInput.FilterExpression = aws.String("contains(#name, :filterStr)")
+		scanInput.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
 			":filterStr": {S: aws.String(filterString)},
-		},
-		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"),
-	})
+		}
+		scanInput.ExpressionAttributeNames = map[string]*string{
+			"#name": aws.String("name"),
+		}
+	}
+
+	result, err := as.db.C.Scan(scanInput)
 	if err != nil {
 		log.Println("Error querying for apps:", err)
 		return nil, ErrorInternalError
@@ -258,6 +265,15 @@ func (as *AppStorage) DeleteApp(id string) error {
 		TableName: aws.String(AppsTable),
 	}
 	_, err := as.db.C.DeleteItem(input)
+	return err
+}
+
+// TestDatabaseConnection checks whether we can fetch the first document in the applications table.
+func (as *AppStorage) TestDatabaseConnection() error {
+	_, err := as.db.C.Scan(&dynamodb.ScanInput{
+		TableName: aws.String(AppsTable),
+		Limit:     aws.Int64(1),
+	})
 	return err
 }
 

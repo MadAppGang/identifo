@@ -76,4 +76,5 @@ func (ar *Router) initRoutes() {
 	))
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
 	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PUT")
+	settings.Path("/database/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
 }
