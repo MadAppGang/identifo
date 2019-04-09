@@ -86,6 +86,10 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return nil
 }
 
+func (us *UserStorage) ResetUsername(id, username string) error {
+	return nil
+}
+
 // IDByName returns random id.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	return randomdata.StringNumber(2, "-"), nil

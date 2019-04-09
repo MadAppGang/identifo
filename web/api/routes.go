@@ -40,6 +40,7 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(meRouter),
 	))
+	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	meRouter.Path("/{logout:logout\\/?}").HandlerFunc(ar.Logout()).Methods("POST")
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()

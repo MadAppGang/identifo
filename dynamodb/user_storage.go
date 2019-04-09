@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
@@ -372,6 +373,10 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 
 	return err
+}
+
+func (us *UserStorage) ResetUsername(id, username string) error {
+	return errors.New("Reset username is not implemented. ")
 }
 
 // IDByName returns userID by name.
