@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -332,6 +333,12 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 		}
 		return ub.Put([]byte(user.ID()), u)
 	})
+}
+
+// ResetUsername sets user username.
+func (us *UserStorage) ResetUsername(id, username string) error {
+	// TODO: implement
+	return errors.New("ResetUsername is not implemented. ")
 }
 
 // IDByName returns userID by name.

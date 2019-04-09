@@ -375,8 +375,10 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return err
 }
 
+// ResetUsername sets user username.
 func (us *UserStorage) ResetUsername(id, username string) error {
-	return errors.New("Reset username is not implemented. ")
+	// TODO: implement
+	return errors.New("ResetUsername is not implemented. ")
 }
 
 // IDByName returns userID by name.

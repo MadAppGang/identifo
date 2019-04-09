@@ -30,7 +30,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		// check that new username is not busy.
+		// check that new username is not taken.
 		if d.NewUsername != "" && user.Name() != d.NewUsername {
 			if ar.userStorage.UserExists(d.NewUsername) {
 				ar.Error(w, errors.New("Username is busy. "), http.StatusBadRequest, "Username is busy. Try to choose another one.")
@@ -73,7 +73,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		if d.NewUsername != "" && user.Name() != d.NewUsername {
 			err = ar.userStorage.ResetUsername(userID, d.NewUsername)
 			if err != nil {
-				ar.Error(w, err, http.StatusBadRequest, "Username is busy. Try to choose another one.")
+				ar.Error(w, err, http.StatusBadRequest, "Username is taken. Try to choose another one.")
 				return
 			}
 			usernameChanged = true
