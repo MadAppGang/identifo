@@ -3,9 +3,8 @@ package fake
 import (
 	"path"
 
-	"github.com/madappgang/identifo/mem"
-
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
 )
 
