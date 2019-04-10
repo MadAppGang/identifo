@@ -33,13 +33,13 @@ type DB struct {
 	C *dynamodb.DynamoDB
 }
 
-// isTableExists checks if table exists.
-func (db *DB) isTableExists(table string) (bool, error) {
+// IsTableExists checks if table exists.
+func (db *DB) IsTableExists(table string) (bool, error) {
 	input := &dynamodb.DescribeTableInput{
 		TableName: aws.String(table),
 	}
 	_, err := db.C.DescribeTable(input)
-	if awsErrorErrorNotFound(err) {
+	if AwsErrorErrorNotFound(err) {
 		return false, nil
 		//if table not exists - create table
 	}
@@ -51,8 +51,8 @@ func (db *DB) isTableExists(table string) (bool, error) {
 	return true, nil
 }
 
-// awsErrorErrorNotFound checks if error has type dynamodb.ErrCodeResourceNotFoundException.
-func awsErrorErrorNotFound(err error) bool {
+// AwsErrorErrorNotFound checks if error has type dynamodb.ErrCodeResourceNotFoundException.
+func AwsErrorErrorNotFound(err error) bool {
 	if err == nil {
 		return false
 	}
