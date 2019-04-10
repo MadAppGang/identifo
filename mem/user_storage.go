@@ -7,8 +7,8 @@ import (
 
 // NewUserStorage creates and inits in-memory user storage.
 // Use it only for test purposes and in CI, all data is wiped on exit.
-func NewUserStorage() model.UserStorage {
-	return &UserStorage{}
+func NewUserStorage() (model.UserStorage, error) {
+	return &UserStorage{}, nil
 }
 
 // UserStorage implements user storage in memory.

@@ -10,8 +10,8 @@ import (
 )
 
 // NewAppStorage creates new in-memory AppStorage implementation.
-func NewAppStorage() model.AppStorage {
-	return &AppStorage{storage: make(map[string]AppData)}
+func NewAppStorage() (model.AppStorage, error) {
+	return &AppStorage{storage: make(map[string]AppData)}, nil
 }
 
 // AppStorage is a fully functional app storage.

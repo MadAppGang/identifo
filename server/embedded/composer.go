@@ -3,22 +3,60 @@ package embedded
 import (
 	"path"
 
+	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/boltdb"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
 // NewComposer creates new database composer.
-func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
-		settings: settings,
+		settings:        settings,
+		newAppStorage:   boltdb.NewAppStorage,
+		newUserStorage:  boltdb.NewUserStorage,
+		newTokenStorage: boltdb.NewTokenStorage,
 	}
+
+	for _, option := range options {
+		if err := option(&c); err != nil {
+			return nil, err
+		}
+	}
+
 	return &c, nil
+}
+
+// InitAppStorage returns an argument that sets the appStorage initialization function.
+func InitAppStorage(initAS func(*bolt.DB) (model.AppStorage, error)) func(*DatabaseComposer) error {
+	return func(dc *DatabaseComposer) error {
+		dc.newAppStorage = initAS
+		return nil
+	}
+}
+
+// InitUserStorage returns an argument that sets the userStorage initialization function.
+func InitUserStorage(initUS func(*bolt.DB) (model.UserStorage, error)) func(*DatabaseComposer) error {
+	return func(dc *DatabaseComposer) error {
+		dc.newUserStorage = initUS
+		return nil
+	}
+}
+
+// InitTokenStorage returns an argument that sets the tokenStorage initialization function.
+func InitTokenStorage(initTS func(*bolt.DB) (model.TokenStorage, error)) func(*DatabaseComposer) error {
+	return func(dc *DatabaseComposer) error {
+		dc.newTokenStorage = initTS
+		return nil
+	}
 }
 
 // DatabaseComposer composes BoltDB services.
 type DatabaseComposer struct {
-	settings model.ServerSettings
+	settings        model.ServerSettings
+	newAppStorage   func(*bolt.DB) (model.AppStorage, error)
+	newUserStorage  func(*bolt.DB) (model.UserStorage, error)
+	newTokenStorage func(*bolt.DB) (model.TokenStorage, error)
 }
 
 // Compose composes all services with BoltDB support.
@@ -34,17 +72,17 @@ func (dc *DatabaseComposer) Compose() (
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
-	appStorage, err := boltdb.NewAppStorage(db)
+	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	userStorage, err := boltdb.NewUserStorage(db)
+	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
 
-	tokenStorage, err := boltdb.NewTokenStorage(db)
+	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, err
 	}
