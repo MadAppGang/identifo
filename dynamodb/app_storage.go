@@ -35,7 +35,7 @@ func (as *AppStorage) NewAppData() model.AppData {
 
 // ensureTable ensures that app table exists in database.
 func (as *AppStorage) ensureTable() error {
-	exists, err := as.db.isTableExists(AppsTable)
+	exists, err := as.db.IsTableExists(AppsTable)
 	if err != nil {
 		log.Println("Error checking Applications table existence:", err)
 		return err

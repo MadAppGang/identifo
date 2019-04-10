@@ -28,7 +28,7 @@ type TokenStorage struct {
 
 // ensureTable ensures that token storage exists in the database.
 func (ts *TokenStorage) ensureTable() error {
-	exists, err := ts.db.isTableExists(TokensTableName)
+	exists, err := ts.db.IsTableExists(TokensTableName)
 	if err != nil {
 		log.Printf("Error while checking if %s exists: %v", TokensTableName, err)
 		return err

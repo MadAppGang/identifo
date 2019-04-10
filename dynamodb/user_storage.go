@@ -505,7 +505,7 @@ func PasswordHash(pwd string) string {
 // ensureTable ensures that app storage table exists in the database.
 // I'm hiding it in the end of the file, because AWS devs, you are killing me with this API.
 func (us *UserStorage) ensureTable() error {
-	exists, err := us.db.isTableExists(UsersTableName)
+	exists, err := us.db.IsTableExists(UsersTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err
@@ -565,7 +565,7 @@ func (us *UserStorage) ensureTable() error {
 	}
 
 	// create table to handle federated ID's
-	exists, err = us.db.isTableExists(UsersFederatedIDTableName)
+	exists, err = us.db.IsTableExists(UsersFederatedIDTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err
