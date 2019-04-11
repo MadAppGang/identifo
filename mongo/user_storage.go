@@ -5,7 +5,7 @@ import (
 
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
-	mgo "gopkg.in/mgo.v2"
+	"gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -17,12 +17,16 @@ const (
 // NewUserStorage creates and inits MongoDB user storage.
 func NewUserStorage(db *DB) (model.UserStorage, error) {
 	us := &UserStorage{db: db}
-	//TODO: ensure indexes
+
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
 	if err := s.C.EnsureIndex(mgo.Index{
-		Key:    []string{"name"},
+		Key: []string{"name"},
+		Collation: &mgo.Collation{
+			Locale:   "en",
+			Strength: 1,
+		},
 		Unique: true,
 	}); err != nil {
 		return nil, err
@@ -212,6 +216,18 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 
 	hash := PasswordHash(password)
 	update := bson.M{"$set": bson.M{"pswd": hash}}
+	return s.C.UpdateId(bson.ObjectIdHex(id), update)
+}
+
+// ResetUsername sets new user's username.
+func (us *UserStorage) ResetUsername(id, username string) error {
+	if !bson.IsObjectIdHex(id) {
+		return model.ErrorWrongDataFormat
+	}
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	update := bson.M{"$set": bson.M{"name": username}}
 	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 

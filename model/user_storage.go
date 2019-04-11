@@ -13,6 +13,7 @@ type UserStorage interface {
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	UpdateUser(userID string, newUser User) (User, error)
 	ResetPassword(id, password string) error
+	ResetUsername(id, username string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, error)
 	NewUser() User
