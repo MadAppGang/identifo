@@ -2,7 +2,6 @@ package dynamodb
 
 import (
 	"encoding/json"
-	"errors"
 	"log"
 	"strings"
 
@@ -377,8 +376,26 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 
 // ResetUsername sets user username.
 func (us *UserStorage) ResetUsername(id, username string) error {
-	// TODO: implement
-	return errors.New("ResetUsername is not implemented. ")
+	idx, err := xid.FromString(id)
+	if err != nil {
+		log.Println("Incorrect user ID: ", id)
+		return model.ErrorWrongDataFormat
+	}
+
+	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
+
+		TableName: aws.String(UsersTableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {S: aws.String(idx.String())},
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":u": {S: aws.String(username)},
+		},
+		UpdateExpression: aws.String("set username = :u"),
+		ReturnValues:     aws.String("NONE"),
+	})
+
+	return err
 }
 
 // IDByName returns userID by name.
