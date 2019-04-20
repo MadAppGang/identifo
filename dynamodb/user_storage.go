@@ -72,6 +72,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return &User{userData: userdata}, nil
 }
 
+// UserByEmail returns user by its email.
+func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+	// TODO: implement dynamodb UserByEmail
+	return nil, errors.New("Not implemented. ")
+}
+
 func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvider, id string) (string, error) {
 	fid := string(provider) + ":" + id
 	result, err := us.db.C.GetItem(&dynamodb.GetItemInput{
@@ -459,6 +465,7 @@ type userIndexByNameData struct {
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"username,omitempty"`
+	Email   string                 `json:"email,omitempty"`
 	Pswd    string                 `json:"pswd,omitempty"`
 	Profile map[string]interface{} `json:"profile,omitempty"`
 	Active  bool                   `json:"active,omitempty"`
@@ -496,6 +503,15 @@ func (u *User) ID() string { return u.userData.ID }
 
 // Name implements model.User interface.
 func (u *User) Name() string { return u.userData.Name }
+
+// SetName implements model.User interface.
+func (u *User) SetName(name string) { u.userData.Name = name }
+
+// Email implements model.User interface.
+func (u *User) Email() string { return u.userData.Email }
+
+// SetEmail implements model.Email interface.
+func (u *User) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }
