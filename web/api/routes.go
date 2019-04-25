@@ -28,6 +28,7 @@ func (ar *Router) initRoutes() {
 	auth.Path("/{federated:federated\\/?}").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/{register:register\\/?}").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	auth.Path("/{reset_password:reset_password\\/?}").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	auth.Path("/{invite_token:invite_token\\/?}").HandlerFunc(ar.RequestInviteToken()).Methods("POST")
 
 	auth.Path("/{token:token\\/?}").Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),

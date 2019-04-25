@@ -32,6 +32,8 @@ type AppData interface {
 	RedirectURL() string
 	// TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
 	TokenLifespan() int64
+	// InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
+	InviteTokenLifespan() int64
 	// RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
 	RefreshTokenLifespan() int64
 	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
