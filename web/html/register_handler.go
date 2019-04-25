@@ -28,10 +28,12 @@ func (ar *Router) RegistrationHandler(pathComponents ...string) http.HandlerFunc
 
 		scopesJSON := strings.TrimSpace(r.URL.Query().Get("scopes"))
 		scopes := []string{}
-		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
-			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
-			http.Redirect(w, r, errorPath, http.StatusFound)
-			return
+		if scopesJSON != "" {
+			if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
+				ar.Logger.Printf("Error: Invalid scopes %v. Error: %v", scopesJSON, err)
+				http.Redirect(w, r, errorPath, http.StatusFound)
+				return
+			}
 		}
 
 		errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)

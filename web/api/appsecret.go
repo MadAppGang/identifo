@@ -32,7 +32,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
-			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, ErrorRequestInvalidAppID.Error())
 			return
 		}
 
@@ -40,7 +40,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
 		if reqMAC == nil {
 			ar.logger.Println("Error extracting signature")
-			ar.Error(rw, ErrorRequestSignature, http.StatusBadRequest, "")
+			ar.Error(rw, ErrorRequestSignature, http.StatusBadRequest, ErrorRequestSignature.Error())
 			return
 		}
 
@@ -54,7 +54,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				ar.logger.Printf("Error reading body: %v", err)
-				ar.Error(rw, ErrorWrongInput, http.StatusBadRequest, "")
+				ar.Error(rw, ErrorWrongInput, http.StatusBadRequest, ErrorWrongInput.Error())
 				return
 			}
 			body = b
@@ -63,7 +63,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		//check body signature
 		if err := validateBodySignature(body, reqMAC, []byte(app.Secret())); err != nil {
 			ar.logger.Printf("Error validating request signature: %v\n", err)
-			ar.Error(rw, err, http.StatusBadRequest, "")
+			ar.Error(rw, err, http.StatusBadRequest, ErrorRequestSignature.Error())
 			return
 		}
 

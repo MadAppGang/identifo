@@ -5,20 +5,20 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//setup all routes
+// setup all routes
 func (ar *Router) initRoutes() {
-	//do nothing on empty router (or should panic?)
+	// do nothing on empty router (or should panic?)
 	if ar.router == nil {
 		return
 	}
 
-	//all API routes should have appID in it
+	// all API routes should have appID in it
 	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
-	//setup root routes
+	// setup root routes
 	ar.router.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
 
-	//setup auth routes
+	// setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
@@ -28,7 +28,7 @@ func (ar *Router) initRoutes() {
 	auth.Path("/{federated:federated\\/?}").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/{register:register\\/?}").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	auth.Path("/{reset_password:reset_password\\/?}").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
-	auth.Path("/{invite_token:invite_token\\/?}").HandlerFunc(ar.RequestInviteToken()).Methods("POST")
+	auth.Path("/{invite:invite\\/?}").HandlerFunc(ar.RequestInviteLink()).Methods("POST")
 
 	auth.Path("/{token:token\\/?}").Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
