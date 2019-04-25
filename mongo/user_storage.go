@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"encoding/json"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
@@ -32,6 +33,14 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 		return nil, err
 	}
 
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:    []string{"email"},
+		Sparse: true,
+		Unique: true,
+	}); err != nil {
+		return nil, err
+	}
+
 	return us, nil
 }
 
@@ -55,6 +64,22 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 
 	var u userData
 	if err := s.C.FindId(bson.ObjectIdHex(id)).One(&u); err != nil {
+		return nil, err
+	}
+	return &User{userData: u}, nil
+}
+
+// UserByEmail returns user by its email.
+func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+	if email == "" {
+		return nil, model.ErrorWrongDataFormat
+	}
+	email = strings.ToLower(email)
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	if err := s.C.Find(bson.M{"email": email}).One(&u); err != nil {
 		return nil, err
 	}
 	return &User{userData: u}, nil
@@ -135,6 +160,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 // AddNewUser adds new user to the database.
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
+	usr.SetEmail(strings.ToLower(usr.Email()))
 	u, ok := usr.(*User)
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
@@ -180,26 +206,24 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	if !bson.IsObjectIdHex(userID) {
 		return nil, model.ErrorWrongDataFormat
 	}
-
+	newUser.SetEmail(strings.ToLower(newUser.Email()))
 	res, ok := newUser.(*User)
 	if !ok || res == nil {
 		return nil, model.ErrorWrongDataFormat
 	}
 
-	// use ID from the request if it's not set
-	if len(res.ID()) == 0 {
-		res.userData.ID = bson.ObjectId(userID)
-	}
+	// use ID from the request
+	res.userData.ID = bson.ObjectIdHex(userID)
 
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
 	var ud userData
 	update := mgo.Change{
-		Update:    bson.M{"$set": newUser},
+		Update:    bson.M{"$set": res.userData},
 		ReturnNew: true,
 	}
-	if _, err := s.C.FindId(bson.ObjectId(userID)).Apply(update, &ud); err != nil {
+	if _, err := s.C.FindId(bson.ObjectIdHex(userID)).Apply(update, &ud); err != nil {
 		return nil, err
 	}
 
@@ -299,6 +323,7 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
 	Name         string                 `bson:"name,omitempty" json:"username,omitempty"`
+	Email        string                 `bson:"email,omitempty" json:"email,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
@@ -330,6 +355,15 @@ func (u *User) ID() string { return u.userData.ID.Hex() }
 
 // Name implements model.User interface.
 func (u *User) Name() string { return u.userData.Name }
+
+// SetName implements model.User interface.
+func (u *User) SetName(name string) { u.userData.Name = name }
+
+// Email implements model.Email interface.
+func (u *User) Email() string { return u.userData.Email }
+
+// SetEmail implements model.Email interface.
+func (u *User) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }

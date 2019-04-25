@@ -22,7 +22,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		Username string                 `json:"username,omitempty" validate:"required,gte=6,lte=50"`
 		Password string                 `json:"password,omitempty" validate:"required,gte=7,lte=50"`
 		Profile  map[string]interface{} `json:"user_profile,omitempty"`
-		Scope    []string               `json:"scope,omitempty"`
+		Scopes   []string               `json:"scopes,omitempty"`
 	}
 
 	type registrationResponse struct {
@@ -65,7 +65,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		//do login flow
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scope)
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
