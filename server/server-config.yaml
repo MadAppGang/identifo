@@ -38,7 +38,7 @@ serverConfigPath: ../../server/server-config.yaml
 # Database settings holds together settings for all supported database types.
 
 # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
-dbType: mongodb
+dbType: boltdb
 # Name of the database (MongoDB-specific)
 dbName: identifo
 # Endpoint of the database server (MongoDB and DynamoDB specific). For DynamoDB, can be inferred from the region automatically.
