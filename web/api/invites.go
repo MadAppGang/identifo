@@ -52,7 +52,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		if d.Email != "" {
 			err = ar.emailService.SendInviteEmail("Invitation", d.Email, u.String())
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "Email sending error:"+err.Error())
+				ar.Error(w, err, http.StatusInternalServerError, "Unable to send email. Try again or contact support team. ")
 				return
 			}
 		}

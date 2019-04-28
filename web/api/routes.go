@@ -28,11 +28,14 @@ func (ar *Router) initRoutes() {
 	auth.Path("/{federated:federated\\/?}").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/{register:register\\/?}").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	auth.Path("/{reset_password:reset_password\\/?}").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
-	auth.Path("/{invite:invite\\/?}").HandlerFunc(ar.RequestInviteLink()).Methods("POST")
 
 	auth.Path("/{token:token\\/?}").Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
+	)).Methods("POST")
+	auth.Path("/{invite:invite\\/?}").Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()

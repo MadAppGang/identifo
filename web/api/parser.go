@@ -13,14 +13,14 @@ func (ar *Router) MustParseJSON(w http.ResponseWriter, r *http.Request, out inte
 	//parse structure
 
 	if err := json.NewDecoder(r.Body).Decode(out); err != nil {
-		ar.Error(w, err, http.StatusBadRequest, "")
+		ar.Error(w, err, http.StatusBadRequest, ErrorWrongInput.Error())
 		return err
 	}
 
 	//validate structure
 	validate := validator.New()
 	if err := validate.Struct(out); err != nil {
-		ar.Error(w, err, http.StatusBadRequest, "")
+		ar.Error(w, err, http.StatusBadRequest, "Input data does not pass validation. ")
 		return err
 	}
 
