@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
