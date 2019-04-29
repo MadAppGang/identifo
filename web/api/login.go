@@ -24,7 +24,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByNamePassword(d.Username, d.Password)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, err, http.StatusUnauthorized, "Incorrect email or password. ")
 			return
 		}
 
