@@ -10,6 +10,8 @@ const (
 	OfflineScope = "offline"
 	// RefrestTokenType is a refresh token type value.
 	RefrestTokenType = "refresh"
+	// InviteTokenType is an invite token type value.
+	InviteTokenType = "invite"
 	// AccessTokenType is an access token type value.
 	AccessTokenType = "access"
 	// ResetTokenType is a reset password token type value.
@@ -36,6 +38,8 @@ type TokenService interface {
 	NewToken(u User, scopes []string, app AppData) (Token, error)
 	// NewRefreshToken creates new refresh token for the user.
 	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
+	// NewInviteToken creates new invite token.
+	NewInviteToken() (Token, error)
 	// NewRestToken creates new reset password token.
 	NewResetToken(userID string) (Token, error)
 	// RefreshToken issues the new access token with access token.

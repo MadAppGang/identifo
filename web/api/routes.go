@@ -5,20 +5,20 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//setup all routes
+// setup all routes
 func (ar *Router) initRoutes() {
-	//do nothing on empty router (or should panic?)
+	// do nothing on empty router (or should panic?)
 	if ar.router == nil {
 		return
 	}
 
-	//all API routes should have appID in it
+	// all API routes should have appID in it
 	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
-	//setup root routes
+	// setup root routes
 	ar.router.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
 
-	//setup auth routes
+	// setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
@@ -32,6 +32,10 @@ func (ar *Router) initRoutes() {
 	auth.Path("/{token:token\\/?}").Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
+	)).Methods("POST")
+	auth.Path("/{invite:invite\\/?}").Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()

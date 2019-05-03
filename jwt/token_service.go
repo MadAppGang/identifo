@@ -21,9 +21,11 @@ var (
 	ErrInvalidOfflineScope     = errors.New("Requested scope don't have offline value")
 	ErrInvalidUser             = errors.New("The user could not obtain the new token")
 
-	//TokenLifespan expiry token time, one week
+	// TokenLifespan expiry token time, one week
 	TokenLifespan = int64(604800)
-	//RefreshTokenLifespan default expire time for refresh token, one year
+	// InviteTokenLifespan expiry token time, one hour
+	InviteTokenLifespan = int64(3600)
+	// RefreshTokenLifespan default expire time for refresh token, one year
 	RefreshTokenLifespan = int64(31557600)
 )
 
@@ -219,6 +221,42 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 	return &Token{JWT: token, new: true}, nil
 }
 
+// NewInviteToken creates new invite token
+func (ts *TokenService) NewInviteToken() (model.Token, error) {
+	payload := make(map[string]string)
+	// add payload data here
+
+	now := TimeFunc().Unix()
+
+	lifespan := InviteTokenLifespan
+
+	claims := Claims{
+		Payload: payload,
+		Type:    model.InviteTokenType,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: now + lifespan,
+			Issuer:    ts.issuer,
+			// Subject:   u.ID(),
+			Audience: "identifo",
+			IssuedAt: now,
+		},
+	}
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case model.TokenServiceAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case model.TokenServiceAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ErrWrongSignatureAlgorithm
+	}
+	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+	return &Token{JWT: token, new: true}, nil
+}
+
 //NewRefreshToken creates new refresh token for the user
 func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (model.Token, error) {
 	if !app.Active() || !app.Offline() {
@@ -242,7 +280,7 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 
 	lifespan := app.RefreshTokenLifespan()
 	if lifespan == 0 {
-		lifespan = TokenLifespan
+		lifespan = RefreshTokenLifespan
 	}
 
 	claims := Claims{

@@ -122,6 +122,11 @@ func (es *EmailService) SendResetEmail(subject, recipient string, data interface
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.ResetPasswordTemplate, data)
 }
 
+// SendInviteEmail sends invite email to the recipient.
+func (es *EmailService) SendInviteEmail(subject, recipient string, data interface{}) error {
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteEmailTemplate, data)
+}
+
 // SendWelcomeEmail sends welcoming emails.
 func (es *EmailService) SendWelcomeEmail(subject, recipient string, data interface{}) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.WelcomeTemplate, data)
