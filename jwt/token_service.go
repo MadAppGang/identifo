@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
+	"os"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -13,6 +14,7 @@ import (
 
 var (
 	ErrEmptyToken              = errors.New("Token is empty")
+	ErrKeyFileNotFound         = errors.New("Key file not found")
 	ErrWrongSignatureAlgorithm = errors.New("Unsupported signature algorithm")
 	ErrTokenInvalid            = errors.New("Token is invalid")
 	ErrCreatingToken           = errors.New("Error creating token")
@@ -48,6 +50,12 @@ func NewTokenService(private, public, issuer string, alg model.TokenServiceAlgor
 	// 2 days is default expire time for auth token
 	t.webCookieTokenLifespan = int64(60 * 60 * 24 * 2)
 
+	if _, err := os.Stat(private); err != nil {
+		return nil, ErrKeyFileNotFound
+	}
+	if _, err := os.Stat(public); err != nil {
+		return nil, ErrKeyFileNotFound
+	}
 	//trying to guess algo from the private file
 	if alg == model.TokenServiceAlgorithmAuto {
 		_, err := LoadPrivateKeyFromPEM(private, model.TokenServiceAlgorithmES256)

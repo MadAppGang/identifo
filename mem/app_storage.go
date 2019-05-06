@@ -136,6 +136,7 @@ type appData struct {
 	Offline               bool     `json:"offline,omitempty"`
 	RedirectURL           string   `json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64    `json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64    `json:"token_lifespan,omitempty"`
 	TokenPayload          []string `json:"token_payload,omitempty"`
 	RegistrationForbidden bool     `json:"registration_forbidden,omitempty"`
@@ -158,6 +159,7 @@ func NewAppData(data model.AppData) AppData {
 		Offline:               data.Offline(),
 		RedirectURL:           data.RedirectURL(),
 		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
+		InviteTokenLifespan:   data.InviteTokenLifespan(),
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
@@ -165,7 +167,7 @@ func NewAppData(data model.AppData) AppData {
 }
 
 // MakeAppData creates new in-memory app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
 	return AppData{appData: appData{
 		ID:                    id,
 		Secret:                secret,
@@ -176,6 +178,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		Offline:               offline,
 		RedirectURL:           redirectURL,
 		RefreshTokenLifespan:  refreshTokenLifespan,
+		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
@@ -214,6 +217,9 @@ func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
 
 // RefreshTokenLifespan implements model.AppData interface.
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
+
+// InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
+func (ad AppData) InviteTokenLifespan() int64 { return ad.appData.InviteTokenLifespan }
 
 // TokenLifespan implements model.AppData interface.
 func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
