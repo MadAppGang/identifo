@@ -81,17 +81,22 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 // CreateUser registers new user.
 func (ar *Router) CreateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := registrationData{}
-		if ar.mustParseJSON(w, r, &d) != nil {
+		rd := registrationData{}
+		if ar.mustParseJSON(w, r, &rd) != nil {
 			return
 		}
 
-		if err := model.StrongPswd(d.Password); err != nil {
+		if err := rd.validate(); err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		if err := model.StrongPswd(rd.Password); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.Profile)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

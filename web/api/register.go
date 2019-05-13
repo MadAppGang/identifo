@@ -12,7 +12,7 @@ type registrationData struct {
 	Username string                 `json:"username,omitempty"`
 	Password string                 `json:"password,omitempty"`
 	Profile  map[string]interface{} `json:"user_profile,omitempty"`
-	Scope    []string               `json:"scope,omitempty"`
+	Scopes   []string               `json:"scopes,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -57,7 +57,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		// Parse registration data.
 		rd := registrationData{}
 		if ar.MustParseJSON(w, r, &rd) != nil {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
 			return
 		}
 
@@ -80,7 +79,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scope)
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

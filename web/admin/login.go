@@ -32,7 +32,6 @@ func (ar *Router) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminData)
 		if ar.getAccountConf(w, conf) != nil {
-			ar.Error(w, ErrorIncorrectLogin, http.StatusInternalServerError, "")
 			return
 		}
 

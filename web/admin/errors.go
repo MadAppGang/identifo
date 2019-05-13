@@ -17,6 +17,4 @@ const (
 	ErrorIncorrectLogin = Error("Incorrect login information")
 	// ErrorNotAuthorized is for non-authorized access intents.
 	ErrorNotAuthorized = Error("Not authorized")
-	// ErrorCannotReadAdminSettings is when we cannot read admin account settings.
-	ErrorCannotReadAdminSettings = Error("Cannot read admin account settings")
 )
