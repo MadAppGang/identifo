@@ -16,10 +16,8 @@ const (
 	// ErrorNotImplemented is for features that are not implemented yet.
 	ErrorNotImplemented = Error("Not implemented")
 
-	// ErrorPasswordShouldHave7Letter is for failed password strength check.
-	ErrorPasswordShouldHave7Letter = Error("Password should have at least seven letters")
-	// ErrorPasswordNoNumbers is for failed password strength check.
-	ErrorPasswordNoNumbers = Error("Password should have at least one number")
+	// ErrorPasswordShouldHave6Letters is for failed password strength check.
+	ErrorPasswordShouldHave6Letters = Error("Password should have at least six letters")
 	// ErrorPasswordNoUppercase is for failed password strength check.
 	ErrorPasswordNoUppercase = Error("Password should have at least one uppercase symbol")
 	// ErrorPasswordWrongSymbols is for failed password strength check.

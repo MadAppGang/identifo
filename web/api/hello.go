@@ -22,7 +22,7 @@ func (ar *Router) HandleHello() http.HandlerFunc {
 	}
 }
 
-//HandleHello - returns pong message
+// HandlePing returns pong message.
 func (ar *Router) HandlePing() http.HandlerFunc {
 	type pongResponse struct {
 		Message string    `json:"message,omitempty"`
