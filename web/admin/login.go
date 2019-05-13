@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -9,20 +10,39 @@ type adminData struct {
 	Password string `yaml:"password" json:"password"`
 }
 
+type loginData struct {
+	Email    string `json:"email,omitempty"`
+	Password string `json:"password,omitempty"`
+}
+
+func (ld *loginData) validate() error {
+	emailLen := len(ld.Email)
+	if emailLen < 6 || emailLen > 130 {
+		return fmt.Errorf("Incorrect email length %d, expected a number between 6 and 130", emailLen)
+	}
+	pswdLen := len(ld.Password)
+	if pswdLen < 6 || pswdLen > 130 {
+		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 130", pswdLen)
+	}
+	return nil
+}
+
 // Login logins admin with admin name and password.
 func (ar *Router) Login() http.HandlerFunc {
-	type loginData struct {
-		Email    string `json:"email,omitempty" validate:"required,gte=6,lte=130"`
-		Password string `json:"password,omitempty" validate:"required,gte=6,lte=130"`
-	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminData)
 		if ar.getAccountConf(w, conf) != nil {
+			ar.Error(w, ErrorIncorrectLogin, http.StatusInternalServerError, "")
 			return
 		}
 
 		ld := loginData{}
 		if ar.mustParseJSON(w, r, &ld) != nil {
+			return
+		}
+
+		if err := ld.validate(); err != nil {
+			ar.Error(w, ErrorIncorrectLogin, http.StatusBadRequest, err.Error())
 			return
 		}
 
