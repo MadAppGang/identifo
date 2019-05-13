@@ -215,6 +215,7 @@ type appData struct {
 	Offline               bool          `bson:"offline,omitempty" json:"offline,omitempty"`
 	RedirectURL           string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64         `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string      `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool          `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
@@ -240,6 +241,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		Offline:               data.Offline(),
 		RedirectURL:           data.RedirectURL(),
 		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
+		InviteTokenLifespan:   data.InviteTokenLifespan(),
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
@@ -261,7 +263,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 }
 
 // MakeAppData creates new MongoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) (AppData, error) {
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
@@ -275,6 +277,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		Offline:               offline,
 		RedirectURL:           redirectURL,
 		RefreshTokenLifespan:  refreshTokenLifespan,
+		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
@@ -310,6 +313,9 @@ func (ad AppData) Offline() bool { return ad.appData.Offline }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
+
+// InviteTokenLifespan implements model.AppData interface.
+func (ad AppData) InviteTokenLifespan() int64 { return ad.appData.InviteTokenLifespan }
 
 // RefreshTokenLifespan implements model.AppData interface.
 func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }

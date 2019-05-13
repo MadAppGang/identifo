@@ -9,10 +9,10 @@ import (
 var DefaultSettings = server.ServerSettings
 
 // NewServer creates new in-memory backend service.
-func NewServer(settings model.ServerSettings, options ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(settings)
+func NewServer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings, options...)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(settings, dbComposer, options...)
+	return server.NewServer(settings, dbComposer)
 }

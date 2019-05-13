@@ -20,7 +20,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
 		app, err := ar.appStorage.ActiveAppByID(appID)
 		if err != nil {
-			ar.logger.Printf("Error getting App by ID %v", err)
+			ar.logger.Printf("Error getting App by ID: %v \n", err)
 			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
 			return
 		}

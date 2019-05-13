@@ -47,10 +47,10 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
-		if err != nil {
+		if _, err = ar.UserStorage.RequestScopes(user.ID(), scopes); err != nil {
 			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
-			http.Redirect(w, r, errorPath, http.StatusFound)
+			SetFlash(w, FlashErrorMessageKey, err.Error())
+			redirectToLogin()
 			return
 		}
 

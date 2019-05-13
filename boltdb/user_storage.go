@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -70,6 +71,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		return nil, err
 	}
 	return res, nil
+}
+
+// UserByEmail returns user by its email.
+func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+	// TODO: implement boltdb UserByEmail
+	return nil, errors.New("Not implemented. ")
 }
 
 // DeleteUser deletes user by ID.
@@ -334,6 +341,12 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 }
 
+// ResetUsername sets user username.
+func (us *UserStorage) ResetUsername(id, username string) error {
+	// TODO: implement
+	return errors.New("ResetUsername is not implemented. ")
+}
+
 // IDByName returns userID by name.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	var id string
@@ -430,6 +443,7 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"name,omitempty"`
+	Email   string                 `json:"email,omitempty"`
 	Pswd    string                 `json:"pswd,omitempty"`
 	Profile map[string]interface{} `json:"profile,omitempty"`
 	Active  bool                   `json:"active,omitempty"`
@@ -466,6 +480,15 @@ func (u User) ID() string { return u.userData.ID }
 
 // Name implements model.User interface.
 func (u User) Name() string { return u.userData.Name }
+
+// SetName implements model.User interface.
+func (u User) SetName(name string) { u.userData.Name = name }
+
+// Email implements model.User interface.
+func (u User) Email() string { return u.userData.Email }
+
+// SetEmail implements model.Email interface.
+func (u User) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
 func (u User) PasswordHash() string { return u.userData.Pswd }

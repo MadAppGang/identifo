@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 
@@ -69,6 +70,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		return nil, ErrorInternalError
 	}
 	return &User{userData: userdata}, nil
+}
+
+// UserByEmail returns user by its email.
+func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+	// TODO: implement dynamodb UserByEmail
+	return nil, errors.New("Not implemented. ")
 }
 
 func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvider, id string) (string, error) {
@@ -374,6 +381,30 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	return err
 }
 
+// ResetUsername sets user username.
+func (us *UserStorage) ResetUsername(id, username string) error {
+	idx, err := xid.FromString(id)
+	if err != nil {
+		log.Println("Incorrect user ID: ", id)
+		return model.ErrorWrongDataFormat
+	}
+
+	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
+
+		TableName: aws.String(UsersTableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {S: aws.String(idx.String())},
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":u": {S: aws.String(username)},
+		},
+		UpdateExpression: aws.String("set username = :u"),
+		ReturnValues:     aws.String("NONE"),
+	})
+
+	return err
+}
+
 // IDByName returns userID by name.
 func (us *UserStorage) IDByName(name string) (string, error) {
 	userIndex, err := us.userIdxByName(name)
@@ -452,6 +483,7 @@ type userIndexByNameData struct {
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"username,omitempty"`
+	Email   string                 `json:"email,omitempty"`
 	Pswd    string                 `json:"pswd,omitempty"`
 	Profile map[string]interface{} `json:"profile,omitempty"`
 	Active  bool                   `json:"active,omitempty"`
@@ -490,6 +522,15 @@ func (u *User) ID() string { return u.userData.ID }
 // Name implements model.User interface.
 func (u *User) Name() string { return u.userData.Name }
 
+// SetName implements model.User interface.
+func (u *User) SetName(name string) { u.userData.Name = name }
+
+// Email implements model.User interface.
+func (u *User) Email() string { return u.userData.Email }
+
+// SetEmail implements model.Email interface.
+func (u *User) SetEmail(email string) { u.userData.Email = email }
+
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }
 
@@ -508,7 +549,7 @@ func PasswordHash(pwd string) string {
 // ensureTable ensures that app storage table exists in the database.
 // I'm hiding it in the end of the file, because AWS devs, you are killing me with this API.
 func (us *UserStorage) ensureTable() error {
-	exists, err := us.db.isTableExists(UsersTableName)
+	exists, err := us.db.IsTableExists(UsersTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err
@@ -568,7 +609,7 @@ func (us *UserStorage) ensureTable() error {
 	}
 
 	// create table to handle federated ID's
-	exists, err = us.db.isTableExists(UsersFederatedIDTableName)
+	exists, err = us.db.IsTableExists(UsersFederatedIDTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err

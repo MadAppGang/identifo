@@ -2,13 +2,13 @@ package mem
 
 import (
 	"github.com/madappgang/identifo/model"
-	randomdata "github.com/pallinder/go-randomdata"
+	"github.com/pallinder/go-randomdata"
 )
 
 // NewUserStorage creates and inits in-memory user storage.
 // Use it only for test purposes and in CI, all data is wiped on exit.
-func NewUserStorage() model.UserStorage {
-	return &UserStorage{}
+func NewUserStorage() (model.UserStorage, error) {
+	return &UserStorage{}, nil
 }
 
 // UserStorage implements user storage in memory.
@@ -22,6 +22,11 @@ func (us *UserStorage) NewUser() model.User {
 
 // UserByID returns randomly generated user.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
+	return randUser(), nil
+}
+
+// UserByEmail returns user by its email.
+func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	return randUser(), nil
 }
 
@@ -116,6 +121,7 @@ func randUser() *user {
 		userData: userData{
 			ID:      randomdata.StringNumber(2, "-"),
 			Name:    randomdata.SillyName(),
+			Email:   randomdata.Email(),
 			Pswd:    randomdata.StringNumber(2, "-"),
 			Profile: profile,
 			Active:  randomdata.Boolean(),
@@ -127,6 +133,7 @@ func randUser() *user {
 type userData struct {
 	ID      string                 `json:"id,omitempty"`
 	Name    string                 `json:"name,omitempty"`
+	Email   string                 `json:"email,omitempty"`
 	Pswd    string                 `json:"pswd,omitempty"`
 	Profile map[string]interface{} `json:"profile,omitempty"`
 	Active  bool                   `json:"active,omitempty"`
@@ -146,6 +153,15 @@ func (u *user) ID() string { return u.userData.ID }
 
 // Name implements model.User interface.
 func (u *user) Name() string { return u.userData.Name }
+
+// SetName implements model.User interface.
+func (u *user) SetName(name string) { u.userData.Name = name }
+
+// Email implements model.User interface.
+func (u *user) Email() string { return u.userData.Email }
+
+// SetEmail implements model.Email interface.
+func (u *user) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
 func (u *user) PasswordHash() string { return u.userData.Pswd }

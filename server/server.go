@@ -38,8 +38,12 @@ func LoadServerConfiguration(out interface{}) {
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, serverConfigPath))
+	var origErr = err
 	if err != nil {
-		log.Fatalln("Cannot read server configuration file:", err)
+		yamlFile, err = ioutil.ReadFile(path.Base("./server-config.yaml"))
+		if err != nil {
+			log.Fatalln("Cannot read server configuration file:", origErr)
+		}
 	}
 
 	if err = yaml.Unmarshal(yamlFile, out); err != nil {

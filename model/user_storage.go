@@ -1,8 +1,13 @@
 package model
 
+import "errors"
+
+var ErrUserNotFound = errors.New("User not found. ")
+
 //UserStorage introduces user storage service
 type UserStorage interface {
 	UserByID(id string) (User, error)
+	UserByEmail(email string) (User, error)
 	IDByName(name string) (string, error)
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
@@ -28,6 +33,9 @@ type UserStorage interface {
 type User interface {
 	ID() string
 	Name() string
+	SetName(string)
+	Email() string
+	SetEmail(string)
 	PasswordHash() string
 	Profile() map[string]interface{}
 	Active() bool
