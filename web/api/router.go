@@ -123,12 +123,12 @@ func (ar *Router) Error(w http.ResponseWriter, errID MessageID, status int, deta
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	encodeErr := json.NewEncoder(w).Encode(&errorResponse{
+	encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{"error": &errorResponse{
 		ID:              errID,
 		Message:         GetMessage(errID),
 		DetailedMessage: details,
 		Status:          status,
-	})
+	}})
 	if encodeErr != nil {
 		ar.logger.Printf("error writing http response: %s", errID)
 	}
