@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -11,6 +12,25 @@ const (
 	defaultUserSkip  = 0
 	defaultUserLimit = 20
 )
+
+type registrationData struct {
+	Username string                 `json:"username,omitempty"`
+	Password string                 `json:"password,omitempty"`
+	Profile  map[string]interface{} `json:"user_profile,omitempty"`
+	Scope    []string               `json:"scope,omitempty"`
+}
+
+func (rd *registrationData) validate() error {
+	usernameLen := len(rd.Username)
+	if usernameLen < 6 || usernameLen > 50 {
+		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
+	}
+	pswdLen := len(rd.Password)
+	if pswdLen < 6 || pswdLen > 50 {
+		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
+	}
+	return nil
+}
 
 // GetUser fetches user by ID from the database.
 func (ar *Router) GetUser() http.HandlerFunc {
@@ -60,25 +80,23 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 // CreateUser registers new user.
 func (ar *Router) CreateUser() http.HandlerFunc {
-	type registrationData struct {
-		Username string                 `json:"username,omitempty" validate:"required,gte=6,lte=50"`
-		Password string                 `json:"password,omitempty" validate:"required,gte=7,lte=50"`
-		Profile  map[string]interface{} `json:"user_profile,omitempty"`
-		Scope    []string               `json:"scope,omitempty"`
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := registrationData{}
-		if ar.mustParseJSON(w, r, &d) != nil {
+		rd := registrationData{}
+		if ar.mustParseJSON(w, r, &rd) != nil {
 			return
 		}
 
-		if err := model.StrongPswd(d.Password); err != nil {
+		if err := rd.validate(); err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		if err := model.StrongPswd(rd.Password); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.Profile)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

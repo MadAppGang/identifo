@@ -1,30 +1,40 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
+type registrationData struct {
+	Username string                 `json:"username,omitempty"`
+	Password string                 `json:"password,omitempty"`
+	Profile  map[string]interface{} `json:"user_profile,omitempty"`
+	Scopes   []string               `json:"scopes,omitempty"`
+}
+
+func (rd *registrationData) validate() error {
+	usernameLen := len(rd.Username)
+	if usernameLen < 6 || usernameLen > 50 {
+		return fmt.Errorf("Incorrect email length %d, expected a number between 6 and 50", usernameLen)
+	}
+	pswdLen := len(rd.Password)
+	if pswdLen < 6 || pswdLen > 50 {
+		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
+	}
+	return nil
+}
+
 /*
  * Password rules:
- * at least 7 letters
- * at least 1 number
+ * at least 6 letters
  * at least 1 upper case
- * at least 1 special character
  */
 
-//RegisterWithPassword register new user with password
+// RegisterWithPassword register new user with password
 func (ar *Router) RegisterWithPassword() http.HandlerFunc {
-
-	type registrationData struct {
-		Username string                 `json:"username,omitempty" validate:"required,gte=6,lte=50"`
-		Password string                 `json:"password,omitempty" validate:"required,gte=7,lte=50"`
-		Profile  map[string]interface{} `json:"user_profile,omitempty"`
-		Scopes   []string               `json:"scopes,omitempty"`
-	}
-
 	type registrationResponse struct {
 		AccessToken  string     `json:"access_token,omitempty"`
 		RefreshToken string     `json:"refresh_token,omitempty"`
@@ -44,20 +54,25 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		//parse data
-		d := registrationData{}
-		if ar.MustParseJSON(w, r, &d) != nil {
+		// Parse registration data.
+		rd := registrationData{}
+		if ar.MustParseJSON(w, r, &rd) != nil {
 			return
 		}
 
-		//validate password
-		if err := model.StrongPswd(d.Password); err != nil {
+		if err := rd.validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		// Validate password.
+		if err := model.StrongPswd(rd.Password); err != nil {
 			ar.Error(w, ErrorAPIRequestPasswordWeak, http.StatusBadRequest, err.Error(), "RegisterWithPassword.StrongPswd")
 			return
 		}
 
-		//create new user
-		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		// Create new user.
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.Profile)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameOccupied, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return
@@ -67,8 +82,8 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		//do login flow
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		// Do login flow.
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "RegisterWithPassword.RequestScopes")
 			return
@@ -87,7 +102,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		refreshString := ""
-		// requesting offline access ?
+		// Requesting offline access?
 		if contains(scopes, model.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {

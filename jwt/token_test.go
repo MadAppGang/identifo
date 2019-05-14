@@ -16,10 +16,22 @@ const (
 )
 
 func TestNewTokenService(t *testing.T) {
-	us := mem.NewUserStorage()
-	tstor := mem.NewTokenStorage()
-	as := mem.NewAppStorage()
-	ts, _ := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
+	us, err := mem.NewUserStorage()
+	if err != nil {
+		t.Errorf("Unable to create user storage %v", err)
+	}
+	tstor, err := mem.NewTokenStorage()
+	if err != nil {
+		t.Errorf("Unable to create token storage %v", err)
+	}
+	as, err := mem.NewAppStorage()
+	if err != nil {
+		t.Errorf("Unable to create app storage %v", err)
+	}
+	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
+	if err != nil {
+		t.Errorf("Unable to crate service %v", err)
+	}
 	type args struct {
 		private string
 		public  string
@@ -51,9 +63,18 @@ func TestNewTokenService(t *testing.T) {
 }
 
 func TestParseString(t *testing.T) {
-	us := mem.NewUserStorage()
-	tstor := mem.NewTokenStorage()
-	as := mem.NewAppStorage()
+	us, err := mem.NewUserStorage()
+	if err != nil {
+		t.Errorf("Unable to create user storage %v", err)
+	}
+	tstor, err := mem.NewTokenStorage()
+	if err != nil {
+		t.Errorf("Unable to create token storage %v", err)
+	}
+	as, err := mem.NewAppStorage()
+	if err != nil {
+		t.Errorf("Unable to create app storage %v", err)
+	}
 	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
@@ -84,12 +105,21 @@ func TestParseString(t *testing.T) {
 }
 
 func TestTokenToString(t *testing.T) {
-	us := mem.NewUserStorage()
-	tstor := mem.NewTokenStorage()
-	as := mem.NewAppStorage()
+	us, err := mem.NewUserStorage()
+	if err != nil {
+		t.Errorf("Unable to create user storage %v", err)
+	}
+	tstor, err := mem.NewTokenStorage()
+	if err != nil {
+		t.Errorf("Unable to create token storage %v", err)
+	}
+	as, err := mem.NewAppStorage()
+	if err != nil {
+		t.Errorf("Unable to create app storage %v", err)
+	}
 	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
-		t.Errorf("Unable to crate service %v", err)
+		t.Errorf("Unable to create service %v", err)
 	}
 	token, err := ts.Parse(tokenStringExample)
 	if err != nil {
@@ -128,14 +158,23 @@ func TestTokenToString(t *testing.T) {
 }
 
 func TestNewToken(t *testing.T) {
-	us := mem.NewUserStorage()
-	tstor := mem.NewTokenStorage()
-	as := mem.NewAppStorage()
+	us, err := mem.NewUserStorage()
+	if err != nil {
+		t.Errorf("Unable to create user storage %v", err)
+	}
+	tstor, err := mem.NewTokenStorage()
+	if err != nil {
+		t.Errorf("Unable to create token storage %v", err)
+	}
+	as, err := mem.NewAppStorage()
+	if err != nil {
+		t.Errorf("Unable to create app storage %v", err)
+	}
 	ts, err := NewTokenService(privateKey, publicKey, testIssuer, model.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
-		t.Errorf("Unable to crate service %v", err)
+		t.Errorf("Unable to create service %v", err)
 	}
-	ustg := mem.NewUserStorage()
+	ustg, _ := mem.NewUserStorage()
 	user, _ := ustg.UserByNamePassword("username", "password")
 	//generate random user until we get active user
 	for !user.Active() {
@@ -143,7 +182,7 @@ func TestNewToken(t *testing.T) {
 	}
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
-	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, "", 0, 0, tokenPayload, true)
+	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, "", 0, 0, 0, tokenPayload, true)
 	token, err := ts.NewToken(user, scopes, app)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)

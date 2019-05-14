@@ -4,20 +4,18 @@ import "unicode"
 
 // StrongPswd validates password
 func StrongPswd(pswd string) error {
-	seven, number, uppper, _, invalid := verifyPassword(pswd)
+	seven, uppper, _, _, invalid := verifyPassword(pswd)
 	if invalid {
 		return ErrorPasswordWrongSymbols
 	} else if !seven {
-		return ErrorPasswordShouldHave7Letter
-	} else if !number {
-		return ErrorPasswordNoNumbers
+		return ErrorPasswordShouldHave6Letters
 	} else if !uppper {
 		return ErrorPasswordNoUppercase
 	}
 	return nil
 }
 
-func verifyPassword(s string) (sevenOrMore, number, upper, special, invalid bool) {
+func verifyPassword(s string) (sixLettersOrMore, upper, number, special, invalid bool) {
 	letters := 0
 	for _, s := range s {
 		switch {
@@ -35,6 +33,6 @@ func verifyPassword(s string) (sevenOrMore, number, upper, special, invalid bool
 		}
 	}
 	invalid = false
-	sevenOrMore = letters >= 7
+	sixLettersOrMore = letters >= 6
 	return
 }

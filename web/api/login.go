@@ -1,34 +1,52 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-//LoginWithPassword - login user with email and password
-func (ar *Router) LoginWithPassword() http.HandlerFunc {
+type loginData struct {
+	Username    string   `json:"username,omitempty"`
+	Password    string   `json:"password,omitempty"`
+	DeviceToken string   `json:"device_token,omitempty"`
+	Scopes      []string `json:"scopes,omitempty"`
+}
 
-	type loginData struct {
-		Username    string   `json:"username,omitempty" validate:"required,gte=6,lte=130"`
-		Password    string   `json:"password,omitempty" validate:"required,gte=6,lte=130"`
-		DeviceToken string   `json:"device_token,omitempty"`
-		Scopes      []string `json:"scopes,omitempty"`
+func (ld *loginData) validate() error {
+	usernameLen := len(ld.Username)
+	if usernameLen < 6 || usernameLen > 130 {
+		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 130", usernameLen)
 	}
+	pswdLen := len(ld.Password)
+	if pswdLen < 6 || pswdLen > 130 {
+		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 130", pswdLen)
+	}
+	return nil
+}
+
+// LoginWithPassword logs user in with email and password.
+func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := loginData{}
-		if ar.MustParseJSON(w, r, &d) != nil {
+		ld := loginData{}
+		if ar.MustParseJSON(w, r, &ld) != nil {
 			return
 		}
 
-		user, err := ar.userStorage.UserByNamePassword(d.Username, d.Password)
+		if err := ld.validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user, err := ar.userStorage.UserByNamePassword(ld.Username, ld.Password)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestIncorrectEmailOrPassword, http.StatusUnauthorized, err.Error(), "LoginWithPassword.UserByNamePassword")
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), ld.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
 			return
