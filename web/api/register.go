@@ -61,7 +61,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		if err := rd.validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RegisterWithPassword.validate")
 			return
 		}
 

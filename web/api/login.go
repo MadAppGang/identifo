@@ -36,7 +36,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		if err := ld.validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "LoginWithPassword.validate")
 			return
 		}
 
