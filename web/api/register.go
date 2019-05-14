@@ -35,12 +35,12 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RegisterWithPassword.AppFromContext")
 			return
 		}
 
 		if app.RegistrationForbidden() {
-			ar.Error(w, ErrorRegistrationForbidden, http.StatusForbidden, "")
+			ar.Error(w, ErrorAPIAppRegistrationForbidden, http.StatusForbidden, "Registration is forbidden in app.", "RegisterWithPassword.RegistrationForbidden")
 			return
 		}
 
@@ -52,47 +52,51 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		//validate password
 		if err := model.StrongPswd(d.Password); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestPasswordWeak, http.StatusBadRequest, err.Error(), "RegisterWithPassword.StrongPswd")
 			return
 		}
 
 		//create new user
 		user, err := ar.userStorage.AddUserByNameAndPassword(d.Username, d.Password, d.Profile)
+		if err == model.ErrorUserExists {
+			ar.Error(w, ErrorAPIUsernameOccupied, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
+			return
+		}
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return
 		}
 
 		//do login flow
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "RegisterWithPassword.RequestScopes")
 			return
 		}
 
 		token, err := ar.tokenService.NewToken(user, scopes, app)
 		if err != nil {
-			ar.Error(w, err, http.StatusUnauthorized, "")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusForbidden, err.Error(), "RegisterWithPassword.tokenService_NewToken")
 			return
 		}
 
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
 			return
 		}
 
 		refreshString := ""
-		//requesting offline access ?
+		// requesting offline access ?
 		if contains(scopes, model.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_NewRefreshToken")
 				return
 			}
 			refreshString, err = ar.tokenService.String(refresh)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
 				return
 			}
 		}

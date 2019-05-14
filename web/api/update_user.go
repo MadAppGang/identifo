@@ -22,24 +22,24 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		userID := tokenFromContext(r.Context()).UserID()
 		user, err := ar.userStorage.UserByID(userID)
 		if err != nil {
-			ar.Error(w, err, http.StatusUnauthorized, "Not authorized")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "UpdateUser.UserByID")
 			return
 		}
 
 		if err := d.validate(user); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.validate")
 			return
 		}
 		// check that new username is not taken.
 		if d.updateUsername && ar.userStorage.UserExists(d.NewUsername) {
-			ar.Error(w, errors.New("Username is occupied. "), http.StatusBadRequest, "Username is occupied. Try to choose another one.")
+			ar.Error(w, ErrorAPIUsernameOccupied, http.StatusBadRequest, "", "UpdateUser.updateUsername && userStorage.UserExists")
 			return
 		}
 
 		// check that email is not taken.
 		if d.updateEmail {
 			if _, err := ar.userStorage.UserByEmail(d.NewEmail); err == nil {
-				ar.Error(w, errors.New("Email is occupied. "), http.StatusBadRequest, "Email is occupied. Try to choose another one.")
+				ar.Error(w, ErrorAPIEmailOccupied, http.StatusBadRequest, "", "UpdateUser.updateEmail && UserByEmail")
 				return
 			}
 		}
@@ -49,14 +49,14 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			// check old password.
 			_, err := ar.userStorage.UserByNamePassword(user.Name(), d.OldPassword)
 			if err != nil {
-				ar.Error(w, err, http.StatusBadRequest, "Invalid old password.")
+				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
 			}
 
 			// save new password.
 			err = ar.userStorage.ResetPassword(user.ID(), d.NewPassword)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "Unable to update password. Please try again.")
+				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
 				return
 			}
 		}
@@ -73,7 +73,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		if d.updateUsername || d.updateEmail {
 			_, err = ar.userStorage.UpdateUser(userID, user)
 			if err != nil {
-				ar.Error(w, err, http.StatusBadRequest, "Unable to update username or email. Please try again.")
+				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to update username or email. Error:"+err.Error(), "UpdateUser.UpdateUser")
 				return
 			}
 		}

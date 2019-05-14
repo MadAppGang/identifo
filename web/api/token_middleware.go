@@ -25,23 +25,23 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
-			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "Token.AppFromContext")
 			return
 		}
 
 		tstr := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
 		if tstr == nil {
-			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
+			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token is empty or invalid.", "Token.ExtractTokenFromBearerHeader")
 			return
 		}
 		v := jwt.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
 		token, err := ar.tokenService.Parse(string(tstr))
 		if err != nil {
-			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
+			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")
 			return
 		}
 		if err := v.Validate(token); err != nil {
-			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, err.Error())
+			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, err.Error(), "Token.Validate(token)")
 			return
 		}
 

@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
@@ -86,49 +85,51 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user
-func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
+func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		ar.Error(w, err, http.StatusInternalServerError, "")
+		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to marshall response. Err: "+err.Error(), "Router.ServerJSON")
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
+	w.WriteHeader(status)
 	if _, err = w.Write(data); err != nil {
 		log.Printf("error writing http response: %s", err)
 	}
 }
 
 // Error writes an API error message to the response and logger.
-func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo string) {
+func (ar *Router) Error(w http.ResponseWriter, errID MessageID, status int, details, where string) {
 	// errorResponse is a generic response for sending a error.
 	type errorResponse struct {
-		Error string `json:"error,omitempty"`
-		Info  string `json:"info,omitempty"`
-		Code  int    `json:"code,omitempty"`
+		ID              MessageID `json:"id"`
+		Message         string    `json:"message,omitempty"`
+		DetailedMessage string    `json:"detailed_message,omitempty"`
+		Status          int       `json:"status"`
 	}
 
 	// Log error.
-	ar.logger.Printf("api error: %v (code=%d)", err, code)
+	ar.logger.Printf("api error: %v (status=%v). Details: %v. Where: %v.", errID, status, details, where)
 
-	if err == nil {
-		err = identifo.ErrorInternal
+	if errID == "" {
+		errID = ErrorAPIInternalServerError
 	}
 	// Hide error from client if it is internal.
-	if code == http.StatusInternalServerError {
-		err = identifo.ErrorInternal
+	if status == http.StatusInternalServerError {
+		errID = ErrorAPIInternalServerError
 	}
 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(code)
+	w.WriteHeader(status)
 	encodeErr := json.NewEncoder(w).Encode(&errorResponse{
-		Error: err.Error(),
-		Info:  userInfo,
-		Code:  code,
+		ID:              errID,
+		Message:         GetMessage(errID),
+		DetailedMessage: details,
+		Status:          status,
 	})
 	if encodeErr != nil {
-		ar.logger.Printf("error writing http response: %s", err)
+		ar.logger.Printf("error writing http response: %s", errID)
 	}
 }

@@ -19,35 +19,34 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := resetRequestEmail{}
 		if ar.MustParseJSON(w, r, &d) != nil {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid input data")
 			return
 		}
 		if !emailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid Email")
+			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestResetPassword.emailRegexp_MatchString")
 			return
 		}
 
 		userExists := ar.userStorage.UserExists(d.Email)
 		if !userExists {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "User with with email is not registered")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with with email is not exists.", "RequestResetPassword.UserExists")
 			return
 		}
 
 		id, err := ar.userStorage.IDByName(d.Email)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "User with with email is not registered")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestResetPassword.IDByName")
 			return
 		}
 
 		t, err := ar.tokenService.NewResetToken(id)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "TokenService error:"+err.Error())
+			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")
 			return
 		}
 
 		token, err := ar.tokenService.String(t)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "TokenService error:"+err.Error())
+			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.tokenService_String")
 			return
 		}
 
@@ -63,7 +62,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String())
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "Email sending error:"+err.Error())
+			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error:"+err.Error(), "RequestResetPassword.SendResetEmail")
 			return
 		}
 
