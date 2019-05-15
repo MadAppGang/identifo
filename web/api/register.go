@@ -74,7 +74,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		// Create new user.
 		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.Profile)
 		if err == model.ErrorUserExists {
-			ar.Error(w, ErrorAPIUsernameOccupied, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
+			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return
 		}
 		if err != nil {

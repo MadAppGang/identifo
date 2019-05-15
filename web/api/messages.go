@@ -11,8 +11,8 @@ var messages = map[MessageID]string{
 	ErrorAPIInternalServerError:              "Internal server error",
 	ErrorAPIUserUnableToCreate:               "Unable to create use. Try again or contact support team",
 	ErrorAPIUserNotFound:                     "Specified user not found",
-	ErrorAPIUsernameOccupied:                 "Username is occupied. Try to choose another one",
-	ErrorAPIEmailOccupied:                    "Email is occupied. Try to choose another one",
+	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
+	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
 	ErrorAPIInviteTokenServerError:           "Unable to create invite token. Try again or contact support team",
 	ErrorAPIEmailNotSent:                     "Unable to send email. Try again or contact support team",
 	ErrorAPIRequestPasswordWeak:              "Password is not strong enough",
@@ -41,10 +41,10 @@ const (
 	ErrorAPIUserUnableToCreate = "error.api.user.unable_to_create"
 	// ErrorAPIUserNotFound
 	ErrorAPIUserNotFound = "error.api.user.not_found"
-	// ErrorAPIUsernameOccupied
-	ErrorAPIUsernameOccupied = "error.api.username.occupied"
-	// ErrorAPIEmailOccupied
-	ErrorAPIEmailOccupied = "error.api.email.occupied"
+	// ErrorAPIUsernameTaken
+	ErrorAPIUsernameTaken = "error.api.username.taken"
+	// ErrorAPIEmailTaken
+	ErrorAPIEmailTaken = "error.api.email.taken"
 	// ErrorAPIInviteTokenServerError
 	ErrorAPIInviteTokenServerError = "error.api.invite_token.server_error"
 	// ErrorAPIEmailNotSent
