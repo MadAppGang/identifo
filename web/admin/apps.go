@@ -29,7 +29,6 @@ func (ar *Router) GetApp() http.HandlerFunc {
 
 		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
-		return
 	}
 }
 
@@ -54,7 +53,6 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, apps)
-		return
 	}
 }
 
@@ -74,7 +72,6 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 
 		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
-		return
 	}
 }
 
@@ -98,7 +95,6 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 
 		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
-		return
 	}
 }
 
@@ -114,6 +110,5 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 		ar.logger.Printf("App %s deleted", appID)
 
 		ar.ServeJSON(w, http.StatusOK, nil)
-		return
 	}
 }
