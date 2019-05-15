@@ -1,6 +1,7 @@
 package api
 
 import (
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -44,14 +45,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		if !federatedProviders[strings.ToLower(d.FederatedIDProvider)] {
 			ar.logger.Println("Federated provider is not supported:", d.FederatedIDProvider)
-			ar.Error(w, ErrorFederatedProviderIsNotSupported, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIAppFederatedProviderNotSupported, http.StatusBadRequest, fmt.Sprintf("UnsupportedProvider: %v", d.FederatedIDProvider), "FederatedLogin.federatedProviders[]")
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorRequestInvalidAppID, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not specified.", "FederatedLogin.AppFromContext")
 			return
 		}
 
@@ -62,61 +63,62 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		case model.FacebookIDProvider:
 			federatedID, err = ar.FacebookUserID(d.AccessToken)
 		default:
-			err = ErrorFederatedProviderIsNotSupported
+			ar.Error(w, ErrorAPIAppFederatedProviderNotSupported, http.StatusBadRequest, fmt.Sprintf("UnsupportedProvider: %v", fid), "FederatedLogin.switch_providers_default")
+			return
 		}
 
 		if err != nil {
 			ar.logger.Println("Error getting federated user ID:", err)
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIAppFederatedProviderEmptyUserID, http.StatusBadRequest, err.Error(), "FederatedLogin.switch_providers.err")
 			return
 		}
 
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
-		//check error not found, create the new user
+		// check error not found, create the new user
 		if err == model.ErrorNotFound && d.RegisterIfNew {
 			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
 			}
 		} else if err == model.ErrorNotFound && !d.RegisterIfNew {
-			ar.Error(w, err, http.StatusNotFound, "")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusNotFound, err.Error(), "FederatedLogin.UserByFederatedID.NotRegisterNew")
 			return
 		} else if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID")
 			return
 		}
 
-		//request the permissions for the user
+		// request the permissions for the user
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "FederatedLogin.RequestScopes")
 			return
 		}
 
-		//generate access token
+		// generate access token
 		token, err := ar.tokenService.NewToken(user, scopes, app)
 		if err != nil {
-			ar.Error(w, err, http.StatusUnauthorized, "")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusUnauthorized, err.Error(), "FederatedLogin.tokenService_NewToken")
 			return
 		}
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
 			return
 		}
 
 		refreshString := ""
-		//requesting offline access ?
+		// requesting offline access ?
 		if contains(scopes, model.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_NewRefreshToken")
 				return
 			}
 			refreshString, err = ar.tokenService.String(refresh)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
 				return
 			}
 		}
