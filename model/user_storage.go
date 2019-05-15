@@ -2,9 +2,10 @@ package model
 
 import "errors"
 
+// ErrUserNotFound is when user not found.
 var ErrUserNotFound = errors.New("User not found. ")
 
-//UserStorage introduces user storage service
+// UserStorage is an abstract user storage.
 type UserStorage interface {
 	UserByID(id string) (User, error)
 	UserByEmail(email string) (User, error)
@@ -27,9 +28,8 @@ type UserStorage interface {
 	ImportJSON(data []byte) error
 }
 
-//User is abstract representation of the user in auth layer
-//everything could be user
-//we are not locked on any implementation
+// User is an abstract representation of the user in auth layer.
+// Everything can be User, we do not depend on any particular implementation.
 type User interface {
 	ID() string
 	Name() string

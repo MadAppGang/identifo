@@ -2,7 +2,15 @@ package jwt
 
 import jwt "github.com/dgrijalva/jwt-go"
 
-//NewTokenWithClaims generates new JWT token with claims and keyID
+// Token is an abstract application token.
+type Token interface {
+	Validate() error
+	UserID() string
+	Type() string
+	Payload() map[string]string
+}
+
+// NewTokenWithClaims generates new JWT token with claims and keyID.
 func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
 	return &jwt.Token{
 		Header: map[string]interface{}{
@@ -15,26 +23,25 @@ func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims)
 	}
 }
 
-//Token represents JWT token in the system
-type Token struct {
+// DefaultToken represents JWT token.
+type DefaultToken struct {
 	JWT *jwt.Token
-	new bool
+	New bool
 }
 
-//Validate validates token data, returns nil if all data is valid
-func (t *Token) Validate() error {
+// Validate validates token data. Returns nil if all data is valid.
+func (t *DefaultToken) Validate() error {
 	if t.JWT == nil {
 		return ErrEmptyToken
 	}
-	if !t.new && !t.JWT.Valid {
+	if !t.New && !t.JWT.Valid {
 		return ErrTokenInvalid
 	}
-
 	return nil
 }
 
-//UserID returns user ID
-func (t *Token) UserID() string {
+// UserID returns user ID.
+func (t *DefaultToken) UserID() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return ""
@@ -42,8 +49,8 @@ func (t *Token) UserID() string {
 	return claims.Subject
 }
 
-//Payload returns payload of the token
-func (t *Token) Payload() map[string]string {
+// Payload returns token payload.
+func (t *DefaultToken) Payload() map[string]string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return make(map[string]string)
@@ -51,8 +58,8 @@ func (t *Token) Payload() map[string]string {
 	return claims.Payload
 }
 
-//Type returns token type, could be empty or "refresh" only
-func (t *Token) Type() string {
+// Type returns token type.
+func (t *DefaultToken) Type() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return ""
@@ -60,14 +67,14 @@ func (t *Token) Type() string {
 	return claims.Type
 }
 
-//Claims extended claims structure
+// Claims is an extended claims structure.
 type Claims struct {
 	Payload map[string]string `json:"payload,omitempty"`
 	Scopes  string            `json:"scopes,omitempty"`
-	Type    string            `json:"type,omitempty"` //could be empty, "access" or "refresh" or "reset-password" only
-	KeyID   string            `json:"kid,omitempty"`  //optional keyID
+	Type    string            `json:"type,omitempty"`
+	KeyID   string            `json:"kid,omitempty"` // optional keyID
 	jwt.StandardClaims
 }
 
-//how to use JWT tokens full example
-//https://github.com/dgrijalva/jwt-go/blob/master/cmd/jwt/app.go
+// Full example of how to use JWT tokens:
+// https://github.com/dgrijalva/jwt-go/blob/master/cmd/jwt/app.go

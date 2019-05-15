@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/tokensrvc"
 )
 
 // RenewToken creates new id_token if user is already authenticated.
 func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
-	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.WebCookieTokenType)
+	tokenValidator := jwt.NewDefaultValidator("identifo", ar.TokenService.Issuer(), "", tokensrvc.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serveTemplate := func(errorMessage, AccessToken, callbackURL string) {

@@ -4,8 +4,8 @@ import (
 	"path"
 
 	"github.com/madappgang/identifo/dynamodb"
-	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/tokensrvc"
 )
 
 // NewComposer creates new database composer.
@@ -63,7 +63,7 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
-	model.TokenService,
+	tokensrvc.TokenService,
 	error,
 ) {
 	db, err := dynamodb.NewDB(dc.settings.DBEndpoint, dc.settings.DBRegion)
@@ -85,7 +85,7 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, err
 	}
 
-	tokenService, err := jwt.NewTokenService(
+	tokenService, err := tokensrvc.NewDefaultTokenService(
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PublicKey),
 		dc.settings.Issuer,

@@ -3,38 +3,49 @@ package jwt
 import (
 	"errors"
 	"time"
-
-	"github.com/madappgang/identifo/model"
 )
 
 var (
-	ErrTokenValidationNoExpire             = errors.New("Token is invalid, no expire date")
-	ErrTokenValidationNoIAT                = errors.New("Token is invalid, no issued at date")
-	ErrTokenValidationInvalidIssuer        = errors.New("Token is invalid, issuer is invalid")
-	ErrTokenValidationInvalidAudience      = errors.New("Token is invalid, audience is invalid")
-	ErrTokenValidationInvalidSubject       = errors.New("Token is invalid, subject is invalid")
-	ErrorTokenValidatrionTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
+	// ErrTokenValidationNoExpiration is when the token does not have an expiration date.
+	ErrTokenValidationNoExpiration = errors.New("Token is invalid, no expire date")
+	// ErrTokenValidationNoIAT is when IAT verification fails.
+	ErrTokenValidationNoIAT = errors.New("Token is invalid, no issued at date")
+	// ErrTokenValidationInvalidIssuer is when the token has invalid issuer.
+	ErrTokenValidationInvalidIssuer = errors.New("Token is invalid, issuer is invalid")
+	// ErrTokenValidationInvalidAudience is when the token has invalid audience.
+	ErrTokenValidationInvalidAudience = errors.New("Token is invalid, audience is invalid")
+	// ErrTokenValidationInvalidSubject is when subject claim is invalid.
+	ErrTokenValidationInvalidSubject = errors.New("Token is invalid, subject is invalid")
+	// ErrorTokenValidationTokenTypeMismatch is when the token has invalid type.
+	ErrorTokenValidationTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
 )
 
 const (
-	//SignatureAlgES is hardcoded signature algorithm
-	//there is a number of options, we are stick to this value
-	//see https://tools.ietf.org/html/rfc7516 for details
+	// SignatureAlgES is a hardcoded ES256 signature algorithm.
+	// There is a number of options, we are stick to this value.
+	// See https://tools.ietf.org/html/rfc7516 for details.
 	SignatureAlgES = "ES256"
+	// SignatureAlgRS is a hardcoded RS256 signature algorithm.
 	SignatureAlgRS = "RS256"
 )
 
+// Validator is an abstract token validator.
+type Validator interface {
+	Validate(Token) error
+}
+
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
-// You can override it to use another time value.  This is useful for testing or if your
-// server uses a different time zone than your tokens.
+// You can override it to use another time value. This is useful for testing or if your
+// server uses a time zone different from your tokens'.
 var TimeFunc = time.Now
 
-//NewValidator creates new JWT validator
-//appID - application ID who have made the request, should be in audience field of JWT token
-//issues - this server name, should be the same as iss of JWT token
-//userID - user, who have made the request, if the field is empty, we are not validating it
-func NewValidator(audience, issuer, userID, tokenType string) model.Validator {
-	return &Validator{
+// NewDefaultValidator creates new JWT tokens validator.
+// Arguments:
+// - appID - application ID which have made the request, should be in audience field of JWT token.
+// - issuer - this server name, should be the same as issuer of JWT token.
+// - userID - user who have made the request. If this field is empty, we do not validate it.
+func NewDefaultValidator(audience, issuer, userID, tokenType string) Validator {
+	return &DefaultValidator{
 		audience:  audience,
 		issuer:    issuer,
 		userID:    userID,
@@ -42,33 +53,33 @@ func NewValidator(audience, issuer, userID, tokenType string) model.Validator {
 	}
 }
 
-//Validator JWT token validator
-type Validator struct {
+// DefaultValidator is a default JWT token validator.
+type DefaultValidator struct {
 	audience  string
 	issuer    string
 	userID    string
 	tokenType string
 }
 
-//Validate validates token
-func (v *Validator) Validate(t model.Token) error {
+// Validate validates token.
+func (v *DefaultValidator) Validate(t Token) error {
 	if t == nil {
 		return ErrEmptyToken
 	}
-	//we assume the signature and standart claims were validated on parse
+	// We assume the signature and standart claims were validated on parse.
 	if err := t.Validate(); err != nil {
 		return err
 	}
-	// We have already have validated time based claims "exp, iat, nbf".
-	// But, if any of the above claims are not in the token, it will still
-	// be considered a valid claim.
-	// That's why all these two fields are required: "exp, iat"
-	token, ok := t.(*Token)
+
+	// We have already validated time based claims "exp, iat, nbf".
+	// But, if any of the above claims are not in the token, it will still be considered a valid claim.
+	// That's why these two fields are required: "exp, iat".
+	token, ok := t.(*DefaultToken)
 	if !ok {
 		return ErrTokenInvalid
 	}
 
-	//check the signature algorithm attack is not passing through
+	// Ensure the signature algorithm attack is not passing through.
 	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
 		return ErrTokenInvalid
 	}
@@ -80,7 +91,7 @@ func (v *Validator) Validate(t model.Token) error {
 
 	now := TimeFunc().Unix()
 	if !claims.VerifyExpiresAt(now, true) {
-		return ErrTokenValidationNoExpire
+		return ErrTokenValidationNoExpiration
 	}
 
 	if !claims.VerifyIssuedAt(now, true) {
@@ -100,14 +111,14 @@ func (v *Validator) Validate(t model.Token) error {
 	}
 
 	if token.Type() != v.tokenType {
-		return ErrorTokenValidatrionTokenTypeMismatch
+		return ErrorTokenValidationTokenTypeMismatch
 	}
 
 	return nil
 }
 
-//ValidateString validates string representation of the token
-func (v *Validator) ValidateString(t string, publicKey interface{}) error {
+// ValidateString validates string representation of the token.
+func (v *DefaultValidator) ValidateString(t string, publicKey interface{}) error {
 	token, err := ParseTokenWithPublicKey(t, publicKey)
 	if err != nil {
 		return err

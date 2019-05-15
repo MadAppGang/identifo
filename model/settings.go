@@ -1,10 +1,8 @@
 package model
 
-//JWTSettings holds JWT specific settings
+// JWTSettings are abstract JWT-settings.
 type JWTSettings interface {
-	//Algorithm returns default signature algorithm, could be RS256, ES256, none
 	Algorithm() string
-	//SignatureSecret returns signature secret to sign and verify
 	SignatureSecret() []byte
 }
 

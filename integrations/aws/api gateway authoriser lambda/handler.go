@@ -5,10 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strings"
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
 )
 
 //authHandler is a lambda handler to validate JWT token
@@ -18,20 +18,26 @@ import (
 //parse claims
 //return claims as JSON struct
 
+// Handler is a main entry point for Lambda.
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
 // https://github.com/aws/aws-lambda-go/blob/master/events/README_ApiGatewayCustomAuthorizer.md
-//Handler main entry point for Lambda
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
-
 	fmt.Printf("Processing incoming event: %v", event)
-	alg := model.TokenServiceAlgorithmRS256
+	alg := jwt.TokenServiceAlgorithmRS256
 
-	token := event.Headers["Authorization"]
+	// Field names must be case-insensitive.
+	// https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2.
+	for k, v := range event.Headers {
+		lowercasedKey := strings.ToLower(k)
+		event.Headers[lowercasedKey] = v
+	}
+
+	token := event.Headers["authorization"]
 	if len(token) < 50 {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid token in the header incoming data")
 	}
 
-	appID := event.Headers["X-Identifo-ClientID"]
+	appID := event.Headers["x-identifo-clientid"]
 	if len(appID) == 0 {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid application ID")
 	}
@@ -56,7 +62,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	}
 
-	v := jwt.NewValidator(appID, jwtIssuer, "", "access")
+	v := jwt.NewDefaultValidator(appID, jwtIssuer, "", "access")
 	tokenV, err := jwt.ParseTokenWithPublicKey(string(tstr), publicKey)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Error parsing token: " + err.Error())
@@ -68,7 +74,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 	return CreatePolicy(tokenV.UserID(), "Allow", event.MethodArn, nil), nil
 }
 
-//CreatePolicy is a help function to generate an IAM policy
+// CreatePolicy is a helper function for generating an IAM policy.
 func CreatePolicy(principalID, effect, resource string, context map[string]interface{}) events.APIGatewayCustomAuthorizerResponse {
 	authResponse := events.APIGatewayCustomAuthorizerResponse{PrincipalID: principalID}
 

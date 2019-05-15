@@ -34,7 +34,8 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
 			return
 		}
-		v := jwt.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
+
+		v := jwt.NewDefaultValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
 		token, err := ar.tokenService.Parse(string(tstr))
 		if err != nil {
 			ar.Error(rw, ErrorRequestInvalidToken, http.StatusBadRequest, "")
@@ -53,6 +54,6 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 }
 
 // tokenFromContext returns token from request context
-func tokenFromContext(ctx context.Context) model.Token {
-	return ctx.Value(model.TokenContextKey).(model.Token)
+func tokenFromContext(ctx context.Context) jwt.Token {
+	return ctx.Value(model.TokenContextKey).(jwt.Token)
 }

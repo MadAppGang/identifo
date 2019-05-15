@@ -14,6 +14,7 @@ import (
 	"github.com/madappgang/identifo/ses"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
+	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -57,7 +58,7 @@ type DatabaseComposer interface {
 		model.AppStorage,
 		model.UserStorage,
 		model.TokenStorage,
-		model.TokenService,
+		tokensrvc.TokenService,
 		error,
 	)
 }

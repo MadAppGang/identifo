@@ -1,26 +1,22 @@
-package model
+package jwt
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 )
 
-const (
-	// OfflineScope is a scope value to request refresh token.
-	OfflineScope = "offline"
-	// RefrestTokenType is a refresh token type value.
-	RefrestTokenType = "refresh"
-	// InviteTokenType is an invite token type value.
-	InviteTokenType = "invite"
-	// AccessTokenType is an access token type value.
-	AccessTokenType = "access"
-	// ResetTokenType is a reset password token type value.
-	ResetTokenType = "reset"
-	// WebCookieTokenType is a web-cookie token type value.
-	WebCookieTokenType = "web-cookie"
+var (
+	// ErrWrongSignatureAlgorithm is for unsupported signature algorithm.
+	ErrWrongSignatureAlgorithm = errors.New("Unsupported signature algorithm")
+	// ErrEmptyToken is when token is empty.
+	ErrEmptyToken = errors.New("Token is empty")
+	// ErrTokenInvalid is when token is invalid.
+	ErrTokenInvalid = errors.New("Token is invalid")
 )
 
-// TokenServiceAlgorithm - we support only two now.
+// TokenServiceAlgorithm is a signing algorithm used by the token service.
+// For now, we only support ES256 and RS256.
 type TokenServiceAlgorithm int
 
 const (
@@ -31,44 +27,6 @@ const (
 	// TokenServiceAlgorithmAuto tries to detect algorithm on the fly.
 	TokenServiceAlgorithmAuto
 )
-
-// TokenService manages tokens abstraction layer.
-type TokenService interface {
-	// NewToken creates new access token for the user.
-	NewToken(u User, scopes []string, app AppData) (Token, error)
-	// NewRefreshToken creates new refresh token for the user.
-	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
-	// NewInviteToken creates new invite token.
-	NewInviteToken() (Token, error)
-	// NewRestToken creates new reset password token.
-	NewResetToken(userID string) (Token, error)
-	// RefreshToken issues the new access token with access token.
-	RefreshToken(token Token) (Token, error)
-	NewWebCookieToken(u User) (Token, error)
-	Parse(string) (Token, error)
-	String(Token) (string, error)
-	Issuer() string
-	Algorithm() string
-	WebCookieTokenLifespan() int64
-	PublicKey() interface{} // we are not using crypto.PublicKey here to avoid dependencies
-	KeyID() string
-}
-
-// Token is an app token to give user chan
-type Token interface {
-	Validate() error
-	UserID() string
-	Type() string
-	Payload() map[string]string
-}
-
-// Validator validates token with external requester.
-type Validator interface {
-	Validate(Token) error
-}
-
-// TokenMapping is a service for matching tokens to services.
-type TokenMapping interface{}
 
 // String implements Stringer.
 func (alg TokenServiceAlgorithm) String() string {

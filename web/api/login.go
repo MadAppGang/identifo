@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -72,7 +72,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 
 		refreshString := ""
 		//requesting offline access ?
-		if contains(scopes, model.OfflineScope) {
+		if contains(scopes, tokensrvc.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
 				ar.Error(w, err, http.StatusInternalServerError, "")
