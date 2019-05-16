@@ -1,10 +1,14 @@
 package api
 
 import (
+	"errors"
+
 	"github.com/madappgang/identifo/facebook"
 )
 
-//FacebookLogin implements federated facebook login
+var ErrFacebookEmptyUserID = errors.New("Facebook user id is not accessible. ")
+
+// FacebookLogin implements federated facebook login
 func (ar *Router) FacebookUserID(accessToken string) (string, error) {
 	fb := facebook.NewClient(accessToken)
 	fbProfile, err := fb.MyProfile()
@@ -12,9 +16,9 @@ func (ar *Router) FacebookUserID(accessToken string) (string, error) {
 		return "", err
 	}
 
-	//check we had `id` permissions for the access_token
+	// check we had `id` permissions for the access_token
 	if len(fbProfile.ID) == 0 {
-		return "", ErrorFederatedProviderEmptyUserID
+		return "", ErrFacebookEmptyUserID
 	}
 	return fbProfile.ID, nil
 }

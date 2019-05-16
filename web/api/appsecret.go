@@ -5,6 +5,7 @@ import (
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
+	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -32,7 +33,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
-			ar.Error(rw, ErrorRequestInvalidAppID, http.StatusBadRequest, ErrorRequestInvalidAppID.Error())
+			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "SignatureHandler.AppFromContext")
 			return
 		}
 
@@ -40,7 +41,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
 		if reqMAC == nil {
 			ar.logger.Println("Error extracting signature")
-			ar.Error(rw, ErrorRequestSignature, http.StatusBadRequest, ErrorRequestSignature.Error())
+			ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, "", "SignatureHandler.extractSignature")
 			return
 		}
 
@@ -54,7 +55,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {
 				ar.logger.Printf("Error reading body: %v", err)
-				ar.Error(rw, ErrorWrongInput, http.StatusBadRequest, ErrorWrongInput.Error())
+				ar.Error(rw, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.readBody")
 				return
 			}
 			body = b
@@ -63,7 +64,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		//check body signature
 		if err := validateBodySignature(body, reqMAC, []byte(app.Secret())); err != nil {
 			ar.logger.Printf("Error validating request signature: %v\n", err)
-			ar.Error(rw, err, http.StatusBadRequest, ErrorRequestSignature.Error())
+			ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.validateBodySignature")
 			return
 		}
 
@@ -105,7 +106,7 @@ func validateBodySignature(body, reqMAC, secret []byte) error {
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(reqMAC, expectedMAC) {
 		// fmt.Printf("Error validation signature, expecting: %v, got: %v\n", hex.EncodeToString(expectedMAC), hex.EncodeToString(reqMAC))
-		return ErrorRequestSignature
+		return errors.New("Request hmac is not equal to expected. ")
 	}
 	return nil
 }

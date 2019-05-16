@@ -174,18 +174,16 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		u.userData.Pswd = PasswordHash(password)
 	}
 
-	if err := s.C.Insert(u.userData); err != nil {
-		return nil, err
+	err := s.C.Insert(u.userData)
+	if mgo.IsDup(err) {
+		return nil, model.ErrorUserExists
 	}
-	return u, nil
+
+	return u, err
 }
 
 // AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
-	if us.UserExists(name) {
-		return nil, model.ErrorUserExists
-	}
-
 	u := userData{Active: true, Name: name, Profile: profile}
 	return us.AddNewUser(&User{userData: u}, password)
 }

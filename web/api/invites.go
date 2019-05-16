@@ -16,24 +16,24 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		d := struct {
 			Email string `json:"email"`
 		}{}
-		if ar.MustParseJSON(w, r, &d) != nil {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid input data. ")
+		if err := ar.MustParseJSON(w, r, &d); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
 			return
 		}
 		if d.Email != "" && !emailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "Invalid email. ")
+			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestInviteLink.emailRegexp_MatchString")
 			return
 		}
 
 		t, err := ar.tokenService.NewInviteToken()
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "Unable to create invite token. Try again or contact support team. ")
+			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return
 		}
 
 		token, err := ar.tokenService.String(t)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "Unable to create invite token. Try again or contact support team. ")
+			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.tokenService_String")
 			return
 		}
 
@@ -52,7 +52,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		if d.Email != "" {
 			err = ar.emailService.SendInviteEmail("Invitation", d.Email, u.String())
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "Unable to send email. Try again or contact support team. ")
+				ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, err.Error(), "RequestInviteLink.SendInviteEmail")
 				return
 			}
 		}
