@@ -4,8 +4,8 @@ import (
 	"reflect"
 	"testing"
 
-	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/storage/mem"
 )
 
 const (
