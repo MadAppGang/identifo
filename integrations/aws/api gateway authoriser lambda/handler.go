@@ -11,14 +11,7 @@ import (
 	"github.com/madappgang/identifo/jwt"
 )
 
-//authHandler is a lambda handler to validate JWT token
-//parse token
-//check for signature
-//check claims
-//parse claims
-//return claims as JSON struct
-
-// Handler is a main entry point for Lambda.
+// Handler is a main entry point for Lambda. Handler validates JWT tokens and returns IAM roles.
 // https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-lambda-authorizer-output.html
 // https://github.com/aws/aws-lambda-go/blob/master/events/README_ApiGatewayCustomAuthorizer.md
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
@@ -56,7 +49,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 	// if err != nil {
 	// 	return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	// }
-	//if you want to use file instead of env variable, use this code insted
+	// If you want to use file instead of env variable, use this code instead.
 	publicKey, err := jwt.LoadPublicKeyFromPEM("./public.pem", alg)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
@@ -90,6 +83,7 @@ func CreatePolicy(principalID, effect, resource string, context map[string]inter
 			},
 		}
 	}
+
 	// Optional output with custom properties of the String, Number or Boolean type.
 	if context != nil {
 		authResponse.Context = context
