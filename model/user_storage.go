@@ -32,8 +32,8 @@ type UserStorage interface {
 //we are not locked on any implementation
 type User interface {
 	ID() string
-	Name() string
-	SetName(string)
+	Username() string
+	SetUsername(string)
 	Email() string
 	SetEmail(string)
 	PasswordHash() string

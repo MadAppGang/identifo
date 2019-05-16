@@ -232,7 +232,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		}
 
 		// we use username and password hash as a key
-		key := u.Name()
+		key := u.Username()
 		unpb := tx.Bucket([]byte(UserByNameAndPassword))
 		return unpb.Put([]byte(key), []byte(u.ID()))
 	})
@@ -250,7 +250,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Name: sid}
+	u := userData{Active: true, Username: sid}
 	u.ID = sid // not sure it's a good idea
 	user := User{userData: u}
 
@@ -280,7 +280,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Name: name, Profile: profile, ID: name}
+	u := userData{Active: true, Username: name, Profile: profile, ID: name}
 	return us.AddNewUser(User{userData: u}, password)
 }
 
@@ -441,12 +441,12 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 
 // User data implementation.
 type userData struct {
-	ID      string                 `json:"id,omitempty"`
-	Name    string                 `json:"name,omitempty"`
-	Email   string                 `json:"email,omitempty"`
-	Pswd    string                 `json:"pswd,omitempty"`
-	Profile map[string]interface{} `json:"profile,omitempty"`
-	Active  bool                   `json:"active,omitempty"`
+	ID       string                 `json:"id,omitempty"`
+	Username string                 `json:"username,omitempty"`
+	Email    string                 `json:"email,omitempty"`
+	Pswd     string                 `json:"pswd,omitempty"`
+	Profile  map[string]interface{} `json:"profile,omitempty"`
+	Active   bool                   `json:"active,omitempty"`
 }
 
 // User is a user data structure for embedded storage.
@@ -478,11 +478,11 @@ func (u User) Sanitize() model.User {
 // ID implements model.User interface.
 func (u User) ID() string { return u.userData.ID }
 
-// Name implements model.User interface.
-func (u User) Name() string { return u.userData.Name }
+// Username implements model.User interface.
+func (u User) Username() string { return u.userData.Username }
 
-// SetName implements model.User interface.
-func (u User) SetName(name string) { u.userData.Name = name }
+// SetUsername implements model.User interface.
+func (u User) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.User interface.
 func (u User) Email() string { return u.userData.Email }

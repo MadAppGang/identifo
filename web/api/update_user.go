@@ -47,7 +47,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// update password
 		if d.updatePassword {
 			// check old password.
-			_, err := ar.userStorage.UserByNamePassword(user.Name(), d.OldPassword)
+			_, err := ar.userStorage.UserByNamePassword(user.Username(), d.OldPassword)
 			if err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
@@ -63,7 +63,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// change username if user specified new one.
 		if d.updateUsername {
-			user.SetName(d.NewUsername)
+			user.SetUsername(d.NewUsername)
 		}
 
 		if d.updateEmail {
@@ -71,8 +71,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		}
 
 		if d.updateUsername || d.updateEmail {
-			_, err = ar.userStorage.UpdateUser(userID, user)
-			if err != nil {
+			if _, err = ar.userStorage.UpdateUser(userID, user); err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to update username or email. Error:"+err.Error(), "UpdateUser.UpdateUser")
 				return
 			}
@@ -114,7 +113,7 @@ type updateData struct {
 }
 
 func (d *updateData) validate(user model.User) error {
-	if d.NewUsername != "" && user.Name() != d.NewUsername {
+	if d.NewUsername != "" && user.Username() != d.NewUsername {
 		d.updateUsername = true
 	}
 	if d.NewEmail != "" && user.Email() != d.NewEmail {
