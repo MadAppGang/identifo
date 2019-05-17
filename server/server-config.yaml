@@ -21,7 +21,7 @@ sessionStorage: memory
 sessionDuration: 300
 
 # Folder for the static files.
-staticFolderPath: ../../static
+staticFolderPath: ../../web/static
 # Forder for the email templates.
 emailTemplatesPath: ../../email_templates
 # Email template names.

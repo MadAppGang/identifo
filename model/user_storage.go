@@ -32,8 +32,8 @@ type UserStorage interface {
 // Everything can be User, we do not depend on any particular implementation.
 type User interface {
 	ID() string
-	Name() string
-	SetName(string)
+	Username() string
+	SetUsername(string)
 	Email() string
 	SetEmail(string)
 	PasswordHash() string

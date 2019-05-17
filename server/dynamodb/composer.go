@@ -3,9 +3,9 @@ package dynamodb
 import (
 	"path"
 
-	"github.com/madappgang/identifo/dynamodb"
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/tokensrvc"
+	"github.com/madappgang/identifo/storage/dynamodb"
 )
 
 // NewComposer creates new database composer.
