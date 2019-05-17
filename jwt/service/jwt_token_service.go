@@ -45,7 +45,7 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenServiceAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
+func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenSignatureAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
 	if _, err := os.Stat(privateKeyPath); err != nil {
 		return nil, ErrKeyFileNotFound
 	}
@@ -57,14 +57,14 @@ func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.To
 	var err error
 
 	// Trying to guess algo from the private key file.
-	if alg == ijwt.TokenServiceAlgorithmAuto {
-		if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenServiceAlgorithmES256); err == nil {
-			alg = ijwt.TokenServiceAlgorithmES256
-		} else if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenServiceAlgorithmRS256); err == nil {
-			alg = ijwt.TokenServiceAlgorithmRS256
+	if alg == ijwt.TokenSignatureAlgorithmAuto {
+		if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenSignatureAlgorithmES256); err == nil {
+			alg = ijwt.TokenSignatureAlgorithmES256
+		} else if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenSignatureAlgorithmRS256); err == nil {
+			alg = ijwt.TokenSignatureAlgorithmRS256
 		}
 	}
-	if alg == ijwt.TokenServiceAlgorithmAuto {
+	if alg == ijwt.TokenSignatureAlgorithmAuto {
 		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
@@ -102,7 +102,7 @@ type JWTokenService struct {
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
 	userStorage            model.UserStorage
-	algorithm              ijwt.TokenServiceAlgorithm
+	algorithm              ijwt.TokenSignatureAlgorithm
 	issuer                 string
 	resetTokenLifespan     int64
 	webCookieTokenLifespan int64
@@ -116,9 +116,9 @@ func (ts *JWTokenService) Issuer() string {
 // Algorithm  returns signature algorithm.
 func (ts *JWTokenService) Algorithm() string {
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		return "ES256"
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		return "RS256"
 	default:
 		return ""
@@ -214,9 +214,9 @@ func (ts *JWTokenService) NewToken(u model.User, scopes []string, app model.AppD
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
 		return nil, ijwt.ErrWrongSignatureAlgorithm
@@ -252,9 +252,9 @@ func (ts *JWTokenService) NewInviteToken() (ijwt.Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
 		return nil, ijwt.ErrWrongSignatureAlgorithm
@@ -308,9 +308,9 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
 		return nil, ijwt.ErrWrongSignatureAlgorithm
@@ -394,9 +394,9 @@ func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
 		return nil, ijwt.ErrWrongSignatureAlgorithm
@@ -431,9 +431,9 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenServiceAlgorithmES256:
+	case ijwt.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenServiceAlgorithmRS256:
+	case ijwt.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
 		return nil, ijwt.ErrWrongSignatureAlgorithm

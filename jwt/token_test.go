@@ -29,7 +29,7 @@ func TestNewTokenService(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -51,7 +51,7 @@ func TestNewTokenService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := jwtService.NewJWTokenService(tt.args.private, tt.args.public, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
+			got, err := jwtService.NewJWTokenService(tt.args.private, tt.args.public, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -76,7 +76,7 @@ func TestParseString(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -118,7 +118,7 @@ func TestTokenToString(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -171,7 +171,7 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}

@@ -17,7 +17,7 @@ import (
 // https://github.com/aws/aws-lambda-go/blob/master/events/README_ApiGatewayCustomAuthorizer.md
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
 	fmt.Printf("Processing incoming event: %v", event)
-	alg := jwt.TokenServiceAlgorithmRS256
+	alg := jwt.TokenSignatureAlgorithmRS256
 
 	// Field names must be case-insensitive.
 	// https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2.
