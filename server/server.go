@@ -9,12 +9,12 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/ses"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
-	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -58,7 +58,7 @@ type DatabaseComposer interface {
 		model.AppStorage,
 		model.UserStorage,
 		model.TokenStorage,
-		tokensrvc.TokenService,
+		jwt.TokenService,
 		error,
 	)
 }

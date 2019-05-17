@@ -1,12 +1,13 @@
 package embedded
 
 import (
+	"fmt"
 	"path"
 
 	"github.com/boltdb/bolt"
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/boltdb"
-	"github.com/madappgang/identifo/tokensrvc"
 )
 
 // NewComposer creates new database composer.
@@ -64,7 +65,7 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
-	tokensrvc.TokenService,
+	jwt.TokenService,
 	error,
 ) {
 
@@ -87,11 +88,16 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, err
 	}
 
-	tokenService, err := tokensrvc.NewDefaultTokenService(
+	tokenServiceAlg, ok := jwt.StrToTokenServiceAlg[dc.settings.Algorithm]
+	if !ok {
+		return nil, nil, nil, nil, fmt.Errorf("Unknow token service algoritm %s", dc.settings.Algorithm)
+	}
+
+	tokenService, err := jwt.NewDefaultTokenService(
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PublicKey),
 		dc.settings.Issuer,
-		dc.settings.Algorithm,
+		tokenServiceAlg,
 		tokenStorage,
 		appStorage,
 		userStorage,

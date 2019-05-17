@@ -15,6 +15,12 @@ var (
 	ErrTokenInvalid = errors.New("Token is invalid")
 )
 
+// StrToTokenServiceAlg maps string token service algorithm names to values.
+var StrToTokenServiceAlg = map[string]TokenServiceAlgorithm{
+	"es256": TokenServiceAlgorithmES256,
+	"rs256": TokenServiceAlgorithmRS256,
+	"auto":  TokenServiceAlgorithmAuto}
+
 // TokenServiceAlgorithm is a signing algorithm used by the token service.
 // For now, we only support ES256 and RS256.
 type TokenServiceAlgorithm int
@@ -86,10 +92,7 @@ func (alg *TokenServiceAlgorithm) UnmarshalYAML(unmarshal func(interface{}) erro
 		return err
 	}
 
-	algorithm, ok := map[string]TokenServiceAlgorithm{
-		"es256": TokenServiceAlgorithmES256,
-		"rs256": TokenServiceAlgorithmRS256,
-		"auto":  TokenServiceAlgorithmAuto}[aux]
+	algorithm, ok := StrToTokenServiceAlg[aux]
 	if !ok {
 		return fmt.Errorf("Invalid TokenServiceAlgorithm %v", aux)
 	}

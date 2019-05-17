@@ -8,7 +8,6 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -16,7 +15,7 @@ import (
 func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
-	tokenValidator := jwt.NewDefaultValidator("identifo", ar.TokenService.Issuer(), "", tokensrvc.WebCookieTokenType)
+	tokenValidator := jwt.NewDefaultValidator("identifo", ar.TokenService.Issuer(), "", jwt.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
