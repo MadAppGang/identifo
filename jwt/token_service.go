@@ -192,7 +192,7 @@ func (ts *TokenService) NewToken(u model.User, scopes []string, app model.AppDat
 
 	payload := make(map[string]string)
 	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Name()
+		payload[PayloadName] = u.Username()
 	}
 	now := TimeFunc().Unix()
 
@@ -282,7 +282,7 @@ func (ts *TokenService) NewRefreshToken(u model.User, scopes []string, app model
 
 	payload := make(map[string]string)
 	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Name()
+		payload[PayloadName] = u.Username()
 	}
 	now := TimeFunc().Unix()
 
