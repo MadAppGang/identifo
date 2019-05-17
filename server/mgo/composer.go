@@ -5,6 +5,7 @@ import (
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/mongo"
+	"github.com/madappgang/identifo/tokensrvc"
 )
 
 // NewComposer creates new database composer.

@@ -189,7 +189,7 @@ func (ts *DefaultTokenService) NewToken(u model.User, scopes []string, app model
 
 	payload := make(map[string]string)
 	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Name()
+		payload[PayloadName] = u.Username()
 	}
 	now := ijwt.TimeFunc().Unix()
 
@@ -283,7 +283,7 @@ func (ts *DefaultTokenService) NewRefreshToken(u model.User, scopes []string, ap
 
 	payload := make(map[string]string)
 	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Name()
+		payload[PayloadName] = u.Username()
 	}
 	now := ijwt.TimeFunc().Unix()
 

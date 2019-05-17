@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/mem"
+	"github.com/madappgang/identifo/storage/mem"
 	"github.com/madappgang/identifo/tokensrvc"
 )
 
