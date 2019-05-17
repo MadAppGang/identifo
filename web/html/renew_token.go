@@ -109,6 +109,5 @@ func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 		}
 
 		serveTemplate("", tokenString, app.RedirectURL())
-		return
 	}
 }

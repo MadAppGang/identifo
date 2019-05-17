@@ -1,8 +1,9 @@
 package api
 
+// MessageID is an error message ID.
 type MessageID string
 
-// Get message returns message by it's id
+// GetMessage returns message by its ID.
 func GetMessage(id MessageID) string {
 	return messages[id]
 }
@@ -37,31 +38,31 @@ var messages = map[MessageID]string{
 const (
 	// ErrorAPIInternalServerError means that server got unknown error.
 	ErrorAPIInternalServerError = "api.internal_server_error"
-	// ErrorAPIUserUnableToCreate
+	// ErrorAPIUserUnableToCreate is when user cannot create the resource.
 	ErrorAPIUserUnableToCreate = "error.api.user.unable_to_create"
-	// ErrorAPIUserNotFound
+	// ErrorAPIUserNotFound is when user not found.
 	ErrorAPIUserNotFound = "error.api.user.not_found"
-	// ErrorAPIUsernameTaken
+	// ErrorAPIUsernameTaken is when username is already taken.
 	ErrorAPIUsernameTaken = "error.api.username.taken"
-	// ErrorAPIEmailTaken
+	// ErrorAPIEmailTaken is when email is already taken.
 	ErrorAPIEmailTaken = "error.api.email.taken"
-	// ErrorAPIInviteTokenServerError
+	// ErrorAPIInviteTokenServerError is for invite token creation issues.
 	ErrorAPIInviteTokenServerError = "error.api.invite_token.server_error"
-	// ErrorAPIEmailNotSent
+	// ErrorAPIEmailNotSent means that email had not been sent.
 	ErrorAPIEmailNotSent = "error.api.email.not_sent"
-	// ErrorAPIRequestPasswordWeak
+	// ErrorAPIRequestPasswordWeak means that password didn't pass strength validation.
 	ErrorAPIRequestPasswordWeak = "error.api.request.password.weak"
-	// ErrorAPIRequestScopesForbidden
+	// ErrorAPIRequestIncorrectEmailOrPassword is for incorrect email or password.
 	ErrorAPIRequestIncorrectEmailOrPassword = "error.api.request.incorrect_email_or_password"
-	// ErrorAPIRequestScopesForbidden
+	// ErrorAPIRequestScopesForbidden is for forbidden request scopes.
 	ErrorAPIRequestScopesForbidden = "error.api.request.scopes.forbidden"
-	// ErrorAPIRequestBodyInvalid means that request data is corrupted.
+	// ErrorAPIRequestBodyInvalid means that request body is corrupted.
 	ErrorAPIRequestBodyInvalid = "error.api.request.body.invalid"
-	// ErrorAPIRequestBodyParamsInvalid means that request data is corrupted.
+	// ErrorAPIRequestBodyParamsInvalid means that request params are corrupted.
 	ErrorAPIRequestBodyParamsInvalid = "error.api.request.body.params.invalid"
-	// ErrorAPIRequestBodyOldPasswordInvalid
+	// ErrorAPIRequestBodyOldPasswordInvalid is for invalid old password.
 	ErrorAPIRequestBodyOldPasswordInvalid = "error.api.request.body.oldpassword.invalid"
-	// ErrorAPIRequestEmailInvalid means that email in request body is corrupted.
+	// ErrorAPIRequestBodyEmailInvalid means that email in request body is corrupted.
 	ErrorAPIRequestBodyEmailInvalid = "error.api.request.body.email.invalid"
 	// ErrorAPIRequestSignatureInvalid is a HMAC request signature error.
 	ErrorAPIRequestSignatureInvalid = "error.api.request.signature.invalid"

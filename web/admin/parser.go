@@ -6,6 +6,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"os"
+	"path"
 	"path/filepath"
 	"strconv"
 
@@ -87,20 +88,25 @@ func getRouteVar(name string, r *http.Request) string {
 func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
 	dir, err := os.Getwd()
 	if err != nil {
-		ar.logger.Println("Cannot get configuration file:", err)
+		ar.logger.Println("Cannot get admin account configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.AccountConfigPath))
+	var origErr = err
+
 	if err != nil {
-		ar.logger.Println("Cannot read configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
+		yamlFile, err = ioutil.ReadFile(path.Base("./account-config.yaml"))
+		if err != nil {
+			ar.logger.Println("Cannot read admin account configuration file:", origErr)
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return origErr
+		}
 	}
 
 	if err = yaml.Unmarshal(yamlFile, ad); err != nil {
-		ar.logger.Println("Cannot unmarshal configuration file:", err)
+		ar.logger.Println("Cannot unmarshal admin account configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}

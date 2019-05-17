@@ -46,10 +46,14 @@ const (
 // - publicKeyPath - the path to the public key.
 func NewDefaultTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenServiceAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
 	if _, err := os.Stat(privateKeyPath); err != nil {
-		return nil, ErrKeyFileNotFound
+		if _, err = os.Stat("./pem/private.pem"); err != nil {
+			return nil, ErrKeyFileNotFound
+		}
 	}
 	if _, err := os.Stat(publicKeyPath); err != nil {
-		return nil, ErrKeyFileNotFound
+		if _, err = os.Stat("./pem/public.pem"); err != nil {
+			return nil, ErrKeyFileNotFound
+		}
 	}
 
 	var privateKey interface{}

@@ -15,6 +15,7 @@ const (
 	HeaderKeyAppID = "X-Identifo-Clientid"
 )
 
+// AppID extracts application ID from the header and writes corresponding app to the context.
 func (ar *Router) AppID() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
