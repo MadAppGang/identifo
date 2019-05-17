@@ -4,8 +4,8 @@ import (
 	"path"
 
 	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/mem"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/storage/mem"
 )
 
 // NewComposer creates new database composer.

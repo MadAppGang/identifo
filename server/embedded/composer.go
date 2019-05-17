@@ -4,9 +4,9 @@ import (
 	"path"
 
 	"github.com/boltdb/bolt"
-	"github.com/madappgang/identifo/boltdb"
 	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/storage/boltdb"
 )
 
 // NewComposer creates new database composer.
