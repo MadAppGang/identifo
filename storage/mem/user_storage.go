@@ -113,30 +113,30 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 
 func randUser() *user {
 	profile := map[string]interface{}{
-		"name":    randomdata.SillyName(),
-		"id":      randomdata.StringNumber(2, "-"),
-		"address": randomdata.Address(),
+		"username": randomdata.SillyName(),
+		"id":       randomdata.StringNumber(2, "-"),
+		"address":  randomdata.Address(),
 	}
 	return &user{
 		userData: userData{
-			ID:      randomdata.StringNumber(2, "-"),
-			Name:    randomdata.SillyName(),
-			Email:   randomdata.Email(),
-			Pswd:    randomdata.StringNumber(2, "-"),
-			Profile: profile,
-			Active:  randomdata.Boolean(),
+			ID:       randomdata.StringNumber(2, "-"),
+			Username: randomdata.SillyName(),
+			Email:    randomdata.Email(),
+			Pswd:     randomdata.StringNumber(2, "-"),
+			Profile:  profile,
+			Active:   randomdata.Boolean(),
 		},
 	}
 }
 
 // User data implementation.
 type userData struct {
-	ID      string                 `json:"id,omitempty"`
-	Name    string                 `json:"name,omitempty"`
-	Email   string                 `json:"email,omitempty"`
-	Pswd    string                 `json:"pswd,omitempty"`
-	Profile map[string]interface{} `json:"profile,omitempty"`
-	Active  bool                   `json:"active,omitempty"`
+	ID       string                 `json:"id,omitempty"`
+	Username string                 `json:"username,omitempty"`
+	Email    string                 `json:"email,omitempty"`
+	Pswd     string                 `json:"pswd,omitempty"`
+	Profile  map[string]interface{} `json:"profile,omitempty"`
+	Active   bool                   `json:"active,omitempty"`
 }
 
 type user struct {
@@ -151,11 +151,11 @@ func (u *user) Sanitize() model.User {
 // ID implements model.User interface.
 func (u *user) ID() string { return u.userData.ID }
 
-// Name implements model.User interface.
-func (u *user) Name() string { return u.userData.Name }
+// Username implements model.User interface.
+func (u *user) Username() string { return u.userData.Username }
 
-// SetName implements model.User interface.
-func (u *user) SetName(name string) { u.userData.Name = name }
+// SetUsername implements model.User interface.
+func (u *user) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.User interface.
 func (u *user) Email() string { return u.userData.Email }

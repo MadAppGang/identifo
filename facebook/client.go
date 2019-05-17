@@ -7,31 +7,33 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"time"
 )
 
 const (
-	//FacebookAPIPath is facebook Graph API base URL path
+	// FacebookAPIPath is a Facebook Graph API base URL path.
 	FacebookAPIPath = "https://graph.facebook.com/v3.2/"
 )
 
-//NewClient create new default client with short lived access token
+// NewClient creates new http client with short lived access token.
 func NewClient(accessToken string) *Client {
-	c := Client{}
+	c := &Client{
+		AccessToken: accessToken,
+		HTTPClient:  &http.Client{Timeout: 15 * time.Second}, //could be reassigned after
+	}
 	c.BaseURL, _ = url.Parse(FacebookAPIPath)
-	c.AccessToken = accessToken
-	c.HTTPClient = http.DefaultClient //could be reassigned after
-	return &c
+	return c
 }
 
-//Client is Facebook SDK client to make GraphAPI requests and handle errors
+// Client is a Facebook SDK client for making GraphAPI requests and handling errors.
 type Client struct {
 	BaseURL     *url.URL
 	AccessToken string
 	HTTPClient  *http.Client
 }
 
-//MyProfile asks for token owner public profile information: id and name
-//more functions could be implemented after
+// MyProfile asks for token's owner public profile information: id and name.
+// More functions can be implemented later.
 func (c *Client) MyProfile() (User, error) {
 	v := url.Values{}
 	v.Add("fields", "name")

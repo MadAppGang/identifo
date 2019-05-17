@@ -222,7 +222,7 @@ func (us *UserStorage) prepareUserForSaving(usr model.User) (*User, error) {
 	if _, err := xid.FromString(u.ID()); err != nil {
 		u.userData.ID = xid.New().String()
 	}
-	u.userData.Name = strings.ToLower(u.userData.Name)
+	u.userData.Username = strings.ToLower(u.userData.Username)
 
 	return u, nil
 }
@@ -267,7 +267,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{Active: true, Name: name, Profile: profile}
+	u := userData{Active: true, Username: name, Profile: profile}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
@@ -289,13 +289,13 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, err
 	} else if err == model.ErrorNotFound {
 		// no such user, let's create it
-		uData := userData{Name: fid, Active: true}
+		uData := userData{Username: fid, Active: true}
 		u, creationErr := us.AddNewUser(&User{userData: uData}, "")
 		if creationErr != nil {
 			log.Println("Error adding new user:", creationErr)
 			return nil, creationErr
 		}
-		user = &userIndexByNameData{ID: u.ID(), Name: u.Name()}
+		user = &userIndexByNameData{ID: u.ID(), Username: u.Username()}
 		// user = &(u.(*User).userData) //yep, looks like old C :-), payment for interfaces
 	}
 
@@ -322,7 +322,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, ErrorInternalError
 	}
 
-	udata := userData{ID: user.ID, Name: user.Name, Active: true}
+	udata := userData{ID: user.ID, Username: user.Username, Active: true}
 	return &User{userData: udata}, nil
 }
 
@@ -474,19 +474,19 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 
 // userIndexByNameData represents index projected user data.
 type userIndexByNameData struct {
-	ID   string `json:"id,omitempty"`
-	Pswd string `json:"pswd,omitempty"`
-	Name string `json:"username,omitempty"`
+	ID       string `json:"id,omitempty"`
+	Pswd     string `json:"pswd,omitempty"`
+	Username string `json:"username,omitempty"`
 }
 
 // User data implementation.
 type userData struct {
-	ID      string                 `json:"id,omitempty"`
-	Name    string                 `json:"username,omitempty"`
-	Email   string                 `json:"email,omitempty"`
-	Pswd    string                 `json:"pswd,omitempty"`
-	Profile map[string]interface{} `json:"profile,omitempty"`
-	Active  bool                   `json:"active,omitempty"`
+	ID       string                 `json:"id,omitempty"`
+	Username string                 `json:"username,omitempty"`
+	Email    string                 `json:"email,omitempty"`
+	Pswd     string                 `json:"pswd,omitempty"`
+	Profile  map[string]interface{} `json:"profile,omitempty"`
+	Active   bool                   `json:"active,omitempty"`
 }
 
 // federatedUserID is a struct for mapping federated id to user id.
@@ -519,11 +519,11 @@ func UserFromJSON(d []byte) (*User, error) {
 // ID implements model.User interface.
 func (u *User) ID() string { return u.userData.ID }
 
-// Name implements model.User interface.
-func (u *User) Name() string { return u.userData.Name }
+// Username implements model.User interface.
+func (u *User) Username() string { return u.userData.Username }
 
-// SetName implements model.User interface.
-func (u *User) SetName(name string) { u.userData.Name = name }
+// SetUsername implements model.User interface.
+func (u *User) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.User interface.
 func (u *User) Email() string { return u.userData.Email }
