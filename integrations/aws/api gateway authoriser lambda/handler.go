@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/madappgang/identifo/jwt"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 )
 
 // Handler is a main entry point for Lambda. Handler validates JWT tokens and returns IAM roles.
@@ -55,7 +56,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	}
 
-	v := jwt.NewDefaultValidator(appID, jwtIssuer, "", "access")
+	v := jwtValidator.NewValidator(appID, jwtIssuer, "", "access")
 	tokenV, err := jwt.ParseTokenWithPublicKey(string(tstr), publicKey)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Error parsing token: " + err.Error())

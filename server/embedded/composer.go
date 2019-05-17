@@ -6,6 +6,7 @@ import (
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/jwt"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/boltdb"
 )
@@ -65,7 +66,7 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
-	jwt.TokenService,
+	jwtService.TokenService,
 	error,
 ) {
 
@@ -93,7 +94,7 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, fmt.Errorf("Unknow token service algoritm %s", dc.settings.Algorithm)
 	}
 
-	tokenService, err := jwt.NewDefaultTokenService(
+	tokenService, err := jwtService.NewJWTokenService(
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
 		path.Join(dc.settings.PEMFolderPath, dc.settings.PublicKey),
 		dc.settings.Issuer,

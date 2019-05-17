@@ -1,9 +1,11 @@
-package jwt
+package jwt_test
 
 import (
 	"reflect"
 	"testing"
 
+	ijwt "github.com/madappgang/identifo/jwt"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/storage/mem"
 )
 
@@ -27,7 +29,7 @@ func TestNewTokenService(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := NewDefaultTokenService(privateKey, publicKey, testIssuer, TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -39,7 +41,7 @@ func TestNewTokenService(t *testing.T) {
 	tests := []struct {
 		name    string
 		args    args
-		want    TokenService
+		want    jwtService.TokenService
 		wantErr bool
 	}{
 		{"successfull creation", args{privateKey, publicKey, testIssuer}, ts, false},
@@ -49,7 +51,7 @@ func TestNewTokenService(t *testing.T) {
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := NewDefaultTokenService(tt.args.private, tt.args.public, testIssuer, TokenServiceAlgorithmES256, tstor, as, us)
+			got, err := jwtService.NewJWTokenService(tt.args.private, tt.args.public, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -74,7 +76,7 @@ func TestParseString(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := NewDefaultTokenService(privateKey, publicKey, testIssuer, TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to crate service %v", err)
 	}
@@ -86,11 +88,11 @@ func TestParseString(t *testing.T) {
 		t.Error("Token is empty")
 	}
 
-	tkn, ok := token.(*DefaultToken)
+	tkn, ok := token.(*ijwt.JWToken)
 	if !ok {
 		t.Error("Token is wrong type")
 	}
-	claims, ok := tkn.JWT.Claims.(*Claims)
+	claims, ok := tkn.JWT.Claims.(*ijwt.Claims)
 	if !ok {
 		t.Error("Claims are invalid")
 	}
@@ -116,7 +118,7 @@ func TestTokenToString(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := NewDefaultTokenService(privateKey, publicKey, testIssuer, TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -142,10 +144,10 @@ func TestTokenToString(t *testing.T) {
 	if token2 == nil {
 		t.Error("Token is empty")
 	}
-	t1, _ := token.(*DefaultToken)
-	t2, _ := token2.(*DefaultToken)
-	claims1, _ := t1.JWT.Claims.(*Claims)
-	claims2, _ := t2.JWT.Claims.(*Claims)
+	t1, _ := token.(*ijwt.JWToken)
+	t2, _ := token2.(*ijwt.JWToken)
+	claims1, _ := t1.JWT.Claims.(*ijwt.Claims)
+	claims2, _ := t2.JWT.Claims.(*ijwt.Claims)
 
 	if !reflect.DeepEqual(t1.JWT.Header, t2.JWT.Header) {
 		t.Errorf("Headers = %+v, want %+v", t1.JWT.Header, t2.JWT.Header)
@@ -169,7 +171,7 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := NewDefaultTokenService(privateKey, publicKey, testIssuer, TokenServiceAlgorithmES256, tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenServiceAlgorithmES256, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -197,8 +199,8 @@ func TestNewToken(t *testing.T) {
 	if token2 == nil {
 		t.Error("Token is empty")
 	}
-	t2, _ := token2.(*DefaultToken)
-	claims2, _ := t2.JWT.Claims.(*Claims)
+	t2, _ := token2.(*ijwt.JWToken)
+	claims2, _ := t2.JWT.Claims.(*ijwt.Claims)
 	if _, ok := claims2.Payload["name"]; !ok {
 		t.Errorf("Claims payload = %+v, want name in payload.", claims2.Payload)
 	}

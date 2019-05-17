@@ -23,14 +23,14 @@ func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims)
 	}
 }
 
-// DefaultToken represents JWT token.
-type DefaultToken struct {
+// JWToken represents JWT token.
+type JWToken struct {
 	JWT *jwt.Token
 	New bool
 }
 
 // Validate validates token data. Returns nil if all data is valid.
-func (t *DefaultToken) Validate() error {
+func (t *JWToken) Validate() error {
 	if t.JWT == nil {
 		return ErrEmptyToken
 	}
@@ -41,7 +41,7 @@ func (t *DefaultToken) Validate() error {
 }
 
 // UserID returns user ID.
-func (t *DefaultToken) UserID() string {
+func (t *JWToken) UserID() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return ""
@@ -50,7 +50,7 @@ func (t *DefaultToken) UserID() string {
 }
 
 // Payload returns token payload.
-func (t *DefaultToken) Payload() map[string]string {
+func (t *JWToken) Payload() map[string]string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return make(map[string]string)
@@ -59,7 +59,7 @@ func (t *DefaultToken) Payload() map[string]string {
 }
 
 // Type returns token type.
-func (t *DefaultToken) Type() string {
+func (t *JWToken) Type() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
 		return ""

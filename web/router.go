@@ -4,7 +4,7 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/madappgang/identifo/jwt"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -16,7 +16,7 @@ type RouterSetting struct {
 	AppStorage          model.AppStorage
 	UserStorage         model.UserStorage
 	TokenStorage        model.TokenStorage
-	TokenService        jwt.TokenService
+	TokenService        jwtService.TokenService
 	EmailService        model.EmailService
 	SessionService      model.SessionService
 	SessionStorage      model.SessionStorage

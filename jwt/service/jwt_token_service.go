@@ -1,4 +1,4 @@
-package jwt
+package service
 
 import (
 	"crypto/sha1"
@@ -9,6 +9,8 @@ import (
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
+	ijwt "github.com/madappgang/identifo/jwt"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -39,11 +41,11 @@ const (
 	PayloadName = "name"
 )
 
-// NewDefaultTokenService returns new default JWT token service.
+// NewJWTokenService returns new JWT token service.
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewDefaultTokenService(privateKeyPath, publicKeyPath, issuer string, alg TokenServiceAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
+func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenServiceAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
 	if _, err := os.Stat(privateKeyPath); err != nil {
 		return nil, ErrKeyFileNotFound
 	}
@@ -55,23 +57,23 @@ func NewDefaultTokenService(privateKeyPath, publicKeyPath, issuer string, alg To
 	var err error
 
 	// Trying to guess algo from the private key file.
-	if alg == TokenServiceAlgorithmAuto {
-		if privateKey, err = LoadPrivateKeyFromPEM(privateKeyPath, TokenServiceAlgorithmES256); err == nil {
-			alg = TokenServiceAlgorithmES256
-		} else if privateKey, err = LoadPrivateKeyFromPEM(privateKeyPath, TokenServiceAlgorithmRS256); err == nil {
-			alg = TokenServiceAlgorithmRS256
+	if alg == ijwt.TokenServiceAlgorithmAuto {
+		if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenServiceAlgorithmES256); err == nil {
+			alg = ijwt.TokenServiceAlgorithmES256
+		} else if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenServiceAlgorithmRS256); err == nil {
+			alg = ijwt.TokenServiceAlgorithmRS256
 		}
 	}
-	if alg == TokenServiceAlgorithmAuto {
-		return nil, ErrWrongSignatureAlgorithm
+	if alg == ijwt.TokenServiceAlgorithmAuto {
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	publicKey, err := LoadPublicKeyFromPEM(publicKeyPath, alg)
+	publicKey, err := ijwt.LoadPublicKeyFromPEM(publicKeyPath, alg)
 	if err != nil {
 		return nil, err
 	}
 
-	t := &DefaultTokenService{
+	t := &JWTokenService{
 		issuer:                 issuer,
 		tokenStorage:           tokenStorage,
 		appStorage:             appStorage,
@@ -93,30 +95,30 @@ func NewDefaultTokenService(privateKeyPath, publicKeyPath, issuer string, alg To
 	return t, nil
 }
 
-// DefaultTokenService is a default JWT token service.
-type DefaultTokenService struct {
+// JWTokenService is a JWT token service.
+type JWTokenService struct {
 	privateKey             interface{} // *ecdsa.PrivateKey, or *rsa.PrivateKey
 	publicKey              interface{} // *ecdsa.PublicKey, or *rsa.PublicKey
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
 	userStorage            model.UserStorage
-	algorithm              TokenServiceAlgorithm
+	algorithm              ijwt.TokenServiceAlgorithm
 	issuer                 string
 	resetTokenLifespan     int64
 	webCookieTokenLifespan int64
 }
 
 // Issuer returns token issuer name.
-func (ts *DefaultTokenService) Issuer() string {
+func (ts *JWTokenService) Issuer() string {
 	return ts.issuer
 }
 
 // Algorithm  returns signature algorithm.
-func (ts *DefaultTokenService) Algorithm() string {
+func (ts *JWTokenService) Algorithm() string {
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		return "ES256"
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		return "RS256"
 	default:
 		return ""
@@ -124,12 +126,12 @@ func (ts *DefaultTokenService) Algorithm() string {
 }
 
 // PublicKey returns public key.
-func (ts *DefaultTokenService) PublicKey() interface{} {
+func (ts *JWTokenService) PublicKey() interface{} {
 	return ts.publicKey
 }
 
 // KeyID returns public key ID, using SHA-1 fingerprint.
-func (ts *DefaultTokenService) KeyID() string {
+func (ts *JWTokenService) KeyID() string {
 	if der, err := x509.MarshalPKIXPublicKey(ts.publicKey); err == nil {
 		s := sha1.Sum(der)
 		return base64.RawURLEncoding.EncodeToString(s[:]) //slice from [20]byte
@@ -138,15 +140,15 @@ func (ts *DefaultTokenService) KeyID() string {
 }
 
 // WebCookieTokenLifespan return auth token lifespan
-func (ts *DefaultTokenService) WebCookieTokenLifespan() int64 {
+func (ts *JWTokenService) WebCookieTokenLifespan() int64 {
 	return ts.webCookieTokenLifespan
 }
 
 // Parse parses token data from the string representation.
-func (ts *DefaultTokenService) Parse(s string) (Token, error) {
+func (ts *JWTokenService) Parse(s string) (ijwt.Token, error) {
 	tokenString := strings.TrimSpace(s)
 
-	token, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &ijwt.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counterpart to verify them.
 		return ts.publicKey, nil
@@ -155,11 +157,11 @@ func (ts *DefaultTokenService) Parse(s string) (Token, error) {
 		return nil, err
 	}
 
-	return &DefaultToken{JWT: token}, nil
+	return &ijwt.JWToken{JWT: token}, nil
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *DefaultTokenService) ValidateTokenString(tstr string, v Validator, tokenType string) (Token, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Validator, tokenType string) (ijwt.Token, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
 		return nil, err
@@ -177,7 +179,7 @@ func (ts *DefaultTokenService) ValidateTokenString(tstr string, v Validator, tok
 }
 
 // NewToken creates new token for user.
-func (ts *DefaultTokenService) NewToken(u model.User, scopes []string, app model.AppData) (Token, error) {
+func (ts *JWTokenService) NewToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
 	if !app.Active() {
 		return nil, ErrInvalidApp
 	}
@@ -190,14 +192,14 @@ func (ts *DefaultTokenService) NewToken(u model.User, scopes []string, app model
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
-	now := TimeFunc().Unix()
+	now := ijwt.TimeFunc().Unix()
 
 	lifespan := app.TokenLifespan()
 	if lifespan == 0 {
 		lifespan = TokenLifespan
 	}
 
-	claims := Claims{
+	claims := ijwt.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    AccessTokenType,
@@ -212,31 +214,31 @@ func (ts *DefaultTokenService) NewToken(u model.User, scopes []string, app model
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ErrWrongSignatureAlgorithm
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
-	return &DefaultToken{JWT: token, New: true}, nil
+	return &ijwt.JWToken{JWT: token, New: true}, nil
 }
 
 // NewInviteToken creates new invite token.
-func (ts *DefaultTokenService) NewInviteToken() (Token, error) {
+func (ts *JWTokenService) NewInviteToken() (ijwt.Token, error) {
 	payload := make(map[string]string)
 	// add payload data here
 
-	now := TimeFunc().Unix()
+	now := ijwt.TimeFunc().Unix()
 
 	lifespan := InviteTokenLifespan
 
-	claims := Claims{
+	claims := ijwt.Claims{
 		Payload: payload,
 		Type:    InviteTokenType,
 		StandardClaims: jwt.StandardClaims{
@@ -250,23 +252,23 @@ func (ts *DefaultTokenService) NewInviteToken() (Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ErrWrongSignatureAlgorithm
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
-	return &DefaultToken{JWT: token, New: true}, nil
+	return &ijwt.JWToken{JWT: token, New: true}, nil
 }
 
 // NewRefreshToken creates new refresh token.
-func (ts *DefaultTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (Token, error) {
+func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
 	if !app.Active() || !app.Offline() {
 		return nil, ErrInvalidApp
 
@@ -284,14 +286,14 @@ func (ts *DefaultTokenService) NewRefreshToken(u model.User, scopes []string, ap
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
-	now := TimeFunc().Unix()
+	now := ijwt.TimeFunc().Unix()
 
 	lifespan := app.RefreshTokenLifespan()
 	if lifespan == 0 {
 		lifespan = RefreshTokenLifespan
 	}
 
-	claims := Claims{
+	claims := ijwt.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    RefrestTokenType,
@@ -306,20 +308,20 @@ func (ts *DefaultTokenService) NewRefreshToken(u model.User, scopes []string, ap
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ErrWrongSignatureAlgorithm
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	t := &DefaultToken{JWT: token, New: true}
+	t := &ijwt.JWToken{JWT: token, New: true}
 	tokenString, err := ts.String(t)
 	if err != nil {
 		return nil, ErrSavingToken
@@ -332,19 +334,19 @@ func (ts *DefaultTokenService) NewRefreshToken(u model.User, scopes []string, ap
 }
 
 // RefreshToken issues the new access token with access token
-func (ts *DefaultTokenService) RefreshToken(refreshToken Token) (Token, error) {
-	rt, ok := refreshToken.(*DefaultToken)
+func (ts *JWTokenService) RefreshToken(refreshToken ijwt.Token) (ijwt.Token, error) {
+	rt, ok := refreshToken.(*ijwt.JWToken)
 	if !ok || rt == nil {
-		return nil, ErrTokenInvalid
+		return nil, ijwt.ErrTokenInvalid
 	}
 
 	if err := rt.Validate(); err != nil {
 		return nil, err
 	}
 
-	claims, ok := rt.JWT.Claims.(*Claims)
+	claims, ok := rt.JWT.Claims.(*ijwt.Claims)
 	if !ok || claims == nil {
-		return nil, ErrTokenInvalid
+		return nil, ijwt.ErrTokenInvalid
 	}
 
 	app, err := ts.appStorage.AppByID(claims.Audience)
@@ -374,12 +376,12 @@ func (ts *DefaultTokenService) RefreshToken(refreshToken Token) (Token, error) {
 }
 
 // NewResetToken creates new token for password resetting.
-func (ts *DefaultTokenService) NewResetToken(userID string) (Token, error) {
-	now := TimeFunc().Unix()
+func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
+	now := ijwt.TimeFunc().Unix()
 
 	lifespan := ts.resetTokenLifespan
 
-	claims := Claims{
+	claims := ijwt.Claims{
 		Type: ResetTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -392,31 +394,31 @@ func (ts *DefaultTokenService) NewResetToken(userID string) (Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ErrWrongSignatureAlgorithm
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	return &DefaultToken{JWT: token, New: true}, nil
+	return &ijwt.JWToken{JWT: token, New: true}, nil
 }
 
 // NewWebCookieToken creates new web cookie token.
-func (ts *DefaultTokenService) NewWebCookieToken(u model.User) (Token, error) {
+func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 	if !u.Active() {
 		return nil, ErrInvalidUser
 	}
-	now := TimeFunc().Unix()
+	now := ijwt.TimeFunc().Unix()
 	lifespan := ts.resetTokenLifespan
 
-	claims := Claims{
+	claims := ijwt.Claims{
 		Type: WebCookieTokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -429,34 +431,34 @@ func (ts *DefaultTokenService) NewWebCookieToken(u model.User) (Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case TokenServiceAlgorithmES256:
+	case ijwt.TokenServiceAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case TokenServiceAlgorithmRS256:
+	case ijwt.TokenServiceAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ErrWrongSignatureAlgorithm
+		return nil, ijwt.ErrWrongSignatureAlgorithm
 	}
 
-	token := NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	return &DefaultToken{JWT: token, New: true}, nil
+	return &ijwt.JWToken{JWT: token, New: true}, nil
 }
 
 // String returns string representation of a token.
-func (ts *DefaultTokenService) String(t Token) (string, error) {
-	token, ok := t.(*DefaultToken)
+func (ts *JWTokenService) String(t ijwt.Token) (string, error) {
+	token, ok := t.(*ijwt.JWToken)
 	if !ok {
-		return "", ErrTokenInvalid
+		return "", ijwt.ErrTokenInvalid
 	}
 
 	if err := t.Validate(); err != nil {
 		return "", err
 	}
 	if !token.New && !token.JWT.Valid {
-		return "", ErrTokenInvalid
+		return "", ijwt.ErrTokenInvalid
 	}
 
 	str, err := token.JWT.SignedString(ts.privateKey)
@@ -467,16 +469,16 @@ func (ts *DefaultTokenService) String(t Token) (string, error) {
 }
 
 // ResetTokenLifespan sets custom lifespan in seconds for the reset token
-func ResetTokenLifespan(lifespan int64) func(*DefaultTokenService) error {
-	return func(ts *DefaultTokenService) error {
+func ResetTokenLifespan(lifespan int64) func(*JWTokenService) error {
+	return func(ts *JWTokenService) error {
 		ts.resetTokenLifespan = lifespan
 		return nil
 	}
 }
 
 // WebCookieTokenLifespan sets custom lifespan in seconds for the web cookie token
-func WebCookieTokenLifespan(lifespan int64) func(*DefaultTokenService) error {
-	return func(ts *DefaultTokenService) error {
+func WebCookieTokenLifespan(lifespan int64) func(*JWTokenService) error {
+	return func(ts *JWTokenService) error {
 		ts.webCookieTokenLifespan = lifespan
 		return nil
 	}

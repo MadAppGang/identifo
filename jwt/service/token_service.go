@@ -1,6 +1,7 @@
-package jwt
+package service
 
 import (
+	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -21,14 +22,14 @@ const (
 
 // TokenService is an abstract token manager.
 type TokenService interface {
-	NewToken(u model.User, scopes []string, app model.AppData) (Token, error)
-	NewRefreshToken(u model.User, scopes []string, app model.AppData) (Token, error)
-	NewInviteToken() (Token, error)
-	NewResetToken(userID string) (Token, error)
-	RefreshToken(token Token) (Token, error)
-	NewWebCookieToken(u model.User) (Token, error)
-	Parse(string) (Token, error)
-	String(Token) (string, error)
+	NewToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
+	NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
+	NewInviteToken() (ijwt.Token, error)
+	NewResetToken(userID string) (ijwt.Token, error)
+	RefreshToken(token ijwt.Token) (ijwt.Token, error)
+	NewWebCookieToken(u model.User) (ijwt.Token, error)
+	Parse(string) (ijwt.Token, error)
+	String(ijwt.Token) (string, error)
 	Issuer() string
 	Algorithm() string
 	WebCookieTokenLifespan() int64

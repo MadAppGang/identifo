@@ -1,8 +1,9 @@
-package jwt
+package validator
 
 import (
 	"errors"
-	"time"
+
+	ijwt "github.com/madappgang/identifo/jwt"
 )
 
 var (
@@ -31,21 +32,16 @@ const (
 
 // Validator is an abstract token validator.
 type Validator interface {
-	Validate(Token) error
+	Validate(ijwt.Token) error
 }
 
-// TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).
-// You can override it to use another time value. This is useful for testing or if your
-// server uses a time zone different from your tokens'.
-var TimeFunc = time.Now
-
-// NewDefaultValidator creates new JWT tokens validator.
+// NewValidator creates new JWT tokens validator.
 // Arguments:
 // - appID - application ID which have made the request, should be in audience field of JWT token.
 // - issuer - this server name, should be the same as issuer of JWT token.
 // - userID - user who have made the request. If this field is empty, we do not validate it.
-func NewDefaultValidator(audience, issuer, userID, tokenType string) Validator {
-	return &DefaultValidator{
+func NewValidator(audience, issuer, userID, tokenType string) Validator {
+	return &validator{
 		audience:  audience,
 		issuer:    issuer,
 		userID:    userID,
@@ -53,8 +49,8 @@ func NewDefaultValidator(audience, issuer, userID, tokenType string) Validator {
 	}
 }
 
-// DefaultValidator is a default JWT token validator.
-type DefaultValidator struct {
+// validator is a JWT token validator.
+type validator struct {
 	audience  string
 	issuer    string
 	userID    string
@@ -62,9 +58,9 @@ type DefaultValidator struct {
 }
 
 // Validate validates token.
-func (v *DefaultValidator) Validate(t Token) error {
+func (v *validator) Validate(t ijwt.Token) error {
 	if t == nil {
-		return ErrEmptyToken
+		return ijwt.ErrEmptyToken
 	}
 	// We assume the signature and standart claims were validated on parse.
 	if err := t.Validate(); err != nil {
@@ -74,22 +70,22 @@ func (v *DefaultValidator) Validate(t Token) error {
 	// We have already validated time based claims "exp, iat, nbf".
 	// But, if any of the above claims are not in the token, it will still be considered a valid claim.
 	// That's why these two fields are required: "exp, iat".
-	token, ok := t.(*DefaultToken)
+	token, ok := t.(*ijwt.JWToken)
 	if !ok {
-		return ErrTokenInvalid
+		return ijwt.ErrTokenInvalid
 	}
 
 	// Ensure the signature algorithm attack is not passing through.
 	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
-		return ErrTokenInvalid
+		return ijwt.ErrTokenInvalid
 	}
 
-	claims, ok := token.JWT.Claims.(*Claims)
+	claims, ok := token.JWT.Claims.(*ijwt.Claims)
 	if !ok {
-		return ErrTokenInvalid
+		return ijwt.ErrTokenInvalid
 	}
 
-	now := TimeFunc().Unix()
+	now := ijwt.TimeFunc().Unix()
 	if !claims.VerifyExpiresAt(now, true) {
 		return ErrTokenValidationNoExpiration
 	}
@@ -118,8 +114,8 @@ func (v *DefaultValidator) Validate(t Token) error {
 }
 
 // ValidateString validates string representation of the token.
-func (v *DefaultValidator) ValidateString(t string, publicKey interface{}) error {
-	token, err := ParseTokenWithPublicKey(t, publicKey)
+func (v *validator) ValidateString(t string, publicKey interface{}) error {
+	token, err := ijwt.ParseTokenWithPublicKey(t, publicKey)
 	if err != nil {
 		return err
 	}
