@@ -7,8 +7,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	jwtService "github.com/madappgang/identifo/jwt/service"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -16,7 +16,7 @@ import (
 func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
-	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.WebCookieTokenType)
+	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err != nil {

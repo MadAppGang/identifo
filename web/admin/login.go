@@ -68,6 +68,5 @@ func (ar *Router) Login() http.HandlerFunc {
 			HttpOnly: true,
 		}
 		http.SetCookie(w, c)
-		return
 	}
 }

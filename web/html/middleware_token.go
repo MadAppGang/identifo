@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"path"
 
-	"github.com/madappgang/identifo/jwt"
-
+	jwtService "github.com/madappgang/identifo/jwt/service"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
@@ -14,7 +14,7 @@ import (
 //ResetTokenMiddleware checks token in questy and validate it
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/reset/error")
-	tokenValidator := jwt.NewValidator("identifo", ar.TokenService.Issuer(), "", model.ResetTokenType)
+	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.ResetTokenType)
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {

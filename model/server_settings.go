@@ -10,20 +10,20 @@ import (
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	Host               string                `yaml:"host,omitempty" json:"host,omitempty"`
-	PEMFolderPath      string                `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
-	PrivateKey         string                `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	PublicKey          string                `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Issuer             string                `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm          TokenServiceAlgorithm `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
-	MailService        MailServiceType       `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
-	SessionStorage     SessionStorageType    `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	SessionDuration    SessionDuration       `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
-	StaticFolderPath   string                `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath string                `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames EmailTemplateNames    `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AccountConfigPath  string                `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
-	ServerConfigPath   string                `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	Host               string             `yaml:"host,omitempty" json:"host,omitempty"`
+	PEMFolderPath      string             `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
+	PrivateKey         string             `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
+	PublicKey          string             `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
+	Issuer             string             `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	Algorithm          string             `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	MailService        MailServiceType    `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
+	SessionStorage     SessionStorageType `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
+	SessionDuration    SessionDuration    `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
+	StaticFolderPath   string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	AccountConfigPath  string             `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
+	ServerConfigPath   string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	DBSettings         `yaml:"-,inline" json:"db_settings,omitempty"`
 }
 

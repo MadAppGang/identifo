@@ -7,6 +7,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
@@ -19,7 +20,7 @@ type Router struct {
 	appStorage        model.AppStorage
 	userStorage       model.UserStorage
 	tokenStorage      model.TokenStorage
-	tokenService      model.TokenService
+	tokenService      jwtService.TokenService
 	emailService      model.EmailService
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
@@ -56,7 +57,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService model.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:   negroni.Classic(),
 		router:       mux.NewRouter(),

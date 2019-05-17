@@ -14,7 +14,6 @@ import (
 func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings)
-		return
 	}
 }
 
@@ -26,7 +25,6 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, conf)
-		return
 	}
 }
 
@@ -44,7 +42,6 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, newset)
-		return
 	}
 }
 
@@ -62,7 +59,6 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, newset)
-		return
 	}
 }
 
@@ -74,7 +70,6 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 		} else {
 			ar.ServeJSON(w, http.StatusOK, nil)
 		}
-		return
 	}
 }
 

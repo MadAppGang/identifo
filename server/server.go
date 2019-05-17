@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/ses"
@@ -57,7 +58,7 @@ type DatabaseComposer interface {
 		model.AppStorage,
 		model.UserStorage,
 		model.TokenStorage,
-		model.TokenService,
+		jwtService.TokenService,
 		error,
 	)
 }

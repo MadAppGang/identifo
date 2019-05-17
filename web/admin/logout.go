@@ -35,6 +35,5 @@ func (ar *Router) Logout() http.HandlerFunc {
 			HttpOnly: true,
 		}
 		http.SetCookie(w, c)
-		return
 	}
 }

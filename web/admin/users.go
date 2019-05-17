@@ -49,7 +49,6 @@ func (ar *Router) GetUser() http.HandlerFunc {
 
 		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
-		return
 	}
 }
 
@@ -74,7 +73,6 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, users)
-		return
 	}
 }
 
@@ -104,7 +102,6 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 
 		user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
-		return
 	}
 }
 
@@ -128,7 +125,6 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
-		return
 	}
 }
 
@@ -142,8 +138,6 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 		}
 
 		ar.logger.Printf("User %s deleted", userID)
-
 		ar.ServeJSON(w, http.StatusOK, nil)
-		return
 	}
 }

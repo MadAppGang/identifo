@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/jwt"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
@@ -34,7 +35,8 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token is empty or invalid.", "Token.ExtractTokenFromBearerHeader")
 			return
 		}
-		v := jwt.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
+
+		v := jwtValidator.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
 		token, err := ar.tokenService.Parse(string(tstr))
 		if err != nil {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")
@@ -53,6 +55,6 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 }
 
 // tokenFromContext returns token from request context
-func tokenFromContext(ctx context.Context) model.Token {
-	return ctx.Value(model.TokenContextKey).(model.Token)
+func tokenFromContext(ctx context.Context) jwt.Token {
+	return ctx.Value(model.TokenContextKey).(jwt.Token)
 }
