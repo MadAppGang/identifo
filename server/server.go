@@ -9,10 +9,11 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/madappgang/identifo/external_services/mail/mailgun"
+	"github.com/madappgang/identifo/external_services/mail/ses"
+	"github.com/madappgang/identifo/external_services/sms/twilio"
 	jwtService "github.com/madappgang/identifo/jwt/service"
-	"github.com/madappgang/identifo/mailgun"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/ses"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
@@ -82,6 +83,11 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		return nil, err
 	}
 
+	sms, err := smsService(settings)
+	if err != nil {
+		return nil, err
+	}
+
 	// env variable can rewrite host option
 	hostName := os.Getenv("HOST_NAME")
 	if len(hostName) == 0 {
@@ -102,6 +108,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		TokenService:   tokenService,
 		SessionService: sessionService,
 		SessionStorage: sessionStorage,
+		SMSService:     sms,
 		EmailService:   ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
@@ -157,6 +164,15 @@ func (s *Server) AppStorage() model.AppStorage {
 // UserStorage returns server's user storage.
 func (s *Server) UserStorage() model.UserStorage {
 	return s.UserStrg
+}
+
+func smsService(settings model.ServerSettings) (model.SMSService, error) {
+	switch settings.SMSService {
+	case model.SMSServiceTwilio:
+		return twilio.NewSMSService(settings.Twilio.AccountSid, settings.Twilio.AuthToken, settings.Twilio.ServiceSid)
+	default:
+		return nil, model.ErrorNotImplemented
+	}
 }
 
 func mailService(serviceType model.MailServiceType, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {

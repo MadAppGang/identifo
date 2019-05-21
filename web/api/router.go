@@ -21,6 +21,7 @@ type Router struct {
 	userStorage       model.UserStorage
 	tokenStorage      model.TokenStorage
 	tokenService      jwtService.TokenService
+	smsService        model.SMSService
 	emailService      model.EmailService
 	oidcConfiguration *OIDCConfiguration
 	jwk               *jwk
@@ -57,7 +58,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:   negroni.Classic(),
 		router:       mux.NewRouter(),
@@ -65,6 +66,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		userStorage:  userStorage,
 		tokenStorage: tokenStorage,
 		tokenService: tokenService,
+		smsService:   smsService,
 		emailService: emailService,
 	}
 

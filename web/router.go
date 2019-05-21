@@ -17,6 +17,7 @@ type RouterSetting struct {
 	UserStorage         model.UserStorage
 	TokenStorage        model.TokenStorage
 	TokenService        jwtService.TokenService
+	SMSService          model.SMSService
 	EmailService        model.EmailService
 	SessionService      model.SessionService
 	SessionStorage      model.SessionStorage
@@ -37,6 +38,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.UserStorage,
 		settings.TokenStorage,
 		settings.TokenService,
+		settings.SMSService,
 		settings.EmailService,
 		settings.APIRouterSettings...,
 	)
@@ -50,6 +52,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.UserStorage,
 		settings.TokenStorage,
 		settings.TokenService,
+		settings.SMSService,
 		settings.EmailService,
 		settings.WebRouterSettings...,
 	)
