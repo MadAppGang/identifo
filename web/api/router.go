@@ -14,19 +14,20 @@ import (
 
 //Router - router that handles all API request
 type Router struct {
-	middleware        *negroni.Negroni
-	logger            *log.Logger
-	router            *mux.Router
-	appStorage        model.AppStorage
-	userStorage       model.UserStorage
-	tokenStorage      model.TokenStorage
-	tokenService      jwtService.TokenService
-	smsService        model.SMSService
-	emailService      model.EmailService
-	oidcConfiguration *OIDCConfiguration
-	jwk               *jwk
-	Host              string
-	WebRouterPrefix   string
+	middleware              *negroni.Negroni
+	logger                  *log.Logger
+	router                  *mux.Router
+	appStorage              model.AppStorage
+	userStorage             model.UserStorage
+	tokenStorage            model.TokenStorage
+	verificationCodeStorage model.VerificationCodeStorage
+	tokenService            jwtService.TokenService
+	smsService              model.SMSService
+	emailService            model.EmailService
+	oidcConfiguration       *OIDCConfiguration
+	jwk                     *jwk
+	Host                    string
+	WebRouterPrefix         string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -58,16 +59,17 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, verificationCodeStorage model.VerificationCodeStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		middleware:   negroni.Classic(),
-		router:       mux.NewRouter(),
-		appStorage:   appStorage,
-		userStorage:  userStorage,
-		tokenStorage: tokenStorage,
-		tokenService: tokenService,
-		smsService:   smsService,
-		emailService: emailService,
+		middleware:              negroni.Classic(),
+		router:                  mux.NewRouter(),
+		appStorage:              appStorage,
+		userStorage:             userStorage,
+		tokenStorage:            tokenStorage,
+		verificationCodeStorage: verificationCodeStorage,
+		tokenService:            tokenService,
+		smsService:              smsService,
+		emailService:            emailService,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

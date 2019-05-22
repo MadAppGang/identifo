@@ -28,6 +28,7 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 			Locale:   "en",
 			Strength: 1,
 		},
+		Sparse: true,
 		Unique: true,
 	}); err != nil {
 		return nil, err
@@ -35,6 +36,13 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 
 	if err := s.C.EnsureIndex(mgo.Index{
 		Key:    []string{"email"},
+		Sparse: true,
+		Unique: true,
+	}); err != nil {
+		return nil, err
+	}
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:    []string{"phone"},
 		Sparse: true,
 		Unique: true,
 	}); err != nil {
@@ -138,6 +146,19 @@ func (us *UserStorage) Scopes() []string {
 	return []string{"offline", "user"}
 }
 
+func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	if err := s.C.Find(bson.M{"phone": phone}).One(&u); err != nil {
+		return nil, model.ErrorNotFound
+	}
+	u.Pswd = ""
+
+	return &User{userData: u}, nil
+}
+
 // UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
@@ -180,6 +201,21 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	}
 
 	return u, err
+}
+
+// AddUserByPhone registers new user.
+func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
+	u := userData{Active: true, Phone: phone}
+
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	err := s.C.Insert(u)
+	if mgo.IsDup(err) {
+		return nil, model.ErrorUserExists
+	}
+
+	return &User{userData: u}, err
 }
 
 // AddUserByNameAndPassword registers new user.
@@ -322,6 +358,7 @@ type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
 	Username     string                 `bson:"username,omitempty" json:"username,omitempty"`
 	Email        string                 `bson:"email,omitempty" json:"email,omitempty"`
+	Phone        string                 `bson:"phone,omitempty" json:"phone,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`

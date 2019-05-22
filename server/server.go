@@ -59,6 +59,7 @@ type DatabaseComposer interface {
 		model.AppStorage,
 		model.UserStorage,
 		model.TokenStorage,
+		model.VerificationCodeStorage,
 		jwtService.TokenService,
 		error,
 	)
@@ -66,7 +67,7 @@ type DatabaseComposer interface {
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
-	appStorage, userStorage, tokenStorage, tokenService, err := db.Compose()
+	appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +103,15 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 	}
 
 	routerSettings := web.RouterSetting{
-		AppStorage:     appStorage,
-		UserStorage:    userStorage,
-		TokenStorage:   tokenStorage,
-		TokenService:   tokenService,
-		SessionService: sessionService,
-		SessionStorage: sessionStorage,
-		SMSService:     sms,
-		EmailService:   ms,
+		AppStorage:              appStorage,
+		UserStorage:             userStorage,
+		TokenStorage:            tokenStorage,
+		VerificationCodeStorage: verificationCodeStorage,
+		TokenService:            tokenService,
+		SessionService:          sessionService,
+		SessionStorage:          sessionStorage,
+		SMSService:              sms,
+		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),

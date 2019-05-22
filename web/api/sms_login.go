@@ -1,183 +1,149 @@
 package api
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
-	"fmt"
-	"math/rand"
+	"math/big"
 	"net/http"
-	"os"
 	"regexp"
-	"strings"
-	"time"
 
-	"bitbucket.org/madappgang/tayblebackend/controllers"
-	"bitbucket.org/madappgang/tayblebackend/controllers/helpers"
-	"bitbucket.org/madappgang/tayblebackend/models"
-	"bitbucket.org/madappgang/tayblebackend/models/validator"
-	"bitbucket.org/madappgang/tayblebackend/services"
-	"github.com/astaxie/beego"
+	jwtService "github.com/madappgang/identifo/jwt/service"
+	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 var (
-	// stageServer check we are working stage server
-	allowFakeNumbers = os.Getenv("ALLOW_FAKE_PHONE_NUMBERS") == "TRUE"
-	// testPhoneRegex is regexpression that help identify test mobile number
-	testPhoneRegex = regexp.MustCompile(`^[+][0-9]{9,15}[+][0-9]{1,6}[+]$`)
+	phoneRegExp = regexp.MustCompile(`^[\+][0-9]{9,15}$`)
 )
 
 const (
-	phoneVerificationCodeLength         = 6
-	invalidVerificationCodeErrorMessage = "Sorry, the code you entered is invalid or has expired. Please get a new one."
-	supportAnonymousLogin               = false
+	phoneVerificationCodeLength = 6
+	smsVerificationCode         = "%v is your SMS verification code!"
 )
 
 // User to authenticate require to have valid phone number
 // to verify the service is valid, we are sending message to the user
 func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var authData helpers.PhoneLogin
+		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestVerificationCode.Unmarshal")
 			return
 		}
 
-		if !allowFakeNumbers || !isTestPhone(authData.PhoneNumber) {
-			if err := authData.IsValidPhone(); err != nil {
-				ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RequestVerificationCode.IsValidPhone")
-				return
-			}
+		if err := authData.validatePhone(); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RequestVerificationCode.IsValidPhone")
+			return
 		}
 
+		// TODO: add limiter here. Check frequency of requests
 		code := randStringBytes(phoneVerificationCodeLength)
-		err := models.MainVerificationCodeDatastore.CreateVerificationCode(authData.PhoneNumber, code)
+		err := ar.verificationCodeStorage.CreateVerificationCode(authData.PhoneNumber, code)
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.CreateVerificationCode")
-			beego.Error("Unable to create verification code. Error: " + err.Error())
-			ac.CustomAbort(http.StatusInternalServerError, "Unable to create verification code. Please try again. ")
-		}
-		sms := ""
-		if ac.IsAndroidClient() {
-			sms = fmt.Sprintf(services.SMSAndroidVerificationCode, code)
-		} else {
-			sms = fmt.Sprintf(services.SMSVerificationCode, code)
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.PutVerificationCode")
+			return
 		}
 
-		if allowFakeNumbers && isTestPhone(authData.PhoneNumber) {
-			authData.PhoneNumber = parseRealPhoneFromTestPhone(authData.PhoneNumber)
-		}
-
-		err = services.MainSMSService.SendSMS(authData.PhoneNumber, sms)
+		err = ar.smsService.SendSMS(authData.PhoneNumber, smsVerificationCode)
 		if err != nil {
-			beego.Error("Unable to send SMS. Error: " + err.Error())
-			ac.CustomAbort(http.StatusInternalServerError, "Unable to send SMS. Please try again.")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to send sms. Error: "+err.Error(), "RequestVerificationCode.SendSMS")
+			return
 		}
-
-		ac.ServeJSON()
+		ar.ServeJSON(w, http.StatusOK, map[string]string{"message": "SMS code is sent"})
 	}
 }
 
-//PhoneLogin authenticates user with phone number and verification code
-//If user exists - create new session and return token
-//If user does not exists - register and then login (create session and return token)
-//If code is invalid - return error
+// PhoneLogin authenticates user with phone number and verification code
+// If user exists - create new session and return token
+// If user does not exists - register and then login (create session and return token)
+// If code is invalid - return error
 func (ar *Router) PhoneLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var authData helpers.PhoneLogin
-		err := json.Unmarshal(ac.Ctx.Input.RequestBody, &authData)
-		if err != nil {
-			ac.CustomAbort(http.StatusBadRequest, "Unable to parse data. Error: "+err.Error())
+		var authData PhoneLogin
+		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "PhoneLogin.Unmarshal")
+			return
 		}
-		if allowFakeNumbers && isTestPhone(authData.PhoneNumber) {
-			// do nothing - do not validate phone number
-		} else if err := authData.IsValidCodeAndPhone(); err != nil {
-			ac.CustomAbort(http.StatusBadRequest, err.Error())
+		if err := authData.validateCodeAndPhone(); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "PhoneLogin.IsValidCodeAndPhone")
+			return
 		}
 
 		// check verification code
-		if !models.MainVerificationCodeDatastore.IsVerificationCodeExists(authData.PhoneNumber, authData.Code) {
-			ac.CustomAbort(http.StatusBadRequest, invalidVerificationCodeErrorMessage)
+		if exists, err := ar.verificationCodeStorage.FindVerificationCode(authData.PhoneNumber, authData.Code); err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.FindVerificationCode.error")
+			return
+		} else if !exists {
+			ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.FindVerificationCode.not_exists")
+			return
 		}
-
-		// if requester sent deviceId - we need to verify what to do with it.
-		if authData.DeviceId != "" {
-			// TODO: hope soon we will not use device_id
-			ac.mergeUserWithPhoneAndDeviceID(authData.PhoneNumber, authData.DeviceId)
+		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
+		if err == model.ErrUserNotFound {
+			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber)
 		}
-
-		user := ac.findOrCreateUserWithPhone(authData.PhoneNumber)
-
-		token, err := ac.loginUser(*user)
 		if err != nil {
-			ac.CustomAbort(http.StatusInternalServerError, "Unable to login user. Please try again.")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
+			return
 		}
 
-		ac.Data["json"] = struct {
-			Token string      `json:"token"`
-			User  models.User `json:"user"`
-		}{
-			Token: token,
-			User:  *user,
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
+		if err != nil {
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
+			return
 		}
-		ac.ServeJSON()
-	}
-}
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.logger.Println("Error getting App")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			return
+		}
 
-// login existent user: generate new token and create session
-func (ac *AuthUserController) loginUser(user models.User) (string, error) {
-	token, err := helpers.RandomString(controllers.TokenStringLenBytes)
-	if err != nil {
-		return "", err
+		offline := contains(scopes, jwtService.OfflineScope)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			return
+		}
+		result := AuthResponse{
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+		}
+		ar.ServeJSON(w, http.StatusOK, result)
 	}
-	sessionExp := time.Now().Add(controllers.SessionExpireTime)
-	session := models.NewSession(user.ID, models.UserModel, token).SetExpirationTime(sessionExp)
-	session, err = models.MainSessionDatastore.CreateSession(*session)
-	if err != nil {
-		return "", err
-	}
-
-	return token, nil
-
 }
 
 // Generate user code
 func randStringBytes(n int) string {
-	rand.Seed(time.Now().UnixNano())
 	b := make([]byte, n)
 	for i := range b {
 		code := "1234567890"
-		b[i] = code[rand.Intn(len(code))]
+		if k, err := rand.Int(rand.Reader, big.NewInt(int64(len(code)))); err != nil {
+			panic(err)
+		} else {
+			b[i] = code[int(k.Int64())]
+		}
 	}
 	return string(b)
 }
 
-// isTestPhone used to check if client send test phone number in special format
-func isTestPhone(phone string) bool {
-	return testPhoneRegex.MatchString(phone)
-}
-
-// parseRealPhoneFromTestPhone looking for a real phone number in written in special format
-func parseRealPhoneFromTestPhone(phone string) string {
-	phone = phone[0 : len(phone)-1]
-	secondPlusIndex := strings.LastIndex(phone, "+")
-	phone = phone[:secondPlusIndex]
-	return phone
-}
-
-//PhoneLogin is used to parse input data from the client during phone login.
+// PhoneLogin is used to parse input data from the client during phone login.
 type PhoneLogin struct {
-	PhoneNumber         string `json:"phone_number"`
-	FacebookAccessToken string `json:"facebook_access_token"`
-	Code                string `json:"code"`
+	PhoneNumber string   `json:"phone_number"`
+	Code        string   `json:"code"`
+	Scopes      []string `json:"scopes"`
 }
 
-func (l *PhoneLogin) IsValidCodeAndPhone() error {
+func (l *PhoneLogin) validateCodeAndPhone() error {
 	if len(l.Code) == 0 {
-		return errors.New("Verificataion code is too short or missing. ")
+		return errors.New("Verification code is too short or missing. ")
 	}
-	return l.IsValidPhone()
+	return l.validatePhone()
 }
 
-func (l *PhoneLogin) IsValidPhone() error {
-	return validator.ValidatePhone(l.PhoneNumber)
+func (l *PhoneLogin) validatePhone() error {
+	if !phoneRegExp.MatchString(l.PhoneNumber) {
+		return errors.New("Phone number is not valid. ")
+	}
+	return nil
 }
