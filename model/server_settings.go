@@ -24,6 +24,8 @@ type ServerSettings struct {
 	EmailTemplateNames EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
 	AccountConfigPath  string             `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
 	ServerConfigPath   string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	SMSService         SMSServiceType     `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
+	Twilio             TwilioSettings     `yaml:"twilio,omitempty" json:"twilio,omitempty"`
 	DBSettings         `yaml:"-,inline" json:"db_settings,omitempty"`
 }
 
@@ -34,6 +36,12 @@ type DBSettings struct {
 	DBEndpoint string `yaml:"dbEndpoint,omitempty" json:"endpoint,omitempty"`
 	DBRegion   string `yaml:"dbRegion,omitempty" json:"region,omitempty"`
 	DBPath     string `yaml:"dbPath,omitempty" json:"path,omitempty"`
+}
+
+type TwilioSettings struct {
+	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
+	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
+	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
 }
 
 // GetPort returns port on which host listens to incoming connections.
@@ -47,9 +55,13 @@ func (ss *ServerSettings) GetPort() string {
 	if err != nil {
 		panic(err)
 	}
-
 	return strings.Join([]string{":", port}, "")
 }
+
+// SMSServiceType - service to to use for sending sms.
+type SMSServiceType string
+
+const SMSServiceTwilio SMSServiceType = "twilio"
 
 // MailServiceType - how to send email to clients.
 type MailServiceType int
