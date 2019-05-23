@@ -13,18 +13,19 @@ import (
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	AppStorage          model.AppStorage
-	UserStorage         model.UserStorage
-	TokenStorage        model.TokenStorage
-	TokenService        jwtService.TokenService
-	SMSService          model.SMSService
-	EmailService        model.EmailService
-	SessionService      model.SessionService
-	SessionStorage      model.SessionStorage
-	Logger              *log.Logger
-	APIRouterSettings   []func(*api.Router) error
-	WebRouterSettings   []func(*html.Router) error
-	AdminRouterSettings []func(*admin.Router) error
+	AppStorage              model.AppStorage
+	UserStorage             model.UserStorage
+	TokenStorage            model.TokenStorage
+	VerificationCodeStorage model.VerificationCodeStorage
+	TokenService            jwtService.TokenService
+	SMSService              model.SMSService
+	EmailService            model.EmailService
+	SessionService          model.SessionService
+	SessionStorage          model.SessionStorage
+	Logger                  *log.Logger
+	APIRouterSettings       []func(*api.Router) error
+	WebRouterSettings       []func(*html.Router) error
+	AdminRouterSettings     []func(*admin.Router) error
 }
 
 // NewRouter creates and inits root http router.
@@ -37,6 +38,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.AppStorage,
 		settings.UserStorage,
 		settings.TokenStorage,
+		settings.VerificationCodeStorage,
 		settings.TokenService,
 		settings.SMSService,
 		settings.EmailService,

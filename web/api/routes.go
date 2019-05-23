@@ -25,6 +25,8 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(auth),
 	))
 	auth.Path("/{login:login\\/?}").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
+	auth.Path("/{request_phone_code:request_phone_code\\/?}").HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
+	auth.Path("/{phone_login:phone_login\\/?}").HandlerFunc(ar.PhoneLogin()).Methods("POST")
 	auth.Path("/{federated:federated\\/?}").HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path("/{register:register\\/?}").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	auth.Path("/{reset_password:reset_password\\/?}").HandlerFunc(ar.RequestResetPassword()).Methods("POST")

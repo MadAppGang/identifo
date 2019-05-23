@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -59,36 +60,39 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.tokenService.NewToken(user, scopes, app)
+		offline := contains(scopes, jwtService.OfflineScope)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusForbidden, err.Error(), "LoginWithPassword.tokenService_NewToken")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
 		}
-		tokenString, err := ar.tokenService.String(token)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.tokenService_String")
-			return
-		}
-
-		refreshString := ""
-		//requesting offline access ?
-		if contains(scopes, jwtService.OfflineScope) {
-			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
-			if err != nil {
-				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.tokenService_NewRefreshToken")
-				return
-			}
-			refreshString, err = ar.tokenService.String(refresh)
-			if err != nil {
-				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.tokenService_String")
-				return
-			}
-		}
-
 		result := AuthResponse{
-			AccessToken:  tokenString,
-			RefreshToken: refreshString,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
 		}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
+}
+
+// loginUser function creates token for user session.
+// refreshToken boolean param tells if function should return refresh token too.
+func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken bool) (accessTokenString, refreshTokenString string, err error) {
+	token, err := ar.tokenService.NewToken(user, scopes, app)
+	if err != nil {
+		return
+	}
+	accessTokenString, err = ar.tokenService.String(token)
+	if err != nil {
+		return
+	}
+
+	refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+	if err != nil {
+		return
+	}
+	refreshTokenString, err = ar.tokenService.String(refresh)
+	if err != nil {
+		return
+	}
+	return
 }
