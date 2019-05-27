@@ -85,7 +85,9 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 	if err != nil {
 		return
 	}
-
+	if !createRefreshToken {
+		return
+	}
 	refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 	if err != nil {
 		return

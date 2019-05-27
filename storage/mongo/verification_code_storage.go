@@ -34,14 +34,14 @@ func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
 		return nil, err
 	}
 
-	if err := s.C.EnsureIndex(mgo.Index{
+	if err := s.EnsureIndex(mgo.Index{
 		Key:    []string{codeField},
 		Unique: true,
 	}); err != nil {
 		return nil, err
 	}
 
-	if err := s.C.EnsureIndex(mgo.Index{
+	if err := s.EnsureIndex(mgo.Index{
 		Key:         []string{createdAtField},
 		ExpireAfter: verificationCodesExpirationTime,
 	}); err != nil {
