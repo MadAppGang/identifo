@@ -14,6 +14,10 @@ const (
 
 	// verificationCodesExpirationTime specifies time before deleting records.
 	verificationCodesExpirationTime = 5 * time.Minute
+
+	phoneField     = "phone"
+	codeField      = "code"
+	createdAtField = "createdAt"
 )
 
 // NewUserStorage creates and inits MongoDB user storage.
@@ -23,21 +27,26 @@ func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
 	s := vcs.db.Session(VerificationCodesCollection)
 	defer s.Close()
 
-	if err := s.C.EnsureIndex(mgo.Index{
-		Key:         []string{"phone"},
-		Unique:      true,
-		ExpireAfter: verificationCodesExpirationTime,
-	}); err != nil {
-		return nil, err
-	}
-
-	if err := s.C.EnsureIndex(mgo.Index{
-		Key:    []string{"code"},
+	if err := s.EnsureIndex(mgo.Index{
+		Key:    []string{phoneField},
 		Unique: true,
 	}); err != nil {
 		return nil, err
 	}
 
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:    []string{codeField},
+		Unique: true,
+	}); err != nil {
+		return nil, err
+	}
+
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:         []string{createdAtField},
+		ExpireAfter: verificationCodesExpirationTime,
+	}); err != nil {
+		return nil, err
+	}
 	return vcs, nil
 }
 
@@ -50,7 +59,7 @@ func (vcs *VerificationCodeStorage) FindVerificationCode(phone, code string) (bo
 	s := vcs.db.Session(VerificationCodesCollection)
 	defer s.Close()
 
-	_, err := s.C.Find(bson.M{"phone": phone, "code": code}).Apply(mgo.Change{Remove: true}, nil)
+	_, err := s.C.Find(bson.M{phoneField: phone, codeField: code}).Apply(mgo.Change{Remove: true}, nil)
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			return false, nil
@@ -64,6 +73,10 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 	s := vcs.db.Session(VerificationCodesCollection)
 	defer s.Close()
 
-	err := s.C.Insert(bson.M{"phone": phone, "code": code})
+	if _, err := s.C.RemoveAll(bson.M{phoneField: phone}); err != nil {
+		return err
+	}
+
+	err := s.C.Insert(bson.M{phoneField: phone, codeField: code, createdAtField: time.Now()})
 	return err
 }

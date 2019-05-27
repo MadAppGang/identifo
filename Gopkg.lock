@@ -119,6 +119,14 @@
   version = "v1.7.0"
 
 [[projects]]
+  digest = "1:345ad428d03cc89fa5498d61383d0d7f39afbe8731ca135c0ec92782285121d3"
+  name = "github.com/gorilla/schema"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "124d17ef95858a10835ce95502446cb5a9e9f715"
+  version = "v1.1.0"
+
+[[projects]]
   digest = "1:bb81097a5b62634f3e9fec1014657855610c82d19b9a40c17612e32651e35dca"
   name = "github.com/jmespath/go-jmespath"
   packages = ["."]
@@ -150,12 +158,12 @@
   version = "v1.1.0"
 
 [[projects]]
-  digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
+  branch = "master"
+  digest = "1:deff41c4160cc5b487a1d1a69a58925f2d3ac11befa0692b50e76940594e20f5"
   name = "github.com/pkg/errors"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
-  version = "v0.8.1"
+  revision = "27936f6d90f9c8e1145f11ed52ffffbfdb9e0af7"
 
 [[projects]]
   digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
@@ -172,6 +180,14 @@
   pruneopts = "UT"
   revision = "15d26544def341f036c5f8dca987a4cbe575032c"
   version = "v1.2.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:2487ac387df9670856b707f0e13efcd3fa4bcf8497129b65a5a01abd8bd2aa8d"
+  name = "github.com/sfreiberg/gotwilio"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "14c666f1d505786afd9dbaa8b7b687e8750a7bf1"
 
 [[projects]]
   digest = "1:d688f4ad71b5dfad95c2d74cb0feac09f8f3c32ae5cecc078230dbdeece39e53"
@@ -248,8 +264,10 @@
     "github.com/gorilla/mux",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
+    "github.com/pkg/errors",
     "github.com/rs/cors",
     "github.com/rs/xid",
+    "github.com/sfreiberg/gotwilio",
     "github.com/urfave/negroni",
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",
