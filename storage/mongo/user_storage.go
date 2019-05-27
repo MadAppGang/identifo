@@ -152,7 +152,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 	var u userData
 	if err := s.C.Find(bson.M{"phone": phone}).One(&u); err != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 	u.Pswd = ""
 

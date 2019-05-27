@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"math/big"
 	"net/http"
 	"regexp"
@@ -45,7 +46,7 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 			return
 		}
 
-		err = ar.smsService.SendSMS(authData.PhoneNumber, smsVerificationCode)
+		err = ar.smsService.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code))
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to send sms. Error: "+err.Error(), "RequestVerificationCode.SendSMS")
 			return
