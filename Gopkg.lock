@@ -264,7 +264,6 @@
     "github.com/gorilla/mux",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
-    "github.com/pkg/errors",
     "github.com/rs/cors",
     "github.com/rs/xid",
     "github.com/sfreiberg/gotwilio",

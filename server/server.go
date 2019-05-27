@@ -100,6 +100,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		ScriptsPath: path.Join(settings.StaticFolderPath, "js"),
 		PagesPath:   settings.StaticFolderPath,
 		ImagesPath:  path.Join(settings.StaticFolderPath, "img"),
+		FontsPath:   path.Join(settings.StaticFolderPath, "fonts"),
 	}
 
 	routerSettings := web.RouterSetting{

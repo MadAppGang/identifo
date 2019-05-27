@@ -33,14 +33,16 @@ type StaticFilesPath struct {
 	ScriptsPath    string
 	PagesPath      string
 	ImagesPath     string
+	FontsPath      string
 	EmailTemplates string
 }
 
 var defaultStaticPath = StaticFilesPath{
 	StylesPath:  "./static/css",
 	ScriptsPath: "./static/js",
-	PagesPath:   "./static",
 	ImagesPath:  "./static/img",
+	FontsPath:   "./static/fonts",
+	PagesPath:   "./static",
 }
 
 var defaultStaticPages = StaticPages{

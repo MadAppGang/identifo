@@ -61,10 +61,12 @@ func (ar *Router) initRoutes() {
 	stylesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.StylesPath))
 	scriptsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ScriptsPath))
 	imagesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ImagesPath))
+	fontsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.FontsPath))
 
 	//setup routes for static files
 	ar.Router.PathPrefix("/{css:css\\/?}").Handler(http.StripPrefix("/css/", stylesHandler)).Methods("GET")
 	ar.Router.PathPrefix("/{js:js\\/?}").Handler(http.StripPrefix("/js/", scriptsHandler)).Methods("GET")
 	ar.Router.PathPrefix("/{img:img\\/?}").Handler(http.StripPrefix("/img/", imagesHandler)).Methods("GET")
+	ar.Router.PathPrefix("/{fonts:img\\/?}").Handler(http.StripPrefix("/fonts/", fontsHandler)).Methods("GET")
 
 }
