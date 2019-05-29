@@ -41,9 +41,9 @@ const (
 	ErrorAPIInternalServerError = "api.internal_server_error"
 	// ErrorAPIUserUnableToCreate is when user cannot create the resource.
 	ErrorAPIUserUnableToCreate = "error.api.user.unable_to_create"
-	// ErrorAPIUserNotFound
+	// ErrorAPIVerificationCodeInvalid stands for invalid verification code.
 	ErrorAPIVerificationCodeInvalid = "error.api.verification_code.invalid"
-	// ErrorAPIUserNotFound
+	// ErrorAPIUserNotFound is when user not found.
 	ErrorAPIUserNotFound = "error.api.user.not_found"
 	// ErrorAPIUsernameTaken is when username is already taken.
 	ErrorAPIUsernameTaken = "error.api.username.taken"

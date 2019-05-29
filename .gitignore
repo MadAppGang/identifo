@@ -15,4 +15,6 @@
 vendor
 db.db
 debug
+
 admin_panel/build
+admin_panel/identifo-admin-develop
