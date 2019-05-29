@@ -7,6 +7,8 @@ var ErrUserNotFound = errors.New("User not found. ")
 
 // UserStorage is an abstract user storage.
 type UserStorage interface {
+	UserByPhone(phone string) (User, error)
+	AddUserByPhone(phone string) (User, error)
 	UserByID(id string) (User, error)
 	UserByEmail(email string) (User, error)
 	IDByName(name string) (string, error)
@@ -32,8 +34,8 @@ type UserStorage interface {
 // Everything can be User, we do not depend on any particular implementation.
 type User interface {
 	ID() string
-	Name() string
-	SetName(string)
+	Username() string
+	SetUsername(string)
 	Email() string
 	SetEmail(string)
 	PasswordHash() string

@@ -9,6 +9,7 @@ import (
 
 	"github.com/aws/aws-lambda-go/events"
 	"github.com/madappgang/identifo/jwt"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 )
 
 // Handler is a main entry point for Lambda. Handler validates JWT tokens and returns IAM roles.
@@ -16,7 +17,7 @@ import (
 // https://github.com/aws/aws-lambda-go/blob/master/events/README_ApiGatewayCustomAuthorizer.md
 func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequestTypeRequest) (events.APIGatewayCustomAuthorizerResponse, error) {
 	fmt.Printf("Processing incoming event: %v", event)
-	alg := jwt.TokenServiceAlgorithmRS256
+	alg := jwt.TokenSignatureAlgorithmRS256
 
 	// Field names must be case-insensitive.
 	// https://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2.
@@ -55,7 +56,7 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	}
 
-	v := jwt.NewDefaultValidator(appID, jwtIssuer, "", "access")
+	v := jwtValidator.NewValidator(appID, jwtIssuer, "", "access")
 	tokenV, err := jwt.ParseTokenWithPublicKey(string(tstr), publicKey)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Error parsing token: " + err.Error())

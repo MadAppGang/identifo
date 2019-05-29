@@ -9,8 +9,8 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/urfave/negroni"
 )
 
@@ -22,7 +22,8 @@ type Router struct {
 	AppStorage      model.AppStorage
 	UserStorage     model.UserStorage
 	TokenStorage    model.TokenStorage
-	TokenService    tokensrvc.TokenService
+	TokenService    jwtService.TokenService
+	SMSService      model.SMSService
 	EmailService    model.EmailService
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
@@ -56,7 +57,7 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService tokensrvc.TokenService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		Middleware:   negroni.Classic(),
 		Router:       mux.NewRouter(),
@@ -64,6 +65,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		UserStorage:  userStorage,
 		TokenStorage: tokenStorage,
 		TokenService: tokenService,
+		SMSService:   smsService,
 		EmailService: emailService,
 	}
 

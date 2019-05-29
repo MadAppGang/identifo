@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/jwt"
+	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
@@ -35,7 +36,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		v := jwt.NewDefaultValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
+		v := jwtValidator.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
 		token, err := ar.tokenService.Parse(string(tstr))
 		if err != nil {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")

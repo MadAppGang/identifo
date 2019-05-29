@@ -1,6 +1,10 @@
 package mongo
 
-import mgo "gopkg.in/mgo.v2"
+import (
+	"strings"
+
+	mgo "gopkg.in/mgo.v2"
+)
 
 //NewDB creates new database connection
 func NewDB(conn string, db string) (*DB, error) {
@@ -42,4 +46,17 @@ type Session struct {
 //Close closes connection to current session
 func (s *Session) Close() {
 	s.S.Close()
+}
+
+// EnsureIndex wraps mongo EnsureIndex function. Purpose is to try recreate index if something went wrong.
+func (s *Session) EnsureIndex(index mgo.Index) error {
+	err := s.C.EnsureIndex(index)
+
+	if err != nil && strings.Contains(err.Error(), "already exists with different options") {
+		if err := s.C.DropIndex(index.Key...); err != nil {
+			return err
+		}
+		return s.C.EnsureIndex(index)
+	}
+	return err
 }

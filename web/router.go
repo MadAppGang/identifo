@@ -4,8 +4,8 @@ import (
 	"log"
 	"net/http"
 
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
@@ -13,17 +13,19 @@ import (
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	AppStorage          model.AppStorage
-	UserStorage         model.UserStorage
-	TokenStorage        model.TokenStorage
-	TokenService        tokensrvc.TokenService
-	EmailService        model.EmailService
-	SessionService      model.SessionService
-	SessionStorage      model.SessionStorage
-	Logger              *log.Logger
-	APIRouterSettings   []func(*api.Router) error
-	WebRouterSettings   []func(*html.Router) error
-	AdminRouterSettings []func(*admin.Router) error
+	AppStorage              model.AppStorage
+	UserStorage             model.UserStorage
+	TokenStorage            model.TokenStorage
+	VerificationCodeStorage model.VerificationCodeStorage
+	TokenService            jwtService.TokenService
+	SMSService              model.SMSService
+	EmailService            model.EmailService
+	SessionService          model.SessionService
+	SessionStorage          model.SessionStorage
+	Logger                  *log.Logger
+	APIRouterSettings       []func(*api.Router) error
+	WebRouterSettings       []func(*html.Router) error
+	AdminRouterSettings     []func(*admin.Router) error
 }
 
 // NewRouter creates and inits root http router.
@@ -36,7 +38,9 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.AppStorage,
 		settings.UserStorage,
 		settings.TokenStorage,
+		settings.VerificationCodeStorage,
 		settings.TokenService,
+		settings.SMSService,
 		settings.EmailService,
 		settings.APIRouterSettings...,
 	)
@@ -50,6 +54,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.UserStorage,
 		settings.TokenStorage,
 		settings.TokenService,
+		settings.SMSService,
 		settings.EmailService,
 		settings.WebRouterSettings...,
 	)

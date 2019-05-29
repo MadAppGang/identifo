@@ -21,7 +21,7 @@ sessionStorage: memory
 sessionDuration: 300
 
 # Folder for the static files.
-staticFolderPath: ../../static
+staticFolderPath: ../../web/static
 # Forder for the email templates.
 emailTemplatesPath: ../../email_templates
 # Email template names.
@@ -30,6 +30,13 @@ emailTemplateNames:
   resetPassword: reset_password.html
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
+
+# SMS service name. Supported values are: "twilio"
+smsService: twilio
+twilio:
+  accountSid:
+  authToken:
+  serviceSid:
 
 # File with admin account settings.
 accountConfigPath: ../../server/account-config.yaml

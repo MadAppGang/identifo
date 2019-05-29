@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/tokensrvc"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -104,7 +104,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		refreshString := ""
 		// Requesting offline access?
-		if contains(scopes, tokensrvc.OfflineScope) {
+		if contains(scopes, jwtService.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
 				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_NewRefreshToken")

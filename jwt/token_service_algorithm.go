@@ -15,40 +15,46 @@ var (
 	ErrTokenInvalid = errors.New("Token is invalid")
 )
 
-// TokenServiceAlgorithm is a signing algorithm used by the token service.
+// StrToTokenSignAlg maps string token service algorithm names to values.
+var StrToTokenSignAlg = map[string]TokenSignatureAlgorithm{
+	"es256": TokenSignatureAlgorithmES256,
+	"rs256": TokenSignatureAlgorithmRS256,
+	"auto":  TokenSignatureAlgorithmAuto}
+
+// TokenSignatureAlgorithm is a signing algorithm used by the token service.
 // For now, we only support ES256 and RS256.
-type TokenServiceAlgorithm int
+type TokenSignatureAlgorithm int
 
 const (
-	// TokenServiceAlgorithmES256 is a ES256 signature.
-	TokenServiceAlgorithmES256 TokenServiceAlgorithm = iota + 1
-	// TokenServiceAlgorithmRS256 is a RS256 signature.
-	TokenServiceAlgorithmRS256
-	// TokenServiceAlgorithmAuto tries to detect algorithm on the fly.
-	TokenServiceAlgorithmAuto
+	// TokenSignatureAlgorithmES256 is a ES256 signature.
+	TokenSignatureAlgorithmES256 TokenSignatureAlgorithm = iota + 1
+	// TokenSignatureAlgorithmRS256 is a RS256 signature.
+	TokenSignatureAlgorithmRS256
+	// TokenSignatureAlgorithmAuto tries to detect algorithm on the fly.
+	TokenSignatureAlgorithmAuto
 )
 
 // String implements Stringer.
-func (alg TokenServiceAlgorithm) String() string {
+func (alg TokenSignatureAlgorithm) String() string {
 	switch alg {
-	case TokenServiceAlgorithmES256:
+	case TokenSignatureAlgorithmES256:
 		return "es256"
-	case TokenServiceAlgorithmRS256:
+	case TokenSignatureAlgorithmRS256:
 		return "rs256"
-	case TokenServiceAlgorithmAuto:
+	case TokenSignatureAlgorithmAuto:
 		return "auto"
 	default:
-		return fmt.Sprintf("TokenServiceAlgorithm(%d)", alg)
+		return fmt.Sprintf("TokenSignatureAlgorithm(%d)", alg)
 	}
 }
 
 // MarshalJSON implements json.Marshaller.
-func (alg TokenServiceAlgorithm) MarshalJSON() ([]byte, error) {
+func (alg TokenSignatureAlgorithm) MarshalJSON() ([]byte, error) {
 	return json.Marshal(alg.String())
 }
 
 // UnmarshalJSON implements json.Unmarshaller.
-func (alg *TokenServiceAlgorithm) UnmarshalJSON(data []byte) error {
+func (alg *TokenSignatureAlgorithm) UnmarshalJSON(data []byte) error {
 	if alg == nil {
 		return nil
 	}
@@ -58,12 +64,9 @@ func (alg *TokenServiceAlgorithm) UnmarshalJSON(data []byte) error {
 		return err
 	}
 
-	algorithm, ok := map[string]TokenServiceAlgorithm{
-		"es256": TokenServiceAlgorithmES256,
-		"rs256": TokenServiceAlgorithmRS256,
-		"auto":  TokenServiceAlgorithmAuto}[aux]
+	algorithm, ok := StrToTokenSignAlg[aux]
 	if !ok {
-		return fmt.Errorf("Invalid TokenServiceAlgorithm %v", aux)
+		return fmt.Errorf("Invalid TokenSignatureAlgorithm %v", aux)
 	}
 
 	*alg = algorithm
@@ -71,12 +74,12 @@ func (alg *TokenServiceAlgorithm) UnmarshalJSON(data []byte) error {
 }
 
 // MarshalYAML implements yaml.Marshaller.
-func (alg TokenServiceAlgorithm) MarshalYAML() (interface{}, error) {
+func (alg TokenSignatureAlgorithm) MarshalYAML() (interface{}, error) {
 	return alg.String(), nil
 }
 
 // UnmarshalYAML implements yaml.Unmarshaller.
-func (alg *TokenServiceAlgorithm) UnmarshalYAML(unmarshal func(interface{}) error) error {
+func (alg *TokenSignatureAlgorithm) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if alg == nil {
 		return nil
 	}
@@ -86,12 +89,9 @@ func (alg *TokenServiceAlgorithm) UnmarshalYAML(unmarshal func(interface{}) erro
 		return err
 	}
 
-	algorithm, ok := map[string]TokenServiceAlgorithm{
-		"es256": TokenServiceAlgorithmES256,
-		"rs256": TokenServiceAlgorithmRS256,
-		"auto":  TokenServiceAlgorithmAuto}[aux]
+	algorithm, ok := StrToTokenSignAlg[aux]
 	if !ok {
-		return fmt.Errorf("Invalid TokenServiceAlgorithm %v", aux)
+		return fmt.Errorf("Invalid TokenSignatureAlgorithm %v", aux)
 	}
 
 	*alg = algorithm

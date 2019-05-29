@@ -11,6 +11,7 @@ func GetMessage(id MessageID) string {
 var messages = map[MessageID]string{
 	ErrorAPIInternalServerError:              "Internal server error",
 	ErrorAPIUserUnableToCreate:               "Unable to create use. Try again or contact support team",
+	ErrorAPIVerificationCodeInvalid:          "Sorry, the code you entered is invalid or has expired. Please get a new one.",
 	ErrorAPIUserNotFound:                     "Specified user not found",
 	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
 	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
@@ -40,7 +41,9 @@ const (
 	ErrorAPIInternalServerError = "api.internal_server_error"
 	// ErrorAPIUserUnableToCreate is when user cannot create the resource.
 	ErrorAPIUserUnableToCreate = "error.api.user.unable_to_create"
-	// ErrorAPIUserNotFound is when user not found.
+	// ErrorAPIUserNotFound
+	ErrorAPIVerificationCodeInvalid = "error.api.verification_code.invalid"
+	// ErrorAPIUserNotFound
 	ErrorAPIUserNotFound = "error.api.user.not_found"
 	// ErrorAPIUsernameTaken is when username is already taken.
 	ErrorAPIUsernameTaken = "error.api.username.taken"

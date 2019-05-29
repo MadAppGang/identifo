@@ -23,11 +23,12 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 	defer s.Close()
 
 	if err := s.C.EnsureIndex(mgo.Index{
-		Key: []string{"name"},
+		Key: []string{"username"},
 		Collation: &mgo.Collation{
 			Locale:   "en",
 			Strength: 1,
 		},
+		Sparse: true,
 		Unique: true,
 	}); err != nil {
 		return nil, err
@@ -35,6 +36,13 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 
 	if err := s.C.EnsureIndex(mgo.Index{
 		Key:    []string{"email"},
+		Sparse: true,
+		Unique: true,
+	}); err != nil {
+		return nil, err
+	}
+	if err := s.C.EnsureIndex(mgo.Index{
+		Key:    []string{"phone"},
 		Sparse: true,
 		Unique: true,
 	}); err != nil {
@@ -108,7 +116,7 @@ func (us *UserStorage) UserExists(name string) bool {
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	var u userData
-	err := s.C.Find(bson.M{"name": q}).One(&u)
+	err := s.C.Find(bson.M{"username": q}).One(&u)
 
 	return err == nil
 }
@@ -138,6 +146,19 @@ func (us *UserStorage) Scopes() []string {
 	return []string{"offline", "user"}
 }
 
+func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	var u userData
+	if err := s.C.Find(bson.M{"phone": phone}).One(&u); err != nil {
+		return nil, model.ErrUserNotFound
+	}
+	u.Pswd = ""
+
+	return &User{userData: u}, nil
+}
+
 // UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
@@ -146,7 +167,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	var u userData
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
-	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
 		return nil, model.ErrorNotFound
 	}
 
@@ -182,9 +203,24 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, err
 }
 
+// AddUserByPhone registers new user.
+func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
+	u := userData{Active: true, Phone: phone}
+
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	err := s.C.Insert(u)
+	if mgo.IsDup(err) {
+		return nil, model.ErrorUserExists
+	}
+
+	return &User{userData: u}, err
+}
+
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
-	u := userData{Active: true, Name: name, Profile: profile}
+func (us *UserStorage) AddUserByNameAndPassword(username, password string, profile map[string]interface{}) (model.User, error) {
+	u := userData{Active: true, Username: username, Profile: profile}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
@@ -195,7 +231,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, model.ErrorUserExists
 	}
 	sid := string(provider) + ":" + federatedID
-	u := userData{Active: true, Name: sid, FederatedIDs: []string{sid}}
+	u := userData{Active: true, Username: sid, FederatedIDs: []string{sid}}
 	return us.AddNewUser(&User{userData: u}, "")
 }
 
@@ -249,7 +285,7 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	update := bson.M{"$set": bson.M{"name": username}}
+	update := bson.M{"$set": bson.M{"username": username}}
 	return s.C.UpdateId(bson.ObjectIdHex(id), update)
 }
 
@@ -261,7 +297,7 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	var u userData
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
-	if err := s.C.Find(bson.M{"name": q}).One(&u); err != nil {
+	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
 		return "", model.ErrorNotFound
 	}
 
@@ -292,9 +328,9 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
-	q := bson.M{"name": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
+	q := bson.M{"username": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
-	orderByField := "name"
+	orderByField := "username"
 
 	var users []model.User
 	err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users)
@@ -320,8 +356,9 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 // User data implementation.
 type userData struct {
 	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Name         string                 `bson:"name,omitempty" json:"username,omitempty"`
+	Username     string                 `bson:"username,omitempty" json:"username,omitempty"`
 	Email        string                 `bson:"email,omitempty" json:"email,omitempty"`
+	Phone        string                 `bson:"phone,omitempty" json:"phone,omitempty"`
 	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
@@ -351,11 +388,11 @@ func UserFromJSON(d []byte) (*User, error) {
 // ID implements model.User interface.
 func (u *User) ID() string { return u.userData.ID.Hex() }
 
-// Name implements model.User interface.
-func (u *User) Name() string { return u.userData.Name }
+// Username implements model.User interface.
+func (u *User) Username() string { return u.userData.Username }
 
-// SetName implements model.User interface.
-func (u *User) SetName(name string) { u.userData.Name = name }
+// SetUsername implements model.User interface.
+func (u *User) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.Email interface.
 func (u *User) Email() string { return u.userData.Email }
