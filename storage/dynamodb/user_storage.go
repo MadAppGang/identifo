@@ -187,7 +187,7 @@ func (us *UserStorage) userIdxByPhone(phone string) (*userIndexByPhoneData, erro
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(phone)},
 		},
-		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), // retrieve all attributes, because we need to make local check.
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"),
 	})
 	if err != nil {
 		log.Println("Error querying for user by phone number:", err)
@@ -675,14 +675,10 @@ func (us *UserStorage) ensureTable() error {
 							KeyType:       aws.String("HASH"),
 						},
 					},
-					// we are doing local password check.
 					Projection: &dynamodb.Projection{
 						NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
 						ProjectionType:   aws.String("INCLUDE"),
 					},
-					// Projection: &dynamodb.Projection{
-					// 	ProjectionType: aws.String("KEYS_ONLY"),
-					// },
 					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
 						ReadCapacityUnits:  aws.Int64(5),
 						WriteCapacityUnits: aws.Int64(5),

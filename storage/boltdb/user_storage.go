@@ -172,7 +172,7 @@ func (us *UserStorage) AttachDeviceToken(id, token string) error {
 
 // DetachDeviceToken does nothing here.
 func (us *UserStorage) DetachDeviceToken(token string) error {
-	//we are not supporting devices for users here
+	// BoltDB-backed implementation does not support user devices.
 	return model.ErrorNotImplemented
 }
 

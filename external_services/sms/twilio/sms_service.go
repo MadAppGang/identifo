@@ -7,7 +7,7 @@ import (
 	"github.com/sfreiberg/gotwilio"
 )
 
-// SMSService sends SMS with Twilio service.
+// SMSService sends SMS via Twilio service.
 type SMSService struct {
 	messagingServiceSid string
 	client              *gotwilio.Twilio
