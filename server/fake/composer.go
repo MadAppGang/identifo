@@ -70,7 +70,7 @@ func (dc *DatabaseComposer) Compose() (
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknow token service algoritm %s", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", dc.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
