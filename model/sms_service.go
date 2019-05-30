@@ -1,6 +1,6 @@
 package model
 
-// SMSService basically service to send SMS
+// SMSService is an SMS sending service.
 type SMSService interface {
 	SendSMS(recipient, message string) error
 }

@@ -101,7 +101,7 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 
 	var u userData
 	if err := s.C.Find(bson.M{"federatedIDs": sid}).One(&u); err != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 	//clear password hash
 	u.Pswd = ""
@@ -146,6 +146,7 @@ func (us *UserStorage) Scopes() []string {
 	return []string{"offline", "user"}
 }
 
+// UserByPhone fetches user by phone number.
 func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -203,7 +204,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	return u, err
 }
 
-// AddUserByPhone registers new user.
+// AddUserByPhone registers new user with phone number.
 func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 	u := userData{Active: true, Phone: phone}
 

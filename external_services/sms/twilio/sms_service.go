@@ -7,13 +7,13 @@ import (
 	"github.com/sfreiberg/gotwilio"
 )
 
-//SMSService service to send SMS with Twilio service
+// SMSService sends SMS with Twilio service.
 type SMSService struct {
 	messagingServiceSid string
 	client              *gotwilio.Twilio
 }
 
-//NewSMSService creates, inits and returns SMS service with Twilio
+// NewSMSService creates, inits and returns Twilio-backed SMS service.
 func NewSMSService(sidKey, tokenKey, serviceSidKey string) (*SMSService, error) {
 	t := SMSService{}
 
@@ -26,7 +26,7 @@ func NewSMSService(sidKey, tokenKey, serviceSidKey string) (*SMSService, error) 
 	return &t, nil
 }
 
-//SendSMS implements services.SMS service interface to send SMS messages using Twilio service
+// SendSMS sends SMS messages using Twilio service.
 func (ss *SMSService) SendSMS(recipient, message string) error {
 	if ss.client == nil {
 		return errors.New("Twilio SMS service is not configured")

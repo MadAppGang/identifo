@@ -25,13 +25,18 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return randUser(), nil
 }
 
-// UserByEmail returns user by its email.
+// UserByEmail returns randomly generated user.
 func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	return randUser(), nil
 }
 
 // UserBySocialID returns randomly generated user.
 func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
+	return randUser(), nil
+}
+
+// UserByPhone returns randomly generated user.
+func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	return randUser(), nil
 }
 
@@ -68,6 +73,11 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 // AddUserByNameAndPassword returns randomly generated user.
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+	return randUser(), nil
+}
+
+// AddUserByPhone returns randomly generated user.
+func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 	return randUser(), nil
 }
 

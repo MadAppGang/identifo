@@ -173,6 +173,8 @@ func smsService(settings model.ServerSettings) (model.SMSService, error) {
 	switch settings.SMSService {
 	case model.SMSServiceTwilio:
 		return twilio.NewSMSService(settings.Twilio.AccountSid, settings.Twilio.AuthToken, settings.Twilio.ServiceSid)
+	case model.SMSServiceMock:
+		return twilio.NewSMSServiceMock()
 	default:
 		return nil, model.ErrorNotImplemented
 	}

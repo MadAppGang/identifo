@@ -76,13 +76,13 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
 		// check error not found, create the new user
-		if err == model.ErrorNotFound && d.RegisterIfNew {
+		if err == model.ErrUserNotFound && d.RegisterIfNew {
 			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID)
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
 			}
-		} else if err == model.ErrorNotFound && !d.RegisterIfNew {
+		} else if err == model.ErrUserNotFound && !d.RegisterIfNew {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusNotFound, err.Error(), "FederatedLogin.UserByFederatedID.NotRegisterNew")
 			return
 		} else if err != nil {

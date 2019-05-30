@@ -19,6 +19,8 @@ const (
 	UsersTableName = "Users"
 	// UserTableEmailIndexName is a user table global index name to access by users by email.
 	UserTableEmailIndexName = "EmailIndex"
+	// UsersPhoneNumbersIndexName is a table global index to access users by phone numbers.
+	UsersPhoneNumbersIndexName = "PhoneIndex"
 	// UsersFederatedIDTableName is a table to store federated ids.
 	UsersFederatedIDTableName = "UsersByFederatedID"
 )
@@ -61,7 +63,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		return nil, ErrorInternalError
 	}
 	if result.Item == nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 
 	userdata := userData{}
@@ -93,7 +95,7 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 		return "", ErrorInternalError
 	}
 	if result.Item == nil {
-		return "", model.ErrorNotFound
+		return "", model.ErrUserNotFound
 	}
 
 	fedData := federatedUserID{}
@@ -164,13 +166,41 @@ func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) 
 		return nil, ErrorInternalError
 	}
 	if len(result.Items) == 0 {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 
 	item := result.Items[0]
 	userdata := new(userIndexByNameData)
 	if err = dynamodbattribute.UnmarshalMap(item, userdata); err != nil {
 		log.Println("Error unmarshalling item:", err)
+		return nil, ErrorInternalError
+	}
+	return userdata, nil
+}
+
+// userIdxByPhone returns user data projected on the phone index.
+func (us *UserStorage) userIdxByPhone(phone string) (*userIndexByPhoneData, error) {
+	result, err := us.db.C.Query(&dynamodb.QueryInput{
+		TableName:              aws.String(UsersTableName),
+		IndexName:              aws.String(UsersPhoneNumbersIndexName),
+		KeyConditionExpression: aws.String("phone = :n"),
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":n": {S: aws.String(phone)},
+		},
+		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"), // retrieve all attributes, because we need to make local check.
+	})
+	if err != nil {
+		log.Println("Error querying for user by phone number:", err)
+		return nil, ErrorInternalError
+	}
+	if len(result.Items) == 0 {
+		return nil, model.ErrUserNotFound
+	}
+
+	item := result.Items[0]
+	userdata := new(userIndexByPhoneData)
+	if err = dynamodbattribute.UnmarshalMap(item, userdata); err != nil {
+		log.Println("Error unmarshalling user:", err)
 		return nil, ErrorInternalError
 	}
 	return userdata, nil
@@ -186,7 +216,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	}
 	// if password is incorrect, return 'not found' error for security reasons.
 	if bcrypt.CompareHashAndPassword([]byte(userIdx.Pswd), []byte(password)) != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 
 	user, err := us.UserByID(userIdx.ID)
@@ -194,6 +224,24 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		log.Println("Error querying user by id:", err)
 		return nil, ErrorInternalError
 	}
+	user.Sanitize()
+	return user, nil
+}
+
+// UserByPhone fetches user by the phone number.
+func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
+	userIdx, err := us.userIdxByPhone(phone)
+	if err != nil {
+		log.Println("Error getting user by phone:", err)
+		return nil, err
+	}
+
+	user, err := us.UserByID(userIdx.ID)
+	if err != nil {
+		log.Println("Error querying user by id:", err)
+		return nil, ErrorInternalError
+	}
+
 	user.Sanitize()
 	return user, nil
 }
@@ -261,7 +309,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
 	_, err := us.userIdxByName(name)
-	if err != nil && err != model.ErrorNotFound {
+	if err != nil && err != model.ErrUserNotFound {
 		log.Println(err)
 		return nil, err
 	} else if err == nil {
@@ -274,7 +322,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 // AddUserWithFederatedID adds new user with social ID.
 func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
-	if err != nil && err != model.ErrorNotFound {
+	if err != nil && err != model.ErrUserNotFound {
 		log.Println("Error getting user by name:", err)
 		return nil, err
 	} else if err == nil {
@@ -284,10 +332,10 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 	fid := string(provider) + ":" + federatedID
 
 	user, err := us.userIdxByName(fid)
-	if err != nil && err != model.ErrorNotFound {
+	if err != nil && err != model.ErrUserNotFound {
 		log.Println("Error getting user by name:", err)
 		return nil, err
-	} else if err == model.ErrorNotFound {
+	} else if err == model.ErrUserNotFound {
 		// no such user, let's create it
 		uData := userData{Username: fid, Active: true}
 		u, creationErr := us.AddNewUser(&User{userData: uData}, "")
@@ -324,6 +372,19 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	udata := userData{ID: user.ID, Username: user.Username, Active: true}
 	return &User{userData: udata}, nil
+}
+
+// AddUserByPhone registers new user with phone number.
+func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
+	_, err := us.userIdxByPhone(phone)
+	if err != nil && err != model.ErrUserNotFound {
+		log.Println(err)
+		return nil, err
+	} else if err == nil {
+		return nil, model.ErrorUserExists
+	}
+	u := userData{Active: true, Phone: phone, ID: xid.New().String()}
+	return us.AddNewUser(&User{userData: u}, "")
 }
 
 // UpdateUser updates user in DynamoDB storage.
@@ -472,11 +533,17 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
-// userIndexByNameData represents index projected user data.
+// userIndexByNameData represents username index projected user data.
 type userIndexByNameData struct {
 	ID       string `json:"id,omitempty"`
 	Pswd     string `json:"pswd,omitempty"`
 	Username string `json:"username,omitempty"`
+}
+
+// userIndexByPhoneData represents phone index projected user data.
+type userIndexByPhoneData struct {
+	ID    string `json:"id,omitempty"`
+	Phone string `json:"phone,omitempty"`
 }
 
 // User data implementation.
@@ -484,6 +551,7 @@ type userData struct {
 	ID       string                 `json:"id,omitempty"`
 	Username string                 `json:"username,omitempty"`
 	Email    string                 `json:"email,omitempty"`
+	Phone    string                 `bson:"phone,omitempty" json:"phone,omitempty"`
 	Pswd     string                 `json:"pswd,omitempty"`
 	Profile  map[string]interface{} `json:"profile,omitempty"`
 	Active   bool                   `json:"active,omitempty"`
@@ -546,7 +614,7 @@ func PasswordHash(pwd string) string {
 	return string(hash)
 }
 
-// ensureTable ensures that app storage table exists in the database.
+// ensureTable ensures that user storage table exists in the database.
 // I'm hiding it in the end of the file, because AWS devs, you are killing me with this API.
 func (us *UserStorage) ensureTable() error {
 	exists, err := us.db.IsTableExists(UsersTableName)
@@ -564,6 +632,10 @@ func (us *UserStorage) ensureTable() error {
 				},
 				{
 					AttributeName: aws.String("username"),
+					AttributeType: aws.String("S"),
+				},
+				{
+					AttributeName: aws.String("phone"),
 					AttributeType: aws.String("S"),
 				},
 			},
@@ -591,14 +663,35 @@ func (us *UserStorage) ensureTable() error {
 					// 	ProjectionType: aws.String("KEYS_ONLY"),
 					// },
 					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-						ReadCapacityUnits:  aws.Int64(10),
-						WriteCapacityUnits: aws.Int64(10),
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
+					},
+				},
+				{
+					IndexName: aws.String(UsersPhoneNumbersIndexName),
+					KeySchema: []*dynamodb.KeySchemaElement{
+						{
+							AttributeName: aws.String("phone"),
+							KeyType:       aws.String("HASH"),
+						},
+					},
+					// we are doing local password check.
+					Projection: &dynamodb.Projection{
+						NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
+						ProjectionType:   aws.String("INCLUDE"),
+					},
+					// Projection: &dynamodb.Projection{
+					// 	ProjectionType: aws.String("KEYS_ONLY"),
+					// },
+					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
+						ReadCapacityUnits:  aws.Int64(5),
+						WriteCapacityUnits: aws.Int64(5),
 					},
 				},
 			},
 			ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-				ReadCapacityUnits:  aws.Int64(10),
-				WriteCapacityUnits: aws.Int64(10),
+				ReadCapacityUnits:  aws.Int64(5),
+				WriteCapacityUnits: aws.Int64(5),
 			},
 			TableName: aws.String(UsersTableName),
 		}
