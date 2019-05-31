@@ -11,7 +11,7 @@ COPY . ./
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app ./cmd/demo
 
 FROM alpine:latest
-RUN apk --no-cache add ca-certificates 
+RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app .
 COPY ./jwt/private.pem ./pem/private.pem
