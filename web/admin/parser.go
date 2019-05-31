@@ -94,15 +94,10 @@ func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.AccountConfigPath))
-	var origErr = err
-
 	if err != nil {
-		yamlFile, err = ioutil.ReadFile(path.Base("./account-config.yaml"))
-		if err != nil {
-			ar.logger.Println("Cannot read admin account configuration file:", origErr)
-			ar.Error(w, err, http.StatusInternalServerError, "")
-			return origErr
-		}
+		ar.logger.Println("Cannot read admin account configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
 	}
 
 	if err = yaml.Unmarshal(yamlFile, ad); err != nil {

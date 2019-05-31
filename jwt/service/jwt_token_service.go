@@ -49,7 +49,6 @@ func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.To
 	if _, err := os.Stat(privateKeyPath); err != nil {
 		return nil, ErrKeyFileNotFound
 	}
-
 	if _, err := os.Stat(publicKeyPath); err != nil {
 		return nil, ErrKeyFileNotFound
 	}
