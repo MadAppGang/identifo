@@ -5,8 +5,6 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
-	"io/ioutil"
-	"log"
 	"os"
 	"strings"
 
@@ -48,27 +46,12 @@ const (
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
 func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenSignatureAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
-	files, errs := ioutil.ReadDir("./")
-	if errs != nil {
-		log.Fatal(errs)
+	if _, err := os.Stat(privateKeyPath); err != nil {
+		return nil, ErrKeyFileNotFound
 	}
 
-	for _, f := range files {
-		log.Println(f.Name())
-	}
-	if _, err := os.Stat(privateKeyPath); err != nil {
-		sparePrivateKeyPath := "./pem/private.pem"
-		if _, err = os.Stat(sparePrivateKeyPath); err != nil {
-			return nil, ErrKeyFileNotFound
-		}
-		privateKeyPath = sparePrivateKeyPath
-	}
 	if _, err := os.Stat(publicKeyPath); err != nil {
-		sparePublicKeyPath := "./pem/public.pem"
-		if _, err = os.Stat(sparePublicKeyPath); err != nil {
-			return nil, ErrKeyFileNotFound
-		}
-		publicKeyPath = sparePublicKeyPath
+		return nil, ErrKeyFileNotFound
 	}
 
 	var privateKey interface{}

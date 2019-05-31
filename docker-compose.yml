@@ -17,7 +17,7 @@ services:
     env_file:
       - .env
     volumes:
-      - ./build:/usr/share/nginx/html/
+      - ./admin_panel/build:/usr/share/nginx/html/
     ports:
       - "3000:3000"
     networks:
