@@ -1,10 +1,10 @@
-package twilio
+package mock
 
 // SMSServiceMock mocks SMS service.
 type SMSServiceMock struct{}
 
-// NewSMSServiceMock returns pointer to newly created SMS service mock.
-func NewSMSServiceMock() (*SMSServiceMock, error) {
+// NewSMSService returns pointer to newly created SMS service mock.
+func NewSMSService() (*SMSServiceMock, error) {
 	return &SMSServiceMock{}, nil
 }
 
