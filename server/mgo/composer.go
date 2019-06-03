@@ -29,30 +29,6 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 	return &c, nil
 }
 
-// InitAppStorage returns an argument that sets the appStorage initialization function.
-func InitAppStorage(initAS func(*mongo.DB) (model.AppStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newAppStorage = initAS
-		return nil
-	}
-}
-
-// InitUserStorage returns an argument that sets the userStorage initialization function.
-func InitUserStorage(initUS func(*mongo.DB) (model.UserStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newUserStorage = initUS
-		return nil
-	}
-}
-
-// InitTokenStorage returns an argument that sets the tokenStorage initialization function.
-func InitTokenStorage(initTS func(*mongo.DB) (model.TokenStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newTokenStorage = initTS
-		return nil
-	}
-}
-
 // DatabaseComposer composes MongoDB services.
 type DatabaseComposer struct {
 	settings                   model.ServerSettings
@@ -91,7 +67,7 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, err
 	}
 
-	verificationTokenStorage, err := dc.newVerificationCodeStorage(db)
+	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -114,5 +90,5 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, verificationTokenStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
 }

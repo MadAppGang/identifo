@@ -13,10 +13,11 @@ import (
 // NewComposer creates new database composer.
 func NewComposer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
-		settings:        settings,
-		newAppStorage:   mem.NewAppStorage,
-		newUserStorage:  mem.NewUserStorage,
-		newTokenStorage: mem.NewTokenStorage,
+		settings:                   settings,
+		newAppStorage:              mem.NewAppStorage,
+		newUserStorage:             mem.NewUserStorage,
+		newTokenStorage:            mem.NewTokenStorage,
+		newVerificationCodeStorage: mem.NewVerificationCodeStorage,
 	}
 
 	for _, option := range options {
@@ -30,34 +31,11 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 
 // DatabaseComposer composes in-memory services.
 type DatabaseComposer struct {
-	settings        model.ServerSettings
-	newAppStorage   func() (model.AppStorage, error)
-	newUserStorage  func() (model.UserStorage, error)
-	newTokenStorage func() (model.TokenStorage, error)
-}
-
-// InitAppStorage returns an argument that sets the appStorage initialization function.
-func InitAppStorage(initAS func() (model.AppStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newAppStorage = initAS
-		return nil
-	}
-}
-
-// InitUserStorage returns an argument that sets the userStorage initialization function.
-func InitUserStorage(initUS func() (model.UserStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newUserStorage = initUS
-		return nil
-	}
-}
-
-// InitTokenStorage returns an argument that sets the tokenStorage initialization function.
-func InitTokenStorage(initTS func() (model.TokenStorage, error)) func(*DatabaseComposer) error {
-	return func(dc *DatabaseComposer) error {
-		dc.newTokenStorage = initTS
-		return nil
-	}
+	settings                   model.ServerSettings
+	newAppStorage              func() (model.AppStorage, error)
+	newUserStorage             func() (model.UserStorage, error)
+	newTokenStorage            func() (model.TokenStorage, error)
+	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
 }
 
 // Compose composes all services with in-memory storage support.
@@ -65,28 +43,34 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
+	model.VerificationCodeStorage,
 	jwtService.TokenService,
 	error,
 ) {
 
 	appStorage, err := dc.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
+	}
+
+	verificationCodeStorage, err := dc.newVerificationCodeStorage()
+	if err != nil {
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, fmt.Errorf("Unknow token service algoritm %s", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", dc.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
@@ -99,8 +83,8 @@ func (dc *DatabaseComposer) Compose() (
 		userStorage,
 	)
 	if err != nil {
-		return nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
 }

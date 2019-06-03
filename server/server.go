@@ -11,6 +11,7 @@ import (
 
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	"github.com/madappgang/identifo/external_services/mail/ses"
+	"github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -173,6 +174,8 @@ func smsService(settings model.ServerSettings) (model.SMSService, error) {
 	switch settings.SMSService {
 	case model.SMSServiceTwilio:
 		return twilio.NewSMSService(settings.Twilio.AccountSid, settings.Twilio.AuthToken, settings.Twilio.ServiceSid)
+	case model.SMSServiceMock:
+		return mock.NewSMSService()
 	default:
 		return nil, model.ErrorNotImplemented
 	}

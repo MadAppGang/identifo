@@ -39,7 +39,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByID(userID)
 		if err != nil {
-			if err == model.ErrorNotFound {
+			if err == model.ErrUserNotFound {
 				ar.Error(w, err, http.StatusNotFound, "")
 			} else {
 				ar.Error(w, err, http.StatusInternalServerError, "")
