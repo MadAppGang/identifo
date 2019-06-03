@@ -20,7 +20,7 @@ const (
 	createdAtField = "createdAt"
 )
 
-// NewUserStorage creates and inits MongoDB user storage.
+// NewVerificationCodeStorage creates and inits MongoDB verification code storage.
 func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
 	vcs := &VerificationCodeStorage{db: db}
 
@@ -50,12 +50,13 @@ func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
 	return vcs, nil
 }
 
-// UserStorage implements user storage interface.
+// VerificationCodeStorage implements verification code storage interface.
 type VerificationCodeStorage struct {
 	db *DB
 }
 
-func (vcs *VerificationCodeStorage) FindVerificationCode(phone, code string) (bool, error) {
+// IsVerificationCodeFound checks whether verification code can be found.
+func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) (bool, error) {
 	s := vcs.db.Session(VerificationCodesCollection)
 	defer s.Close()
 
@@ -69,6 +70,7 @@ func (vcs *VerificationCodeStorage) FindVerificationCode(phone, code string) (bo
 	return true, nil
 }
 
+// CreateVerificationCode inserts new verification code to the database.
 func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) error {
 	s := vcs.db.Session(VerificationCodesCollection)
 	defer s.Close()

@@ -31,8 +31,8 @@ emailTemplateNames:
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
 
-# SMS service name. Supported values are: "twilio"
-smsService: twilio
+# SMS service name. Supported values are: "twilio", "mock".
+smsService: mock
 twilio:
   accountSid:
   authToken:

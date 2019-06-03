@@ -38,6 +38,7 @@ type DBSettings struct {
 	DBPath     string `yaml:"dbPath,omitempty" json:"path,omitempty"`
 }
 
+// TwilioSettings holds together Twilio-related settings.
 type TwilioSettings struct {
 	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
 	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
@@ -61,7 +62,12 @@ func (ss *ServerSettings) GetPort() string {
 // SMSServiceType - service to to use for sending sms.
 type SMSServiceType string
 
-const SMSServiceTwilio SMSServiceType = "twilio"
+const (
+	// SMSServiceTwilio is a Twillo SMS service.
+	SMSServiceTwilio SMSServiceType = "twilio"
+	// SMSServiceMock is an SMS service mock.
+	SMSServiceMock SMSServiceType = "mock"
+)
 
 // MailServiceType - how to send email to clients.
 type MailServiceType int

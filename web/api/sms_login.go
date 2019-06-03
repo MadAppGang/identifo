@@ -72,13 +72,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		// check verification code
-		if exists, err := ar.verificationCodeStorage.FindVerificationCode(authData.PhoneNumber, authData.Code); err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.FindVerificationCode.error")
+		if exists, err := ar.verificationCodeStorage.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
 			return
 		} else if !exists {
-			ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.FindVerificationCode.not_exists")
+			ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.IsVerificationCodeFound.not_exists")
 			return
 		}
+
 		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
 			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber)
