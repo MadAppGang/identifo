@@ -205,7 +205,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 
 // AddUserByPhone registers new user.
 func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
-	u := userData{Active: true, Phone: phone}
+	u := userData{ID: bson.NewObjectId(), Active: true, Phone: phone}
 
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
@@ -220,7 +220,7 @@ func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 
 // AddUserByNameAndPassword registers new user.
 func (us *UserStorage) AddUserByNameAndPassword(username, password string, profile map[string]interface{}) (model.User, error) {
-	u := userData{Active: true, Username: username, Profile: profile}
+	u := userData{ID: bson.NewObjectId(), Active: true, Username: username, Profile: profile}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
@@ -231,7 +231,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, model.ErrorUserExists
 	}
 	sid := string(provider) + ":" + federatedID
-	u := userData{Active: true, Username: sid, FederatedIDs: []string{sid}}
+	u := userData{ID: bson.NewObjectId(), Active: true, Username: sid, FederatedIDs: []string{sid}}
 	return us.AddNewUser(&User{userData: u}, "")
 }
 
