@@ -28,7 +28,7 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	}
 }
 
-// AlterServerSettings changes server settings.
+// AlterServerSettings changes the whole set of server settings.
 func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		newset := new(model.ServerSettings)
@@ -42,6 +42,29 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, newset)
+	}
+}
+
+// AlterDatabaseSettings changes database connection settings.
+func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var newDBSettings model.DBSettings
+		if ar.mustParseJSON(w, r, &newDBSettings) != nil {
+			return
+		}
+
+		oldServerSettings := new(model.ServerSettings)
+		if err := ar.getServerConf(w, oldServerSettings); err != nil {
+			return
+		}
+
+		oldServerSettings.DBSettings = newDBSettings
+
+		if ar.updateServerConfigFile(w, oldServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, oldServerSettings.DBSettings)
 	}
 }
 

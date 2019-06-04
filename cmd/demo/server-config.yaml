@@ -18,7 +18,7 @@ emailTemplateNames:
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
 
-smsService: twilio
+smsService: mock
 twilio:
   accountSid:
   authToken:

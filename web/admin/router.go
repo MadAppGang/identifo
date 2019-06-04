@@ -10,8 +10,16 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
+
+var corsOptions = cors.New(cors.Options{
+	AllowedOrigins:   []string{"http://localhost:*"},
+	AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "HEAD", "OPTIONS"},
+	AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
+	AllowCredentials: true,
+})
 
 // Router is a router that handles admin requests.
 type Router struct {
@@ -107,6 +115,7 @@ func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionS
 	}
 
 	ar.initRoutes()
+	ar.middleware.Use(corsOptions)
 	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
@@ -143,8 +152,8 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//reroute to our internal implementation
-	ar.router.ServeHTTP(w, r)
+	// Reroute to our internal implementation.
+	ar.middleware.ServeHTTP(w, r)
 }
 
 // ServeJSON sends status code, headers and data back to the user.

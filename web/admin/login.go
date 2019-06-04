@@ -40,11 +40,6 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		if err := ld.validate(); err != nil {
-			ar.Error(w, ErrorIncorrectLogin, http.StatusBadRequest, err.Error())
-			return
-		}
-
 		if (conf.Admin != ld.Email) || (conf.Password != ld.Password) {
 			ar.Error(w, ErrorIncorrectLogin, http.StatusBadRequest, "")
 			return
