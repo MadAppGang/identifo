@@ -41,6 +41,7 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 			return
 		}
 
+		ar.ServerSettings = newset
 		ar.ServeJSON(w, http.StatusOK, newset)
 	}
 }
@@ -64,6 +65,7 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 			return
 		}
 
+		ar.ServerSettings = oldServerSettings
 		ar.ServeJSON(w, http.StatusOK, oldServerSettings.DBSettings)
 	}
 }
