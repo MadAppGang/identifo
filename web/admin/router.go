@@ -16,7 +16,7 @@ import (
 
 var corsOptions = cors.New(cors.Options{
 	AllowedOrigins:   []string{"http://localhost:*"},
-	AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "HEAD", "OPTIONS"},
+	AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
 	AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
 	AllowCredentials: true,
 })

@@ -272,7 +272,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		// we use username and password hash as a key
 		key := u.Username()
 		unpb := tx.Bucket([]byte(UserByNameAndPassword))
-		return unpb.Put([]byte(key), []byte(u.Username()))
+		return unpb.Put([]byte(key), []byte(u.ID()))
 	})
 	if err != nil {
 		return nil, err
