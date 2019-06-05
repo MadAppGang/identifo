@@ -6,7 +6,7 @@ import (
 )
 
 type adminLoginData struct {
-	Login    string `yaml:"admin" json:"login,omitempty"`
+	Login    string `yaml:"admin" json:"email,omitempty"`
 	Password string `yaml:"password" json:"password,omitempty"`
 }
 
