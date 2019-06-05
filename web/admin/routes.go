@@ -75,7 +75,7 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(settings),
 	))
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
-	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PUT")
+	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PATCH")
 	settings.Path("/database").HandlerFunc(ar.AlterDatabaseSettings()).Methods("PATCH")
 	settings.Path("/database/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
 }

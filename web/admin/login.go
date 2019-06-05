@@ -1,25 +1,12 @@
 package admin
 
 import (
-	"fmt"
 	"net/http"
 )
 
 type adminLoginData struct {
 	Login    string `yaml:"admin" json:"email,omitempty"`
 	Password string `yaml:"password" json:"password,omitempty"`
-}
-
-func (ld *adminLoginData) validate() error {
-	loginLen := len(ld.Login)
-	if loginLen < 6 || loginLen > 130 {
-		return fmt.Errorf("Incorrect login length %d, expected a number between 6 and 130", loginLen)
-	}
-	pswdLen := len(ld.Password)
-	if pswdLen < 6 || pswdLen > 130 {
-		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 130", pswdLen)
-	}
-	return nil
 }
 
 // Login logins admin with admin name and password.

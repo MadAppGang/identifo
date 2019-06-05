@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -73,15 +74,30 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 // AlterAccountSettings changes admin account settings.
 func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		newAdminData := new(adminLoginData)
+		adminDataUpdate := new(adminLoginData)
 
-		if ar.mustParseJSON(w, r, newAdminData) != nil {
+		if ar.mustParseJSON(w, r, adminDataUpdate) != nil {
 			return
 		}
 
-		if err := newAdminData.validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+		if adminDataUpdate.Password != "" {
+			if len(adminDataUpdate.Password) < 6 || len(adminDataUpdate.Password) > 130 {
+				err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", len(adminDataUpdate.Password))
+				ar.Error(w, err, http.StatusBadRequest, "")
+				return
+			}
+		}
+
+		newAdminData := new(adminLoginData)
+		if err := ar.getAccountConf(w, newAdminData); err != nil {
 			return
+		}
+
+		if newAdminData.Login != adminDataUpdate.Login {
+			newAdminData.Login = adminDataUpdate.Login
+		}
+		if newAdminData.Password != adminDataUpdate.Password {
+			newAdminData.Password = adminDataUpdate.Password
 		}
 
 		if ar.updateAccountConfigFile(w, newAdminData) != nil {
