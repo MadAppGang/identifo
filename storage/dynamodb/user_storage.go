@@ -487,9 +487,10 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination. Search is case-senstive for now.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	scanInput := &dynamodb.ScanInput{
 		TableName: aws.String(AppsTable),
+		Limit:     aws.Int64(int64(limit)),
 	}
 
 	if len(filterString) != 0 {
@@ -502,19 +503,22 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	result, err := us.db.C.Scan(scanInput)
 	if err != nil {
 		log.Println("Error querying for users:", err)
-		return nil, ErrorInternalError
+		return []model.User{}, 0, ErrorInternalError
 	}
 
 	users := make([]model.User, len(result.Items))
 	for i := 0; i < len(result.Items); i++ {
+		if i < skip {
+			continue // TODO: use internal pagination mechanism
+		}
 		user := new(User)
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], user); err != nil {
 			log.Println("Error unmarshalling user:", err)
-			return nil, ErrorInternalError
+			return []model.User{}, 0, ErrorInternalError
 		}
 		users[i] = user
 	}
-	return users, nil
+	return users, len(result.Items), nil
 }
 
 // ImportJSON imports data from JSON.

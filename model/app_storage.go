@@ -8,14 +8,14 @@ type AppStorage interface {
 	CreateApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(appID string, newApp AppData) (AppData, error)
-	FetchApps(filterString string, skip, limit int) ([]AppData, error)
+	FetchApps(filterString string, skip, limit int) ([]AppData, int, error)
 	DeleteApp(id string) error
 	ImportJSON(data []byte) error
 	NewAppData() AppData
 	TestDatabaseConnection() error
 }
 
-//AppData represents Application data information
+// AppData represents Application data information.
 type AppData interface {
 	ID() string
 	Secret() string
@@ -27,6 +27,7 @@ type AppData interface {
 	// Offline is a boolean value that indicates wheter on not the app supports refresh tokens.
 	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
+	Type() string
 	// RedirectURL is a redirect URL where to redirect the user after successfull login.
 	// Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
 	RedirectURL() string

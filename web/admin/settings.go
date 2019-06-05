@@ -20,7 +20,7 @@ func (ar *Router) FetchServerSettings() http.HandlerFunc {
 // FetchAccountSettings returns admin account settings.
 func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		conf := new(adminData)
+		conf := new(adminLoginData)
 		if ar.getAccountConf(w, conf) != nil {
 			return
 		}
@@ -73,17 +73,22 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 // AlterAccountSettings changes admin account settings.
 func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		newset := new(adminData)
+		newAdminData := new(adminLoginData)
 
-		if ar.mustParseJSON(w, r, newset) != nil {
+		if ar.mustParseJSON(w, r, newAdminData) != nil {
 			return
 		}
 
-		if ar.updateAccountConfigFile(w, newset) != nil {
+		if err := newAdminData.validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newset)
+		if ar.updateAccountConfigFile(w, newAdminData) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }
 
@@ -109,7 +114,7 @@ func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *mod
 	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath))
 }
 
-func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *adminData) error {
+func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newAdminData *adminLoginData) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		ar.logger.Println("Cannot get account configuration file:", err)
@@ -117,7 +122,7 @@ func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *ad
 		return err
 	}
 
-	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.AccountConfigPath))
+	return ar.updateConfigFile(w, newAdminData, filepath.Join(dir, ar.AccountConfigPath))
 }
 
 func (ar *Router) updateConfigFile(w http.ResponseWriter, in interface{}, dir string) error {

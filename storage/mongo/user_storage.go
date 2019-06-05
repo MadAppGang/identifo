@@ -325,17 +325,25 @@ func (us *UserStorage) DeleteUser(id string) error {
 
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
 
 	q := bson.M{"username": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
+	users := []model.User{}
+	total, err := s.C.Find(q).Count()
+	if err != nil {
+		return users, 0, err
+	}
+
 	orderByField := "username"
 
-	var users []model.User
-	err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users)
-	return users, err
+	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users); err != nil {
+		return users, 0, err
+	}
+
+	return users, total, err
 }
 
 // ImportJSON imports data from JSON.

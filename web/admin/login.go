@@ -5,20 +5,15 @@ import (
 	"net/http"
 )
 
-type adminData struct {
-	Admin    string `yaml:"admin" json:"admin"`
-	Password string `yaml:"password" json:"password"`
+type adminLoginData struct {
+	Login    string `yaml:"admin" json:"login,omitempty"`
+	Password string `yaml:"password" json:"password,omitempty"`
 }
 
-type loginData struct {
-	Email    string `json:"email,omitempty"`
-	Password string `json:"password,omitempty"`
-}
-
-func (ld *loginData) validate() error {
-	emailLen := len(ld.Email)
-	if emailLen < 6 || emailLen > 130 {
-		return fmt.Errorf("Incorrect email length %d, expected a number between 6 and 130", emailLen)
+func (ld *adminLoginData) validate() error {
+	loginLen := len(ld.Login)
+	if loginLen < 6 || loginLen > 130 {
+		return fmt.Errorf("Incorrect login length %d, expected a number between 6 and 130", loginLen)
 	}
 	pswdLen := len(ld.Password)
 	if pswdLen < 6 || pswdLen > 130 {
@@ -30,17 +25,17 @@ func (ld *loginData) validate() error {
 // Login logins admin with admin name and password.
 func (ar *Router) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		conf := new(adminData)
+		conf := new(adminLoginData)
 		if ar.getAccountConf(w, conf) != nil {
 			return
 		}
 
-		ld := loginData{}
+		ld := adminLoginData{}
 		if ar.mustParseJSON(w, r, &ld) != nil {
 			return
 		}
 
-		if (conf.Admin != ld.Email) || (conf.Password != ld.Password) {
+		if (conf.Login != ld.Login) || (conf.Password != ld.Password) {
 			ar.Error(w, ErrorIncorrectLogin, http.StatusBadRequest, "")
 			return
 		}

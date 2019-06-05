@@ -112,8 +112,8 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // FetchUsers returns randomly generated user enclosed in slice.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
-	return []model.User{randUser()}, nil
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
+	return []model.User{randUser()}, 1, nil
 }
 
 // ImportJSON imports data from JSON.

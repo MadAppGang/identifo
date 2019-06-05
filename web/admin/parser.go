@@ -63,7 +63,7 @@ func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, 
 	if len(limitStr) != 0 {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
-			return 0, 0, fmt.Errorf(errInvalidLimit, skipStr)
+			return 0, 0, fmt.Errorf(errInvalidLimit, limitStr)
 		}
 	} else {
 		limit = defaultLimit
@@ -85,7 +85,7 @@ func getRouteVar(name string, r *http.Request) string {
 }
 
 // getAccountConf reads admin account configuration file and parses it to adminData struct.
-func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
+func (ar *Router) getAccountConf(w http.ResponseWriter, ald *adminLoginData) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		ar.logger.Println("Cannot get admin account configuration file:", err)
@@ -100,7 +100,7 @@ func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
 		return err
 	}
 
-	if err = yaml.Unmarshal(yamlFile, ad); err != nil {
+	if err = yaml.Unmarshal(yamlFile, ald); err != nil {
 		ar.logger.Println("Cannot unmarshal admin account configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err

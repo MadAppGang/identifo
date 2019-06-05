@@ -22,7 +22,7 @@ type UserStorage interface {
 	UpdateUser(userID string, newUser User) (User, error)
 	ResetPassword(id, password string) error
 	DeleteUser(id string) error
-	FetchUsers(search string, skip, limit int) ([]User, error)
+	FetchUsers(search string, skip, limit int) ([]User, int, error)
 	NewUser() User
 
 	RequestScopes(userID string, scopes []string) ([]string, error)

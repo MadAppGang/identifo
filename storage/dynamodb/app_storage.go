@@ -223,9 +223,10 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination. Search is case-senstive for now.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
 	scanInput := &dynamodb.ScanInput{
 		TableName: aws.String(AppsTable),
+		Limit:     aws.Int64(int64(limit)),
 	}
 
 	if len(filterString) != 0 {
@@ -241,19 +242,22 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	result, err := as.db.C.Scan(scanInput)
 	if err != nil {
 		log.Println("Error querying for apps:", err)
-		return nil, ErrorInternalError
+		return []model.AppData{}, 0, ErrorInternalError
 	}
 
 	apps := make([]model.AppData, len(result.Items))
 	for i := 0; i < len(result.Items); i++ {
+		if i < skip {
+			continue // TODO: use internal pagination mechanism
+		}
 		appData := appData{}
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &appData); err != nil {
 			log.Println("Error unmarshalling app:", err)
-			return nil, ErrorInternalError
+			return []model.AppData{}, 0, ErrorInternalError
 		}
 		apps[i] = AppData{appData: appData}
 	}
-	return apps, nil
+	return apps, len(result.Items), nil
 }
 
 // DeleteApp deletes app by id.
@@ -300,6 +304,7 @@ type appData struct {
 	Description           string   `json:"description,omitempty"`
 	Scopes                []string `json:"scopes,omitempty"`
 	Offline               bool     `json:"offline,omitempty"`
+	Type                  string   `json:"type,omitempty"`
 	RedirectURL           string   `json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64    `json:"invite_token_lifespan,omitempty"`
@@ -399,6 +404,9 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 
 // Offline implements model.AppData interface.
 func (ad AppData) Offline() bool { return ad.appData.Offline }
+
+// Type implements model.AppData interface.
+func (ad AppData) Type() string { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
