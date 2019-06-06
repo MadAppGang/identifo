@@ -42,7 +42,6 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServerSettings = newset
 		ar.ServeJSON(w, http.StatusOK, newset)
 	}
 }
@@ -50,24 +49,22 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 // AlterDatabaseSettings changes database connection settings.
 func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var newDBSettings model.DBSettings
-		if ar.mustParseJSON(w, r, &newDBSettings) != nil {
+		var dbSettingsUpdate model.DBSettings
+		if ar.mustParseJSON(w, r, &dbSettingsUpdate) != nil {
 			return
 		}
 
-		oldServerSettings := new(model.ServerSettings)
-		if err := ar.getServerConf(w, oldServerSettings); err != nil {
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerConf(w, newServerSettings); err != nil {
 			return
 		}
 
-		oldServerSettings.DBSettings = newDBSettings
-
-		if ar.updateServerConfigFile(w, oldServerSettings) != nil {
+		newServerSettings.DBSettings = dbSettingsUpdate
+		if ar.updateServerConfigFile(w, newServerSettings) != nil {
 			return
 		}
 
-		ar.ServerSettings = oldServerSettings
-		ar.ServeJSON(w, http.StatusOK, oldServerSettings.DBSettings)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.DBSettings)
 	}
 }
 
@@ -81,9 +78,7 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 		}
 
 		if adminDataUpdate.Password != "" {
-			if len(adminDataUpdate.Password) < 6 || len(adminDataUpdate.Password) > 130 {
-				err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", len(adminDataUpdate.Password))
-				ar.Error(w, err, http.StatusBadRequest, "")
+			if err := ar.validateAdminPassword(adminDataUpdate.Password, w); err != nil {
 				return
 			}
 		}
@@ -93,10 +88,10 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 			return
 		}
 
-		if newAdminData.Login != adminDataUpdate.Login {
+		if len(newAdminData.Login) > 0 && newAdminData.Login != adminDataUpdate.Login {
 			newAdminData.Login = adminDataUpdate.Login
 		}
-		if newAdminData.Password != adminDataUpdate.Password {
+		if len(newAdminData.Password) > 0 && newAdminData.Password != adminDataUpdate.Password {
 			newAdminData.Password = adminDataUpdate.Password
 		}
 
@@ -106,6 +101,15 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
+}
+
+func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
+	if len(pswd) < 6 || len(pswd) > 130 {
+		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", len(pswd))
+		ar.Error(w, err, http.StatusBadRequest, err.Error())
+		return err
+	}
+	return nil
 }
 
 // TestDatabaseConnection tests database connection.
