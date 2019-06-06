@@ -470,7 +470,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 
 		for i, uid := range userIDs {
 			if i < skip {
-				continue // TODO: use internal pagination mechanism
+				continue
 			}
 			if limit != 0 && len(users) == limit {
 				break

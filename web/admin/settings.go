@@ -88,10 +88,15 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 			return
 		}
 
-		if len(newAdminData.Login) > 0 && newAdminData.Login != adminDataUpdate.Login {
+		if newAdminData.Login == adminDataUpdate.Login && newAdminData.Password == adminDataUpdate.Password {
+			ar.ServeJSON(w, http.StatusOK, nil)
+			return
+		}
+
+		if len(adminDataUpdate.Login) > 0 {
 			newAdminData.Login = adminDataUpdate.Login
 		}
-		if len(newAdminData.Password) > 0 && newAdminData.Password != adminDataUpdate.Password {
+		if len(adminDataUpdate.Password) > 0 {
 			newAdminData.Password = adminDataUpdate.Password
 		}
 

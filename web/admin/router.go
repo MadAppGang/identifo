@@ -114,9 +114,9 @@ func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionS
 		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	ar.initRoutes()
 	ar.middleware.Use(corsOptions)
 	ar.middleware.UseHandler(ar.router)
+	ar.initRoutes()
 
 	return &ar, nil
 }

@@ -41,9 +41,11 @@ func (ar *Router) Login() http.HandlerFunc {
 		c := &http.Cookie{
 			Name:     cookieName,
 			Value:    encode(session.ID),
+			Path:     "/",
 			MaxAge:   ar.sessionService.SessionDurationSeconds(),
 			HttpOnly: true,
 		}
 		http.SetCookie(w, c)
+		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }
