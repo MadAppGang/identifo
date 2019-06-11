@@ -16,7 +16,7 @@ func (ar *Router) initRoutes() {
 	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
 	// setup root routes
-	ar.router.HandleFunc("/{ping:ping\\/?}", ar.HandlePing()).Methods("GET")
+	ar.router.HandleFunc(`/{ping:ping/?}`, ar.HandlePing()).Methods("GET")
 
 	// setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
@@ -24,18 +24,18 @@ func (ar *Router) initRoutes() {
 		ar.SignatureHandler(),
 		negroni.Wrap(auth),
 	))
-	auth.Path("/{login:login\\/?}").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
-	auth.Path("/{request_phone_code:request_phone_code\\/?}").HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
-	auth.Path("/{phone_login:phone_login\\/?}").HandlerFunc(ar.PhoneLogin()).Methods("POST")
-	auth.Path("/{federated:federated\\/?}").HandlerFunc(ar.FederatedLogin()).Methods("POST")
-	auth.Path("/{register:register\\/?}").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
-	auth.Path("/{reset_password:reset_password\\/?}").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	auth.Path(`/{login:login/?}`).HandlerFunc(ar.LoginWithPassword()).Methods("POST")
+	auth.Path(`/{request_phone_code:request_phone_code/?}`).HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
+	auth.Path(`/{phone_login:phone_login/?}`).HandlerFunc(ar.PhoneLogin()).Methods("POST")
+	auth.Path(`/{federated:federated/?}`).HandlerFunc(ar.FederatedLogin()).Methods("POST")
+	auth.Path(`/{register:register/?}`).HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
+	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
 
-	auth.Path("/{token:token\\/?}").Handler(negroni.New(
+	auth.Path(`/{token:token/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshToken()),
 	)).Methods("POST")
-	auth.Path("/{invite:invite\\/?}").Handler(negroni.New(
+	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
@@ -47,7 +47,7 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(meRouter),
 	))
 	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
-	meRouter.Path("/{logout:logout\\/?}").HandlerFunc(ar.Logout()).Methods("POST")
+	meRouter.Path(`/{logout:logout/?}`).HandlerFunc(ar.Logout()).Methods("POST")
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
@@ -56,6 +56,6 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(oidc),
 	))
 
-	oidc.Path("/{openid-configuration:openid-configuration\\/?}").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
-	oidc.Path("/{jwks.json:jwks.json\\/?}").HandlerFunc(ar.OIDCJwks()).Methods("GET")
+	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
+	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")
 }

@@ -1,0 +1,27 @@
+version: "3"
+services:
+  identifo:
+    image: identifo:latest
+    build: .
+    env_file:
+      - .env
+    ports:
+      - "8111:8080"
+    networks:
+      - identifo
+  identifo-admin-panel:
+    image: identifo-admin-panel:latest
+    build: ./admin_panel
+    depends_on:
+      - identifo
+    env_file:
+      - .env
+    volumes:
+      - ./admin_panel/build:/usr/share/nginx/html/
+    ports:
+      - "3000:3000"
+    networks:
+     - identifo
+
+networks:
+  identifo:

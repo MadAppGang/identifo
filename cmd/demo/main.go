@@ -27,7 +27,7 @@ func initServer() model.Server {
 	port = settings.GetPort()
 
 	if _, err = server.AppStorage().AppByID(testAppID); err != nil {
-		log.Println("Error getting app storage:", err)
+		log.Println("Error getting app by ID:", err)
 		if err = server.ImportApps(appsImportPath); err != nil {
 			log.Println("Error importing apps:", err)
 		}

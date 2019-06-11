@@ -156,14 +156,20 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
-	var apps []model.AppData
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
+	apps := []model.AppData{}
+	var total int
 
 	err := as.db.View(func(tx *bolt.Tx) error {
 		ab := tx.Bucket([]byte(AppBucket))
 
 		if iterErr := ab.ForEach(func(k, v []byte) error {
 			if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
+				total++
+				skip--
+				if skip > -1 || (limit != 0 && len(apps) == limit) {
+					return nil
+				}
 				app, err := AppDataFromJSON(v)
 				if err != nil {
 					return err
@@ -178,9 +184,9 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	})
 
 	if err != nil {
-		return nil, err
+		return []model.AppData{}, 0, err
 	}
-	return apps, nil
+	return apps, total, nil
 }
 
 // DeleteApp deletes app by ID.
@@ -227,6 +233,7 @@ type appData struct {
 	Description           string   `json:"description,omitempty"`
 	Scopes                []string `json:"scopes,omitempty"`
 	Offline               bool     `json:"offline,omitempty"`
+	Type                  string   `json:"type,omitempty"`
 	RedirectURL           string   `json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64    `json:"invite_token_lifespan,omitempty"`
@@ -318,6 +325,9 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 
 // Offline implements model.AppData interface.
 func (ad AppData) Offline() bool { return ad.appData.Offline }
+
+// Type implements model.AppData interface.
+func (ad AppData) Type() string { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }

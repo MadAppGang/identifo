@@ -20,5 +20,7 @@ COPY web/static ./static
 COPY ./cmd/import/apps.json ./apps.json
 COPY ./cmd/import/users.json ./users.json
 COPY ./email_templates ./email_templates
+COPY ./cmd/demo/*config.yaml ./
+COPY ./jwt/*.pem ./pem/
 
 CMD ["./app"]

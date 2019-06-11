@@ -23,8 +23,8 @@ const (
 	smsVerificationCode         = "%v is your SMS verification code!"
 )
 
-// User to authenticate require to have valid phone number
-// to verify the service is valid, we are sending message to the user
+// RequestVerificationCode requests SMS with verification code.
+// To authenticate, user must have a valid phone number.
 func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var authData PhoneLogin
@@ -55,10 +55,10 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 	}
 }
 
-// PhoneLogin authenticates user with phone number and verification code
-// If user exists - create new session and return token
-// If user does not exists - register and then login (create session and return token)
-// If code is invalid - return error
+// PhoneLogin authenticates user with phone number and verification code.
+// If user exists - create new session and return token.
+// If user does not exists - register and then login (create session and return token).
+// If code is invalid - return error.
 func (ar *Router) PhoneLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var authData PhoneLogin

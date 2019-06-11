@@ -344,7 +344,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Username: name, Profile: profile, ID: name}
+	u := userData{Active: true, Username: name, Profile: profile, ID: xid.New().String()}
 	return us.AddNewUser(User{userData: u}, password)
 }
 
@@ -448,8 +448,9 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, error) {
-	var users []model.User
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
+	users := []model.User{}
+	var total int
 
 	err := us.db.View(func(tx *bolt.Tx) error {
 		ubnp := tx.Bucket([]byte(UserByNameAndPassword))
@@ -465,7 +466,16 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 		}
 
 		ub := tx.Bucket([]byte(UserBucket))
-		for _, uid := range userIDs {
+		total = len(userIDs)
+
+		for i, uid := range userIDs {
+			if i < skip {
+				continue
+			}
+			if limit != 0 && len(users) == limit {
+				break
+			}
+
 			u := ub.Get(uid)
 			if u == nil {
 				log.Printf("User %s does not exist in %s, but does exist in %s", uid, UserBucket, UserByNameAndPassword)
@@ -482,9 +492,9 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	})
 
 	if err != nil {
-		return nil, err
+		return []model.User{}, 0, err
 	}
-	return users, nil
+	return users, total, nil
 }
 
 // ImportJSON imports data from JSON.

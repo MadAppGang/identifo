@@ -10,7 +10,7 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-// RequestInviteToken - request invite token. Invite link will be returned in response even if email is not specified.
+// RequestInviteLink requests invite link. Invite link will be returned in response even if email is not specified.
 func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := struct {

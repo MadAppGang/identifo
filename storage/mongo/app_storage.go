@@ -64,17 +64,22 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, error) {
+func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
 	s := as.db.Session(AppsCollection)
 	defer s.Close()
 
 	q := bson.M{"name": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
+	total, err := s.C.Find(q).Count()
+	if err != nil {
+		return []model.AppData{}, 0, err
+	}
+
 	orderByField := "name"
 
 	var appsData []appData
 	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&appsData); err != nil {
-		return nil, err
+		return []model.AppData{}, 0, err
 	}
 
 	apps := make([]model.AppData, len(appsData))
@@ -82,7 +87,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		apps[i] = AppData{appData: appsData[i]}
 	}
 
-	return apps, nil
+	return []model.AppData{}, total, nil
 }
 
 // DeleteApp deletes app by id.
@@ -213,6 +218,7 @@ type appData struct {
 	Description           string        `bson:"description,omitempty" json:"description,omitempty"`
 	Scopes                []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
 	Offline               bool          `bson:"offline,omitempty" json:"offline,omitempty"`
+	Type                  string        `json:"type,omitempty"`
 	RedirectURL           string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64         `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
@@ -310,6 +316,9 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 
 // Offline implements model.AppData interface.
 func (ad AppData) Offline() bool { return ad.appData.Offline }
+
+// Type implements model.AppData interface.
+func (ad AppData) Type() string { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }

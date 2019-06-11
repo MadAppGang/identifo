@@ -6,9 +6,10 @@ import (
 	"github.com/madappgang/identifo/facebook"
 )
 
+// ErrFacebookEmptyUserID is when Facebook user ID is empty.
 var ErrFacebookEmptyUserID = errors.New("Facebook user id is not accessible. ")
 
-// FacebookLogin implements federated facebook login
+// FacebookUserID returns Facebook user ID.
 func (ar *Router) FacebookUserID(accessToken string) (string, error) {
 	fb := facebook.NewClient(accessToken)
 	fbProfile, err := fb.MyProfile()
@@ -16,7 +17,6 @@ func (ar *Router) FacebookUserID(accessToken string) (string, error) {
 		return "", err
 	}
 
-	// check we had `id` permissions for the access_token
 	if len(fbProfile.ID) == 0 {
 		return "", ErrFacebookEmptyUserID
 	}

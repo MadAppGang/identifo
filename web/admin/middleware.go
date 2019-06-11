@@ -60,6 +60,7 @@ func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 	c := &http.Cookie{
 		Name:     cookieName,
 		Value:    encode(sessionID),
+		Path:     "/",
 		MaxAge:   ar.sessionService.SessionDurationSeconds(),
 		HttpOnly: true,
 	}

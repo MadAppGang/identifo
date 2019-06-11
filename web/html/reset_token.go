@@ -92,6 +92,5 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 
 		url := path.Join(ar.PathPrefix, r.URL.String(), "success")
 		http.Redirect(w, r, url, http.StatusMovedPermanently)
-		return
 	}
 }

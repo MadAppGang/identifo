@@ -12,23 +12,23 @@ func (ar *Router) initRoutes() {
 		return
 	}
 
-	ar.router.Path("/{me:me\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{me:me/?}`).Handler(negroni.New(
 		negroni.WrapFunc(ar.IsLoggedIn()),
 	)).Methods("GET")
 
-	ar.router.Path("/{login:login\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{login:login/?}`).Handler(negroni.New(
 		negroni.WrapFunc(ar.Login()),
 	)).Methods("POST")
 
-	ar.router.Path("/{logout:logout\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{logout:logout/?}`).Handler(negroni.New(
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("POST")
 
-	ar.router.Path("/{apps:apps\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{apps:apps/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchApps()),
 	)).Methods("GET")
-	ar.router.Path("/{apps:apps\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{apps:apps/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.CreateApp()),
 	)).Methods("POST")
@@ -42,11 +42,11 @@ func (ar *Router) initRoutes() {
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateApp()).Methods("PUT")
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteApp()).Methods("DELETE")
 
-	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{users:users/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchUsers()),
 	)).Methods("GET")
-	ar.router.Path("/{users:users\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{users:users/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.CreateUser()),
 	)).Methods("POST")
@@ -60,11 +60,11 @@ func (ar *Router) initRoutes() {
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
 
-	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{settings:settings/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchServerSettings()),
 	)).Methods("GET")
-	ar.router.Path("/{settings:settings\\/?}").Handler(negroni.New(
+	ar.router.Path(`/{settings:settings/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.AlterServerSettings()),
 	)).Methods("PUT")
@@ -75,6 +75,7 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(settings),
 	))
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
-	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PUT")
+	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PATCH")
+	settings.Path("/database").HandlerFunc(ar.AlterDatabaseSettings()).Methods("PATCH")
 	settings.Path("/database/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
 }

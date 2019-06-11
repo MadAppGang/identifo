@@ -57,13 +57,13 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filterStr := strings.TrimSpace(r.URL.Query().Get("search"))
 
-		limit, skip, err := ar.parseSkipAndLimit(r, defaultUserSkip, defaultUserLimit, 0)
+		skip, limit, err := ar.parseSkipAndLimit(r, defaultUserSkip, defaultUserLimit, 0)
 		if err != nil {
 			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
 			return
 		}
 
-		users, err := ar.userStorage.FetchUsers(filterStr, skip, limit)
+		users, total, err := ar.userStorage.FetchUsers(filterStr, skip, limit)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -72,7 +72,15 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 			users[i] = user.Sanitize()
 		}
 
-		ar.ServeJSON(w, http.StatusOK, users)
+		searchResponse := struct {
+			Users []model.User `json:"users"`
+			Total int          `json:"total"`
+		}{
+			Users: users,
+			Total: total,
+		}
+
+		ar.ServeJSON(w, http.StatusOK, &searchResponse)
 	}
 }
 
@@ -100,7 +108,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		user = user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

@@ -15,7 +15,14 @@ emailTemplatesPath: ./email_templates
 emailTemplateNames:
   welcome: welcome.html
   resetPassword: reset_password.html
+  inviteEmail: invite_email.html
   verifyEmail: verify_email.html
+
+smsService: mock
+twilio:
+  accountSid:
+  authToken:
+  serviceSid:
 
 accountConfigPath: ./account-config.yaml
 serverConfigPath: ./server-config.yaml

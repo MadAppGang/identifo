@@ -37,13 +37,13 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filterStr := strings.TrimSpace(r.URL.Query().Get("search"))
 
-		limit, skip, err := ar.parseSkipAndLimit(r, defaultAppSkip, defaultAppLimit, 0)
+		skip, limit, err := ar.parseSkipAndLimit(r, defaultAppSkip, defaultAppLimit, 0)
 		if err != nil {
 			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
 			return
 		}
 
-		apps, err := ar.appStorage.FetchApps(filterStr, skip, limit)
+		apps, total, err := ar.appStorage.FetchApps(filterStr, skip, limit)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -52,7 +52,14 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 			apps[i] = app.Sanitize()
 		}
 
-		ar.ServeJSON(w, http.StatusOK, apps)
+		searchResponse := struct {
+			Apps  []model.AppData `json:"apps"`
+			Total int             `json:"total"`
+		}{
+			Apps:  apps,
+			Total: total,
+		}
+		ar.ServeJSON(w, http.StatusOK, &searchResponse)
 	}
 }
 

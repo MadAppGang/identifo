@@ -10,6 +10,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/model"
 	"gopkg.in/go-playground/validator.v9"
 	"gopkg.in/yaml.v2"
 )
@@ -62,7 +63,7 @@ func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, 
 	if len(limitStr) != 0 {
 		limit, err = strconv.Atoi(limitStr)
 		if err != nil {
-			return 0, 0, fmt.Errorf(errInvalidLimit, skipStr)
+			return 0, 0, fmt.Errorf(errInvalidLimit, limitStr)
 		}
 	} else {
 		limit = defaultLimit
@@ -84,23 +85,48 @@ func getRouteVar(name string, r *http.Request) string {
 }
 
 // getAccountConf reads admin account configuration file and parses it to adminData struct.
-func (ar *Router) getAccountConf(w http.ResponseWriter, ad *adminData) error {
+func (ar *Router) getAccountConf(w http.ResponseWriter, ald *adminLoginData) error {
 	dir, err := os.Getwd()
 	if err != nil {
-		ar.logger.Println("Cannot get configuration file:", err)
+		ar.logger.Println("Cannot get admin account configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.AccountConfigPath))
 	if err != nil {
-		ar.logger.Println("Cannot read configuration file:", err)
+		ar.logger.Println("Cannot read admin account configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}
 
-	if err = yaml.Unmarshal(yamlFile, ad); err != nil {
-		ar.logger.Println("Cannot unmarshal configuration file:", err)
+	if err = yaml.Unmarshal(yamlFile, ald); err != nil {
+		ar.logger.Println("Cannot unmarshal admin account configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	return nil
+}
+
+// getServerConf reads server configuration file and parses it to struct.
+func (ar *Router) getServerConf(w http.ResponseWriter, sc *model.ServerSettings) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		ar.logger.Println("Cannot get server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.ServerConfigPath))
+	if err != nil {
+		ar.logger.Println("Cannot read server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	if err = yaml.Unmarshal(yamlFile, sc); err != nil {
+		ar.logger.Println("Cannot unmarshal server configuration file:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}

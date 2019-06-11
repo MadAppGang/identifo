@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -20,7 +21,7 @@ func (ar *Router) FetchServerSettings() http.HandlerFunc {
 // FetchAccountSettings returns admin account settings.
 func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		conf := new(adminData)
+		conf := new(adminLoginData)
 		if ar.getAccountConf(w, conf) != nil {
 			return
 		}
@@ -28,7 +29,7 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	}
 }
 
-// AlterServerSettings changes server settings.
+// AlterServerSettings changes the whole set of server settings.
 func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		newset := new(model.ServerSettings)
@@ -45,21 +46,75 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	}
 }
 
+// AlterDatabaseSettings changes database connection settings.
+func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var dbSettingsUpdate model.DBSettings
+		if ar.mustParseJSON(w, r, &dbSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerConf(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.DBSettings = dbSettingsUpdate
+		if ar.updateServerConfigFile(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.DBSettings)
+	}
+}
+
 // AlterAccountSettings changes admin account settings.
 func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		newset := new(adminData)
+		adminDataUpdate := new(adminLoginData)
 
-		if ar.mustParseJSON(w, r, newset) != nil {
+		if ar.mustParseJSON(w, r, adminDataUpdate) != nil {
 			return
 		}
 
-		if ar.updateAccountConfigFile(w, newset) != nil {
+		if adminDataUpdate.Password != "" {
+			if err := ar.validateAdminPassword(adminDataUpdate.Password, w); err != nil {
+				return
+			}
+		}
+
+		newAdminData := new(adminLoginData)
+		if err := ar.getAccountConf(w, newAdminData); err != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newset)
+		if newAdminData.Login == adminDataUpdate.Login && newAdminData.Password == adminDataUpdate.Password {
+			ar.ServeJSON(w, http.StatusOK, nil)
+			return
+		}
+
+		if len(adminDataUpdate.Login) > 0 {
+			newAdminData.Login = adminDataUpdate.Login
+		}
+		if len(adminDataUpdate.Password) > 0 {
+			newAdminData.Password = adminDataUpdate.Password
+		}
+
+		if ar.updateAccountConfigFile(w, newAdminData) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, nil)
 	}
+}
+
+func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
+	if len(pswd) < 6 || len(pswd) > 130 {
+		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", len(pswd))
+		ar.Error(w, err, http.StatusBadRequest, err.Error())
+		return err
+	}
+	return nil
 }
 
 // TestDatabaseConnection tests database connection.
@@ -84,7 +139,7 @@ func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *mod
 	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath))
 }
 
-func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *adminData) error {
+func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newAdminData *adminLoginData) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		ar.logger.Println("Cannot get account configuration file:", err)
@@ -92,7 +147,7 @@ func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newSettings *ad
 		return err
 	}
 
-	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.AccountConfigPath))
+	return ar.updateConfigFile(w, newAdminData, filepath.Join(dir, ar.AccountConfigPath))
 }
 
 func (ar *Router) updateConfigFile(w http.ResponseWriter, in interface{}, dir string) error {

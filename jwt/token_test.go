@@ -31,7 +31,7 @@ func TestNewTokenService(t *testing.T) {
 	}
 	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
-		t.Errorf("Unable to crate service %v", err)
+		t.Errorf("Unable to create service %v", err)
 	}
 	type args struct {
 		private string
@@ -78,7 +78,7 @@ func TestParseString(t *testing.T) {
 	}
 	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
 	if err != nil {
-		t.Errorf("Unable to crate service %v", err)
+		t.Errorf("Unable to create service %v", err)
 	}
 	token, err := ts.Parse(tokenStringExample)
 	if err != nil {
