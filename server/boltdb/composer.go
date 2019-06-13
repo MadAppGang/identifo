@@ -1,4 +1,4 @@
-package embedded
+package boltdb
 
 import (
 	"fmt"

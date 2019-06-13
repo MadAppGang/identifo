@@ -8,19 +8,17 @@ WORKDIR $GOPATH/src/github.com/madappgang/identifo
 COPY Gopkg.toml Gopkg.lock ./
 RUN dep ensure --vendor-only
 COPY . ./
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app ./cmd/demo
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app .
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app .
-COPY ./jwt/private.pem ./pem/private.pem
-COPY ./jwt/public.pem ./pem/public.pem
+COPY *config.yaml ./
+COPY jwt/*.pem ./jwt/
 COPY web/static ./static
-COPY ./cmd/import/apps.json ./apps.json
-COPY ./cmd/import/users.json ./users.json
-COPY ./email_templates ./email_templates
-COPY ./cmd/demo/*config.yaml ./
-COPY ./jwt/*.pem ./pem/
+COPY cmd/import/apps.json ./apps.json
+COPY cmd/import/users.json ./users.json
+COPY email_templates ./email_templates
 
 CMD ["./app"]

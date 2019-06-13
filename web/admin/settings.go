@@ -11,6 +11,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const serverSettingsKey = "identifo/server-settings"
+
 // FetchServerSettings returns server settings.
 func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -136,7 +138,18 @@ func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *mod
 		return err
 	}
 
-	return ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath))
+	if err = ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath)); err != nil {
+		ar.logger.Println("Cannot update server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	if err = ar.configurationStorage.Insert(serverSettingsKey, newSettings); err != nil {
+		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+	return nil
 }
 
 func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newAdminData *adminLoginData) error {

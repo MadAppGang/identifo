@@ -4,7 +4,9 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"strconv"
 	"strings"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
@@ -276,6 +278,7 @@ func (us *UserStorage) prepareUserForSaving(usr model.User) (*User, error) {
 }
 
 func (us *UserStorage) addNewUser(u *User) (*User, error) {
+	u.userData.NumOfLogins = 0
 	uv, err := dynamodbattribute.MarshalMap(u)
 	if err != nil {
 		log.Println("Error marshalling user:", err)
@@ -537,6 +540,36 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// UpdateLoginMetadata updates user's login metadata.
+func (us *UserStorage) UpdateLoginMetadata(userID string) {
+	if _, err := xid.FromString(userID); err != nil {
+		log.Println("Incorrect userID: ", userID)
+		return
+	}
+
+	if _, err := us.UserByID(userID); err != nil {
+		log.Println("Cannot get user by ID: ", userID)
+		return
+	}
+
+	_, err := us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
+		TableName: aws.String(UsersTableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"id": {S: aws.String(userID)},
+		},
+		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
+			":now": {N: aws.String(strconv.Itoa(int(time.Now().Unix())))},
+			":one": {N: aws.String("1")},
+		},
+		UpdateExpression: aws.String("set latest_login_time :now add num_logins :one "),
+		ReturnValues:     aws.String("NONE"),
+	})
+	if err != nil {
+		log.Println("Cannot get user by ID: ", userID)
+		return
+	}
+}
+
 // userIndexByNameData represents username index projected user data.
 type userIndexByNameData struct {
 	ID       string `json:"id,omitempty"`
@@ -552,13 +585,15 @@ type userIndexByPhoneData struct {
 
 // User data implementation.
 type userData struct {
-	ID       string                 `json:"id,omitempty"`
-	Username string                 `json:"username,omitempty"`
-	Email    string                 `json:"email,omitempty"`
-	Phone    string                 `bson:"phone,omitempty" json:"phone,omitempty"`
-	Pswd     string                 `json:"pswd,omitempty"`
-	Profile  map[string]interface{} `json:"profile,omitempty"`
-	Active   bool                   `json:"active,omitempty"`
+	ID              string                 `json:"id,omitempty"`
+	Username        string                 `json:"username,omitempty"`
+	Email           string                 `json:"email,omitempty"`
+	Phone           string                 `json:"phone,omitempty"`
+	Pswd            string                 `json:"pswd,omitempty"`
+	Profile         map[string]interface{} `json:"profile,omitempty"`
+	Active          bool                   `json:"active,omitempty"`
+	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
+	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
 }
 
 // federatedUserID is a struct for mapping federated id to user id.

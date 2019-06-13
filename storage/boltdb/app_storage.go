@@ -16,7 +16,7 @@ const (
 	AppBucket = "Apps"
 )
 
-// NewAppStorage creates new embedded AppStorage implementation.
+// NewAppStorage creates new BoltDB AppStorage implementation.
 func NewAppStorage(db *bolt.DB) (model.AppStorage, error) {
 	as := AppStorage{db: db}
 	// ensure we have app's bucket in the database

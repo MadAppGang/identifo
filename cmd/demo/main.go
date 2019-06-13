@@ -5,7 +5,8 @@ import (
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server/embedded"
+	"github.com/madappgang/identifo/server"
+	"github.com/madappgang/identifo/server/boltdb"
 )
 
 const (
@@ -17,26 +18,24 @@ const (
 var port string
 
 func initServer() model.Server {
-	settings := embedded.ServerSettings
-
-	server, err := embedded.NewServer(settings)
+	srv, err := boltdb.NewServer(server.ServerSettings)
 	if err != nil {
 		log.Fatal(err)
 	}
 
-	port = settings.GetPort()
+	port = server.ServerSettings.GetPort()
 
-	if _, err = server.AppStorage().AppByID(testAppID); err != nil {
+	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
 		log.Println("Error getting app by ID:", err)
-		if err = server.ImportApps(appsImportPath); err != nil {
+		if err = srv.ImportApps(appsImportPath); err != nil {
 			log.Println("Error importing apps:", err)
 		}
-		if err = server.ImportUsers(usersImportPath); err != nil {
+		if err = srv.ImportUsers(usersImportPath); err != nil {
 			log.Println("Error importing users:", err)
 		}
 	}
 
-	return server
+	return srv
 }
 
 func main() {

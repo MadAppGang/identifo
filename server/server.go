@@ -9,9 +9,11 @@ import (
 	"path"
 	"path/filepath"
 
+	"github.com/madappgang/identifo/configuration/storage/etcd"
+	configStoreMock "github.com/madappgang/identifo/configuration/storage/mock"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	"github.com/madappgang/identifo/external_services/mail/ses"
-	"github.com/madappgang/identifo/external_services/sms/mock"
+	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -24,7 +26,7 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const serverConfigPath = "../../server/server-config.yaml"
+const serverConfigPathEnv = "SERVER_CONFIG_PATH"
 
 // ServerSettings are server settings.
 var ServerSettings model.ServerSettings
@@ -34,23 +36,36 @@ func init() {
 }
 
 // LoadServerConfiguration loads configuration from the yaml file and writes it to out variable.
-func LoadServerConfiguration(out interface{}) {
+func LoadServerConfiguration(out *model.ServerSettings) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("Cannot get server configuration file:", err)
 	}
 
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, serverConfigPath))
-	var origErr = err
-	if err != nil {
-		yamlFile, err = ioutil.ReadFile(path.Base("./server-config.yaml"))
-		if err != nil {
-			log.Fatalln("Cannot read server configuration file:", origErr)
+	configPaths := []string{
+		os.Getenv(serverConfigPathEnv),
+		"./server-config.yaml",
+		"../../server/server-config.yaml",
+	}
+
+	var configFile []byte
+
+	for _, p := range configPaths {
+		if p == "" {
+			continue
+		}
+		configFile, err = ioutil.ReadFile(filepath.Join(dir, p))
+		if err == nil {
+			break
 		}
 	}
 
-	if err = yaml.Unmarshal(yamlFile, out); err != nil {
-		log.Fatalln("Cannot unmarshal configuration file:", err)
+	if err != nil {
+		log.Fatalln("Cannot read server configuration file:", err)
+	}
+
+	if err = yaml.Unmarshal(configFile, out); err != nil {
+		log.Fatalln("Cannot unmarshal server configuration file:", err)
 	}
 }
 
@@ -72,7 +87,13 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 	if err != nil {
 		return nil, err
 	}
-	s := Server{AppStrg: appStorage, UserStrg: userStorage}
+
+	configurationStorage, err := configurationStorage(settings.ConfigurationStorage)
+	if err != nil {
+		return nil, err
+	}
+
+	s := Server{appStorage: appStorage, userStorage: userStorage, configurationStorage: configurationStorage}
 
 	sessionStorage, err := sessionStorage(settings.SessionStorage)
 	if err != nil {
@@ -112,6 +133,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		TokenService:            tokenService,
 		SessionService:          sessionService,
 		SessionStorage:          sessionStorage,
+		ConfigurationStorage:    configurationStorage,
 		SMSService:              sms,
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
@@ -144,11 +166,12 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 	return &s, nil
 }
 
-// Server is DynamoDB-backed server.
+// Server is a server.
 type Server struct {
-	MainRouter *web.Router
-	AppStrg    model.AppStorage
-	UserStrg   model.UserStorage
+	MainRouter           *web.Router
+	appStorage           model.AppStorage
+	userStorage          model.UserStorage
+	configurationStorage model.ConfigurationStorage
 }
 
 // Router returns server's main router.
@@ -162,12 +185,28 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // AppStorage returns server's app storage.
 func (s *Server) AppStorage() model.AppStorage {
-	return s.AppStrg
+	return s.appStorage
 }
 
 // UserStorage returns server's user storage.
 func (s *Server) UserStorage() model.UserStorage {
-	return s.UserStrg
+	return s.userStorage
+}
+
+// ConfigurationStorage returns server's configuration storage.
+func (s *Server) ConfigurationStorage() model.ConfigurationStorage {
+	return s.configurationStorage
+}
+
+func configurationStorage(configStorageType model.ConfigurationStorageType) (model.ConfigurationStorage, error) {
+	switch configStorageType {
+	case model.ConfigurationStorageTypeEtcd:
+		return etcd.NewConfigurationStorage()
+	case model.ConfigurationStorageTypeMock:
+		return configStoreMock.NewConfigurationStorage()
+	default:
+		return nil, model.ErrorNotImplemented
+	}
 }
 
 func smsService(settings model.ServerSettings) (model.SMSService, error) {
@@ -175,7 +214,7 @@ func smsService(settings model.ServerSettings) (model.SMSService, error) {
 	case model.SMSServiceTwilio:
 		return twilio.NewSMSService(settings.Twilio.AccountSid, settings.Twilio.AuthToken, settings.Twilio.ServiceSid)
 	case model.SMSServiceMock:
-		return mock.NewSMSService()
+		return smsMock.NewSMSService()
 	default:
 		return nil, model.ErrorNotImplemented
 	}

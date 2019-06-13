@@ -2,7 +2,7 @@
 host: http://localhost:8080
 
 # Folder where public and private keys are stored.
-pemFolderPath: ../../jwt
+pemFolderPath: ./jwt
 # Private key for signing JWT tokens.
 privateKey: private.pem
 # Public key for verifying JWT tokens.
@@ -24,9 +24,9 @@ sessionDuration: 300
 configurationStorage: etcd
 
 # Folder for the static files.
-staticFolderPath: ../../web/static
+staticFolderPath: ./web/static
 # Forder for the email templates.
-emailTemplatesPath: ../../email_templates
+emailTemplatesPath: ./email_templates
 # Email template names.
 emailTemplateNames:
   welcome: welcome.html
@@ -42,9 +42,9 @@ twilio:
   serviceSid:
 
 # File with admin account settings.
-accountConfigPath: ../../server/account-config.yaml
+accountConfigPath: account-config.yaml
 # File with server settings.
-serverConfigPath: ../../server/server-config.yaml
+serverConfigPath: server-config.yaml
 
 # Database settings holds together settings for all supported database types.
 

@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
@@ -92,7 +91,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 
 	// Hide error from client if it is internal.
 	if code == http.StatusInternalServerError {
-		err = identifo.ErrorInternal
+		err = model.ErrorInternal
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

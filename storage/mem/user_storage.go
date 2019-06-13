@@ -111,6 +111,9 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return nil
 }
 
+// UpdateLoginMetadata does nothing here.
+func (us *UserStorage) UpdateLoginMetadata(userID string) {}
+
 // FetchUsers returns randomly generated user enclosed in slice.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	return []model.User{randUser()}, 1, nil
