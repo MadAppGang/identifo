@@ -565,7 +565,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 		ReturnValues:     aws.String("NONE"),
 	})
 	if err != nil {
-		log.Println("Cannot get user by ID: ", userID)
+		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 		return
 	}
 }

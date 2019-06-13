@@ -46,7 +46,7 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 	case reflect.Ptr:
 		out, err := json.Marshal(value)
 		if err != nil {
-			return fmt.Errorf("Cannot serialize struct %+v to string: %s", value, err)
+			return fmt.Errorf("Cannot serialize pointer %v to string: %s", value, err)
 		}
 		strVal = string(out)
 	}

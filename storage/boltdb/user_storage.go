@@ -524,7 +524,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 
 	u, ok := user.(User)
 	if !ok {
-		log.Println("Cannot update user login metadata: ", ErrorWrongDataFormat)
+		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
 
 	u.userData.NumOfLogins++

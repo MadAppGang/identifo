@@ -198,6 +198,16 @@ func (s *Server) ConfigurationStorage() model.ConfigurationStorage {
 	return s.configurationStorage
 }
 
+// ConfigurationStorageOption is an option to set server's configuration storage.
+func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) func(*Server) error {
+	return func(s *Server) error {
+		if configuratonStorage != nil {
+			s.configurationStorage = configuratonStorage
+		}
+		return nil
+	}
+}
+
 func configurationStorage(configStorageType model.ConfigurationStorageType) (model.ConfigurationStorage, error) {
 	switch configStorageType {
 	case model.ConfigurationStorageTypeEtcd:

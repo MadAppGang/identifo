@@ -15,15 +15,11 @@ const (
 	usersImportPath = "../import/users.json"
 )
 
-var port string
-
 func initServer() model.Server {
 	srv, err := mgo.NewServer(server.ServerSettings)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	port = server.ServerSettings.GetPort()
 
 	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
 		log.Println("Error getting app storage:", err)
@@ -40,5 +36,5 @@ func initServer() model.Server {
 func main() {
 	s := initServer()
 	log.Println("MongoDB server started")
-	log.Fatal(http.ListenAndServe(port, s.Router()))
+	log.Fatal(http.ListenAndServe(server.ServerSettings.GetPort(), s.Router()))
 }

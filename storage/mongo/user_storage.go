@@ -379,7 +379,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 
 	var ud userData
 	if _, err := s.C.FindId(bson.ObjectIdHex(userID)).Apply(update, &ud); err != nil {
-		log.Println("Cannot update user login metadata:", err)
+		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
 }
 

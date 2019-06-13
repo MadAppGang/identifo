@@ -15,15 +15,11 @@ const (
 	usersImportPath = "./users.json"
 )
 
-var port string
-
 func initServer() model.Server {
 	srv, err := boltdb.NewServer(server.ServerSettings)
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	port = server.ServerSettings.GetPort()
 
 	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
 		log.Println("Error getting app by ID:", err)
@@ -42,5 +38,5 @@ func main() {
 	log.SetFlags(log.LstdFlags | log.Lshortfile)
 	s := initServer()
 	log.Println("Demo Identifo server started")
-	log.Fatal(http.ListenAndServe(port, s.Router()))
+	log.Fatal(http.ListenAndServe(server.ServerSettings.GetPort(), s.Router()))
 }

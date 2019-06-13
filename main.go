@@ -25,7 +25,7 @@ const (
 func main() {
 	forever := make(chan struct{}, 1)
 
-	srv := initServer()
+	srv := initServer(nil)
 	httpSrv := &http.Server{
 		Addr:    server.ServerSettings.GetPort(),
 		Handler: srv.Router(),
@@ -49,7 +49,7 @@ func startHTTPServer(httpSrv *http.Server) {
 	}
 }
 
-func initServer() model.Server {
+func initServer(configStorage model.ConfigurationStorage) model.Server {
 	var err error
 	var dbComposer server.DatabaseComposer
 
@@ -69,7 +69,9 @@ func initServer() model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer)
+	configStorageOption := server.ConfigurationStorageOption(configStorage)
+
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorageOption)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}
@@ -124,10 +126,12 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 			if err := httpSrv.Shutdown(context.Background()); err != nil {
 				log.Panicln("Cannot shutdown server: ", err)
 			}
-			go startHTTPServer(&http.Server{
+
+			httpSrv = &http.Server{
 				Addr:    server.ServerSettings.GetPort(),
-				Handler: initServer().Router(),
-			})
+				Handler: initServer(configStorage).Router(),
+			}
+			go startHTTPServer(httpSrv)
 		}
 	}()
 	return cw
