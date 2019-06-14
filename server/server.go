@@ -211,7 +211,7 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 func configurationStorage(settings model.ServerSettings) (model.ConfigurationStorage, error) {
 	switch settings.ConfigurationStorage {
 	case model.ConfigurationStorageTypeEtcd:
-		return etcd.NewConfigurationStorage(settings.Etcd)
+		return etcd.NewConfigurationStorage(settings.Etcd, settings.SettingsKey)
 	case model.ConfigurationStorageTypeMock:
 		return configStoreMock.NewConfigurationStorage()
 	default:

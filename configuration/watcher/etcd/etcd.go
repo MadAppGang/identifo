@@ -7,25 +7,25 @@ import (
 	"go.etcd.io/etcd/clientv3"
 )
 
-const serverSettingsKey = "identifo/server-settings"
-
 // ConfigurationWatcher wraps etcd client.
 type ConfigurationWatcher struct {
-	Client    *clientv3.Client
-	watchChan chan interface{}
+	Client            *clientv3.Client
+	watchChan         chan interface{}
+	serverSettingsKey string
 }
 
 // NewConfigurationWatcher creates and returns new etcd-backed configuration watcher.
-func NewConfigurationWatcher(configStorage *etcd.ConfigurationStorage, watchChan chan interface{}) (*ConfigurationWatcher, error) {
+func NewConfigurationWatcher(configStorage *etcd.ConfigurationStorage, settingsKey string, watchChan chan interface{}) (*ConfigurationWatcher, error) {
 	return &ConfigurationWatcher{
-		Client:    configStorage.Client,
-		watchChan: watchChan,
+		Client:            configStorage.Client,
+		watchChan:         watchChan,
+		serverSettingsKey: settingsKey,
 	}, nil
 }
 
 // Watch watches for configuration updates.
 func (cw *ConfigurationWatcher) Watch() {
-	internalWatchChan := cw.Client.Watch(context.Background(), serverSettingsKey)
+	internalWatchChan := cw.Client.Watch(context.Background(), cw.serverSettingsKey)
 
 	go func() {
 		for event := range internalWatchChan {

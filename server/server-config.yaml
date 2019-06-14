@@ -26,6 +26,8 @@ sessionDuration: 300
 
 # Storage for server configuration. Supported values are: "etcd", "mock".
 configurationStorage: etcd
+# Key for accessing server settings in the configuraion storage.
+settingsKey: identifo/server-settings
 etcd:
   endpoints:
   settingsKey: identifo/server-settings

@@ -11,6 +11,7 @@ sessionStorage: memory
 sessionDuration: 300
 
 configurationStorage: mock
+settingsKey: identifo/server-settings
 
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates

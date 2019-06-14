@@ -102,9 +102,9 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 		if !ok {
 			log.Panicln("Incorrect configuration storage type")
 		}
-		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, watchChan)
+		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, server.ServerSettings.SettingsKey, watchChan)
 	case model.ConfigurationStorageTypeMock:
-		cw, err = watcherMock.NewConfigurationWatcher(watchChan)
+		cw, err = watcherMock.NewConfigurationWatcher()
 	default:
 		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage)
 	}
@@ -127,9 +127,10 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 				log.Panicln("Cannot shutdown server: ", err)
 			}
 
+			srv = initServer(configStorage)
 			httpSrv = &http.Server{
 				Addr:    server.ServerSettings.GetPort(),
-				Handler: initServer(configStorage).Router(),
+				Handler: srv.Router(),
 			}
 			go startHTTPServer(httpSrv)
 		}

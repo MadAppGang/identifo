@@ -4,7 +4,7 @@ package mock
 type ConfigurationWatcher struct{}
 
 // NewConfigurationWatcher creates and returns new mocked configuration watcher.
-func NewConfigurationWatcher(watchChan chan interface{}) (*ConfigurationWatcher, error) {
+func NewConfigurationWatcher() (*ConfigurationWatcher, error) {
 	return &ConfigurationWatcher{}, nil
 }
 

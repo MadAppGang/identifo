@@ -66,10 +66,13 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
 		}
+
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 		}
+
+		go ar.userStorage.UpdateLoginMetadata(user.ID())
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

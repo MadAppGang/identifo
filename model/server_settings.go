@@ -18,6 +18,7 @@ type ServerSettings struct {
 	Algorithm            string                   `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 	MailService          MailServiceType          `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
 	ConfigurationStorage ConfigurationStorageType `yaml:"configurationStorage,omitempty" json:"configuration_storage,omitempty"`
+	SettingsKey          string                   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
 	SessionStorage       SessionStorageType       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
 	SessionDuration      SessionDuration          `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
 	StaticFolderPath     string                   `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
@@ -81,8 +82,7 @@ const (
 
 // EtcdSettings holds together etcd-related settings.
 type EtcdSettings struct {
-	Endpoints   []string `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
-	SettingsKey string   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
+	Endpoints []string `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
 }
 
 // RedisSettings holds together Redis-related settings.
