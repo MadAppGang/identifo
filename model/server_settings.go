@@ -26,6 +26,8 @@ type ServerSettings struct {
 	AccountConfigPath    string                   `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
 	ServerConfigPath     string                   `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	SMSService           SMSServiceType           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
+	Etcd                 EtcdSettings             `yaml:"etcd,omitempty" json:"etcd,omitempty"`
+	Redis                RedisSettings            `yaml:"redis,omitempty" json:"redis,omitempty"`
 	Twilio               TwilioSettings           `yaml:"twilio,omitempty" json:"twilio,omitempty"`
 	DBSettings           `yaml:"-,inline" json:"db_settings,omitempty"`
 }
@@ -76,6 +78,19 @@ const (
 	// ConfigurationStorageTypeMock is a mocked storage.
 	ConfigurationStorageTypeMock ConfigurationStorageType = "mock"
 )
+
+// EtcdSettings holds together etcd-related settings.
+type EtcdSettings struct {
+	Endpoints   []string `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
+	SettingsKey string   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
+}
+
+// RedisSettings holds together Redis-related settings.
+type RedisSettings struct {
+	Address  string `yaml:"address,omitempty" json:"address,omitempty"`
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	DB       int    `yaml:"db,omitempty" json:"db,omitempty"`
+}
 
 // TwilioSettings holds together Twilio-related settings.
 type TwilioSettings struct {

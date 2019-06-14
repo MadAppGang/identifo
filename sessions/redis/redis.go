@@ -3,8 +3,6 @@ package sessions
 import (
 	"encoding/json"
 	"log"
-	"os"
-	"strconv"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -12,26 +10,29 @@ import (
 )
 
 const (
-	// RedisAddress is a host:port Redis network address.
-	RedisAddress = "REDIS_ADDRESS"
-	// RedisPassword is a password to connect to Redis.
-	RedisPassword = "REDIS_PASSWORD"
-	// RedisDB is an enumerator for database to be selected after connecting to the Redis server.
-	RedisDB = "REDIS_DB"
+	defaultRedisAddress  = "localhost:6379"
+	defaultRedisPassword = ""
+	defaultRedisDB       = 0
 )
 
-type redisStorage struct {
+// RedisSessionStorage is a Redis-backed storage for admin sessions.
+type RedisSessionStorage struct {
 	client *redis.Client
 }
 
-// NewSessionStorageFromEnv creates new Redis session storage getting all settings from env.
-func NewSessionStorageFromEnv() (model.SessionStorage, error) {
-	addr := os.Getenv(RedisAddress)
-	password := os.Getenv(RedisPassword)
-	db, err := strconv.Atoi(os.Getenv(RedisDB))
+// NewSessionStorage creates new Redis session storage.
+func NewSessionStorage(settings model.RedisSettings) (model.SessionStorage, error) {
+	var addr, password string
+	var db int
 
-	if err != nil {
-		return nil, err
+	if settings.Address == "" {
+		addr = defaultRedisAddress
+	}
+	if settings.Password == "" {
+		password = defaultRedisPassword
+	}
+	if settings.DB == 0 {
+		db = defaultRedisDB
 	}
 
 	client := redis.NewClient(&redis.Options{
@@ -44,10 +45,11 @@ func NewSessionStorageFromEnv() (model.SessionStorage, error) {
 		return nil, err
 	}
 
-	return &redisStorage{client: client}, err
+	return &RedisSessionStorage{client: client}, nil
 }
 
-func (r *redisStorage) GetSession(id string) (model.Session, error) {
+// GetSession fetches session by ID.
+func (r *RedisSessionStorage) GetSession(id string) (model.Session, error) {
 	var session model.Session
 
 	bs, err := r.client.Get(id).Bytes()
@@ -59,7 +61,8 @@ func (r *redisStorage) GetSession(id string) (model.Session, error) {
 	return session, err
 }
 
-func (r *redisStorage) InsertSession(session model.Session) error {
+// InsertSession inserts session to the storage.
+func (r *RedisSessionStorage) InsertSession(session model.Session) error {
 	bs, err := json.Marshal(session)
 	if err != nil {
 		return err
@@ -69,7 +72,8 @@ func (r *redisStorage) InsertSession(session model.Session) error {
 	return err
 }
 
-func (r *redisStorage) DeleteSession(id string) error {
+// DeleteSession deletes session from the storage.
+func (r *RedisSessionStorage) DeleteSession(id string) error {
 	count, err := r.client.Del(id).Result()
 	if count == 0 {
 		log.Println("Tried to delete nonexistent session:", id)
@@ -78,7 +82,8 @@ func (r *redisStorage) DeleteSession(id string) error {
 	return err
 }
 
-func (r *redisStorage) ProlongSession(id string, newDuration model.SessionDuration) error {
+// ProlongSession sets new duration for the existing session.
+func (r *RedisSessionStorage) ProlongSession(id string, newDuration model.SessionDuration) error {
 	session, err := r.GetSession(id)
 	if err != nil {
 		return err

@@ -88,14 +88,14 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		return nil, err
 	}
 
-	configurationStorage, err := configurationStorage(settings.ConfigurationStorage)
+	configurationStorage, err := configurationStorage(settings)
 	if err != nil {
 		return nil, err
 	}
 
 	s := Server{appStorage: appStorage, userStorage: userStorage, configurationStorage: configurationStorage}
 
-	sessionStorage, err := sessionStorage(settings.SessionStorage)
+	sessionStorage, err := sessionStorage(settings)
 	if err != nil {
 		return nil, err
 	}
@@ -208,10 +208,10 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 	}
 }
 
-func configurationStorage(configStorageType model.ConfigurationStorageType) (model.ConfigurationStorage, error) {
-	switch configStorageType {
+func configurationStorage(settings model.ServerSettings) (model.ConfigurationStorage, error) {
+	switch settings.ConfigurationStorage {
 	case model.ConfigurationStorageTypeEtcd:
-		return etcd.NewConfigurationStorage()
+		return etcd.NewConfigurationStorage(settings.Etcd)
 	case model.ConfigurationStorageTypeMock:
 		return configStoreMock.NewConfigurationStorage()
 	default:
@@ -249,10 +249,10 @@ func mailService(serviceType model.MailServiceType, templateNames model.EmailTem
 	}
 }
 
-func sessionStorage(storageType model.SessionStorageType) (model.SessionStorage, error) {
-	switch storageType {
+func sessionStorage(settings model.ServerSettings) (model.SessionStorage, error) {
+	switch settings.SessionStorage {
 	case model.SessionStorageRedis:
-		return redis.NewSessionStorageFromEnv()
+		return redis.NewSessionStorage(settings.Redis)
 	case model.SessionStorageMem:
 		return mem.NewSessionStorage()
 	default:

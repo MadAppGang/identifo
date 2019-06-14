@@ -16,12 +16,20 @@ algorithm: auto
 mailService: aws ses
 # Storage for admin sessions. Supported values are "memory" and "redis".
 sessionStorage: memory
+redis:
+  address:
+  password:
+  db:
+
 # Admin session duration in seconds.
 # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
 sessionDuration: 300
 
 # Storage for server configuration. Supported values are: "etcd", "mock".
 configurationStorage: etcd
+etcd:
+  endpoints:
+  settingsKey: identifo/server-settings
 
 # Folder for the static files.
 staticFolderPath: ./web/static

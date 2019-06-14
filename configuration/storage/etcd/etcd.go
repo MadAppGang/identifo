@@ -12,9 +12,8 @@ import (
 )
 
 const (
-	etcdConnectionString = "http://127.0.0.1:2379"
-	serverSettingsKey    = "identifo/server-settings"
-	timeoutPerRequest    = 5 * time.Second
+	etcdConnectionStringDefault = "http://127.0.0.1:2379"
+	timeoutPerRequest           = 5 * time.Second
 )
 
 // ConfigurationStorage is an etcd-backed storage for server configuration.
@@ -23,11 +22,20 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage() (*ConfigurationStorage, error) {
+func NewConfigurationStorage(settings model.EtcdSettings) (*ConfigurationStorage, error) {
+	if settings.SettingsKey == "" {
+		return nil, fmt.Errorf("Empty server settings key for etcd")
+	}
+
+	if settings.Endpoints == nil {
+		settings.Endpoints = []string{etcdConnectionStringDefault}
+	}
+
 	c, err := clientv3.New(clientv3.Config{
-		Endpoints:   []string{etcdConnectionString},
+		Endpoints:   settings.Endpoints,
 		DialTimeout: timeoutPerRequest,
 	})
+
 	if err != nil {
 		return nil, err
 	}
@@ -57,9 +65,9 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 
 // LoadServerSettings loads server configuration from configuration storage.
 func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
-	res, err := cs.Client.Get(context.Background(), serverSettingsKey)
+	res, err := cs.Client.Get(context.Background(), settings.Etcd.SettingsKey)
 	if err != nil {
-		return fmt.Errorf("Cannot get value by key %s: %s", serverSettingsKey, err)
+		return fmt.Errorf("Cannot get value by key %s: %s", settings.Etcd.SettingsKey, err)
 	}
 
 	err = json.Unmarshal(res.Kvs[0].Value, settings)

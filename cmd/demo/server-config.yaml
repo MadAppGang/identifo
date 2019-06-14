@@ -10,6 +10,8 @@ mailService: aws ses
 sessionStorage: memory
 sessionDuration: 300
 
+configurationStorage: mock
+
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
 emailTemplateNames:
