@@ -66,6 +66,20 @@
             "env": {},
             "args": [],
             "showLog": true
+        },
+        {
+            "name": "Main",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/main.go",
+            "cwd": "${workspaceFolder}",
+            "env": {},
+            "args": [],
+            "showLog": true
         }
     ]
 }

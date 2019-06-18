@@ -334,18 +334,22 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 
 	q := bson.M{"username": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
-	users := []model.User{}
 	total, err := s.C.Find(q).Count()
 	if err != nil {
-		return users, 0, err
+		return nil, 0, err
 	}
 
 	orderByField := "username"
+	usersData := []userData{}
 
-	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users); err != nil {
-		return users, 0, err
+	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&usersData); err != nil {
+		return nil, 0, err
 	}
 
+	users := make([]model.User, len(usersData))
+	for i, ud := range usersData {
+		users[i] = &User{userData: ud}
+	}
 	return users, total, err
 }
 

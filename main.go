@@ -127,11 +127,11 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 				log.Panicln("Cannot shutdown server: ", err)
 			}
 
+			httpSrv = &http.Server{}
 			srv = initServer(configStorage)
-			httpSrv = &http.Server{
-				Addr:    server.ServerSettings.GetPort(),
-				Handler: srv.Router(),
-			}
+			httpSrv.Addr = server.ServerSettings.GetPort()
+			httpSrv.Handler = srv.Router()
+
 			go startHTTPServer(httpSrv)
 		}
 	}()

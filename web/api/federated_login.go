@@ -128,6 +128,8 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
 		}
+
+		go ar.userStorage.UpdateLoginMetadata(user.ID())
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 
