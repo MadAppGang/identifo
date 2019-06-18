@@ -9,8 +9,8 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/madappgang/identifo/configuration/storage/etcd"
-	configStoreMock "github.com/madappgang/identifo/configuration/storage/mock"
+	"github.com/madappgang/identifo/configuration/etcd/storage"
+	configStoreMock "github.com/madappgang/identifo/configuration/mock/storage"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"

@@ -3,7 +3,7 @@ package etcd
 import (
 	"context"
 
-	"github.com/madappgang/identifo/configuration/storage/etcd"
+	"github.com/madappgang/identifo/configuration/etcd/storage"
 	"go.etcd.io/etcd/clientv3"
 )
 

@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	etcdStorage "github.com/madappgang/identifo/configuration/storage/etcd"
-	etcdWatcher "github.com/madappgang/identifo/configuration/watcher/etcd"
-	watcherMock "github.com/madappgang/identifo/configuration/watcher/mock"
+	etcdStorage "github.com/madappgang/identifo/configuration/etcd/storage"
+	etcdWatcher "github.com/madappgang/identifo/configuration/etcd/watcher"
+	mockWatcher "github.com/madappgang/identifo/configuration/mock/watcher"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/server/boltdb"
@@ -104,7 +104,7 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 		}
 		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, server.ServerSettings.SettingsKey, watchChan)
 	case model.ConfigurationStorageTypeMock:
-		cw, err = watcherMock.NewConfigurationWatcher()
+		cw, err = mockWatcher.NewConfigurationWatcher()
 	default:
 		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage)
 	}

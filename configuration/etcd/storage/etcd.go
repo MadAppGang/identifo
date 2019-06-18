@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	etcdConnectionStringDefault = "http://127.0.0.1:2379"
+	defaultEtcdConnectionString = "http://127.0.0.1:2379"
 	timeoutPerRequest           = 5 * time.Second
 )
 
@@ -28,7 +28,7 @@ func NewConfigurationStorage(settings model.EtcdSettings, settingsKey string) (*
 	}
 
 	if settings.Endpoints == nil {
-		settings.Endpoints = []string{etcdConnectionStringDefault}
+		settings.Endpoints = []string{defaultEtcdConnectionString}
 	}
 
 	c, err := clientv3.New(clientv3.Config{
