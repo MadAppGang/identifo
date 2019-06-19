@@ -22,7 +22,7 @@ func (ar *Router) FetchServerSettings() http.HandlerFunc {
 func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminLoginData)
-		if ar.getAccountConf(w, conf) != nil {
+		if ar.getAdminAccountSettings(w, conf) != nil {
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, conf)
@@ -38,7 +38,7 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 			return
 		}
 
-		if ar.updateServerConfigFile(w, newset) != nil {
+		if ar.updateServerSettings(w, newset) != nil {
 			return
 		}
 
@@ -55,12 +55,12 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 		}
 
 		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerConf(w, newServerSettings); err != nil {
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
 			return
 		}
 
 		newServerSettings.DBSettings = dbSettingsUpdate
-		if ar.updateServerConfigFile(w, newServerSettings) != nil {
+		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
 
@@ -84,7 +84,7 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 		}
 
 		newAdminData := new(adminLoginData)
-		if err := ar.getAccountConf(w, newAdminData); err != nil {
+		if err := ar.getAdminAccountSettings(w, newAdminData); err != nil {
 			return
 		}
 
@@ -100,7 +100,7 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 			newAdminData.Password = adminDataUpdate.Password
 		}
 
-		if ar.updateAccountConfigFile(w, newAdminData) != nil {
+		if ar.updateAdminAccountSettings(w, newAdminData) != nil {
 			return
 		}
 
@@ -128,7 +128,32 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 	}
 }
 
-func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *model.ServerSettings) error {
+// getServerSettings reads server configuration file and parses it to provided struct.
+func (ar *Router) getServerSettings(w http.ResponseWriter, sc *model.ServerSettings) error {
+	dir, err := os.Getwd()
+	if err != nil {
+		ar.logger.Println("Cannot get server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.ServerConfigPath))
+	if err != nil {
+		ar.logger.Println("Cannot read server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	if err = yaml.Unmarshal(yamlFile, sc); err != nil {
+		ar.logger.Println("Cannot unmarshal server configuration file:", err)
+		ar.Error(w, err, http.StatusInternalServerError, "")
+		return err
+	}
+
+	return nil
+}
+
+func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model.ServerSettings) error {
 	dir, err := os.Getwd()
 	if err != nil {
 		ar.logger.Println("Cannot get server configuration file:", err)
@@ -150,15 +175,41 @@ func (ar *Router) updateServerConfigFile(w http.ResponseWriter, newSettings *mod
 	return nil
 }
 
-func (ar *Router) updateAccountConfigFile(w http.ResponseWriter, newAdminData *adminLoginData) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		ar.logger.Println("Cannot get account configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
+// getAdminAccountSettings admin account settings and parses them to adminData struct.
+func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLoginData) error {
+	adminLogin := os.Getenv(ar.ServerSettings.AdminAccountSettings.LoginEnvName)
+	if len(adminLogin) == 0 {
+		err := fmt.Errorf("Admin login not set")
+		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	return ar.updateConfigFile(w, newAdminData, filepath.Join(dir, ar.AccountConfigPath))
+	adminPassword := os.Getenv(ar.ServerSettings.AdminAccountSettings.PasswordEnvName)
+	if len(adminPassword) == 0 {
+		err := fmt.Errorf("Admin password not set")
+		ar.Error(w, err, http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	ald.Login = adminLogin
+	ald.Password = adminPassword
+
+	return nil
+}
+
+func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData *adminLoginData) error {
+	if err := os.Setenv(ar.ServerSettings.AdminAccountSettings.LoginEnvName, newAdminData.Login); err != nil {
+		err = fmt.Errorf("Cannot save new admin login: %s", err)
+		ar.Error(w, err, http.StatusInternalServerError, err.Error())
+		return err
+	}
+
+	if err := os.Setenv(ar.ServerSettings.AdminAccountSettings.PasswordEnvName, newAdminData.Password); err != nil {
+		err = fmt.Errorf("Cannot save new admin password: %s", err)
+		ar.Error(w, err, http.StatusInternalServerError, err.Error())
+		return err
+	}
+	return nil
 }
 
 func (ar *Router) updateConfigFile(w http.ResponseWriter, in interface{}, dir string) error {

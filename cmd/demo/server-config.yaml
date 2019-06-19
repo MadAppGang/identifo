@@ -27,7 +27,10 @@ twilio:
   authToken:
   serviceSid:
 
-accountConfigPath: ./account-config.yaml
+adminAccountSettings:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
 serverConfigPath: ./server-config.yaml
 
 dbType: boltdb

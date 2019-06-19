@@ -24,7 +24,7 @@ type ServerSettings struct {
 	StaticFolderPath     string                   `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
 	EmailTemplatesPath   string                   `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
 	EmailTemplateNames   EmailTemplateNames       `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AccountConfigPath    string                   `yaml:"accountConfigPath,omitempty" json:"account_config_path,omitempty"`
+	AdminAccountSettings AdminAccountSettings     `yaml:"adminAccountSettings,omitempty" json:"admin_account_settings,omitempty"`
 	ServerConfigPath     string                   `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	SMSService           SMSServiceType           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
 	Etcd                 EtcdSettings             `yaml:"etcd,omitempty" json:"etcd,omitempty"`
@@ -56,18 +56,10 @@ const (
 	DBTypeFake DatabaseType = "fake"
 )
 
-// GetPort returns port on which host listens to incoming connections.
-func (ss *ServerSettings) GetPort() string {
-	u, err := url.Parse(ss.Host)
-	if err != nil {
-		panic(err)
-	}
-
-	_, port, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		panic(err)
-	}
-	return strings.Join([]string{":", port}, "")
+// AdminAccountSettings are names of environment variables that store admin credentials.
+type AdminAccountSettings struct {
+	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name,omitempty"`
+	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name,omitempty"`
 }
 
 // ConfigurationStorageType describes type of configuration storage.
@@ -259,4 +251,18 @@ func (sst *SessionStorageType) UnmarshalYAML(unmarshal func(interface{}) error) 
 
 	*sst = sessionStorageType
 	return nil
+}
+
+// GetPort returns port on which host listens to incoming connections.
+func (ss *ServerSettings) GetPort() string {
+	u, err := url.Parse(ss.Host)
+	if err != nil {
+		panic(err)
+	}
+
+	_, port, err := net.SplitHostPort(u.Host)
+	if err != nil {
+		panic(err)
+	}
+	return strings.Join([]string{":", port}, "")
 }

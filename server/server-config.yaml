@@ -50,8 +50,11 @@ twilio:
   authToken:
   serviceSid:
 
-# File with admin account settings.
-accountConfigPath: ../../server/account-config.yaml
+# Names of environment variables that store admin credentials.
+adminAccountSettings:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
 # File with server settings.
 serverConfigPath: ../../server/server-config.yaml
 
