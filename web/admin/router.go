@@ -8,7 +8,6 @@ import (
 	"path"
 
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo"
 	"github.com/madappgang/identifo/model"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
@@ -23,19 +22,19 @@ var corsOptions = cors.New(cors.Options{
 
 // Router is a router that handles admin requests.
 type Router struct {
-	middleware        *negroni.Negroni
-	logger            *log.Logger
-	router            *mux.Router
-	sessionService    model.SessionService
-	sessionStorage    model.SessionStorage
-	appStorage        model.AppStorage
-	userStorage       model.UserStorage
-	AccountConfigPath string
-	ServerConfigPath  string
-	ServerSettings    *model.ServerSettings
-	RedirectURL       string
-	PathPrefix        string
-	Host              string
+	middleware           *negroni.Negroni
+	logger               *log.Logger
+	router               *mux.Router
+	sessionService       model.SessionService
+	sessionStorage       model.SessionStorage
+	appStorage           model.AppStorage
+	userStorage          model.UserStorage
+	configurationStorage model.ConfigurationStorage
+	ServerConfigPath     string
+	ServerSettings       *model.ServerSettings
+	RedirectURL          string
+	PathPrefix           string
+	Host                 string
 }
 
 func defaultOptions() []func(*Router) error {
@@ -53,14 +52,6 @@ func HostOption(host string) func(*Router) error {
 	}
 }
 
-// AccountConfigPathOption sets path to configuration file with admin account settings.
-func AccountConfigPathOption(configPath string) func(*Router) error {
-	return func(r *Router) error {
-		r.AccountConfigPath = configPath
-		return nil
-	}
-}
-
 // ServerConfigPathOption sets path to configuration file with admin server settings.
 func ServerConfigPathOption(configPath string) func(*Router) error {
 	return func(r *Router) error {
@@ -69,7 +60,7 @@ func ServerConfigPathOption(configPath string) func(*Router) error {
 	}
 }
 
-// ServerSettingsOption sets path to configuration file with admin account settings.
+// ServerSettingsOption sets path to configuration file with server settings.
 func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
 	return func(r *Router) error {
 		r.ServerSettings = settings
@@ -94,14 +85,15 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionStorage model.SessionStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, sessionService model.SessionService, sessionStorage model.SessionStorage, appStorage model.AppStorage, userStorage model.UserStorage, configurationStorage model.ConfigurationStorage, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		middleware:     negroni.Classic(),
-		router:         mux.NewRouter(),
-		sessionService: sessionService,
-		sessionStorage: sessionStorage,
-		appStorage:     appStorage,
-		userStorage:    userStorage,
+		middleware:           negroni.Classic(),
+		router:               mux.NewRouter(),
+		sessionService:       sessionService,
+		sessionStorage:       sessionStorage,
+		appStorage:           appStorage,
+		userStorage:          userStorage,
+		configurationStorage: configurationStorage,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {
@@ -135,7 +127,7 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 
 	// Hide error from client if it is internal.
 	if code == http.StatusInternalServerError {
-		err = identifo.ErrorInternal
+		err = model.ErrorInternal
 	}
 
 	w.Header().Set("Content-Type", "application/json")

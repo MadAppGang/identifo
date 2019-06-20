@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"strings"
+	"time"
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
@@ -257,6 +258,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 		return nil, ErrorWrongDataFormat
 	}
 	u.userData.Pswd = PasswordHash(password)
+	u.userData.NumOfLogins = 0
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
 		data, err := u.Marshal()
@@ -282,7 +284,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 
 // AddUserByPhone registers new user with phone number.
 func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
-	u := &User{userData: userData{Active: true, Phone: phone, ID: xid.New().String()}}
+	u := &User{userData: userData{ID: xid.New().String(), Active: true, Phone: phone, NumOfLogins: 0}}
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
 		data, err := u.Marshal()
@@ -314,7 +316,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Username: sid}
+	u := userData{Active: true, Username: sid, NumOfLogins: 0}
 	u.ID = sid // not sure it's a good idea
 	user := User{userData: u}
 
@@ -344,7 +346,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Username: name, Profile: profile, ID: xid.New().String()}
+	u := userData{ID: xid.New().String(), Active: true, Username: name, Profile: profile}
 	return us.AddNewUser(User{userData: u}, password)
 }
 
@@ -513,18 +515,40 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
-// User data implementation.
-type userData struct {
-	ID       string                 `json:"id,omitempty"`
-	Username string                 `json:"username,omitempty"`
-	Email    string                 `json:"email,omitempty"`
-	Phone    string                 `bson:"phone,omitempty" json:"phone,omitempty"`
-	Pswd     string                 `json:"pswd,omitempty"`
-	Profile  map[string]interface{} `json:"profile,omitempty"`
-	Active   bool                   `json:"active,omitempty"`
+// UpdateLoginMetadata updates user's login metadata.
+func (us *UserStorage) UpdateLoginMetadata(userID string) {
+	user, err := us.UserByID(userID)
+	if err != nil {
+		log.Printf("Cannot get user by ID %s: %s\n", userID, err)
+	}
+
+	u, ok := user.(User)
+	if !ok {
+		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
+	}
+
+	u.userData.NumOfLogins++
+	u.userData.LatestLoginTime = time.Now().Unix()
+
+	if _, err := us.UpdateUser(UserBucket, u); err != nil {
+		log.Println("Cannot update user login info: ", err)
+	}
 }
 
-// User is a user data structure for embedded storage.
+// User data implementation.
+type userData struct {
+	ID              string                 `json:"id,omitempty"`
+	Username        string                 `json:"username,omitempty"`
+	Email           string                 `json:"email,omitempty"`
+	Phone           string                 `json:"phone,omitempty"`
+	Pswd            string                 `json:"pswd,omitempty"`
+	Profile         map[string]interface{} `json:"profile,omitempty"`
+	Active          bool                   `json:"active,omitempty"`
+	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
+	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
+}
+
+// User is a user data structure for BoltDB storage.
 type User struct {
 	userData
 }

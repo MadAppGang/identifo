@@ -13,7 +13,7 @@ type adminLoginData struct {
 func (ar *Router) Login() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		conf := new(adminLoginData)
-		if ar.getAccountConf(w, conf) != nil {
+		if ar.getAdminAccountSettings(w, conf) != nil {
 			return
 		}
 

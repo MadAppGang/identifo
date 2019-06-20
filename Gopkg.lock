@@ -2,7 +2,7 @@
 
 
 [[projects]]
-  digest = "1:95fd14230b48a74765db94f7064f0b5617f52739a164f6d41e5b57bec5b3ff9b"
+  digest = "1:98d2b07cc619145bc24a43233452ba3f7e576c4e94cb2e49aca067a3ae23121e"
   name = "github.com/aws/aws-lambda-go"
   packages = [
     "events",
@@ -12,11 +12,11 @@
     "lambdacontext",
   ]
   pruneopts = "UT"
-  revision = "08d251dc58f204411d79012fd6f1beefb7107fea"
-  version = "v1.10.0"
+  revision = "4c210d7623089d36b6bb6febf5a5e553bf73fbfb"
+  version = "v1.11.1"
 
 [[projects]]
-  digest = "1:bffe73725e61b6102cb814367c2ddde4850f035b344c685dbc22343e00debd6b"
+  digest = "1:815900b21cbfcd05e1220f6649b9d0efd693095d5d0e5e87e2d5acf4e967721c"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -56,8 +56,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "d6c5ccab427af7408a67e0f45c6e6a3d515fdaee"
-  version = "v1.19.39"
+  revision = "b9b2c2cd61a6814e3cd5d07e4c200dac18b357a4"
+  version = "v1.19.49"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -66,6 +66,20 @@
   pruneopts = "UT"
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
+
+[[projects]]
+  digest = "1:b4ba0dcf39b5ba06f69d9cd4eaacaba334801073099eb8be273d595094c99db3"
+  name = "github.com/coreos/etcd"
+  packages = [
+    "auth/authpb",
+    "etcdserver/api/v3rpc/rpctypes",
+    "etcdserver/etcdserverpb",
+    "mvcc/mvccpb",
+    "pkg/types",
+  ]
+  pruneopts = "UT"
+  revision = "98d308426819d892e149fe45f6fd542464cb1f9d"
+  version = "v3.3.13"
 
 [[projects]]
   digest = "1:76dc72490af7174349349838f2fe118996381b31ea83243812a97e5a0fd5ed55"
@@ -111,6 +125,32 @@
   version = "v6.15.3"
 
 [[projects]]
+  digest = "1:4652941215f23c7ad6546bab86964c72248a1134baa53f0df618661344ba5cac"
+  name = "github.com/gogo/protobuf"
+  packages = [
+    "gogoproto",
+    "proto",
+    "protoc-gen-gogo/descriptor",
+  ]
+  pruneopts = "UT"
+  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
+  version = "v1.2.1"
+
+[[projects]]
+  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
+  name = "github.com/golang/protobuf"
+  packages = [
+    "proto",
+    "ptypes",
+    "ptypes/any",
+    "ptypes/duration",
+    "ptypes/timestamp",
+  ]
+  pruneopts = "UT"
+  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
+  version = "v1.3.1"
+
+[[projects]]
   digest = "1:3af6be4fee7c08f81f13d36f04ffb63ad4b6b5aaba12cce96095c7c2863d4912"
   name = "github.com/gorilla/mux"
   packages = ["."]
@@ -150,12 +190,12 @@
   version = "v1.1.1"
 
 [[projects]]
-  digest = "1:ddaeea4ba16546053455f7139c27b9efe16a6a739353043cc2af76a9437d73b2"
+  digest = "1:ef33732d69726fe59779c2d8d82c4414902763378e493823c4682d3ab2c1f592"
   name = "github.com/pallinder/go-randomdata"
   packages = ["."]
   pruneopts = "UT"
-  revision = "97a2356fcab20708fb8ae46cbbf69a5bc9feca63"
-  version = "v1.1.0"
+  revision = "26f4a641b55b152ed383ba02b30b99763401ade3"
+  version = "v1.2.0"
 
 [[projects]]
   digest = "1:cf31692c14422fa27c83a05292eb5cbe0fb2775972e8f1f8446a71549bd8980b"
@@ -198,6 +238,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  digest = "1:762df97c14bc6eaa5a01a4dcf50820428ae495e020f3ba80762f217889de302c"
+  name = "go.etcd.io/etcd"
+  packages = ["clientv3"]
+  pruneopts = "UT"
+  revision = "98d308426819d892e149fe45f6fd542464cb1f9d"
+  version = "v3.3.13"
+
+[[projects]]
   branch = "master"
   digest = "1:9d5b5d543996dd584da1db1e0de1926f3e4c3a8dba0fa2f8db70f3ebee2342e0"
   name = "golang.org/x/crypto"
@@ -206,15 +254,106 @@
     "blowfish",
   ]
   pruneopts = "UT"
-  revision = "22d7a77e9e5f409e934ed268692e56707cd169e5"
+  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
 
 [[projects]]
   branch = "master"
-  digest = "1:668e8c66b8895d69391429b0f64a72c35603c94f364c94d4e5fab5053d57a0b6"
+  digest = "1:b5936d38011189ba9b2e5890a38c7ffe0ac7f157eef2ddc0fe752117c50d394d"
+  name = "golang.org/x/net"
+  packages = [
+    "context",
+    "http/httpguts",
+    "http2",
+    "http2/hpack",
+    "idna",
+    "internal/timeseries",
+    "trace",
+  ]
+  pruneopts = "UT"
+  revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:010311506e3917b54487c35a4277e2709678a40c1587d82492c40b78b6a0a01d"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "cc920278c2cc35e068854c6a2ab722b2302c7002"
+  revision = "5ed2794edfdc1c54dfb61d619c5944285f35d444"
+
+[[projects]]
+  digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
+  name = "golang.org/x/text"
+  packages = [
+    "collate",
+    "collate/build",
+    "internal/colltab",
+    "internal/gen",
+    "internal/language",
+    "internal/language/compact",
+    "internal/tag",
+    "internal/triegen",
+    "internal/ucd",
+    "language",
+    "secure/bidirule",
+    "transform",
+    "unicode/bidi",
+    "unicode/cldr",
+    "unicode/norm",
+    "unicode/rangetable",
+  ]
+  pruneopts = "UT"
+  revision = "342b2e1fbaa52c93f31447ad2c6abc048c63e475"
+  version = "v0.3.2"
+
+[[projects]]
+  branch = "master"
+  digest = "1:583a0c80f5e3a9343d33aea4aead1e1afcc0043db66fdf961ddd1fe8cd3a4faf"
+  name = "google.golang.org/genproto"
+  packages = ["googleapis/rpc/status"]
+  pruneopts = "UT"
+  revision = "a7e196e89fd3a3c4d103ca540bd5dac3a736e375"
+
+[[projects]]
+  digest = "1:cde568cda33e1c7f75353ae84df1880d5d364d9ffbf269c34cdc23fffe539a45"
+  name = "google.golang.org/grpc"
+  packages = [
+    ".",
+    "balancer",
+    "balancer/base",
+    "balancer/roundrobin",
+    "binarylog/grpc_binarylog_v1",
+    "codes",
+    "connectivity",
+    "credentials",
+    "credentials/internal",
+    "encoding",
+    "encoding/proto",
+    "grpclog",
+    "health/grpc_health_v1",
+    "internal",
+    "internal/backoff",
+    "internal/balancerload",
+    "internal/binarylog",
+    "internal/channelz",
+    "internal/envconfig",
+    "internal/grpcrand",
+    "internal/grpcsync",
+    "internal/syscall",
+    "internal/transport",
+    "keepalive",
+    "metadata",
+    "naming",
+    "peer",
+    "resolver",
+    "resolver/dns",
+    "resolver/passthrough",
+    "stats",
+    "status",
+    "tap",
+  ]
+  pruneopts = "UT"
+  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
+  version = "v1.21.1"
 
 [[projects]]
   digest = "1:ee2db1a4b9111947da887ff2f8972dd2cc80906e521a2d856901fa699b4b51ee"
@@ -268,6 +407,7 @@
     "github.com/rs/xid",
     "github.com/sfreiberg/gotwilio",
     "github.com/urfave/negroni",
+    "go.etcd.io/etcd/clientv3",
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",
     "gopkg.in/mgo.v2",

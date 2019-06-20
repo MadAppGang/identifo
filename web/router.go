@@ -22,6 +22,7 @@ type RouterSetting struct {
 	EmailService            model.EmailService
 	SessionService          model.SessionService
 	SessionStorage          model.SessionStorage
+	ConfigurationStorage    model.ConfigurationStorage
 	Logger                  *log.Logger
 	APIRouterSettings       []func(*api.Router) error
 	WebRouterSettings       []func(*html.Router) error
@@ -69,6 +70,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.SessionStorage,
 		settings.AppStorage,
 		settings.UserStorage,
+		settings.ConfigurationStorage,
 		settings.AdminRouterSettings...,
 	)
 

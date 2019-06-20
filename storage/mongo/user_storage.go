@@ -2,7 +2,9 @@ package mongo
 
 import (
 	"encoding/json"
+	"log"
 	"strings"
+	"time"
 
 	"github.com/madappgang/identifo/model"
 	"golang.org/x/crypto/bcrypt"
@@ -195,6 +197,7 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 	if len(password) > 0 {
 		u.userData.Pswd = PasswordHash(password)
 	}
+	u.userData.NumOfLogins = 0
 
 	err := s.C.Insert(u.userData)
 	if mgo.IsDup(err) {
@@ -331,18 +334,22 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 
 	q := bson.M{"username": bson.M{"$regex": bson.RegEx{Pattern: filterString, Options: "i"}}}
 
-	users := []model.User{}
 	total, err := s.C.Find(q).Count()
 	if err != nil {
-		return users, 0, err
+		return nil, 0, err
 	}
 
 	orderByField := "username"
+	usersData := []userData{}
 
-	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&users); err != nil {
-		return users, 0, err
+	if err := s.C.Find(q).Sort(orderByField).Limit(limit).Skip(skip).All(&usersData); err != nil {
+		return nil, 0, err
 	}
 
+	users := make([]model.User, len(usersData))
+	for i, ud := range usersData {
+		users[i] = &User{userData: ud}
+	}
 	return users, total, err
 }
 
@@ -362,16 +369,36 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// UpdateLoginMetadata updates user's login metadata.
+func (us *UserStorage) UpdateLoginMetadata(userID string) {
+	s := us.db.Session(UsersCollection)
+	defer s.Close()
+
+	update := mgo.Change{
+		Update: bson.M{
+			"$set": bson.M{"latest_login_time": time.Now().Unix},
+			"$inc": bson.M{"num_logins": 1},
+		},
+	}
+
+	var ud userData
+	if _, err := s.C.FindId(bson.ObjectIdHex(userID)).Apply(update, &ud); err != nil {
+		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
+	}
+}
+
 // User data implementation.
 type userData struct {
-	ID           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Username     string                 `bson:"username,omitempty" json:"username,omitempty"`
-	Email        string                 `bson:"email,omitempty" json:"email,omitempty"`
-	Phone        string                 `bson:"phone,omitempty" json:"phone,omitempty"`
-	Pswd         string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
-	Profile      map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
-	Active       bool                   `bson:"active,omitempty" json:"active,omitempty"`
-	FederatedIDs []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
+	ID              bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	Username        string                 `bson:"username,omitempty" json:"username,omitempty"`
+	Email           string                 `bson:"email,omitempty" json:"email,omitempty"`
+	Phone           string                 `bson:"phone,omitempty" json:"phone,omitempty"`
+	Pswd            string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Profile         map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
+	Active          bool                   `bson:"active,omitempty" json:"active,omitempty"`
+	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
+	NumOfLogins     int                    `bson:"num_of_logins,omitempty" json:"num_of_logins,omitempty"`
+	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
 }
 
 // User is a data structure for MongoDB storage.

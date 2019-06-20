@@ -1,23 +1,22 @@
 package mgo
 
 import (
-	"log"
+	"fmt"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 )
 
-// ServerSettings are server settings.
-var ServerSettings = server.ServerSettings
-
 func init() {
-	if ServerSettings.DBType != "mongodb" {
-		log.Fatalf("Incorrect database type %s for MongoDB-backed server", ServerSettings.DBType)
-	}
+
 }
 
 // NewServer creates new backend service with MongoDB support.
 func NewServer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (model.Server, error) {
+	if settings.Database.DBType != "mongodb" {
+		return nil, fmt.Errorf("Incorrect database type %s for MongoDB-backed server", settings.Database.DBType)
+	}
+
 	dbComposer, err := NewComposer(settings, options...)
 	if err != nil {
 		return nil, err

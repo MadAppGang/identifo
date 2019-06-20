@@ -3,16 +3,11 @@ package admin
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
 	"net/http"
-	"os"
-	"path/filepath"
 	"strconv"
 
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo/model"
 	"gopkg.in/go-playground/validator.v9"
-	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -82,54 +77,4 @@ func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, 
 // getRouteVar returns the route variable with specified name for the provided request.
 func getRouteVar(name string, r *http.Request) string {
 	return mux.Vars(r)[name]
-}
-
-// getAccountConf reads admin account configuration file and parses it to adminData struct.
-func (ar *Router) getAccountConf(w http.ResponseWriter, ald *adminLoginData) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		ar.logger.Println("Cannot get admin account configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.AccountConfigPath))
-	if err != nil {
-		ar.logger.Println("Cannot read admin account configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	if err = yaml.Unmarshal(yamlFile, ald); err != nil {
-		ar.logger.Println("Cannot unmarshal admin account configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	return nil
-}
-
-// getServerConf reads server configuration file and parses it to struct.
-func (ar *Router) getServerConf(w http.ResponseWriter, sc *model.ServerSettings) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		ar.logger.Println("Cannot get server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.ServerConfigPath))
-	if err != nil {
-		ar.logger.Println("Cannot read server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	if err = yaml.Unmarshal(yamlFile, sc); err != nil {
-		ar.logger.Println("Cannot unmarshal server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	return nil
 }

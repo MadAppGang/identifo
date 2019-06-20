@@ -7,6 +7,8 @@ type Error string
 func (e Error) Error() string { return string(e) }
 
 const (
+	// ErrorInternal represents internal server error, used to mask real internal problem.
+	ErrorInternal = Error("internal error")
 	// ErrorNotFound is a general not found error.
 	ErrorNotFound = Error("not found")
 	// ErrorWrongDataFormat is for corrupted request data.

@@ -4,11 +4,29 @@ pemFolderPath: ./pem
 privateKey: private.pem
 publicKey: public.pem
 issuer: http://localhost:8080
-
 algorithm: auto
+
 mailService: aws ses
-sessionStorage: memory
-sessionDuration: 300
+sessionStorage:
+  type: memory
+  sessionDuration: 300
+
+configurationStorage:
+  type: mock
+  settingsKey: identifo/server-settings
+
+smsService:
+  type: mock
+
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
+serverConfigPath: ./server-config.yaml
+
+database:
+  dbType: boltdb
+  dbPath: db.db
 
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
@@ -17,15 +35,3 @@ emailTemplateNames:
   resetPassword: reset_password.html
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
-
-smsService: mock
-twilio:
-  accountSid:
-  authToken:
-  serviceSid:
-
-accountConfigPath: ./account-config.yaml
-serverConfigPath: ./server-config.yaml
-
-dbType: boltdb
-dbPath: db.db

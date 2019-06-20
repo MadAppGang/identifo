@@ -9,6 +9,7 @@ type Server interface {
 	Router() Router
 	AppStorage() AppStorage
 	UserStorage() UserStorage
+	ConfigurationStorage() ConfigurationStorage
 	ImportApps(filename string) error
 	ImportUsers(filename string) error
 }
