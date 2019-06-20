@@ -67,6 +67,24 @@ func LoadServerConfiguration(out *model.ServerSettings) {
 	if err = yaml.Unmarshal(configFile, out); err != nil {
 		log.Fatalln("Cannot unmarshal server configuration file:", err)
 	}
+
+	if len(out.AdminAccount.LoginEnvName) == 0 {
+		log.Fatalln("Admin login env variable name not specified")
+	}
+	if len(out.AdminAccount.PasswordEnvName) == 0 {
+		log.Fatalln("Admin password env variable name not specified")
+	}
+
+	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
+		log.Fatalln("Admin login env variable not set")
+	}
+	if len(os.Getenv(out.AdminAccount.PasswordEnvName)) == 0 {
+		log.Fatalln("Admin password env variable not set")
+	}
+
+	if err = os.Setenv(serverConfigPathEnv, out.ServerConfigPath); err != nil {
+		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
+	}
 }
 
 // DatabaseComposer inits database stack.
@@ -88,7 +106,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		return nil, err
 	}
 
-	configurationStorage, err := configurationStorage(settings)
+	configurationStorage, err := configurationStorage(settings.ConfigurationStorage)
 	if err != nil {
 		return nil, err
 	}
@@ -99,14 +117,14 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 	if err != nil {
 		return nil, err
 	}
-	sessionService := model.NewSessionManager(settings.SessionDuration, sessionStorage)
+	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
 	ms, err := mailService(settings.MailService, settings.EmailTemplateNames, settings.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
 
-	sms, err := smsService(settings)
+	sms, err := smsService(settings.SMSService)
 	if err != nil {
 		return nil, err
 	}
@@ -207,10 +225,10 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 	}
 }
 
-func configurationStorage(settings model.ServerSettings) (model.ConfigurationStorage, error) {
-	switch settings.ConfigurationStorage {
+func configurationStorage(settings model.ConfigurationStorageSettings) (model.ConfigurationStorage, error) {
+	switch settings.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		return etcd.NewConfigurationStorage(settings.Etcd, settings.SettingsKey)
+		return etcd.NewConfigurationStorage(settings)
 	case model.ConfigurationStorageTypeMock:
 		return configStoreMock.NewConfigurationStorage()
 	default:
@@ -218,10 +236,10 @@ func configurationStorage(settings model.ServerSettings) (model.ConfigurationSto
 	}
 }
 
-func smsService(settings model.ServerSettings) (model.SMSService, error) {
-	switch settings.SMSService {
+func smsService(settings model.SMSServiceSettings) (model.SMSService, error) {
+	switch settings.Type {
 	case model.SMSServiceTwilio:
-		return twilio.NewSMSService(settings.Twilio.AccountSid, settings.Twilio.AuthToken, settings.Twilio.ServiceSid)
+		return twilio.NewSMSService(settings)
 	case model.SMSServiceMock:
 		return smsMock.NewSMSService()
 	default:
@@ -249,9 +267,9 @@ func mailService(serviceType model.MailServiceType, templateNames model.EmailTem
 }
 
 func sessionStorage(settings model.ServerSettings) (model.SessionStorage, error) {
-	switch settings.SessionStorage {
+	switch settings.SessionStorage.Type {
 	case model.SessionStorageRedis:
-		return redis.NewSessionStorage(settings.Redis)
+		return redis.NewSessionStorage(settings.SessionStorage)
 	case model.SessionStorageMem:
 		return mem.NewSessionStorage()
 	default:

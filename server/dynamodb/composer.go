@@ -47,7 +47,7 @@ func (dc *DatabaseComposer) Compose() (
 	jwtService.TokenService,
 	error,
 ) {
-	db, err := dynamodb.NewDB(dc.settings.DBEndpoint, dc.settings.DBRegion)
+	db, err := dynamodb.NewDB(dc.settings.Database.DBEndpoint, dc.settings.Database.DBRegion)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

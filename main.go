@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -40,12 +39,8 @@ func main() {
 }
 
 func startHTTPServer(httpSrv *http.Server) {
-	if err := httpSrv.ListenAndServe(); err != nil {
-		if err == http.ErrServerClosed {
-			log.Println("Restarting server...")
-		} else {
-			log.Fatalf("ListenAndServe(): %s", err)
-		}
+	if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("ListenAndServe(): %s", err)
 	}
 }
 
@@ -53,7 +48,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	var err error
 	var dbComposer server.DatabaseComposer
 
-	switch server.ServerSettings.DBType {
+	switch server.ServerSettings.Database.DBType {
 	case model.DBTypeBoltDB:
 		dbComposer, err = boltdb.NewComposer(server.ServerSettings)
 	case model.DBTypeDynamoDB:
@@ -63,7 +58,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	case model.DBTypeFake:
 		dbComposer, err = fake.NewComposer(server.ServerSettings)
 	default:
-		log.Panicln("Unknown database type:", server.ServerSettings.DBType)
+		log.Panicln("Unknown database type:", server.ServerSettings.Database.DBType)
 	}
 	if err != nil {
 		log.Panicln("Cannot init database composer:", err)
@@ -96,13 +91,13 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 	watchChan := make(chan interface{}, 1)
 	configStorage := srv.ConfigurationStorage()
 
-	switch server.ServerSettings.ConfigurationStorage {
+	switch server.ServerSettings.ConfigurationStorage.Type {
 	case model.ConfigurationStorageTypeEtcd:
 		etcdStorage, ok := configStorage.(*etcdStorage.ConfigurationStorage)
 		if !ok {
 			log.Panicln("Incorrect configuration storage type")
 		}
-		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, server.ServerSettings.SettingsKey, watchChan)
+		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	case model.ConfigurationStorageTypeMock:
 		cw, err = mockWatcher.NewConfigurationWatcher()
 	default:
@@ -114,7 +109,7 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 	}
 
 	cw.Watch()
-	log.Printf("Watcher initialized (type %s)\n", server.ServerSettings.ConfigurationStorage)
+	log.Printf("Watcher initialized (type %s)\n", server.ServerSettings.ConfigurationStorage.Type)
 
 	go func() {
 		for event := range cw.WatchChan() {
@@ -123,15 +118,16 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 				log.Panicln("Cannot reload server configuration: ", err)
 			}
 
-			if err := httpSrv.Shutdown(context.Background()); err != nil {
+			if err := httpSrv.Close(); err != nil {
 				log.Panicln("Cannot shutdown server: ", err)
 			}
 
-			httpSrv = &http.Server{}
+			*httpSrv = http.Server{}
 			srv = initServer(configStorage)
 			httpSrv.Addr = server.ServerSettings.GetPort()
 			httpSrv.Handler = srv.Router()
 
+			log.Println("Starting new web server...")
 			go startHTTPServer(httpSrv)
 		}
 	}()

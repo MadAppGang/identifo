@@ -59,12 +59,12 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.DBSettings = dbSettingsUpdate
+		newServerSettings.Database = dbSettingsUpdate
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.DBSettings)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Database)
 	}
 }
 
@@ -167,7 +167,7 @@ func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model
 		return err
 	}
 
-	if err = ar.configurationStorage.Insert(ar.ServerSettings.SettingsKey, newSettings); err != nil {
+	if err = ar.configurationStorage.Insert(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
 		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
@@ -177,14 +177,14 @@ func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model
 
 // getAdminAccountSettings admin account settings and parses them to adminData struct.
 func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLoginData) error {
-	adminLogin := os.Getenv(ar.ServerSettings.AdminAccountSettings.LoginEnvName)
+	adminLogin := os.Getenv(ar.ServerSettings.AdminAccount.LoginEnvName)
 	if len(adminLogin) == 0 {
 		err := fmt.Errorf("Admin login not set")
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	adminPassword := os.Getenv(ar.ServerSettings.AdminAccountSettings.PasswordEnvName)
+	adminPassword := os.Getenv(ar.ServerSettings.AdminAccount.PasswordEnvName)
 	if len(adminPassword) == 0 {
 		err := fmt.Errorf("Admin password not set")
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
@@ -198,13 +198,13 @@ func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLogin
 }
 
 func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData *adminLoginData) error {
-	if err := os.Setenv(ar.ServerSettings.AdminAccountSettings.LoginEnvName, newAdminData.Login); err != nil {
+	if err := os.Setenv(ar.ServerSettings.AdminAccount.LoginEnvName, newAdminData.Login); err != nil {
 		err = fmt.Errorf("Cannot save new admin login: %s", err)
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	if err := os.Setenv(ar.ServerSettings.AdminAccountSettings.PasswordEnvName, newAdminData.Password); err != nil {
+	if err := os.Setenv(ar.ServerSettings.AdminAccount.PasswordEnvName, newAdminData.Password); err != nil {
 		err = fmt.Errorf("Cannot save new admin password: %s", err)
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err

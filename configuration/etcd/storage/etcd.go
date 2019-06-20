@@ -22,8 +22,8 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage(settings model.EtcdSettings, settingsKey string) (*ConfigurationStorage, error) {
-	if settingsKey == "" {
+func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
+	if settings.SettingsKey == "" {
 		return nil, fmt.Errorf("Empty server settings key for etcd")
 	}
 
@@ -65,9 +65,9 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 
 // LoadServerSettings loads server configuration from configuration storage.
 func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
-	res, err := cs.Client.Get(context.Background(), settings.SettingsKey)
+	res, err := cs.Client.Get(context.Background(), settings.ConfigurationStorage.SettingsKey)
 	if err != nil {
-		return fmt.Errorf("Cannot get value by key %s: %s", settings.SettingsKey, err)
+		return fmt.Errorf("Cannot get value by key %s: %s", settings.ConfigurationStorage.SettingsKey, err)
 	}
 
 	err = json.Unmarshal(res.Kvs[0].Value, settings)

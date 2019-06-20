@@ -13,8 +13,8 @@ func init() {
 
 // NewServer creates new backend service with MongoDB support.
 func NewServer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (model.Server, error) {
-	if settings.DBType != "mongodb" {
-		return nil, fmt.Errorf("Incorrect database type %s for MongoDB-backed server", settings.DBType)
+	if settings.Database.DBType != "mongodb" {
+		return nil, fmt.Errorf("Incorrect database type %s for MongoDB-backed server", settings.Database.DBType)
 	}
 
 	dbComposer, err := NewComposer(settings, options...)

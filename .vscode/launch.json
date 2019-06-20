@@ -77,7 +77,10 @@
             "host": "127.0.0.1",
             "program": "${workspaceFolder}/main.go",
             "cwd": "${workspaceFolder}",
-            "env": {},
+            "env": {
+                "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+                "IDENTIFO_ADMIN_PASSWORD": "password",
+            },
             "args": [],
             "showLog": true
         }

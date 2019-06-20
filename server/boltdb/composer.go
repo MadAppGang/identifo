@@ -49,7 +49,7 @@ func (dc *DatabaseComposer) Compose() (
 	error,
 ) {
 
-	db, err := boltdb.InitDB(dc.settings.DBPath)
+	db, err := boltdb.InitDB(dc.settings.Database.DBPath)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

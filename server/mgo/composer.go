@@ -48,7 +48,7 @@ func (dc *DatabaseComposer) Compose() (
 	error,
 ) {
 
-	db, err := mongo.NewDB(dc.settings.DBEndpoint, dc.settings.DBName)
+	db, err := mongo.NewDB(dc.settings.Database.DBEndpoint, dc.settings.Database.DBName)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}

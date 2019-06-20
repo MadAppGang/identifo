@@ -21,7 +21,7 @@ type RedisSessionStorage struct {
 }
 
 // NewSessionStorage creates new Redis session storage.
-func NewSessionStorage(settings model.RedisSettings) (model.SessionStorage, error) {
+func NewSessionStorage(settings model.SessionStorageSettings) (model.SessionStorage, error) {
 	var addr, password string
 	var db int
 
