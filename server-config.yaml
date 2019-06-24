@@ -58,7 +58,7 @@ storage:
     # Path to the database file (BoltDB-specific).
     path: ./db.db
   userStorage:
-    type: mongodb
+    type: boltdb
     name: identifo
     endpoint: localhost:27017
     region: us-west-2
