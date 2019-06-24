@@ -87,7 +87,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		apps[i] = AppData{appData: appsData[i]}
 	}
 
-	return []model.AppData{}, total, nil
+	return apps, total, nil
 }
 
 // DeleteApp deletes app by id.

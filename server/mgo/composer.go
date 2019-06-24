@@ -47,11 +47,12 @@ func (dc *DatabaseComposer) Compose() (
 	jwtService.TokenService,
 	error,
 ) {
-
-	db, err := mongo.NewDB(dc.settings.Database.DBEndpoint, dc.settings.Database.DBName)
+	// We assume that all MongoDB-backed storages share the same database name and connection string, so we can pick any of them.
+	db, err := mongo.NewDB(dc.settings.Storage.AppStorage.Endpoint, dc.settings.Storage.AppStorage.Name)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
+
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -91,4 +92,97 @@ func (dc *DatabaseComposer) Compose() (
 	}
 
 	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+}
+
+// NewPartialComposer returns new partial composer with MongoDB support.
+func NewPartialComposer(settings model.StorageSettings, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
+	pc := &PartialDatabaseComposer{}
+	// We assume that all MongoDB-backed storages share the same database name and connection string, so we can pick any of them.
+	var dbEndpoint, dbName string
+
+	if settings.AppStorage.Type == model.DBTypeMongoDB {
+		pc.newAppStorage = mongo.NewAppStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbName = settings.AppStorage.Name
+	}
+
+	if settings.UserStorage.Type == model.DBTypeMongoDB {
+		pc.newUserStorage = mongo.NewUserStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbName = settings.AppStorage.Name
+	}
+
+	if settings.TokenStorage.Type == model.DBTypeMongoDB {
+		pc.newTokenStorage = mongo.NewTokenStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbName = settings.AppStorage.Name
+	}
+
+	if settings.VerificationCodeStorage.Type == model.DBTypeMongoDB {
+		pc.newVerificationCodeStorage = mongo.NewVerificationCodeStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbName = settings.AppStorage.Name
+	}
+
+	db, err := mongo.NewDB(dbEndpoint, dbName)
+	if err != nil {
+		return nil, err
+	}
+	pc.db = db
+
+	for _, option := range options {
+		if err := option(pc); err != nil {
+			return nil, err
+		}
+	}
+	return pc, nil
+}
+
+// PartialDatabaseComposer composes only MongoDB-supporting services.
+type PartialDatabaseComposer struct {
+	db                         *mongo.DB
+	newAppStorage              func(*mongo.DB) (model.AppStorage, error)
+	newUserStorage             func(*mongo.DB) (model.UserStorage, error)
+	newTokenStorage            func(*mongo.DB) (model.TokenStorage, error)
+	newVerificationCodeStorage func(*mongo.DB) (model.VerificationCodeStorage, error)
+}
+
+// AppStorageComposer returns app storage composer.
+func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage, error) {
+	if pc.newAppStorage != nil {
+		return func() (model.AppStorage, error) {
+			return pc.newAppStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// UserStorageComposer returns user storage composer.
+func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
+	if pc.newUserStorage != nil {
+		return func() (model.UserStorage, error) {
+			return pc.newUserStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// TokenStorageComposer returns token storage composer.
+func (pc *PartialDatabaseComposer) TokenStorageComposer() func() (model.TokenStorage, error) {
+	if pc.newTokenStorage != nil {
+		return func() (model.TokenStorage, error) {
+			return pc.newTokenStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// VerificationCodeStorageComposer returns verification code storage composer.
+func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error) {
+	if pc.newVerificationCodeStorage != nil {
+		return func() (model.VerificationCodeStorage, error) {
+			return pc.newVerificationCodeStorage(pc.db)
+		}
+	}
+	return nil
 }
