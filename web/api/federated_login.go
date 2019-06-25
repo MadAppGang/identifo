@@ -10,30 +10,32 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-//FederatedLoginData represents federated login input data
+// FederatedLoginData represents federated login input data.
 type FederatedLoginData struct {
 	FederatedIDProvider string   `json:"provider,omitempty" validate:"required"`
 	AccessToken         string   `json:"access_token,omitempty" validate:"required"`
 	RegisterIfNew       bool     `json:"register_if_new,omitempty"`
 	Scopes              []string `json:"scopes,omitempty"`
+	AuthorizationCode   string   `json:"authorization_code,omitempty"` // Specific for Sign In with Apple.
 }
 
-//AuthResponse is response with successful auth data
+// AuthResponse is a response with successful auth data.
 type AuthResponse struct {
 	AccessToken  string `json:"access_token,omitempty"`
 	RefreshToken string `json:"refresh_token,omitempty"`
 }
 
-//FederatedLogin - login/register with federated Identity
-//The user sends the Identity provider access_token
-//Identifo is sendind request to identity provider to get user_profile and identity user ID
-//and then searching the user with this federated identity ID in the user pool
-//if there is not the user with such identity, function returns 404 (user not found)
-//uf register_if_new presents - function creates new user with no  username/password, there is dedicated endpoint to link username/password with federated account
+// FederatedLogin provides login/registration with federated identity.
+// First, user sends the identity provider access token to Identifo.
+// Then, Identifo sends request to identity provider to get user profile and identity user ID,
+// and then search for the user with this federated identity ID in the user pool.
+// If there is no user with such identity, function returns 404 (user not found).
+// If register_if_new presents - function creates new user without username/password,
+// there is a dedicated endpoint to link username/password to federated account.
 func (ar *Router) FederatedLogin() http.HandlerFunc {
-
 	var federatedProviders = map[string]bool{
 		strings.ToLower(string(model.FacebookIDProvider)): true,
+		strings.ToLower(string(model.AppleIDProvider)):    true,
 		strings.ToLower(string(model.GoogleIDProvider)):   false, //TODO: add later
 		strings.ToLower(string(model.TwitterIDProvider)):  false, //TODO: add later
 	}
@@ -59,10 +61,17 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		var federatedID string
 		var err error
+
 		fid := model.FederatedIdentityProvider(strings.ToUpper(d.FederatedIDProvider))
 		switch fid {
 		case model.FacebookIDProvider:
 			federatedID, err = ar.FacebookUserID(d.AccessToken)
+		case model.AppleIDProvider:
+			if app.AppleInfo() == nil {
+				ar.logger.Println("Empty apple info")
+				ar.Error(w, ErrorAPIAppFederatedProviderEmptyAppleInfo, http.StatusBadRequest, "App does not have Apple info.", "FederatedLogin.switch_providers_apple")
+			}
+			federatedID, err = ar.AppleUserID(d.AuthorizationCode, app.AppleInfo())
 		default:
 			ar.Error(w, ErrorAPIAppFederatedProviderNotSupported, http.StatusBadRequest, fmt.Sprintf("UnsupportedProvider: %v", fid), "FederatedLogin.switch_providers_default")
 			return

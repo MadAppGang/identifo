@@ -297,20 +297,21 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 }
 
 type appData struct {
-	ID                    string   `json:"id,omitempty"`
-	Secret                string   `json:"secret,omitempty"`
-	Active                bool     `json:"active,omitempty"`
-	Name                  string   `json:"name,omitempty"`
-	Description           string   `json:"description,omitempty"`
-	Scopes                []string `json:"scopes,omitempty"`
-	Offline               bool     `json:"offline,omitempty"`
-	Type                  string   `json:"type,omitempty"`
-	RedirectURL           string   `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan   int64    `json:"invite_token_lifespan,omitempty"`
-	TokenLifespan         int64    `json:"token_lifespan,omitempty"`
-	TokenPayload          []string `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
-	RegistrationForbidden bool     `json:"registration_forbidden,omitempty"`
+	ID                    string           `json:"id,omitempty"`
+	Secret                string           `json:"secret,omitempty"`
+	Active                bool             `json:"active,omitempty"`
+	Name                  string           `json:"name,omitempty"`
+	Description           string           `json:"description,omitempty"`
+	Scopes                []string         `json:"scopes,omitempty"`
+	Offline               bool             `json:"offline,omitempty"`
+	Type                  model.AppType    `json:"type,omitempty"`
+	RedirectURL           string           `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64            `json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64            `json:"invite_token_lifespan,omitempty"`
+	TokenLifespan         int64            `json:"token_lifespan,omitempty"`
+	TokenPayload          []string         `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	RegistrationForbidden bool             `json:"registration_forbidden,omitempty"`
+	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
 }
 
 // AppData is DynamoDB model for model.AppData.
@@ -381,6 +382,9 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 // Sanitize removes all sensitive data.
 func (ad AppData) Sanitize() model.AppData {
 	ad.appData.Secret = ""
+	if ad.appData.AppleInfo != nil {
+		ad.appData.AppleInfo.ClientSecret = ""
+	}
 	return ad
 }
 
@@ -406,7 +410,7 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 func (ad AppData) Offline() bool { return ad.appData.Offline }
 
 // Type implements model.AppData interface.
-func (ad AppData) Type() string { return ad.appData.Type }
+func (ad AppData) Type() model.AppType { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
@@ -425,3 +429,6 @@ func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AppleInfo implements model.AppData interface.
+func (ad AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }

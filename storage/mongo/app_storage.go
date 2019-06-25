@@ -211,20 +211,21 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 }
 
 type appData struct {
-	ID                    bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
-	Secret                string        `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active                bool          `bson:"active,omitempty" json:"active,omitempty"`
-	Name                  string        `bson:"name,omitempty" json:"name,omitempty"`
-	Description           string        `bson:"description,omitempty" json:"description,omitempty"`
-	Scopes                []string      `bson:"scopes,omitempty" json:"scopes,omitempty"`
-	Offline               bool          `bson:"offline,omitempty" json:"offline,omitempty"`
-	Type                  string        `json:"type,omitempty"`
-	RedirectURL           string        `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
-	RefreshTokenLifespan  int64         `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan   int64         `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
-	TokenLifespan         int64         `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
-	TokenPayload          []string      `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
-	RegistrationForbidden bool          `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
+	ID                    bson.ObjectId    `bson:"_id,omitempty" json:"id,omitempty"`
+	Secret                string           `bson:"secret,omitempty" json:"secret,omitempty"`
+	Active                bool             `bson:"active,omitempty" json:"active,omitempty"`
+	Name                  string           `bson:"name,omitempty" json:"name,omitempty"`
+	Description           string           `bson:"description,omitempty" json:"description,omitempty"`
+	Scopes                []string         `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	Offline               bool             `bson:"offline,omitempty" json:"offline,omitempty"`
+	Type                  model.AppType    `json:"type,omitempty"`
+	RedirectURL           string           `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64            `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64            `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
+	TokenLifespan         int64            `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
+	TokenPayload          []string         `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	RegistrationForbidden bool             `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
+	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
 }
 
 // AppData is a MongoDb model that implements model.AppData.
@@ -293,6 +294,9 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 // Sanitize removes all sensitive data.
 func (ad AppData) Sanitize() model.AppData {
 	ad.appData.Secret = ""
+	if ad.appData.AppleInfo != nil {
+		ad.appData.AppleInfo.ClientSecret = ""
+	}
 	return ad
 }
 
@@ -318,7 +322,7 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 func (ad AppData) Offline() bool { return ad.appData.Offline }
 
 // Type implements model.AppData interface.
-func (ad AppData) Type() string { return ad.appData.Type }
+func (ad AppData) Type() model.AppType { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
@@ -337,3 +341,6 @@ func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AppleInfo implements model.AppData interface.
+func (ad AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }

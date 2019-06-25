@@ -27,7 +27,7 @@ type AppData interface {
 	// Offline is a boolean value that indicates wheter on not the app supports refresh tokens.
 	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
-	Type() string
+	Type() AppType
 	// RedirectURL is a redirect URL where to redirect the user after successfull login.
 	// Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
 	RedirectURL() string
@@ -41,4 +41,17 @@ type AppData interface {
 	TokenPayload() []string
 	Sanitize() AppData
 	RegistrationForbidden() bool
+	AppleInfo() *AppleInfo
 }
+
+// AppType is a type of application.
+type AppType string
+
+const (
+	// Web is a web app.
+	Web AppType = "web"
+	// Android is an Android app.
+	Android AppType = "android"
+	// IOS in an iOS app.
+	IOS AppType = "ios"
+)
