@@ -49,8 +49,8 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 // AlterDatabaseSettings changes database connection settings.
 func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var dbSettingsUpdate model.DBSettings
-		if ar.mustParseJSON(w, r, &dbSettingsUpdate) != nil {
+		var storageSettingsUpdate model.StorageSettings
+		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
 			return
 		}
 
@@ -59,12 +59,12 @@ func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.Database = dbSettingsUpdate
+		newServerSettings.Storage = storageSettingsUpdate
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Database)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
 	}
 }
 

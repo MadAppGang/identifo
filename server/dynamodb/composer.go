@@ -47,10 +47,12 @@ func (dc *DatabaseComposer) Compose() (
 	jwtService.TokenService,
 	error,
 ) {
-	db, err := dynamodb.NewDB(dc.settings.Database.DBEndpoint, dc.settings.Database.DBRegion)
+	// We assume that all DynamoDB-backed storages share the same endpoint and region, so we can pick any of them.
+	db, err := dynamodb.NewDB(dc.settings.Storage.AppStorage.Endpoint, dc.settings.Storage.AppStorage.Region)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
+
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
@@ -90,4 +92,97 @@ func (dc *DatabaseComposer) Compose() (
 	}
 
 	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+}
+
+// NewPartialComposer returns new partial composer with DynamoDB support.
+func NewPartialComposer(settings model.StorageSettings, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
+	pc := &PartialDatabaseComposer{}
+	// We assume that all DynamoDB-backed storages share the same endpoint and region, so we can pick any of them.
+	var dbEndpoint, dbRegion string
+
+	if settings.AppStorage.Type == model.DBTypeDynamoDB {
+		pc.newAppStorage = dynamodb.NewAppStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbRegion = settings.AppStorage.Region
+	}
+
+	if settings.UserStorage.Type == model.DBTypeDynamoDB {
+		pc.newUserStorage = dynamodb.NewUserStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbRegion = settings.AppStorage.Region
+	}
+
+	if settings.TokenStorage.Type == model.DBTypeDynamoDB {
+		pc.newTokenStorage = dynamodb.NewTokenStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbRegion = settings.AppStorage.Region
+	}
+
+	if settings.VerificationCodeStorage.Type == model.DBTypeDynamoDB {
+		pc.newVerificationCodeStorage = dynamodb.NewVerificationCodeStorage
+		dbEndpoint = settings.AppStorage.Endpoint
+		dbRegion = settings.AppStorage.Region
+	}
+
+	db, err := dynamodb.NewDB(dbEndpoint, dbRegion)
+	if err != nil {
+		return nil, err
+	}
+	pc.db = db
+
+	for _, option := range options {
+		if err := option(pc); err != nil {
+			return nil, err
+		}
+	}
+	return pc, nil
+}
+
+// PartialDatabaseComposer composes only DynamoDB-supporting services.
+type PartialDatabaseComposer struct {
+	db                         *dynamodb.DB
+	newAppStorage              func(*dynamodb.DB) (model.AppStorage, error)
+	newUserStorage             func(*dynamodb.DB) (model.UserStorage, error)
+	newTokenStorage            func(*dynamodb.DB) (model.TokenStorage, error)
+	newVerificationCodeStorage func(*dynamodb.DB) (model.VerificationCodeStorage, error)
+}
+
+// AppStorageComposer returns app storage composer.
+func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage, error) {
+	if pc.newAppStorage != nil {
+		return func() (model.AppStorage, error) {
+			return pc.newAppStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// UserStorageComposer returns user storage composer.
+func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
+	if pc.newUserStorage != nil {
+		return func() (model.UserStorage, error) {
+			return pc.newUserStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// TokenStorageComposer returns token storage composer.
+func (pc *PartialDatabaseComposer) TokenStorageComposer() func() (model.TokenStorage, error) {
+	if pc.newTokenStorage != nil {
+		return func() (model.TokenStorage, error) {
+			return pc.newTokenStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// VerificationCodeStorageComposer returns verification code storage composer.
+func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error) {
+	if pc.newVerificationCodeStorage != nil {
+		return func() (model.VerificationCodeStorage, error) {
+			return pc.newVerificationCodeStorage(pc.db)
+		}
+	}
+	return nil
 }

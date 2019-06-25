@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 
@@ -45,25 +46,26 @@ func startHTTPServer(httpSrv *http.Server) {
 }
 
 func initServer(configStorage model.ConfigurationStorage) model.Server {
-	var err error
-	var dbComposer server.DatabaseComposer
+	dbTypes := make(map[model.DatabaseType]bool)
+	var partialComposers []server.PartialDatabaseComposer
 
-	switch server.ServerSettings.Database.DBType {
-	case model.DBTypeBoltDB:
-		dbComposer, err = boltdb.NewComposer(server.ServerSettings)
-	case model.DBTypeDynamoDB:
-		dbComposer, err = dynamodb.NewComposer(server.ServerSettings)
-	case model.DBTypeMongoDB:
-		dbComposer, err = mgo.NewComposer(server.ServerSettings)
-	case model.DBTypeFake:
-		dbComposer, err = fake.NewComposer(server.ServerSettings)
-	default:
-		log.Panicln("Unknown database type:", server.ServerSettings.Database.DBType)
+	dbTypes[server.ServerSettings.Storage.AppStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.UserStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.TokenStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.VerificationCodeStorage.Type] = true
+
+	for dbType := range dbTypes {
+		pc, err := initPartialComposer(dbType, server.ServerSettings.Storage)
+		if err != nil {
+			log.Panicf("Cannot init partial composer for db type %s: %s\n", dbType, err)
+		}
+		partialComposers = append(partialComposers, pc)
 	}
+
+	dbComposer, err := server.NewComposer(server.ServerSettings, partialComposers)
 	if err != nil {
 		log.Panicln("Cannot init database composer:", err)
 	}
-
 	configStorageOption := server.ConfigurationStorageOption(configStorage)
 
 	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorageOption)
@@ -132,4 +134,18 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 		}
 	}()
 	return cw
+}
+
+func initPartialComposer(dbType model.DatabaseType, settings model.StorageSettings) (server.PartialDatabaseComposer, error) {
+	switch dbType {
+	case model.DBTypeBoltDB:
+		return boltdb.NewPartialComposer(settings)
+	case model.DBTypeMongoDB:
+		return mgo.NewPartialComposer(settings)
+	case model.DBTypeDynamoDB:
+		return dynamodb.NewPartialComposer(settings)
+	case model.DBTypeFake:
+		return fake.NewPartialComposer(settings)
+	}
+	return nil, fmt.Errorf("Unknown db type: %s", dbType)
 }

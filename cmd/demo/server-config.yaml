@@ -24,9 +24,19 @@ adminAccount:
 
 serverConfigPath: ./server-config.yaml
 
-database:
-  dbType: boltdb
-  dbPath: db.db
+storage:
+  appStorage:
+    type: boltdb
+    path: ./db.db
+  userStorage:
+    type: boltdb
+    path: ./db.db
+  tokenStorage:
+    type: boltdb
+    path: ./db.db
+  verificationCodeStorage:
+    type: boltdb
+    path: ./db.db
 
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
