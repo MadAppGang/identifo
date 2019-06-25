@@ -133,7 +133,7 @@
   version = "v6.15.3"
 
 [[projects]]
-  digest = "1:4652941215f23c7ad6546bab86964c72248a1134baa53f0df618661344ba5cac"
+  digest = "1:3d3a3d38b5ba4934a07e047b3d7397841d8bb69eafdf482260db415290796b19"
   name = "github.com/gogo/protobuf"
   packages = [
     "gogoproto",
@@ -141,8 +141,8 @@
     "protoc-gen-gogo/descriptor",
   ]
   pruneopts = "UT"
-  revision = "ba06b47c162d49f2af050fb4c75bcbc86a159d5c"
-  version = "v1.2.1"
+  revision = "342cbe0a04158f6dcb03ca0079991a51a4248c02"
+  version = "v0.5"
 
 [[projects]]
   digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
@@ -188,6 +188,42 @@
   pruneopts = "UT"
   revision = "70078a794e8ea4b497ba7c19a78cd60f90ccf0f4"
   version = "v1.1.0"
+
+[[projects]]
+  branch = "master"
+  digest = "1:61224a47f382c42638808fde0bec41c2282585057a23151b5269d9f85cb69d9f"
+  name = "github.com/madappgang/identifo"
+  packages = [
+    "configuration/etcd/storage",
+    "configuration/mock/storage",
+    "external_services/mail/mailgun",
+    "external_services/mail/ses",
+    "external_services/sms/mock",
+    "external_services/sms/twilio",
+    "facebook",
+    "jwt",
+    "jwt/service",
+    "jwt/validator",
+    "model",
+    "server",
+    "server/boltdb",
+    "server/dynamodb",
+    "server/fake",
+    "server/mgo",
+    "sessions/mem",
+    "sessions/redis",
+    "storage/boltdb",
+    "storage/dynamodb",
+    "storage/mem",
+    "storage/mongo",
+    "web",
+    "web/admin",
+    "web/api",
+    "web/html",
+    "web/middleware",
+  ]
+  pruneopts = "UT"
+  revision = "5602293e2252e63ac87c6034f002c88d18e0c5d1"
 
 [[projects]]
   digest = "1:6ad77325212e02cc2c76bc974fcfb59a227018afddbd3bc78ea3cc53dadb2554"
@@ -322,46 +358,31 @@
   revision = "6af8c5fc6601ab6b41cd32742a65ce2f5bd9db57"
 
 [[projects]]
-  digest = "1:cde568cda33e1c7f75353ae84df1880d5d364d9ffbf269c34cdc23fffe539a45"
+  digest = "1:45101b53b1b93d50e2464e3b164bfa72cc77229fb998cfcd029987006488c641"
   name = "google.golang.org/grpc"
   packages = [
     ".",
     "balancer",
-    "balancer/base",
-    "balancer/roundrobin",
-    "binarylog/grpc_binarylog_v1",
     "codes",
     "connectivity",
     "credentials",
-    "credentials/internal",
-    "encoding",
-    "encoding/proto",
+    "grpclb/grpc_lb_v1/messages",
     "grpclog",
     "health/grpc_health_v1",
     "internal",
-    "internal/backoff",
-    "internal/balancerload",
-    "internal/binarylog",
-    "internal/channelz",
-    "internal/envconfig",
-    "internal/grpcrand",
-    "internal/grpcsync",
-    "internal/syscall",
-    "internal/transport",
     "keepalive",
     "metadata",
     "naming",
     "peer",
     "resolver",
-    "resolver/dns",
-    "resolver/passthrough",
     "stats",
     "status",
     "tap",
+    "transport",
   ]
   pruneopts = "UT"
-  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
-  version = "v1.21.1"
+  revision = "5b3c4e850e90a4cf6a20ebd46c8b32a0a3afcb9e"
+  version = "v1.7.5"
 
 [[projects]]
   digest = "1:ee2db1a4b9111947da887ff2f8972dd2cc80906e521a2d856901fa699b4b51ee"
@@ -398,30 +419,12 @@
   analyzer-version = 1
   input-imports = [
     "github.com/akrylysov/algnhsa",
-    "github.com/aws/aws-lambda-go/events",
-    "github.com/aws/aws-lambda-go/lambda",
-    "github.com/aws/aws-sdk-go/aws",
-    "github.com/aws/aws-sdk-go/aws/awserr",
-    "github.com/aws/aws-sdk-go/aws/session",
-    "github.com/aws/aws-sdk-go/service/dynamodb",
-    "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
-    "github.com/aws/aws-sdk-go/service/ses",
-    "github.com/boltdb/bolt",
-    "github.com/dgrijalva/jwt-go",
-    "github.com/go-redis/redis",
-    "github.com/gorilla/mux",
-    "github.com/mailgun/mailgun-go",
-    "github.com/pallinder/go-randomdata",
-    "github.com/rs/cors",
-    "github.com/rs/xid",
-    "github.com/sfreiberg/gotwilio",
-    "github.com/urfave/negroni",
-    "go.etcd.io/etcd/clientv3",
-    "golang.org/x/crypto/bcrypt",
-    "gopkg.in/go-playground/validator.v9",
-    "gopkg.in/mgo.v2",
-    "gopkg.in/mgo.v2/bson",
-    "gopkg.in/yaml.v2",
+    "github.com/madappgang/identifo/model",
+    "github.com/madappgang/identifo/server",
+    "github.com/madappgang/identifo/server/boltdb",
+    "github.com/madappgang/identifo/server/dynamodb",
+    "github.com/madappgang/identifo/server/fake",
+    "github.com/madappgang/identifo/server/mgo",
   ]
   solver-name = "gps-cdcl"
   solver-version = 1
