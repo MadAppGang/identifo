@@ -561,7 +561,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 			":now": {N: aws.String(strconv.Itoa(int(time.Now().Unix())))},
 			":one": {N: aws.String("1")},
 		},
-		UpdateExpression: aws.String("set latest_login_time :now add num_logins :one "),
+		UpdateExpression: aws.String("set latest_login_time :now add num_of_logins :one "),
 		ReturnValues:     aws.String("NONE"),
 	})
 	if err != nil {
