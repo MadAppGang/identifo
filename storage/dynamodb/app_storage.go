@@ -55,11 +55,8 @@ func (as *AppStorage) ensureTable() error {
 					KeyType:       aws.String("HASH"),
 				},
 			},
-			ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-				ReadCapacityUnits:  aws.Int64(10),
-				WriteCapacityUnits: aws.Int64(10),
-			},
-			TableName: aws.String(AppsTable),
+			BillingMode: aws.String("PAY_PER_REQUEST"),
+			TableName:   aws.String(AppsTable),
 		}
 		_, err = as.db.C.CreateTable(input)
 	}

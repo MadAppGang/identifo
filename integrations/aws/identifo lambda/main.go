@@ -13,6 +13,12 @@ import (
 	"github.com/madappgang/identifo/server/mgo"
 )
 
+const (
+	testAppID       = "testAppID"
+	appsImportPath  = "./import/apps.json"
+	usersImportPath = "./import/users.json"
+)
+
 func main() {
 	srv := initServer()
 	algnhsa.ListenAndServe(srv.Router(), nil)
@@ -40,10 +46,21 @@ func initServer() model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, nil)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}
+
+	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
+		log.Println("Error getting app storage:", err)
+		if err = srv.ImportApps(appsImportPath); err != nil {
+			log.Println("Error importing apps:", err)
+		}
+		if err = srv.ImportUsers(usersImportPath); err != nil {
+			log.Println("Error importing users:", err)
+		}
+	}
+
 	return srv
 }
 

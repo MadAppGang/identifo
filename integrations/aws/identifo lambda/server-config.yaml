@@ -1,96 +1,43 @@
-# HTTP address of Indentifo server.
-host: http://localhost:8080
-
-# Folder where public and private keys are stored.
 pemFolderPath: ./jwt
-# Private key for signing JWT tokens.
 privateKey: private.pem
-# Public key for verifying JWT tokens.
 publicKey: public.pem
-# JWT token issuer.
 issuer: http://localhost:8080
-# Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 algorithm: auto
 
-# Storage for admin sessions.
 sessionStorage: 
-  type: memory # Supported values are "memory" and "redis".
-  # Admin session duration in seconds.
-  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  type: memory
   sessionDuration: 300
-  address: # Redis-related setting.
-  password: # Redis-related setting.
-  db: # Redis-related setting.
 
-# Storage for server configuration.
 configurationStorage:
-  type: etcd # Supported values are: "etcd", "mock".
-  # Key for accessing server settings in the configuraion storage.
-  settingsKey: identifo/server-settings
-  endpoints: # Etcd-related setting.
+  type: mock
 
-# Names of environment variables that store admin credentials.
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
-# File with server settings.
 serverConfigPath: server-config.yaml
 
-# Storage settings holds together all storage settings.
-# All settings for particular database engine (i.e, filepaths for BoltDB,
-# endpoints and regions for DynamoDB etc.) are assumed to be the same across
-# all storages. If they are not the same, the latest option in this file will be applied.
-# For example, if there are two MongoDB-backed storages, appStorage and tokenStorage,
-# and endpoint for appStorage is localhost:27017, while tokenStorage's endpoint is localhost:27018,
-# server will connect both storages to localhost:27018.
 storage:
   appStorage:
-    # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
-    type: boltdb
-    # Name of the database (MongoDB-specific)
-    name: identifo
-    # Endpoint of the database server (MongoDB and DynamoDB specific). For DynamoDB, can be inferred from the region automatically.
-    endpoint: localhost:27017
-    # AWS Region where the database is located in (DynamoDB-specific).
-    # Full list of possible values: https://docs.aws.amazon.com/general/latest/gr/rande.html.
-    region: us-west-2
-    # Path to the database file (BoltDB-specific).
-    path: ./db.db
+    type: dynamodb
+    region: us-east-1
   userStorage:
-    type: boltdb
-    name: identifo
-    endpoint: localhost:27017
-    region: us-west-2
-    path: ./db.db
+    type: dynamodb
+    region: us-east-1
   tokenStorage:
-    type: boltdb
-    name: identifo
-    endpoint: localhost:27017
-    region: us-west-2
-    path: ./db.db
+    type: dynamodb
+    region: us-east-1
   verificationCodeStorage:
-    type: boltdb
-    name: identifo
-    endpoint: localhost:27017
-    region: us-west-2
-    path: ./db.db
+    type: dynamodb
+    region: us-east-1
 
-# Mail service name. Supported values are "mailgun" and "aws ses".
 mailService: aws ses
 
-# SMS service settings.
 smsService:
-  type: mock # Supported values are: "twilio", "mock".
-  accountSid: # Twilio-related setting.
-  authToken: # Twilio-related setting.
-  serviceSid: # Twilio-related setting.
+  type: mock
 
-# Folder for the static files.
-staticFolderPath: ./web/static
-# Forder for the email templates.
+staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
-# Email template names.
 emailTemplateNames:
   welcome: welcome.html
   resetPassword: reset_password.html

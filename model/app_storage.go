@@ -1,8 +1,7 @@
 package model
 
-//AppStorage is abstract representation of applications data storage
+// AppStorage is an abstract representation of applications data storage.
 type AppStorage interface {
-	//AppByID returns application data by AppID
 	AppByID(id string) (AppData, error)
 	ActiveAppByID(appID string) (AppData, error)
 	CreateApp(app AppData) (AppData, error)

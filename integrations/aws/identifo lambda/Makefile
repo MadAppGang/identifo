@@ -13,7 +13,7 @@ run:	compile
 		sam local invoke $(app) -e test/event.json 
 
 ship:	compile
-		zip $(app)_lambda.zip $(app) 
+		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt email_templates static import
 		rm $(app)
 
 deploy:	ship
