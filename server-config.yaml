@@ -28,6 +28,7 @@ configurationStorage:
   # Key for accessing server settings in the configuraion storage.
   settingsKey: identifo/server-settings
   endpoints: # Etcd-related setting.
+    #- host.docker.internal:2379 
 
 # Names of environment variables that store admin credentials.
 adminAccount:
