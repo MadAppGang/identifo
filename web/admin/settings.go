@@ -46,8 +46,8 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	}
 }
 
-// AlterDatabaseSettings changes database connection settings.
-func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
+// AlterStorageSettings changes storage connection settings.
+func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var storageSettingsUpdate model.StorageSettings
 		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
