@@ -9,6 +9,8 @@ services:
       - "8111:8080"
     networks:
       - identifo
+    volumes:
+      - ./server-config.yaml:/root/server-config.yaml
   identifo-admin-panel:
     image: identifo-admin-panel:latest
     build: ./admin_panel
