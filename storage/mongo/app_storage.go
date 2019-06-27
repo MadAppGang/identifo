@@ -210,6 +210,11 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close closes database connection.
+func (as *AppStorage) Close() {
+	as.db.Close()
+}
+
 type appData struct {
 	ID                    bson.ObjectId    `bson:"_id,omitempty" json:"id,omitempty"`
 	Secret                string           `bson:"secret,omitempty" json:"secret,omitempty"`

@@ -756,3 +756,6 @@ func (us *UserStorage) ensureTable() error {
 	}
 	return nil
 }
+
+// Close does nothing here.
+func (us *UserStorage) Close() {}

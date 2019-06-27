@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
@@ -57,4 +58,11 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 		return vcb.Put([]byte(phone), []byte(code))
 	})
 	return err
+}
+
+// Close closes underlying database.
+func (vcs *VerificationCodeStorage) Close() {
+	if err := vcs.db.Close(); err != nil {
+		log.Printf("Error closing verification code storage: %s\n", err)
+	}
 }

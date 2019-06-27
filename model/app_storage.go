@@ -12,6 +12,7 @@ type AppStorage interface {
 	ImportJSON(data []byte) error
 	NewAppData() AppData
 	TestDatabaseConnection() error
+	Close()
 }
 
 // AppData represents Application data information.

@@ -21,3 +21,6 @@ func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) 
 func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) error {
 	return nil
 }
+
+// Close does nothing here.
+func (vcs *VerificationCodeStorage) Close() {}

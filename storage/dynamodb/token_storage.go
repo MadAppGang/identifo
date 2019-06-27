@@ -130,6 +130,9 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 	return nil
 }
 
+// Close does nothing here.
+func (ts *TokenStorage) Close() {}
+
 // Token is a struct to store tokens in the database.
 type Token struct {
 	Token string `json:"token,omitempty"`

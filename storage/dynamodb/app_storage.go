@@ -293,6 +293,9 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close does nothing here.
+func (as *AppStorage) Close() {}
+
 type appData struct {
 	ID                    string           `json:"id,omitempty"`
 	Secret                string           `json:"secret,omitempty"`

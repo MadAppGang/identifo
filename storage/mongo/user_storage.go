@@ -387,6 +387,11 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	}
 }
 
+// Close closes database connection.
+func (us *UserStorage) Close() {
+	us.db.Close()
+}
+
 // User data implementation.
 type userData struct {
 	ID              bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`

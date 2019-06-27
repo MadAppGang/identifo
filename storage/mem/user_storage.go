@@ -124,6 +124,9 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close does nothing here.
+func (us *UserStorage) Close() {}
+
 func randUser() *user {
 	profile := map[string]interface{}{
 		"username": randomdata.SillyName(),

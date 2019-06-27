@@ -149,3 +149,6 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 	}
 	return err
 }
+
+// Close does nothing here.
+func (vcs *VerificationCodeStorage) Close() {}
