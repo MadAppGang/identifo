@@ -39,6 +39,11 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !ar.SupportedLoginWays.Federated {
+			ar.Error(w, ErrorAPIAppFederatedLoginNotSupported, http.StatusBadRequest, "Application does not support federated login", "FederatedLogin.supportedLoginWays")
+			return
+		}
+
 		d := FederatedLoginData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
