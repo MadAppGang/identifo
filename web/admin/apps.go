@@ -26,8 +26,6 @@ func (ar *Router) GetApp() http.HandlerFunc {
 			}
 			return
 		}
-
-		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
 	}
 }
@@ -77,7 +75,6 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 			return
 		}
 
-		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
 	}
 }
@@ -100,7 +97,6 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 
 		ar.logger.Printf("App %s updated", appID)
 
-		app = app.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, app)
 	}
 }

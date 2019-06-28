@@ -41,4 +41,5 @@ type AppData interface {
 	TokenPayload() []string
 	Sanitize() AppData
 	RegistrationForbidden() bool
+	SetSecret(secret string) AppData
 }

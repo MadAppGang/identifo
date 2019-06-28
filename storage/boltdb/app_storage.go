@@ -346,3 +346,8 @@ func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+func (ad AppData) SetSecret(secret string) model.AppData {
+	ad.appData.Secret = secret
+	return ad
+}

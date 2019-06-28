@@ -241,8 +241,5 @@ func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 // TokenPayload implements model.AppData interface.
 func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
-// AddAppDataFromFile implements model.AppData interface.
-func AddAppDataFromFile(as model.AppStorage, file string) {}
-
 // RegistrationForbidden implements model.AppData interface.
 func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
