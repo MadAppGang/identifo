@@ -88,4 +88,6 @@ const (
 	ErrorAPIAppFederatedProviderNotSupported = "api.app.federated.provider.not_supported"
 	// ErrorAPIAppFederatedProviderEmptyUserID means that the federated provider returns empty user ID, maybe access token does not have required permissions.
 	ErrorAPIAppFederatedProviderEmptyUserID = "api.app.federated.provider.empty_user_id"
+	// ErrorAPIAppFederatedProviderEmptyAppleInfo means that application does not have clientID and clientSecret needed for Sign In with Apple.
+	ErrorAPIAppFederatedProviderEmptyAppleInfo = "api.app.federated.provider.empty_apple_info"
 )

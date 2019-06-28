@@ -12,7 +12,7 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//Router - router that handles all API request
+// Router is a router that handles all API requests.
 type Router struct {
 	middleware              *negroni.Negroni
 	logger                  *log.Logger
