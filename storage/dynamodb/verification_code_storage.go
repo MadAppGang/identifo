@@ -116,11 +116,8 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 				KeyType:       aws.String("HASH"),
 			},
 		},
-		ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-			ReadCapacityUnits:  aws.Int64(5),
-			WriteCapacityUnits: aws.Int64(5),
-		},
-		TableName: aws.String(VerificationCodesTableName),
+		BillingMode: aws.String("PAY_PER_REQUEST"),
+		TableName:   aws.String(VerificationCodesTableName),
 	}
 
 	if _, err = vcs.db.C.CreateTable(createTableInput); err != nil {
@@ -152,3 +149,6 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 	}
 	return err
 }
+
+// Close does nothing here.
+func (vcs *VerificationCodeStorage) Close() {}

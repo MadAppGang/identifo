@@ -535,6 +535,13 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	}
 }
 
+// Close closes underlying database.
+func (us *UserStorage) Close() {
+	if err := us.db.Close(); err != nil {
+		log.Printf("Error closing user storage: %s\n", err)
+	}
+}
+
 // User data implementation.
 type userData struct {
 	ID              string                 `json:"id,omitempty"`

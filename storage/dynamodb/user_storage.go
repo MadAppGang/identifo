@@ -19,12 +19,12 @@ import (
 const (
 	// UsersTableName is a table where to store users.
 	UsersTableName = "Users"
-	// UserTableEmailIndexName is a user table global index name to access by users by email.
-	UserTableEmailIndexName = "EmailIndex"
-	// UsersPhoneNumbersIndexName is a table global index to access users by phone numbers.
-	UsersPhoneNumbersIndexName = "PhoneIndex"
 	// UsersFederatedIDTableName is a table to store federated ids.
 	UsersFederatedIDTableName = "UsersByFederatedID"
+	// UserTableUsernameIndexName is a user table global index name to access by users by username.
+	UserTableUsernameIndexName = "username-index"
+	// UsersPhoneNumbersIndexName is a table global index to access users by phone numbers.
+	UsersPhoneNumbersIndexName = "phone-index"
 )
 
 // NewUserStorage creates and provisions new user storage instance.
@@ -156,7 +156,7 @@ func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) 
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
 		TableName:              aws.String(UsersTableName),
-		IndexName:              aws.String(UserTableEmailIndexName),
+		IndexName:              aws.String(UserTableUsernameIndexName),
 		KeyConditionExpression: aws.String("username = :n"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
@@ -561,7 +561,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 			":now": {N: aws.String(strconv.Itoa(int(time.Now().Unix())))},
 			":one": {N: aws.String("1")},
 		},
-		UpdateExpression: aws.String("set latest_login_time :now add num_logins :one "),
+		UpdateExpression: aws.String("set latest_login_time :now add num_of_logins :one "),
 		ReturnValues:     aws.String("NONE"),
 	})
 	if err != nil {
@@ -686,7 +686,7 @@ func (us *UserStorage) ensureTable() error {
 			},
 			GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
 				{
-					IndexName: aws.String(UserTableEmailIndexName),
+					IndexName: aws.String(UserTableUsernameIndexName),
 					KeySchema: []*dynamodb.KeySchemaElement{
 						{
 							AttributeName: aws.String("username"),
@@ -701,10 +701,6 @@ func (us *UserStorage) ensureTable() error {
 					// Projection: &dynamodb.Projection{
 					// 	ProjectionType: aws.String("KEYS_ONLY"),
 					// },
-					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-						ReadCapacityUnits:  aws.Int64(5),
-						WriteCapacityUnits: aws.Int64(5),
-					},
 				},
 				{
 					IndexName: aws.String(UsersPhoneNumbersIndexName),
@@ -718,17 +714,10 @@ func (us *UserStorage) ensureTable() error {
 						NonKeyAttributes: []*string{aws.String("pswd"), aws.String("id")},
 						ProjectionType:   aws.String("INCLUDE"),
 					},
-					ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-						ReadCapacityUnits:  aws.Int64(5),
-						WriteCapacityUnits: aws.Int64(5),
-					},
 				},
 			},
-			ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-				ReadCapacityUnits:  aws.Int64(5),
-				WriteCapacityUnits: aws.Int64(5),
-			},
-			TableName: aws.String(UsersTableName),
+			BillingMode: aws.String("PAY_PER_REQUEST"),
+			TableName:   aws.String(UsersTableName),
 		}
 		if _, err = us.db.C.CreateTable(input); err != nil {
 			log.Println("Error creating table:", err)
@@ -757,11 +746,8 @@ func (us *UserStorage) ensureTable() error {
 					KeyType:       aws.String("HASH"),
 				},
 			},
-			ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-				ReadCapacityUnits:  aws.Int64(10),
-				WriteCapacityUnits: aws.Int64(10),
-			},
-			TableName: aws.String(UsersFederatedIDTableName),
+			BillingMode: aws.String("PAY_PER_REQUEST"),
+			TableName:   aws.String(UsersFederatedIDTableName),
 		}
 		if _, err = us.db.C.CreateTable(input); err != nil {
 			log.Println("Error creating table:", err)
@@ -770,3 +756,6 @@ func (us *UserStorage) ensureTable() error {
 	}
 	return nil
 }
+
+// Close does nothing here.
+func (us *UserStorage) Close() {}

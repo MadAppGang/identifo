@@ -33,3 +33,10 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 	ts.storage[token] = false
 	return nil
 }
+
+// Close clears storage.
+func (ts *TokenStorage) Close() {
+	for k := range ts.storage {
+		delete(ts.storage, k)
+	}
+}

@@ -1,0 +1,45 @@
+pemFolderPath: ./jwt
+privateKey: private.pem
+publicKey: public.pem
+issuer: http://localhost:8080
+algorithm: auto
+
+sessionStorage: 
+  type: memory
+  sessionDuration: 300
+
+configurationStorage:
+  type: mock
+
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
+serverConfigPath: server-config.yaml
+
+storage:
+  appStorage:
+    type: dynamodb
+    region: us-east-1
+  userStorage:
+    type: dynamodb
+    region: us-east-1
+  tokenStorage:
+    type: dynamodb
+    region: us-east-1
+  verificationCodeStorage:
+    type: dynamodb
+    region: us-east-1
+
+mailService: aws ses
+
+smsService:
+  type: mock
+
+staticFolderPath: ./static
+emailTemplatesPath: ./email_templates
+emailTemplateNames:
+  welcome: welcome.html
+  resetPassword: reset_password.html
+  inviteEmail: invite_email.html
+  verifyEmail: verify_email.html

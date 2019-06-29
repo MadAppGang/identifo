@@ -108,17 +108,17 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.UserStorage.Type == model.DBTypeBoltDB {
 		pc.newUserStorage = boltdb.NewUserStorage
-		dbPath = settings.AppStorage.Path
+		dbPath = settings.UserStorage.Path
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeBoltDB {
 		pc.newTokenStorage = boltdb.NewTokenStorage
-		dbPath = settings.AppStorage.Path
+		dbPath = settings.TokenStorage.Path
 	}
 
 	if settings.VerificationCodeStorage.Type == model.DBTypeBoltDB {
 		pc.newVerificationCodeStorage = boltdb.NewVerificationCodeStorage
-		dbPath = settings.AppStorage.Path
+		dbPath = settings.VerificationCodeStorage.Path
 	}
 
 	db, err := boltdb.InitDB(dbPath)

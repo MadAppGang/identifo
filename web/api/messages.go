@@ -97,4 +97,6 @@ const (
 	ErrorAPIAppLoginWithUsernameNotSupported = "api.app.username.login.not_supported"
 	// ErrorAPIAppPhoneLoginNotSupported means that the app does not support login by phone number.
 	ErrorAPIAppPhoneLoginNotSupported = "api.app.phone.login.not_supported"
+	// ErrorAPIAppFederatedProviderEmptyAppleInfo means that application does not have clientID and clientSecret needed for Sign In with Apple.
+	ErrorAPIAppFederatedProviderEmptyAppleInfo = "api.app.federated.provider.empty_apple_info"
 )

@@ -60,6 +60,11 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 	return nil
 }
 
+// Close closes database connection.
+func (ts *TokenStorage) Close() {
+	ts.db.Close()
+}
+
 // Token is struct to store tokens in database.
 type Token struct {
 	ID    bson.ObjectId `bson:"_id,omitempty"`

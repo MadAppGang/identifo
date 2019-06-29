@@ -3,7 +3,7 @@ package api
 import (
 	"errors"
 
-	"github.com/madappgang/identifo/facebook"
+	"github.com/madappgang/identifo/identity_providers/facebook"
 )
 
 // ErrFacebookEmptyUserID is when Facebook user ID is empty.

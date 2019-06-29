@@ -49,7 +49,10 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 // AlterStorageSettings changes storage connection settings.
 func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var storageSettingsUpdate model.StorageSettings
+		var storageSettingsUpdate struct {
+			Storage model.StorageSettings `json:"storage"`
+		}
+
 		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
 			return
 		}
@@ -59,7 +62,7 @@ func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.Storage = storageSettingsUpdate
+		newServerSettings.Storage = storageSettingsUpdate.Storage
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}

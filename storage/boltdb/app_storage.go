@@ -225,21 +225,29 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close closes underlying database.
+func (as *AppStorage) Close() {
+	if err := as.db.Close(); err != nil {
+		log.Printf("Error closing app storage: %s\n", err)
+	}
+}
+
 type appData struct {
-	ID                    string   `json:"id,omitempty"`
-	Secret                string   `json:"secret,omitempty"`
-	Active                bool     `json:"active,omitempty"`
-	Name                  string   `json:"name,omitempty"`
-	Description           string   `json:"description,omitempty"`
-	Scopes                []string `json:"scopes,omitempty"`
-	Offline               bool     `json:"offline,omitempty"`
-	Type                  string   `json:"type,omitempty"`
-	RedirectURL           string   `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan  int64    `json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan   int64    `json:"invite_token_lifespan,omitempty"`
-	TokenLifespan         int64    `json:"token_lifespan,omitempty"`
-	TokenPayload          []string `json:"token_payload,omitempty"`
-	RegistrationForbidden bool     `json:"registration_forbidden,omitempty"`
+	ID                    string           `json:"id,omitempty"`
+	Secret                string           `json:"secret,omitempty"`
+	Active                bool             `json:"active,omitempty"`
+	Name                  string           `json:"name,omitempty"`
+	Description           string           `json:"description,omitempty"`
+	Scopes                []string         `json:"scopes,omitempty"`
+	Offline               bool             `json:"offline,omitempty"`
+	Type                  model.AppType    `json:"type,omitempty"`
+	RedirectURL           string           `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64            `json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64            `json:"invite_token_lifespan,omitempty"`
+	TokenLifespan         int64            `json:"token_lifespan,omitempty"`
+	TokenPayload          []string         `json:"token_payload,omitempty"`
+	RegistrationForbidden bool             `json:"registration_forbidden,omitempty"`
+	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
 }
 
 // AppData is an in-memory model for model.AppData.
@@ -280,7 +288,7 @@ func (ad AppData) Marshal() ([]byte, error) {
 	return json.Marshal(ad.appData)
 }
 
-// MakeAppData creates new in-memory app data instance.
+// MakeAppData creates new app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
 	return AppData{appData: appData{
 		ID:                    id,
@@ -302,6 +310,9 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 // Sanitize removes all sensitive data.
 func (ad AppData) Sanitize() model.AppData {
 	ad.appData.Secret = ""
+	if ad.appData.AppleInfo != nil {
+		ad.appData.AppleInfo.ClientSecret = ""
+	}
 	return ad
 }
 
@@ -327,7 +338,7 @@ func (ad AppData) Scopes() []string { return ad.appData.Scopes }
 func (ad AppData) Offline() bool { return ad.appData.Offline }
 
 // Type implements model.AppData interface.
-func (ad AppData) Type() string { return ad.appData.Type }
+func (ad AppData) Type() model.AppType { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
 func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
@@ -351,3 +362,6 @@ func (ad AppData) SetSecret(secret string) model.AppData {
 	ad.appData.Secret = secret
 	return ad
 }
+
+// AppleInfo implements model.AppData interface.
+func (ad AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }
