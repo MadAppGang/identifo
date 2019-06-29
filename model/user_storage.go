@@ -29,6 +29,7 @@ type UserStorage interface {
 	Scopes() []string
 	ImportJSON(data []byte) error
 	UpdateLoginMetadata(userID string)
+	Close()
 }
 
 // User is an abstract representation of the user in auth layer.

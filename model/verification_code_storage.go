@@ -4,4 +4,5 @@ package model
 type VerificationCodeStorage interface {
 	IsVerificationCodeFound(phone, code string) (bool, error)
 	CreateVerificationCode(phone, code string) error
+	Close()
 }

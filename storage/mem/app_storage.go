@@ -136,6 +136,13 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close clears storage.
+func (as *AppStorage) Close() {
+	for k := range as.storage {
+		delete(as.storage, k)
+	}
+}
+
 type appData struct {
 	ID                    string           `json:"id,omitempty"`
 	Secret                string           `json:"secret,omitempty"`

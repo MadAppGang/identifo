@@ -376,8 +376,8 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 
 	update := mgo.Change{
 		Update: bson.M{
-			"$set": bson.M{"latest_login_time": time.Now().Unix},
-			"$inc": bson.M{"num_logins": 1},
+			"$set": bson.M{"latest_login_time": time.Now().Unix()},
+			"$inc": bson.M{"num_of_logins": 1},
 		},
 	}
 
@@ -385,6 +385,11 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	if _, err := s.C.FindId(bson.ObjectIdHex(userID)).Apply(update, &ud); err != nil {
 		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
+}
+
+// Close closes database connection.
+func (us *UserStorage) Close() {
+	us.db.Close()
 }
 
 // User data implementation.
@@ -397,7 +402,7 @@ type userData struct {
 	Profile         map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active          bool                   `bson:"active,omitempty" json:"active,omitempty"`
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
-	NumOfLogins     int                    `bson:"num_of_logins,omitempty" json:"num_of_logins,omitempty"`
+	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
 }
 

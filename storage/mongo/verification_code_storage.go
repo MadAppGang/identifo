@@ -82,3 +82,8 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 	err := s.C.Insert(bson.M{phoneField: phone, codeField: code, createdAtField: time.Now()})
 	return err
 }
+
+// Close closes database connection.
+func (vcs *VerificationCodeStorage) Close() {
+	vcs.db.Close()
+}

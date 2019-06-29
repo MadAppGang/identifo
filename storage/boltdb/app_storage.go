@@ -225,6 +225,13 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 	return nil
 }
 
+// Close closes underlying database.
+func (as *AppStorage) Close() {
+	if err := as.db.Close(); err != nil {
+		log.Printf("Error closing app storage: %s\n", err)
+	}
+}
+
 type appData struct {
 	ID                    string           `json:"id,omitempty"`
 	Secret                string           `json:"secret,omitempty"`

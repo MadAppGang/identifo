@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:59e88402ad54c4138e247a8a270ff6951037e292ecf601667dbedd6f611d0035"
+  name = "github.com/akrylysov/algnhsa"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "05b3d192e9a7c7e3e64ecfd4be490a6771a05b3f"
+  version = "v0.11"
+
+[[projects]]
   digest = "1:98d2b07cc619145bc24a43233452ba3f7e576c4e94cb2e49aca067a3ae23121e"
   name = "github.com/aws/aws-lambda-go"
   packages = [
@@ -16,7 +24,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:815900b21cbfcd05e1220f6649b9d0efd693095d5d0e5e87e2d5acf4e967721c"
+  digest = "1:56c9a92c1a93224170ab403e4ade6befb3b8056be6da9fe0900658f8628f3266"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -56,8 +64,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "b9b2c2cd61a6814e3cd5d07e4c200dac18b357a4"
-  version = "v1.19.49"
+  revision = "b0b59fd2ceb03908e5d3bcd1449b46ce75508f4b"
+  version = "v1.20.7"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -254,7 +262,7 @@
     "blowfish",
   ]
   pruneopts = "UT"
-  revision = "5c40567a22f818bd14a1ea7245dad9f8ef0691aa"
+  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
 
 [[projects]]
   branch = "master"
@@ -270,15 +278,15 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "3f473d35a33aa6fdd203e306dc439b797820e3f1"
+  revision = "3b0461eec859c4b73bb64fdc8285971fd33e3938"
 
 [[projects]]
   branch = "master"
-  digest = "1:010311506e3917b54487c35a4277e2709678a40c1587d82492c40b78b6a0a01d"
+  digest = "1:d4488b7ca589840d020983978f9f139b89872b90d8a6d725de2fcac6c9448273"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "5ed2794edfdc1c54dfb61d619c5944285f35d444"
+  revision = "c5567b49c5d04a5f83870795b8c0e2df43a8ce32"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -311,7 +319,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "a7e196e89fd3a3c4d103ca540bd5dac3a736e375"
+  revision = "6af8c5fc6601ab6b41cd32742a65ce2f5bd9db57"
 
 [[projects]]
   digest = "1:cde568cda33e1c7f75353ae84df1880d5d364d9ffbf269c34cdc23fffe539a45"
@@ -389,6 +397,7 @@
   analyzer-name = "dep"
   analyzer-version = 1
   input-imports = [
+    "github.com/akrylysov/algnhsa",
     "github.com/aws/aws-lambda-go/events",
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",

@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Authorization Response</title>
+  </head>
+  <body>
+    <script>
+    (function ( window, document ) {
+      var callbackURL = "{{.CallbackURL}}";
+      var origin;
+      if (callbackURL) {
+        origin = new URL(callbackURL).origin;
+      } else {
+        origin = "*"
+      }
+
+      var authorizationResponse = {
+        accessToken: "{{.AccessToken}}",
+        error: "{{.Error}}"
+      };
+
+      var mainWin = window.opener ? window.opener : window.parent;
+      mainWin.postMessage(authorizationResponse, origin);
+  })(this, this.document);
+    </script>
+  </body>
+</html>

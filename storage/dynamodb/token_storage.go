@@ -48,11 +48,8 @@ func (ts *TokenStorage) ensureTable() error {
 					KeyType:       aws.String("HASH"),
 				},
 			},
-			ProvisionedThroughput: &dynamodb.ProvisionedThroughput{
-				ReadCapacityUnits:  aws.Int64(10),
-				WriteCapacityUnits: aws.Int64(10),
-			},
-			TableName: aws.String(TokensTableName),
+			BillingMode: aws.String("PAY_PER_REQUEST"),
+			TableName:   aws.String(TokensTableName),
 		}
 		if _, err = ts.db.C.CreateTable(input); err != nil {
 			log.Printf("Error while creating %s table: %v", TokensTableName, err)
@@ -132,6 +129,9 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 	}
 	return nil
 }
+
+// Close does nothing here.
+func (ts *TokenStorage) Close() {}
 
 // Token is a struct to store tokens in the database.
 type Token struct {

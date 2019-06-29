@@ -115,7 +115,7 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 
 	go func() {
 		for event := range cw.WatchChan() {
-			log.Printf("New event from watcher: %v+\n", event)
+			log.Printf("New event from watcher: %+v\n", event)
 			if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
 				log.Panicln("Cannot reload server configuration: ", err)
 			}
@@ -124,9 +124,11 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 				log.Panicln("Cannot shutdown server: ", err)
 			}
 
-			*httpSrv = http.Server{}
+			*httpSrv = http.Server{Addr: server.ServerSettings.GetPort()}
+
+			srv.Close()
 			srv = initServer(configStorage)
-			httpSrv.Addr = server.ServerSettings.GetPort()
+
 			httpSrv.Handler = srv.Router()
 
 			log.Println("Starting new web server...")

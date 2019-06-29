@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Registration</title>
+  <link rel="stylesheet" href="{{.Prefix}}/css/registration.css">
+  <link href="https://fonts.googleapis.com/css?family=Nunito:300,400,700" rel="stylesheet">
+</head>
+<body>
+  <main class="wrapper">
+    <form class="card" id="form" method="POST" action="{{.Prefix}}/register">
+      <header class="card__header card__header--large">Registration</header>
+      <input type="hidden" name="appId" value="{{.AppId}}">
+      <input type="hidden" name="scopes" value="{{.Scopes}}">
+      <div class="field">
+        <p id="email-error" class="field__error hidden"></p>
+        <input class="field__input" id="email" placeholder="Email" name="email" type="text" autocomplete="username"/>
+      </div>
+      <div class="field">
+        <p id="password-error" class="field__error hidden"></p>
+        <input class="field__input" id="password" placeholder="Password" name="password" type="password" autocomplete="new-password"/>
+      </div>
+      <button class="card__submit card__submit--large">Submit</button>
+      <p id="error" class="card__message card__message--error">{{.Error}}</p>
+    </form>
+ </main>
+  <script src="{{.Prefix}}/js/dist/registration.js"></script>
+</body>
+</html> 

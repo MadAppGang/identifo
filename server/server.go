@@ -207,7 +207,13 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		return nil, err
 	}
 
-	s := Server{appStorage: appStorage, userStorage: userStorage, configurationStorage: configurationStorage}
+	s := Server{
+		appStorage:              appStorage,
+		userStorage:             userStorage,
+		tokenStorage:            tokenStorage,
+		verificationCodeStorage: verificationCodeStorage,
+		configurationStorage:    configurationStorage,
+	}
 
 	sessionStorage, err := sessionStorage(settings)
 	if err != nil {
@@ -281,10 +287,12 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 
 // Server is a server.
 type Server struct {
-	MainRouter           *web.Router
-	appStorage           model.AppStorage
-	userStorage          model.UserStorage
-	configurationStorage model.ConfigurationStorage
+	MainRouter              *web.Router
+	appStorage              model.AppStorage
+	userStorage             model.UserStorage
+	configurationStorage    model.ConfigurationStorage
+	tokenStorage            model.TokenStorage
+	verificationCodeStorage model.VerificationCodeStorage
 }
 
 // Router returns server's main router.
@@ -306,9 +314,27 @@ func (s *Server) UserStorage() model.UserStorage {
 	return s.userStorage
 }
 
+// TokenStorage returns server's token storage.
+func (s *Server) TokenStorage() model.TokenStorage {
+	return s.tokenStorage
+}
+
+// VerificationCodeStorage returns server's token storage.
+func (s *Server) VerificationCodeStorage() model.VerificationCodeStorage {
+	return s.verificationCodeStorage
+}
+
 // ConfigurationStorage returns server's configuration storage.
 func (s *Server) ConfigurationStorage() model.ConfigurationStorage {
 	return s.configurationStorage
+}
+
+// Close closes all database connections.
+func (s *Server) Close() {
+	s.AppStorage().Close()
+	s.UserStorage().Close()
+	s.TokenStorage().Close()
+	s.VerificationCodeStorage().Close()
 }
 
 // ConfigurationStorageOption is an option to set server's configuration storage.

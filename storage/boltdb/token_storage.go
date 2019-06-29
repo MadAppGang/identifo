@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"fmt"
+	"log"
 
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
@@ -63,4 +64,11 @@ func (ts *TokenStorage) RevokeToken(token string) error {
 		//we use token as key and value
 		return b.Delete([]byte(token))
 	})
+}
+
+// Close closes underlying database.
+func (ts *TokenStorage) Close() {
+	if err := ts.db.Close(); err != nil {
+		log.Printf("Error closing token storage: %s\n", err)
+	}
 }
