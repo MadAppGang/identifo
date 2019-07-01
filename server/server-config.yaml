@@ -14,13 +14,15 @@ algorithm: auto
 
 # Storage for admin sessions.
 sessionStorage: 
-  type: memory # Supported values are "memory" and "redis".
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
   # Admin session duration in seconds.
   # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
   sessionDuration: 300
   address: # Redis-related setting.
   password: # Redis-related setting.
   db: # Redis-related setting.
+  region: # DynamoDB-related setting.
+  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
 
 # Storage for server configuration.
 configurationStorage:
