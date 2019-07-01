@@ -18,7 +18,7 @@ type ServerSettings struct {
 	SessionStorage       SessionStorageSettings       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
 	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	LoginVia             LoginVia                     `yaml:"loginVia,omitempty" json:"login_via,omitempty"`
+	LoginWith            LoginWith                    `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
 	ServerConfigPath     string                       `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	MailService          MailServiceType              `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
 	SMSService           SMSServiceSettings           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
@@ -102,8 +102,8 @@ type AdminAccountSettings struct {
 	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name,omitempty"`
 }
 
-// LoginVia is a type for configuring supported login ways.
-type LoginVia struct {
+// LoginWith is a type for configuring supported login ways.
+type LoginWith struct {
 	Username  bool `yaml:"username" json:"username,omitempty"`
 	Phone     bool `yaml:"phone" json:"phone,omitempty"`
 	Federated bool `yaml:"federated" json:"federated,omitempty"`

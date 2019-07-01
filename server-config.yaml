@@ -38,7 +38,7 @@ adminAccount:
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
 # Supported login ways.
-loginVia:
+loginWith:
   phone: true
   username: true
   federated: true
