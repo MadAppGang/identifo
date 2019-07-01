@@ -39,10 +39,10 @@ type AppData interface {
 	RefreshTokenLifespan() int64
 	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayload() []string
-	Sanitize() AppData
+	Sanitize()
 	RegistrationForbidden() bool
-	SetSecret(secret string) AppData
 	AppleInfo() *AppleInfo
+	SetSecret(secret string)
 }
 
 // AppType is a type of application.

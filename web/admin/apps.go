@@ -1,6 +1,10 @@
 package admin
 
 import (
+	"crypto/rand"
+	"encoding/base64"
+	"fmt"
+	"io"
 	"net/http"
 	"strings"
 
@@ -46,8 +50,8 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
-		for i, app := range apps {
-			apps[i] = app.Sanitize()
+		for _, app := range apps {
+			app.Sanitize()
 		}
 
 		searchResponse := struct {
@@ -69,12 +73,17 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 			return
 		}
 
+		appSecret, err := ar.generateAppSecret(w)
+		if err != nil {
+			return
+		}
+		ad.SetSecret(appSecret)
+
 		app, err := ar.appStorage.CreateApp(ad)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
 		}
-
 		ar.ServeJSON(w, http.StatusOK, app)
 	}
 }
@@ -86,6 +95,18 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 
 		ad := ar.appStorage.NewAppData()
 		if ar.mustParseJSON(w, r, ad) != nil {
+			return
+		}
+
+		// TODO: test
+		if lenSecret := len(ad.Secret()); lenSecret < 24 || lenSecret > 48 {
+			err := fmt.Errorf("Incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			return
+		}
+		if !isBase64(ad.Secret()) {
+			err := fmt.Errorf("Expecting appsecret to be base64 encoded")
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -114,4 +135,18 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
+}
+
+func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
+	secret := make([]byte, 16)
+	if _, err := io.ReadFull(rand.Reader, secret); err != nil {
+		ar.Error(w, err, http.StatusInternalServerError, "Cannot create app secret")
+		return "", err
+	}
+	return base64.StdEncoding.EncodeToString(secret), nil
+}
+
+func isBase64(s string) bool {
+	_, err := base64.StdEncoding.DecodeString(s)
+	return err == nil
 }

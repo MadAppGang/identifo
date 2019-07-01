@@ -99,7 +99,7 @@ type Router struct {
 
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//reroute to our internal implementation
+	// Reroute to our internal implementation.
 	ar.RootRouter.ServeHTTP(w, r)
 }
 
