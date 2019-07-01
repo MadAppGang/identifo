@@ -35,9 +35,10 @@ adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
+# Supported login ways.
 loginVia:
   phone: true
-  username: true
+  username: false
   federated: true
 
 # File with server settings.

@@ -98,7 +98,6 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 			return
 		}
 
-		// TODO: test
 		if lenSecret := len(ad.Secret()); lenSecret < 24 || lenSecret > 48 {
 			err := fmt.Errorf("Incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
 			ar.Error(w, err, http.StatusBadRequest, err.Error())

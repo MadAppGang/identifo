@@ -102,9 +102,9 @@ type AdminAccountSettings struct {
 
 // LoginVia is a type for configuring supported login ways.
 type LoginVia struct {
-	Username  bool `json:"username,omitempty"`
-	Phone     bool `json:"phone,omitempty"`
-	Federated bool `json:"federated,omitempty"`
+	Username  bool `yaml:"username" json:"username,omitempty"`
+	Phone     bool `yaml:"phone" json:"phone,omitempty"`
+	Federated bool `yaml:"federated" json:"federated,omitempty"`
 }
 
 // SMSServiceSettings holds together settings for SMS service.

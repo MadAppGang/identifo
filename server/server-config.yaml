@@ -34,11 +34,6 @@ adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
-loginVia:
-  phone: true
-  username: true
-  federated: true
-
 # File with server settings.
 serverConfigPath: ../../server/server-config.yaml
 # Storage settings holds together all storage settings.
@@ -89,6 +84,12 @@ smsService:
   accountSid: # Twilio-related setting.
   authToken: # Twilio-related setting.
   serviceSid: # Twilio-related setting.
+
+# Supported login ways.
+loginVia:
+  phone: true
+  username: true
+  federated: true
 
 # Folder for the static files.
 staticFolderPath: ../../web/static
