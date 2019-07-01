@@ -9,31 +9,35 @@ func GetMessage(id MessageID) string {
 }
 
 var messages = map[MessageID]string{
-	ErrorAPIInternalServerError:              "Internal server error",
-	ErrorAPIUserUnableToCreate:               "Unable to create use. Try again or contact support team",
-	ErrorAPIVerificationCodeInvalid:          "Sorry, the code you entered is invalid or has expired. Please get a new one.",
-	ErrorAPIUserNotFound:                     "Specified user not found",
-	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
-	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
-	ErrorAPIInviteTokenServerError:           "Unable to create invite token. Try again or contact support team",
-	ErrorAPIEmailNotSent:                     "Unable to send email. Try again or contact support team",
-	ErrorAPIRequestPasswordWeak:              "Password is not strong enough",
-	ErrorAPIRequestIncorrectEmailOrPassword:  "Incorrect email or password",
-	ErrorAPIRequestScopesForbidden:           "Requested scopes are forbidden",
-	ErrorAPIRequestBodyInvalid:               "Wrong input data",
-	ErrorAPIRequestBodyParamsInvalid:         "Input data does not pass validation. Please specify valid params",
-	ErrorAPIRequestBodyOldPasswordInvalid:    "Old password is invalid. Please check it again",
-	ErrorAPIRequestBodyEmailInvalid:          "Specified email is invalid or empty",
-	ErrorAPIRequestSignatureInvalid:          "Incorrect or empty request signature",
-	ErrorAPIRequestAppIDInvalid:              "Incorrect or empty application ID",
-	ErrorAPIRequestTokenInvalid:              "Incorrect or empty Bearer token",
-	ErrorAPIAppInactive:                      "Requesting app is inactive",
-	ErrorAPIAppRegistrationForbidden:         "Registration in this app is forbidden",
-	ErrorAPIAppResetTokenNotCreated:          "Unable to create reset token",
-	ErrorAPIAppAccessTokenNotCreated:         "Unable to create access token",
-	ErrorAPIAppRefreshTokenNotCreated:        "Unable to create refresh token",
-	ErrorAPIAppFederatedProviderNotSupported: "Federated provider is not supported",
-	ErrorAPIAppFederatedProviderEmptyUserID:  "Federated provider returns empty user ID",
+	ErrorAPIInternalServerError:                "Internal server error",
+	ErrorAPIUserUnableToCreate:                 "Unable to create use. Try again or contact support team",
+	ErrorAPIVerificationCodeInvalid:            "Sorry, the code you entered is invalid or has expired. Please get a new one.",
+	ErrorAPIUserNotFound:                       "Specified user not found",
+	ErrorAPIUsernameTaken:                      "Username is taken. Try to choose another one",
+	ErrorAPIEmailTaken:                         "Email is taken. Try to choose another one",
+	ErrorAPIInviteTokenServerError:             "Unable to create invite token. Try again or contact support team",
+	ErrorAPIEmailNotSent:                       "Unable to send email. Try again or contact support team",
+	ErrorAPIRequestPasswordWeak:                "Password is not strong enough",
+	ErrorAPIRequestIncorrectEmailOrPassword:    "Incorrect email or password",
+	ErrorAPIRequestScopesForbidden:             "Requested scopes are forbidden",
+	ErrorAPIRequestBodyInvalid:                 "Wrong input data",
+	ErrorAPIRequestBodyParamsInvalid:           "Input data does not pass validation. Please specify valid params",
+	ErrorAPIRequestBodyOldPasswordInvalid:      "Old password is invalid. Please check it again",
+	ErrorAPIRequestBodyEmailInvalid:            "Specified email is invalid or empty",
+	ErrorAPIRequestSignatureInvalid:            "Incorrect or empty request signature",
+	ErrorAPIRequestAppIDInvalid:                "Incorrect or empty application ID",
+	ErrorAPIRequestTokenInvalid:                "Incorrect or empty Bearer token",
+	ErrorAPIAppInactive:                        "Requesting app is inactive",
+	ErrorAPIAppRegistrationForbidden:           "Registration in this app is forbidden",
+	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
+	ErrorAPIAppAccessTokenNotCreated:           "Unable to create access token",
+	ErrorAPIAppRefreshTokenNotCreated:          "Unable to create refresh token",
+	ErrorAPIAppFederatedProviderNotSupported:   "Federated provider is not supported",
+	ErrorAPIAppFederatedProviderEmptyUserID:    "Federated provider returns empty user ID",
+	ErrorAPIAppFederatedProviderEmptyAppleInfo: "Application does not have Apple info",
+	ErrorAPIAppFederatedLoginNotSupported:      "Login via federated identity provider is not supported by app",
+	ErrorAPIAppLoginWithUsernameNotSupported:   "Login with username is not supported by app",
+	ErrorAPIAppPhoneLoginNotSupported:          "Login with phone number is not supported by app",
 }
 
 const (
@@ -53,6 +57,7 @@ const (
 	ErrorAPIInviteTokenServerError = "error.api.invite_token.server_error"
 	// ErrorAPIEmailNotSent means that email had not been sent.
 	ErrorAPIEmailNotSent = "error.api.email.not_sent"
+
 	// ErrorAPIRequestPasswordWeak means that password didn't pass strength validation.
 	ErrorAPIRequestPasswordWeak = "error.api.request.password.weak"
 	// ErrorAPIRequestIncorrectEmailOrPassword is for incorrect email or password.
@@ -71,6 +76,7 @@ const (
 	ErrorAPIRequestSignatureInvalid = "error.api.request.signature.invalid"
 	// ErrorAPIRequestAppIDInvalid means that application ID header value is invalid.
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
+
 	// ErrorAPIRequestTokenInvalid means that the reqesting app is inactive.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
 	// ErrorAPIAppInactive means that the token is invalid or empty.
@@ -90,4 +96,11 @@ const (
 	ErrorAPIAppFederatedProviderEmptyUserID = "api.app.federated.provider.empty_user_id"
 	// ErrorAPIAppFederatedProviderEmptyAppleInfo means that application does not have clientID and clientSecret needed for Sign In with Apple.
 	ErrorAPIAppFederatedProviderEmptyAppleInfo = "api.app.federated.provider.empty_apple_info"
+
+	// ErrorAPIAppFederatedLoginNotSupported means that the app does not support federated login.
+	ErrorAPIAppFederatedLoginNotSupported = "api.app.federated.login.not_supported"
+	// ErrorAPIAppLoginWithUsernameNotSupported means that the app does not support login by username.
+	ErrorAPIAppLoginWithUsernameNotSupported = "api.app.username.login.not_supported"
+	// ErrorAPIAppPhoneLoginNotSupported means that the app does not support login by phone number.
+	ErrorAPIAppPhoneLoginNotSupported = "api.app.phone.login.not_supported"
 )

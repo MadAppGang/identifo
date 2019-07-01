@@ -28,9 +28,14 @@ func (ld *loginData) validate() error {
 	return nil
 }
 
-// LoginWithPassword logs user in with email and password.
+// LoginWithPassword logs user in with username and password.
 func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !ar.SupportedLoginWays.Username {
+			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, "Application does not support login with username", "LoginWithPassword.supportedLoginWays")
+			return
+		}
+
 		ld := loginData{}
 		if ar.MustParseJSON(w, r, &ld) != nil {
 			return

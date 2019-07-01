@@ -41,7 +41,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if err := s.C.FindId(bson.ObjectIdHex(id)).One(&ad); err != nil {
 		return nil, err
 	}
-	return AppData{appData: ad}, nil
+	return &AppData{appData: ad}, nil
 }
 
 // ActiveAppByID returns app by id only if it's active.
@@ -84,7 +84,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 
 	apps := make([]model.AppData, len(appsData))
 	for i := 0; i < len(appsData); i++ {
-		apps[i] = AppData{appData: appsData[i]}
+		apps[i] = &AppData{appData: appsData[i]}
 	}
 
 	return apps, total, nil
@@ -105,17 +105,17 @@ func (as *AppStorage) DeleteApp(id string) error {
 // CreateApp creates new app in MongoDB.
 func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
 	res, ok := app.(*AppData)
-	if !ok || app == nil {
+	if !ok || res == nil {
 		return nil, model.ErrorWrongDataFormat
 	}
-	result, err := as.addNewApp(*res)
+	result, err := as.addNewApp(res)
 	return result, err
 }
 
 // addNewApp adds new app to MongoDB storage.
 func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
-	a, ok := app.(AppData)
-	if !ok {
+	a, ok := app.(*AppData)
+	if !ok || a == nil {
 		return nil, model.ErrorWrongDataFormat
 	}
 	s := as.db.Session(AppsCollection)
@@ -178,7 +178,7 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 		return nil, err
 	}
 
-	return AppData{appData: ad}, nil
+	return &AppData{appData: ad}, nil
 }
 
 // TestDatabaseConnection checks whether we can fetch the first document in the applications collection.
@@ -203,7 +203,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.addNewApp(AppData{appData: a}); err != nil {
+		if _, err := as.addNewApp(&AppData{appData: a}); err != nil {
 			return err
 		}
 	}
@@ -218,18 +218,18 @@ func (as *AppStorage) Close() {
 type appData struct {
 	ID                    bson.ObjectId    `bson:"_id,omitempty" json:"id,omitempty"`
 	Secret                string           `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active                bool             `bson:"active,omitempty" json:"active,omitempty"`
+	Active                bool             `bson:"active" json:"active"`
 	Name                  string           `bson:"name,omitempty" json:"name,omitempty"`
 	Description           string           `bson:"description,omitempty" json:"description,omitempty"`
 	Scopes                []string         `bson:"scopes,omitempty" json:"scopes,omitempty"`
-	Offline               bool             `bson:"offline,omitempty" json:"offline,omitempty"`
+	Offline               bool             `bson:"offline" json:"offline"`
 	Type                  model.AppType    `json:"type,omitempty"`
 	RedirectURL           string           `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64            `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64            `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64            `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string         `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
-	RegistrationForbidden bool             `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
+	RegistrationForbidden bool             `bson:"registration_forbidden" json:"registration_forbidden"`
 	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
 }
 
@@ -297,55 +297,65 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 }
 
 // Sanitize removes all sensitive data.
-func (ad AppData) Sanitize() model.AppData {
+func (ad *AppData) Sanitize() {
+	if ad == nil {
+		return
+	}
 	ad.appData.Secret = ""
 	if ad.appData.AppleInfo != nil {
 		ad.appData.AppleInfo.ClientSecret = ""
 	}
-	return ad
 }
 
 // ID implements model.AppData interface.
-func (ad AppData) ID() string { return ad.appData.ID.Hex() }
+func (ad *AppData) ID() string { return ad.appData.ID.Hex() }
 
 // Secret implements model.AppData interface.
-func (ad AppData) Secret() string { return ad.appData.Secret }
+func (ad *AppData) Secret() string { return ad.appData.Secret }
 
 // Active implements model.AppData interface.
-func (ad AppData) Active() bool { return ad.appData.Active }
+func (ad *AppData) Active() bool { return ad.appData.Active }
 
 // Name implements model.AppData interface.
-func (ad AppData) Name() string { return ad.appData.Name }
+func (ad *AppData) Name() string { return ad.appData.Name }
 
 // Description implements model.AppData interface.
-func (ad AppData) Description() string { return ad.appData.Description }
+func (ad *AppData) Description() string { return ad.appData.Description }
 
 // Scopes implements model.AppData interface.
-func (ad AppData) Scopes() []string { return ad.appData.Scopes }
+func (ad *AppData) Scopes() []string { return ad.appData.Scopes }
 
 // Offline implements model.AppData interface.
-func (ad AppData) Offline() bool { return ad.appData.Offline }
+func (ad *AppData) Offline() bool { return ad.appData.Offline }
 
 // Type implements model.AppData interface.
-func (ad AppData) Type() model.AppType { return ad.appData.Type }
+func (ad *AppData) Type() model.AppType { return ad.appData.Type }
 
 // RedirectURL implements model.AppData interface.
-func (ad AppData) RedirectURL() string { return ad.appData.RedirectURL }
+func (ad *AppData) RedirectURL() string { return ad.appData.RedirectURL }
 
 // InviteTokenLifespan implements model.AppData interface.
-func (ad AppData) InviteTokenLifespan() int64 { return ad.appData.InviteTokenLifespan }
+func (ad *AppData) InviteTokenLifespan() int64 { return ad.appData.InviteTokenLifespan }
 
 // RefreshTokenLifespan implements model.AppData interface.
-func (ad AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
+func (ad *AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }
 
 // TokenLifespan implements model.AppData interface.
-func (ad AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
+func (ad *AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 
 // TokenPayload implements model.AppData interface.
-func (ad AppData) TokenPayload() []string { return ad.appData.TokenPayload }
+func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
-func (ad AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
 
 // AppleInfo implements model.AppData interface.
-func (ad AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }
+func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }
+
+// SetSecret implements model.AppData interface.
+func (ad *AppData) SetSecret(secret string) {
+	if ad == nil {
+		return
+	}
+	ad.appData.Secret = secret
+}

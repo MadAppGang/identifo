@@ -184,7 +184,7 @@ func TestNewToken(t *testing.T) {
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
 	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, "", 0, 0, 0, tokenPayload, true)
-	token, err := ts.NewToken(user, scopes, app)
+	token, err := ts.NewToken(user, scopes, &app)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
 	}

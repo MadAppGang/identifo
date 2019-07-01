@@ -46,8 +46,8 @@ func (ar *Router) AlterServerSettings() http.HandlerFunc {
 	}
 }
 
-// AlterDatabaseSettings changes database connection settings.
-func (ar *Router) AlterDatabaseSettings() http.HandlerFunc {
+// AlterStorageSettings changes storage connection settings.
+func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var storageSettingsUpdate struct {
 			Storage model.StorageSettings `json:"storage"`
@@ -112,8 +112,8 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 }
 
 func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
-	if len(pswd) < 6 || len(pswd) > 130 {
-		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", len(pswd))
+	if pswdLen := len(pswd); pswdLen < 6 || pswdLen > 130 {
+		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", pswdLen)
 		ar.Error(w, err, http.StatusBadRequest, err.Error())
 		return err
 	}

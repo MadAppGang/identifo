@@ -27,6 +27,7 @@ type Router struct {
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
 	Host                    string
+	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
 }
 
@@ -46,6 +47,14 @@ func defaultOptions() []func(*Router) error {
 func HostOption(host string) func(*Router) error {
 	return func(r *Router) error {
 		r.Host = host
+		return nil
+	}
+}
+
+// SupportedLoginWaysOption are for setting supported ways of logging in into the app.
+func SupportedLoginWaysOption(loginWays model.LoginWith) func(*Router) error {
+	return func(r *Router) error {
+		r.SupportedLoginWays = loginWays
 		return nil
 	}
 }

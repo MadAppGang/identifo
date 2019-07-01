@@ -53,26 +53,26 @@ storage:
     endpoint: localhost:27017
     # AWS Region where the database is located in (DynamoDB-specific).
     # Full list of possible values: https://docs.aws.amazon.com/general/latest/gr/rande.html.
-    region: us-west-2
+    region: us-east-2
     # Path to the database file (BoltDB-specific).
     path: ./db.db
   userStorage:
     type: boltdb
     name: identifo
     endpoint: localhost:27017
-    region: us-west-2
+    region: us-east-2
     path: ./db.db
   tokenStorage:
     type: boltdb
     name: identifo
     endpoint: localhost:27017
-    region: us-west-2
+    region: us-east-2
     path: ./db.db
   verificationCodeStorage:
     type: boltdb
     name: identifo
     endpoint: localhost:27017
-    region: us-west-2
+    region: us-east-2
     path: ./db.db
 
 # Mail service name. Supported values are "mailgun" and "aws ses".
@@ -84,6 +84,12 @@ smsService:
   accountSid: # Twilio-related setting.
   authToken: # Twilio-related setting.
   serviceSid: # Twilio-related setting.
+
+# Supported login ways.
+loginWith:
+  phone: true
+  username: true
+  federated: true
 
 # Folder for the static files.
 staticFolderPath: ../../web/static

@@ -13,12 +13,21 @@ import (
 	"github.com/urfave/negroni"
 )
 
-var corsOptions = cors.New(cors.Options{
-	AllowedOrigins:   []string{"http://localhost:*"},
-	AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
-	AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
-	AllowCredentials: true,
-})
+var corsOptions *cors.Cors
+
+func init() {
+	allowedOrigins := []string{"http://localhost:*"}
+	if adminPanelURL := os.Getenv("ADMIN_PANEL_URL"); len(adminPanelURL) > 0 {
+		allowedOrigins = append(allowedOrigins, adminPanelURL)
+	}
+
+	corsOptions = cors.New(cors.Options{
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
+	})
+}
 
 // Router is a router that handles admin requests.
 type Router struct {

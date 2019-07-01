@@ -36,6 +36,11 @@ mailService: aws ses
 smsService:
   type: mock
 
+loginWith:
+  phone: true
+  username: true
+  federated: true
+
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
 emailTemplateNames:

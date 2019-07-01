@@ -1,6 +1,6 @@
 host: http://localhost:8080
 
-pemFolderPath: ./pem
+pemFolderPath: ../../jwt
 privateKey: private.pem
 publicKey: public.pem
 issuer: http://localhost:8080
@@ -17,6 +17,11 @@ configurationStorage:
 
 smsService:
   type: mock
+
+loginWith:
+  phone: true
+  username: true
+  federated: true
 
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
@@ -38,8 +43,8 @@ storage:
     type: boltdb
     path: ./db.db
 
-staticFolderPath: ./static
-emailTemplatesPath: ./email_templates
+staticFolderPath: ../../static
+emailTemplatesPath: ../../email_templates
 emailTemplateNames:
   welcome: welcome.html
   resetPassword: reset_password.html

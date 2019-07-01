@@ -11,8 +11,8 @@ import (
 
 const (
 	testAppID       = "59fd884d8f6b180001f5b4e2"
-	appsImportPath  = "./apps.json"
-	usersImportPath = "./users.json"
+	appsImportPath  = "../import/apps.json"
+	usersImportPath = "../import/users.json"
 )
 
 func initServer() model.Server {

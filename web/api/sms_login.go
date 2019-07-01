@@ -57,10 +57,15 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 
 // PhoneLogin authenticates user with phone number and verification code.
 // If user exists - create new session and return token.
-// If user does not exists - register and then login (create session and return token).
+// If user does not exist - register and then login (create session and return token).
 // If code is invalid - return error.
 func (ar *Router) PhoneLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		if !ar.SupportedLoginWays.Phone {
+			ar.Error(w, ErrorAPIAppPhoneLoginNotSupported, http.StatusBadRequest, "Application does not support login via phone number", "PhoneLogin.supportedLoginWays")
+			return
+		}
+
 		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "PhoneLogin.Unmarshal")
