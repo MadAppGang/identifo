@@ -262,7 +262,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
-			api.SupportedLoginWaysOption(settings.LoginVia),
+			api.SupportedLoginWaysOption(settings.LoginWith),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),

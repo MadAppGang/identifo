@@ -36,7 +36,7 @@ mailService: aws ses
 smsService:
   type: mock
 
-loginVia:
+loginWith:
   phone: true
   username: true
   federated: true

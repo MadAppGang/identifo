@@ -86,7 +86,7 @@ smsService:
   serviceSid: # Twilio-related setting.
 
 # Supported login ways.
-loginVia:
+loginWith:
   phone: true
   username: true
   federated: true
