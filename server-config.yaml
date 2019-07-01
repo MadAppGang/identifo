@@ -38,7 +38,7 @@ adminAccount:
 # Supported login ways.
 loginVia:
   phone: true
-  username: false
+  username: true
   federated: true
 
 # File with server settings.
