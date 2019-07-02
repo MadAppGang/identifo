@@ -23,6 +23,7 @@ import (
 	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
+	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 	"gopkg.in/yaml.v2"
@@ -344,6 +345,21 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 		if configuratonStorage != nil {
 			s.configurationStorage = configuratonStorage
 		}
+		return nil
+	}
+}
+
+// ServeAdminPanelOption is an option to serve admin panel right from the Identifo server.
+func ServeAdminPanelOption() func(*Server) error {
+	return func(s *Server) (err error) {
+		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.AdminPanelBuildPath))
+		if err != nil {
+			return
+		}
+
+		s.MainRouter.AdminPanelRouterPath = "adminpanel"
+		s.MainRouter.RootRouter.Handle(s.MainRouter.AdminPanelRouterPath+"/", http.StripPrefix(s.MainRouter.AdminPanelRouterPath, s.MainRouter.AdminPanelRouter))
+
 		return nil
 	}
 }

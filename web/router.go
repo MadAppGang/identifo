@@ -7,26 +7,28 @@ import (
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
+	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 )
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	AppStorage              model.AppStorage
-	UserStorage             model.UserStorage
-	TokenStorage            model.TokenStorage
-	VerificationCodeStorage model.VerificationCodeStorage
-	TokenService            jwtService.TokenService
-	SMSService              model.SMSService
-	EmailService            model.EmailService
-	SessionService          model.SessionService
-	SessionStorage          model.SessionStorage
-	ConfigurationStorage    model.ConfigurationStorage
-	Logger                  *log.Logger
-	APIRouterSettings       []func(*api.Router) error
-	WebRouterSettings       []func(*html.Router) error
-	AdminRouterSettings     []func(*admin.Router) error
+	AppStorage               model.AppStorage
+	UserStorage              model.UserStorage
+	TokenStorage             model.TokenStorage
+	VerificationCodeStorage  model.VerificationCodeStorage
+	TokenService             jwtService.TokenService
+	SMSService               model.SMSService
+	EmailService             model.EmailService
+	SessionService           model.SessionService
+	SessionStorage           model.SessionStorage
+	ConfigurationStorage     model.ConfigurationStorage
+	Logger                   *log.Logger
+	APIRouterSettings        []func(*api.Router) error
+	WebRouterSettings        []func(*html.Router) error
+	AdminRouterSettings      []func(*admin.Router) error
+	AdminPanelRouterSettings []func(*adminpanel.Router) error
 }
 
 // NewRouter creates and inits root http router.
@@ -78,23 +80,32 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		return nil, err
 	}
 
+	r.AdminPanelRouter, err = adminpanel.NewRouter()
+
+	if err != nil {
+		return nil, err
+	}
+
 	r.APIRouterPath = "/api"
 	r.WebRouterPath = "/web"
 	r.AdminRouterPath = "/admin"
+	r.AdminPanelRouterPath = "/adminpanel"
 	r.setupRoutes()
 	return &r, nil
 }
 
 // Router is a root router to handle REST API, web, and admin requests.
 type Router struct {
-	APIRouter   model.Router
-	WebRouter   model.Router
-	AdminRouter model.Router
-	RootRouter  *http.ServeMux
+	APIRouter        model.Router
+	WebRouter        model.Router
+	AdminRouter      model.Router
+	AdminPanelRouter model.Router
+	RootRouter       *http.ServeMux
 
-	APIRouterPath   string
-	WebRouterPath   string
-	AdminRouterPath string
+	APIRouterPath        string
+	WebRouterPath        string
+	AdminRouterPath      string
+	AdminPanelRouterPath string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -108,4 +119,6 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
 	ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
+	ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
+
 }

@@ -2,10 +2,9 @@
 
 app = Identifo
 function = Identifo
-# Specify your lambda arn, API Gateway endpoint, S3 bucket with admin panel, and AWS profile.
+# Specify your lambda arn, API Gateway endpoint, and AWS profile.
 # aws_arn = 
-# api_gateway_endpoint = 
-# admin_panel_bucket = 
+# api_gateway_endpoint =
 # aws_profile =
 
 compile:
@@ -15,7 +14,7 @@ run:	compile
 		sam local invoke $(app) -e test/event.json 
 
 ship:	compile
-		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt email_templates static import
+		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt admin_panel/build email_templates static import
 		rm $(app)
 
 deploy:	ship
@@ -42,9 +41,3 @@ update_admin_panel:
 		# Clean up.
 		rm -f master.zip
 		rm -fr identifo-admin-master
-
-deploy_admin_panel: update_admin_panel
-		# Empty bucket.
-		aws s3 rm s3://$(admin_panel_bucket) --recursive
-		# Upload new contents.
-		aws s3 sync admin_panel/build s3://$(admin_panel_bucket) --acl public-read
