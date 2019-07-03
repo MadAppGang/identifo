@@ -357,7 +357,7 @@ func ServeAdminPanelOption() func(*Server) error {
 			return
 		}
 
-		s.MainRouter.AdminPanelRouterPath = "adminpanel"
+		s.MainRouter.AdminPanelRouterPath = "/adminpanel"
 		s.MainRouter.RootRouter.Handle(s.MainRouter.AdminPanelRouterPath+"/", http.StripPrefix(s.MainRouter.AdminPanelRouterPath, s.MainRouter.AdminPanelRouter))
 
 		return nil

@@ -15,6 +15,6 @@ func (apr *Router) initRoutes() {
 	f, err := os.Getwd()
 	log.Println(apr.buildPath, f, err)
 
-	buildHandler := http.FileServer(http.Dir("./admin_panel/build"))
+	buildHandler := http.FileServer(http.Dir(apr.buildPath))
 	apr.router.PathPrefix("/").Handler(buildHandler).Methods("GET")
 }
