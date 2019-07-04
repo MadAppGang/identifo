@@ -47,6 +47,9 @@ func NewSessionStorage(settings model.SessionStorageSettings) (model.SessionStor
 // GetSession fetches session by ID.
 func (dss *DynamoDBSessionStorage) GetSession(id string) (model.Session, error) {
 	var session model.Session
+	if len(id) == 0 {
+		return session, model.ErrSessionNotFound
+	}
 
 	getItemInput := &dynamodb.GetItemInput{
 		TableName: aws.String(adminSessionsTableName),
@@ -91,6 +94,10 @@ func (dss *DynamoDBSessionStorage) InsertSession(session model.Session) error {
 
 // DeleteSession deletes session from the storage.
 func (dss *DynamoDBSessionStorage) DeleteSession(id string) error {
+	if len(id) == 0 {
+		return nil
+	}
+
 	input := &dynamodb.DeleteItemInput{
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
@@ -110,7 +117,7 @@ func (dss *DynamoDBSessionStorage) ProlongSession(id string, newDuration model.S
 		return err
 	}
 
-	session.ExpirationDate = time.Now().Add(newDuration.Duration)
+	session.ExpirationTime = time.Now().Add(newDuration.Duration).Unix()
 
 	return dss.InsertSession(session)
 }

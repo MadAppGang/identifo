@@ -19,6 +19,7 @@ import (
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
@@ -411,6 +412,8 @@ func sessionStorage(settings model.ServerSettings) (model.SessionStorage, error)
 		return redis.NewSessionStorage(settings.SessionStorage)
 	case model.SessionStorageMem:
 		return mem.NewSessionStorage()
+	case model.SessionStorageDynamoDB:
+		return dynamodb.NewSessionStorage(settings.SessionStorage)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

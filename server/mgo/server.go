@@ -5,10 +5,6 @@ import (
 	"github.com/madappgang/identifo/server"
 )
 
-func init() {
-
-}
-
 // NewServer creates new backend service with MongoDB support.
 func NewServer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (model.Server, error) {
 	dbComposer, err := NewComposer(settings, options...)

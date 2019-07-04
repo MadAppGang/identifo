@@ -5,7 +5,8 @@ issuer: http://localhost:8080
 algorithm: auto
 
 sessionStorage: 
-  type: memory
+  type: dynamodb
+  region: us-east-1
   sessionDuration: 300
 
 configurationStorage:

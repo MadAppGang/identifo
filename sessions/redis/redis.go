@@ -68,7 +68,7 @@ func (r *RedisSessionStorage) InsertSession(session model.Session) error {
 		return err
 	}
 
-	err = r.client.SetNX(session.ID, bs, time.Until(session.ExpirationDate)).Err()
+	err = r.client.SetNX(session.ID, bs, time.Until(time.Unix(session.ExpirationTime, 0))).Err()
 	return err
 }
 
@@ -89,7 +89,7 @@ func (r *RedisSessionStorage) ProlongSession(id string, newDuration model.Sessio
 		return err
 	}
 
-	session.ExpirationDate = time.Now().Add(newDuration.Duration)
+	session.ExpirationTime = time.Now().Add(newDuration.Duration).Unix()
 
 	bs, err := json.Marshal(session)
 	if err != nil {

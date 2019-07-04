@@ -11,8 +11,8 @@ var ErrSessionNotFound = errors.New("Session not found. ")
 
 // Session is a session.
 type Session struct {
-	ID             string
-	ExpirationDate time.Time
+	ID             string `json:"id"`
+	ExpirationTime int64  `json:"expiration_time"`
 }
 
 // SessionDuration wraps time.Duration to implement custom yaml and json encoding and decoding.

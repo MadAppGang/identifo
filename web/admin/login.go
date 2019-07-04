@@ -1,6 +1,7 @@
 package admin
 
 import (
+	"fmt"
 	"net/http"
 )
 
@@ -29,12 +30,12 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		session, err := ar.sessionService.NewSession()
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, fmt.Errorf("Cannot create session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
 
 		if err = ar.sessionStorage.InsertSession(session); err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, fmt.Errorf("Cannot insert session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
 

@@ -64,6 +64,8 @@ const (
 	SessionStorageMem = "memory"
 	// SessionStorageRedis means to store sessions in Redis.
 	SessionStorageRedis = "redis"
+	// SessionStorageDynamoDB means to store sessions in DynamoDB.
+	SessionStorageDynamoDB = "dynamodb"
 )
 
 // StorageSettings holds together storage settings for different services.
