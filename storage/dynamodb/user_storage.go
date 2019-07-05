@@ -492,7 +492,7 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 // Supports pagination. Search is case-senstive for now.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	scanInput := &dynamodb.ScanInput{
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(UsersTableName),
 		Limit:     aws.Int64(int64(limit)),
 	}
 
