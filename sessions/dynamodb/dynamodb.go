@@ -122,7 +122,7 @@ func (dss *DynamoDBSessionStorage) ProlongSession(id string, newDuration model.S
 	return dss.InsertSession(session)
 }
 
-// ensureTable ensures that admin table exists in database.
+// ensureTable ensures that admin sessions table exists in database.
 func (dss *DynamoDBSessionStorage) ensureTable() error {
 	exists, err := dss.isTableExists(adminSessionsTableName)
 	if err != nil {
