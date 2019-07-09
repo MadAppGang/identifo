@@ -62,7 +62,7 @@ func (us *UserStorage) NewUser() model.User {
 
 // UserByID returns user by ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
-	var res User
+	var res *User
 	err := us.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(UserBucket))
 		u := b.Get([]byte(id))
@@ -118,7 +118,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 
 // UserByFederatedID returns user by federated ID.
 func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
-	var res User
+	var res *User
 	sid := string(provider) + ":" + id
 
 	err := us.db.View(func(tx *bolt.Tx) error {
@@ -191,7 +191,7 @@ func (us *UserStorage) Scopes() []string {
 
 // UserByPhone fetches user by phone number.
 func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
-	var res User
+	var res *User
 	err := us.db.View(func(tx *bolt.Tx) error {
 		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
 		// We use phone number as a key.
@@ -216,7 +216,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 // UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
-	var res User
+	var res *User
 	err := us.db.View(func(tx *bolt.Tx) error {
 		unpb := tx.Bucket([]byte(UserByNameAndPassword))
 		// we use username and password hash as a key
@@ -253,8 +253,8 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 
 // AddNewUser adds new user to the storage.
 func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
-	u, ok := usr.(User)
-	if !ok {
+	u, ok := usr.(*User)
+	if !ok || u == nil {
 		return nil, ErrorWrongDataFormat
 	}
 	u.userData.Pswd = PasswordHash(password)
@@ -318,7 +318,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	u := userData{Active: true, Username: sid, NumOfLogins: 0}
 	u.ID = sid // not sure it's a good idea
-	user := User{userData: u}
+	user := &User{userData: u}
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
 		data, err := user.Marshal()
@@ -347,7 +347,7 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	}
 
 	u := userData{ID: xid.New().String(), Active: true, Username: name, Profile: profile}
-	return us.AddNewUser(User{userData: u}, password)
+	return us.AddNewUser(&User{userData: u}, password)
 }
 
 // UpdateUser updates user in BoltDB storage.
@@ -522,8 +522,8 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 		log.Printf("Cannot get user by ID %s: %s\n", userID, err)
 	}
 
-	u, ok := user.(User)
-	if !ok {
+	u, ok := user.(*User)
+	if !ok || u == nil {
 		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
 
@@ -553,6 +553,7 @@ type userData struct {
 	Active          bool                   `json:"active,omitempty"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
+	Role            string                 `json:"role,omitempty"`
 }
 
 // User is a user data structure for BoltDB storage.
@@ -561,49 +562,51 @@ type User struct {
 }
 
 // UserFromJSON deserializes user data from JSON.
-func UserFromJSON(d []byte) (User, error) {
+func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
-		return User{}, err
+		return &User{}, err
 	}
-	return User{userData: user}, nil
+	return &User{userData: user}, nil
 }
 
 // Marshal serializes data to byte array.
-func (u User) Marshal() ([]byte, error) {
+func (u *User) Marshal() ([]byte, error) {
 	return json.Marshal(u.userData)
 }
 
 // Sanitize removes all sensitive data.
-func (u User) Sanitize() model.User {
+func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
-	return u
 }
 
 // ID implements model.User interface.
-func (u User) ID() string { return u.userData.ID }
+func (u *User) ID() string { return u.userData.ID }
 
 // Username implements model.User interface.
-func (u User) Username() string { return u.userData.Username }
+func (u *User) Username() string { return u.userData.Username }
 
 // SetUsername implements model.User interface.
-func (u User) SetUsername(username string) { u.userData.Username = username }
+func (u *User) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.User interface.
-func (u User) Email() string { return u.userData.Email }
+func (u *User) Email() string { return u.userData.Email }
 
 // SetEmail implements model.Email interface.
-func (u User) SetEmail(email string) { u.userData.Email = email }
+func (u *User) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
-func (u User) PasswordHash() string { return u.userData.Pswd }
+func (u *User) PasswordHash() string { return u.userData.Pswd }
 
 // Profile implements model.User interface.
-func (u User) Profile() map[string]interface{} { return u.userData.Profile }
+func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
-func (u User) Active() bool { return u.userData.Active }
+func (u *User) Active() bool { return u.userData.Active }
+
+// Role implements model.User interface.
+func (u *User) Role() string { return u.userData.Role }
 
 // PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {

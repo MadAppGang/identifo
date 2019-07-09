@@ -112,6 +112,17 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
 		}
+
+		azi := authzInfo{
+			appID:       app.ID(),
+			tokenStr:    accessToken,
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.Authorize(w, azi); err != nil {
+			return
+		}
+
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,

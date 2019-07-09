@@ -1,0 +1,4 @@
+p, anonymous, 59fd884d8f6b180001f5b4e2:/auth/login, POST
+p, anonymous, 59fd884d8f6b180001f5b4e2:/auth/phone_login, POST
+p, anonymous, 59fd884d8f6b180001f5b4e2:/auth/federated, POST
+p, anonymous, 59fd884d8f6b180001f5b4e2:/auth/register, POST

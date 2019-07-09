@@ -102,6 +102,16 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		azi := authzInfo{
+			appID:       app.ID(),
+			tokenStr:    tokenString,
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.Authorize(w, azi); err != nil {
+			return
+		}
+
 		refreshString := ""
 		// Requesting offline access?
 		if contains(scopes, jwtService.OfflineScope) {

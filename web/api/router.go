@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/casbin/casbin"
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -26,6 +27,7 @@ type Router struct {
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
+	Authorizer              *casbin.Enforcer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
@@ -64,6 +66,17 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	return func(r *Router) error {
 		r.WebRouterPrefix = prefix
 		return nil
+	}
+}
+
+// AuthorizationOption is an option to set casbin enforcer for authorization.
+func AuthorizationOption(params []interface{}) func(r *Router) error {
+	return func(r *Router) (err error) {
+		if params == nil {
+			return
+		}
+		r.Authorizer, err = casbin.NewEnforcerSafe(params...)
+		return
 	}
 }
 

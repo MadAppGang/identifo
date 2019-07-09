@@ -594,6 +594,7 @@ type userData struct {
 	Active          bool                   `json:"active,omitempty"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
+	Role            string                 `json:"role,omitempty"`
 }
 
 // federatedUserID is a struct for mapping federated id to user id.
@@ -607,12 +608,6 @@ type User struct {
 	userData
 }
 
-// Sanitize removes sensitive data.
-func (u *User) Sanitize() model.User {
-	u.userData.Pswd = ""
-	return u
-}
-
 // UserFromJSON deserializes user data from JSON.
 func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
@@ -621,6 +616,12 @@ func UserFromJSON(d []byte) (*User, error) {
 		return &User{}, err
 	}
 	return &User{userData: user}, nil
+}
+
+// Sanitize removes sensitive data.
+func (u *User) Sanitize() {
+	u.userData.Pswd = ""
+	u.userData.Active = false
 }
 
 // ID implements model.User interface.
@@ -646,6 +647,9 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
+
+// Role implements model.User interface.
+func (u *User) Role() string { return u.userData.Role }
 
 // PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {

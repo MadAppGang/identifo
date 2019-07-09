@@ -153,15 +153,16 @@ type userData struct {
 	Pswd     string                 `json:"pswd,omitempty"`
 	Profile  map[string]interface{} `json:"profile,omitempty"`
 	Active   bool                   `json:"active,omitempty"`
+	Role     string                 `json:"role,omitempty"`
 }
 
 type user struct {
 	userData
 }
 
-func (u *user) Sanitize() model.User {
+func (u *user) Sanitize() {
 	u.userData.Pswd = ""
-	return u
+	u.userData.Active = false
 }
 
 // ID implements model.User interface.
@@ -187,3 +188,6 @@ func (u *user) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *user) Active() bool { return u.userData.Active }
+
+// Role implements model.User interface.
+func (u *user) Role() string { return u.userData.Role }

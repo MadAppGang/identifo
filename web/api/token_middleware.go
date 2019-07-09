@@ -54,7 +54,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	}
 }
 
-// tokenFromContext returns token from request context
+// tokenFromContext returns token from request context.
 func tokenFromContext(ctx context.Context) jwt.Token {
 	return ctx.Value(model.TokenContextKey).(jwt.Token)
 }

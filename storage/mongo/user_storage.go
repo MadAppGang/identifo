@@ -171,11 +171,11 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 	//clear password hash
 	u.Pswd = ""
@@ -404,17 +404,12 @@ type userData struct {
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
+	Role            string                 `bson:"role,omitempty" json:"role,omitempty"`
 }
 
 // User is a data structure for MongoDB storage.
 type User struct {
 	userData
-}
-
-// Sanitize removes sensitive data.
-func (u *User) Sanitize() model.User {
-	u.userData.Pswd = ""
-	return u
 }
 
 // UserFromJSON deserializes user from JSON.
@@ -424,6 +419,12 @@ func UserFromJSON(d []byte) (*User, error) {
 		return &User{}, err
 	}
 	return &User{userData: user}, nil
+}
+
+// Sanitize removes sensitive data.
+func (u *User) Sanitize() {
+	u.userData.Pswd = ""
+	u.userData.Active = false
 }
 
 // ID implements model.User interface.
@@ -449,6 +450,9 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
+
+// Role implements model.User interface.
+func (u *User) Role() string { return u.userData.Role }
 
 // PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {
