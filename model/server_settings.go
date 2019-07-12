@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -32,6 +33,7 @@ type ConfigurationStorageSettings struct {
 	Type        ConfigurationStorageType `yaml:"type,omitempty" json:"type,omitempty"`
 	SettingsKey string                   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
 	Endpoints   []string                 `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
+	Region      string                   `yaml:"region,omitempty" json:"region,omitempty"`
 }
 
 // ConfigurationStorageType describes type of configuration storage.
@@ -40,6 +42,8 @@ type ConfigurationStorageType string
 const (
 	// ConfigurationStorageTypeEtcd is an etcd storage.
 	ConfigurationStorageTypeEtcd ConfigurationStorageType = "etcd"
+	// ConfigurationStorageTypeS3 is an AWS S3 storage.
+	ConfigurationStorageTypeS3 ConfigurationStorageType = "s3"
 	// ConfigurationStorageTypeMock is a mocked storage.
 	ConfigurationStorageTypeMock ConfigurationStorageType = "mock"
 )
@@ -147,4 +151,15 @@ func (ss *ServerSettings) GetPort() string {
 		panic(err)
 	}
 	return strings.Join([]string{":", port}, "")
+}
+
+// Validate makes sure that all crucial fields are set.
+func (ss *ServerSettings) Validate() error {
+	if len(ss.AdminAccount.LoginEnvName) == 0 {
+		return fmt.Errorf("Admin login env variable name not specified")
+	}
+	if len(ss.AdminAccount.PasswordEnvName) == 0 {
+		return fmt.Errorf("Admin password env variable name not specified")
+	}
+	return nil
 }

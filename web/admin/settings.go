@@ -2,13 +2,10 @@ package admin
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	"github.com/madappgang/identifo/model"
-	"gopkg.in/yaml.v2"
 )
 
 // FetchServerSettings returns server settings.
@@ -111,15 +108,6 @@ func (ar *Router) AlterAccountSettings() http.HandlerFunc {
 	}
 }
 
-func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
-	if pswdLen := len(pswd); pswdLen < 6 || pswdLen > 130 {
-		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", pswdLen)
-		ar.Error(w, err, http.StatusBadRequest, err.Error())
-		return err
-	}
-	return nil
-}
-
 // TestDatabaseConnection tests database connection.
 func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -132,45 +120,20 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 }
 
 // getServerSettings reads server configuration file and parses it to provided struct.
-func (ar *Router) getServerSettings(w http.ResponseWriter, sc *model.ServerSettings) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		ar.logger.Println("Cannot get server configuration file:", err)
+func (ar *Router) getServerSettings(w http.ResponseWriter, ss *model.ServerSettings) error {
+	key := ar.ServerSettings.ConfigurationStorage.SettingsKey
+
+	ss.ConfigurationStorage = model.ConfigurationStorageSettings{SettingsKey: key}
+	if err := ar.configurationStorage.LoadServerSettings(ss); err != nil {
+		ar.logger.Println("Cannot read server configuration:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
 	}
-
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ar.ServerConfigPath))
-	if err != nil {
-		ar.logger.Println("Cannot read server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	if err = yaml.Unmarshal(yamlFile, sc); err != nil {
-		ar.logger.Println("Cannot unmarshal server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
 	return nil
 }
 
 func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model.ServerSettings) error {
-	dir, err := os.Getwd()
-	if err != nil {
-		ar.logger.Println("Cannot get server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	if err = ar.updateConfigFile(w, newSettings, filepath.Join(dir, ar.ServerConfigPath)); err != nil {
-		ar.logger.Println("Cannot update server configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-
-	if err = ar.configurationStorage.Insert(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
+	if err := ar.configurationStorage.Insert(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
 		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
@@ -215,17 +178,10 @@ func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData
 	return nil
 }
 
-func (ar *Router) updateConfigFile(w http.ResponseWriter, in interface{}, dir string) error {
-	ss, err := yaml.Marshal(in)
-	if err != nil {
-		ar.logger.Println("Cannot marshall configuration:", err)
-		ar.Error(w, err, http.StatusBadRequest, "")
-		return err
-	}
-
-	if err = ioutil.WriteFile(dir, ss, 0644); err != nil {
-		ar.logger.Println("Cannot write configuration file:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
+func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
+	if pswdLen := len(pswd); pswdLen < 6 || pswdLen > 130 {
+		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", pswdLen)
+		ar.Error(w, err, http.StatusBadRequest, err.Error())
 		return err
 	}
 	return nil

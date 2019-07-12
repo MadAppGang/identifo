@@ -24,9 +24,13 @@ sessionStorage:
 
 # Storage for server configuration.
 configurationStorage:
-  type: etcd # Supported values are: "etcd", "mock".
+  # Configuration storage type. Supported values are: "etcd", "s3", and "mock".
+  # If type is S3, AWS Access Key, Secret Access Key, and bucket name must be stored
+  # in environment variables.
+  # If type is mock, configuration is being stored in a file.
+  type: etcd
   # Key for accessing server settings in the configuraion storage.
-  settingsKey: identifo/server-settings
+  # If type is s3, must be a name of an object in the bucket.
   endpoints: # Etcd-related setting.
 
 # Names of environment variables that store admin credentials.

@@ -1,20 +1,42 @@
 package mock
 
+import (
+	"github.com/madappgang/identifo/model"
+)
+
 // ConfigurationWatcher is a mock for real config watcher.
-type ConfigurationWatcher struct{}
+type ConfigurationWatcher struct {
+	Storage           model.ConfigurationStorage
+	watchChan         chan interface{}
+	serverSettingsKey string
+}
 
 // NewConfigurationWatcher creates and returns new mocked configuration watcher.
-func NewConfigurationWatcher() (*ConfigurationWatcher, error) {
-	return &ConfigurationWatcher{}, nil
+func NewConfigurationWatcher(configStorage model.ConfigurationStorage, settingsKey string, watchChan chan interface{}) (*ConfigurationWatcher, error) {
+	return &ConfigurationWatcher{
+		Storage:           configStorage,
+		serverSettingsKey: settingsKey,
+		watchChan:         watchChan,
+	}, nil
 }
 
-// Watch does basically nothing.
-func (cw *ConfigurationWatcher) Watch() {}
+// Watch watches for configuration updates.
+func (cw *ConfigurationWatcher) Watch() {
+	internalWatchChan := cw.Storage.GetUpdateChan()
+	go func() {
+		for event := range internalWatchChan {
+			cw.watchChan <- event
+		}
+	}()
+}
 
-// WatchChan returns non-nil yet useless channel of empty interfaces.
+// WatchChan returns watcher's event channel.
 func (cw *ConfigurationWatcher) WatchChan() chan interface{} {
-	return make(chan interface{}, 1)
+	return cw.watchChan
 }
 
-// Stop does basically nothing.
-func (cw *ConfigurationWatcher) Stop() {}
+// Stop stops listening on config updates.
+func (cw *ConfigurationWatcher) Stop() {
+	cw.Storage.CloseUpdateChan()
+	close(cw.WatchChan())
+}

@@ -73,3 +73,11 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 	err = json.Unmarshal(res.Kvs[0].Value, settings)
 	return err
 }
+
+// GetUpdateChan implements ConfigurationStorage interface.
+func (cs *ConfigurationStorage) GetUpdateChan() chan struct{} {
+	return make(chan struct{}, 1)
+}
+
+// CloseUpdateChan implements ConfigurationStorage interface.
+func (cs *ConfigurationStorage) CloseUpdateChan() {}

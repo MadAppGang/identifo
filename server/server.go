@@ -2,7 +2,6 @@ package server
 
 import (
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -10,14 +9,13 @@ import (
 	"path"
 	"path/filepath"
 
-	"github.com/madappgang/identifo/configuration/etcd/storage"
+	configStoreEtcd "github.com/madappgang/identifo/configuration/etcd/storage"
 	configStoreMock "github.com/madappgang/identifo/configuration/mock/storage"
+	configStoreS3 "github.com/madappgang/identifo/configuration/s3/storage"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
-	"github.com/madappgang/identifo/jwt"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
@@ -28,24 +26,27 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const serverConfigPathEnv = "SERVER_CONFIG_PATH"
+const (
+	serverConfigPathEnvName = "SERVER_CONFIG_PATH"
+)
 
 // ServerSettings are server settings.
 var ServerSettings model.ServerSettings
 
 func init() {
-	LoadServerConfiguration(&ServerSettings)
+	loadServerConfigurationFromFile(&ServerSettings)
 }
 
-// LoadServerConfiguration loads configuration from the yaml file and writes it to out variable.
-func LoadServerConfiguration(out *model.ServerSettings) {
+// loadServerConfigurationFromFile loads configuration from the yaml file and writes it to out variable.
+func loadServerConfigurationFromFile(out *model.ServerSettings) {
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("Cannot get server configuration file:", err)
 	}
 
+	// Iterate through possible config paths until we find the valid one.
 	configPaths := []string{
-		os.Getenv(serverConfigPathEnv),
+		os.Getenv(serverConfigPathEnvName),
 		"./server-config.yaml",
 		"../../server/server-config.yaml",
 	}
@@ -70,13 +71,6 @@ func LoadServerConfiguration(out *model.ServerSettings) {
 		log.Fatalln("Cannot unmarshal server configuration file:", err)
 	}
 
-	if len(out.AdminAccount.LoginEnvName) == 0 {
-		log.Fatalln("Admin login env variable name not specified")
-	}
-	if len(out.AdminAccount.PasswordEnvName) == 0 {
-		log.Fatalln("Admin password env variable name not specified")
-	}
-
 	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
 		log.Fatalln("Admin login env variable not set")
 	}
@@ -84,115 +78,13 @@ func LoadServerConfiguration(out *model.ServerSettings) {
 		log.Fatalln("Admin password env variable not set")
 	}
 
-	if err = os.Setenv(serverConfigPathEnv, out.ServerConfigPath); err != nil {
+	if err := out.Validate(); err != nil {
+		log.Fatalln(err)
+	}
+
+	if err = os.Setenv(serverConfigPathEnvName, out.ServerConfigPath); err != nil {
 		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
 	}
-}
-
-// DatabaseComposer inits database stack.
-type DatabaseComposer interface {
-	Compose() (
-		model.AppStorage,
-		model.UserStorage,
-		model.TokenStorage,
-		model.VerificationCodeStorage,
-		jwtService.TokenService,
-		error,
-	)
-}
-
-// PartialDatabaseComposer can init services backed with different databases.
-type PartialDatabaseComposer interface {
-	AppStorageComposer() func() (model.AppStorage, error)
-	UserStorageComposer() func() (model.UserStorage, error)
-	TokenStorageComposer() func() (model.TokenStorage, error)
-	VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error)
-}
-
-// Composer is a service composer which is agnostic to particular database implementations.
-type Composer struct {
-	settings                   model.ServerSettings
-	newAppStorage              func() (model.AppStorage, error)
-	newUserStorage             func() (model.UserStorage, error)
-	newTokenStorage            func() (model.TokenStorage, error)
-	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
-}
-
-// Compose composes all services.
-func (c *Composer) Compose() (
-	model.AppStorage,
-	model.UserStorage,
-	model.TokenStorage,
-	model.VerificationCodeStorage,
-	jwtService.TokenService,
-	error,
-) {
-	appStorage, err := c.newAppStorage()
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	userStorage, err := c.newUserStorage()
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	tokenStorage, err := c.newTokenStorage()
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	verificationCodeStorage, err := c.newVerificationCodeStorage()
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.Algorithm]
-	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.Algorithm)
-	}
-
-	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(c.settings.PEMFolderPath, c.settings.PrivateKey),
-		path.Join(c.settings.PEMFolderPath, c.settings.PublicKey),
-		c.settings.Issuer,
-		tokenServiceAlg,
-		tokenStorage,
-		appStorage,
-		userStorage,
-	)
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
-}
-
-// NewComposer returns new database composer based on passed server settings.
-func NewComposer(settings model.ServerSettings, partialComposers []PartialDatabaseComposer, options ...func(*Composer) error) (*Composer, error) {
-	c := &Composer{settings: settings}
-
-	for _, pc := range partialComposers {
-		if pc.AppStorageComposer() != nil {
-			c.newAppStorage = pc.AppStorageComposer()
-		}
-		if pc.UserStorageComposer() != nil {
-			c.newUserStorage = pc.UserStorageComposer()
-		}
-		if pc.TokenStorageComposer() != nil {
-			c.newTokenStorage = pc.TokenStorageComposer()
-		}
-		if pc.VerificationCodeStorageComposer() != nil {
-			c.newVerificationCodeStorage = pc.VerificationCodeStorageComposer()
-		}
-	}
-
-	for _, option := range options {
-		if err := option(c); err != nil {
-			return nil, err
-		}
-	}
-	return c, nil
 }
 
 // NewServer creates backend service.
@@ -351,9 +243,11 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 func configurationStorage(settings model.ConfigurationStorageSettings) (model.ConfigurationStorage, error) {
 	switch settings.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		return etcd.NewConfigurationStorage(settings)
+		return configStoreEtcd.NewConfigurationStorage(settings)
+	case model.ConfigurationStorageTypeS3:
+		return configStoreS3.NewConfigurationStorage(settings)
 	case model.ConfigurationStorageTypeMock:
-		return configStoreMock.NewConfigurationStorage()
+		return configStoreMock.NewConfigurationStorage(settings)
 	default:
 		return nil, model.ErrorNotImplemented
 	}
