@@ -23,8 +23,6 @@ func (ar *Router) Authorize(w http.ResponseWriter, azi authzInfo) error {
 		return nil
 	}
 
-	ar.Authorizer.EnableLog(true)
-
 	userID, err := ar.getTokenSubject(azi.tokenStr)
 	if err != nil {
 		err = fmt.Errorf("Error getting subject from token: %s", err)
@@ -48,7 +46,7 @@ func (ar *Router) Authorize(w http.ResponseWriter, azi authzInfo) error {
 	obj := strings.Join([]string{azi.appID, azi.resourceURI}, ":")
 	act := azi.method
 
-	accessGranted, err := ar.Authorizer.EnforceSafe(sub, obj, act)
+	accessGranted, err := ar.Authorizer.Enforce(sub, obj, act)
 	if err != nil {
 		err = fmt.Errorf("Error calling enforcer: %s", err)
 		ar.logger.Println(err)

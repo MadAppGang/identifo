@@ -75,7 +75,8 @@ func AuthorizationOption(params []interface{}) func(r *Router) error {
 		if params == nil {
 			return
 		}
-		r.Authorizer, err = casbin.NewEnforcerSafe(params...)
+		r.Authorizer, err = casbin.NewEnforcer(params...)
+		r.Authorizer.EnableLog(true)
 		return
 	}
 }
