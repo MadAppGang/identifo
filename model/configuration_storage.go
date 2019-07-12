@@ -4,6 +4,6 @@ package model
 type ConfigurationStorage interface {
 	Insert(key string, value interface{}) error
 	LoadServerSettings(*ServerSettings) error
-	GetUpdateChan() chan struct{}
+	GetUpdateChan() chan interface{}
 	CloseUpdateChan()
 }

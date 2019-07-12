@@ -5,10 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	etcdStorage "github.com/madappgang/identifo/configuration/etcd/storage"
-	etcdWatcher "github.com/madappgang/identifo/configuration/etcd/watcher"
-	mockStorage "github.com/madappgang/identifo/configuration/mock/storage"
-	mockWatcher "github.com/madappgang/identifo/configuration/mock/watcher"
+	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
+	configWatcherEtcd "github.com/madappgang/identifo/configuration/watcher/etcd"
+	configWatcherGeneric "github.com/madappgang/identifo/configuration/watcher/generic"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/server/boltdb"
@@ -96,22 +95,18 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 
 	switch server.ServerSettings.ConfigurationStorage.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		etcd, ok := configStorage.(*etcdStorage.ConfigurationStorage)
+		etcd, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
 		if !ok {
 			log.Panicln("Incorrect configuration storage type")
 		}
-		cw, err = etcdWatcher.NewConfigurationWatcher(etcd, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
+		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcd, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	case model.ConfigurationStorageTypeS3:
 		if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
 			log.Panicln("Cannot load server settings from S3: ", err)
 		}
-		cw, err = mockWatcher.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
-	case model.ConfigurationStorageTypeMock:
-		mock, ok := configStorage.(*mockStorage.ConfigurationStorage)
-		if !ok {
-			log.Panicln("Incorrect configuration storage type")
-		}
-		cw, err = mockWatcher.NewConfigurationWatcher(mock, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
+		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
+	case model.ConfigurationStorageTypeFile:
+		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	default:
 		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage)
 	}

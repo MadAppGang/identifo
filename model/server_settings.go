@@ -44,8 +44,8 @@ const (
 	ConfigurationStorageTypeEtcd ConfigurationStorageType = "etcd"
 	// ConfigurationStorageTypeS3 is an AWS S3 storage.
 	ConfigurationStorageTypeS3 ConfigurationStorageType = "s3"
-	// ConfigurationStorageTypeMock is a mocked storage.
-	ConfigurationStorageTypeMock ConfigurationStorageType = "mock"
+	// ConfigurationStorageTypeFile is a config file.
+	ConfigurationStorageTypeFile ConfigurationStorageType = "file"
 )
 
 // SessionStorageSettings holds together session storage settings.

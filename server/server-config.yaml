@@ -24,10 +24,10 @@ sessionStorage:
 
 # Storage for server configuration.
 configurationStorage:
-  # Configuration storage type. Supported values are: "etcd", "s3", and "mock".
+  # Configuration storage type. Supported values are: "etcd", "s3", and "file".
   # If type is S3, AWS Access Key, Secret Access Key, and bucket name must be stored
   # in environment variables.
-  # If type is mock, configuration is being stored in a file.
+  # If type is file, must be a filename (e.g, server-config.yaml).
   type: etcd
   # Key for accessing server settings in the configuraion storage.
   # If type is s3, must be a name of an object in the bucket.

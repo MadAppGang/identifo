@@ -12,7 +12,7 @@ sessionStorage:
   sessionDuration: 300
 
 configurationStorage:
-  type: mock
+  type: file
   settingsKey: identifo/server-settings
 
 smsService:

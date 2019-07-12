@@ -1,4 +1,4 @@
-package mock
+package file
 
 import (
 	"fmt"
@@ -11,15 +11,14 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// ConfigurationStorage is a mocked storage for server configuration.
-// In fact, the storage is a file.
+// ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
-	UpdateChan       chan struct{}
+	UpdateChan       chan interface{}
 	updateChanClosed bool
 	serverConfigPath string
 }
 
-// NewConfigurationStorage creates and returns mocked configuration storage.
+// NewConfigurationStorage creates and returns new file configuration storage.
 func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
 	return &ConfigurationStorage{
 		serverConfigPath: settings.SettingsKey,
@@ -67,7 +66,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(ss *model.ServerSettings) err
 }
 
 // GetUpdateChan returns update channel.
-func (cs *ConfigurationStorage) GetUpdateChan() chan struct{} {
+func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 	return cs.UpdateChan
 }
 

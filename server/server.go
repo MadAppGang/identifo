@@ -9,9 +9,9 @@ import (
 	"path"
 	"path/filepath"
 
-	configStoreEtcd "github.com/madappgang/identifo/configuration/etcd/storage"
-	configStoreMock "github.com/madappgang/identifo/configuration/mock/storage"
-	configStoreS3 "github.com/madappgang/identifo/configuration/s3/storage"
+	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
+	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
+	configStoreS3 "github.com/madappgang/identifo/configuration/storage/s3"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
@@ -94,7 +94,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		return nil, err
 	}
 
-	configurationStorage, err := configurationStorage(settings.ConfigurationStorage)
+	configurationStorage, err := configurationStorage(settings.ConfigurationStorage, settings.ServerConfigPath)
 	if err != nil {
 		return nil, err
 	}
@@ -240,14 +240,14 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 	}
 }
 
-func configurationStorage(settings model.ConfigurationStorageSettings) (model.ConfigurationStorage, error) {
+func configurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (model.ConfigurationStorage, error) {
 	switch settings.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		return configStoreEtcd.NewConfigurationStorage(settings)
+		return configStoreEtcd.NewConfigurationStorage(settings, serverConfigPath)
 	case model.ConfigurationStorageTypeS3:
 		return configStoreS3.NewConfigurationStorage(settings)
-	case model.ConfigurationStorageTypeMock:
-		return configStoreMock.NewConfigurationStorage(settings)
+	case model.ConfigurationStorageTypeFile:
+		return configStoreFile.NewConfigurationStorage(settings)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

@@ -22,7 +22,7 @@ type ConfigurationStorage struct {
 	Client           *s3.S3
 	Bucket           string
 	Key              string
-	UpdateChan       chan struct{}
+	UpdateChan       chan interface{}
 	updateChanClosed bool
 }
 
@@ -46,7 +46,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 		Client:     s3client,
 		Bucket:     bucket,
 		Key:        settings.SettingsKey,
-		UpdateChan: make(chan struct{}, 1),
+		UpdateChan: make(chan interface{}, 1),
 	}
 	return cs, nil
 }
@@ -104,7 +104,7 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 }
 
 // GetUpdateChan returns update channel.
-func (cs *ConfigurationStorage) GetUpdateChan() chan struct{} {
+func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 	return cs.UpdateChan
 }
 

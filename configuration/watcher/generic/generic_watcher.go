@@ -1,17 +1,17 @@
-package mock
+package generic
 
 import (
 	"github.com/madappgang/identifo/model"
 )
 
-// ConfigurationWatcher is a mock for real config watcher.
+// ConfigurationWatcher is a storage-agnostic config watcher.
 type ConfigurationWatcher struct {
 	Storage           model.ConfigurationStorage
 	watchChan         chan interface{}
 	serverSettingsKey string
 }
 
-// NewConfigurationWatcher creates and returns new mocked configuration watcher.
+// NewConfigurationWatcher creates and returns new storage-agnostic configuration watcher.
 func NewConfigurationWatcher(configStorage model.ConfigurationStorage, settingsKey string, watchChan chan interface{}) (*ConfigurationWatcher, error) {
 	return &ConfigurationWatcher{
 		Storage:           configStorage,
