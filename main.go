@@ -66,6 +66,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	if err != nil {
 		log.Panicln("Cannot init database composer:", err)
 	}
+
 	configStorageOption := server.ConfigurationStorageOption(configStorage)
 
 	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorageOption)

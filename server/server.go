@@ -19,10 +19,12 @@ import (
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
+	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 	"gopkg.in/yaml.v2"
@@ -348,6 +350,21 @@ func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) 
 	}
 }
 
+// ServeAdminPanelOption is an option to serve admin panel right from the Identifo server.
+func ServeAdminPanelOption() func(*Server) error {
+	return func(s *Server) (err error) {
+		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.AdminPanelBuildPath))
+		if err != nil {
+			return
+		}
+
+		s.MainRouter.AdminPanelRouterPath = "/adminpanel"
+		s.MainRouter.RootRouter.Handle(s.MainRouter.AdminPanelRouterPath+"/", http.StripPrefix(s.MainRouter.AdminPanelRouterPath, s.MainRouter.AdminPanelRouter))
+
+		return nil
+	}
+}
+
 func configurationStorage(settings model.ConfigurationStorageSettings) (model.ConfigurationStorage, error) {
 	switch settings.Type {
 	case model.ConfigurationStorageTypeEtcd:
@@ -395,6 +412,8 @@ func sessionStorage(settings model.ServerSettings) (model.SessionStorage, error)
 		return redis.NewSessionStorage(settings.SessionStorage)
 	case model.SessionStorageMem:
 		return mem.NewSessionStorage()
+	case model.SessionStorageDynamoDB:
+		return dynamodb.NewSessionStorage(settings.SessionStorage)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

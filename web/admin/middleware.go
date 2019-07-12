@@ -44,7 +44,7 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	if session.ExpirationDate.Before(time.Now()) {
+	if time.Unix(session.ExpirationTime, 0).Before(time.Now()) {
 		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
 		return false
 	}

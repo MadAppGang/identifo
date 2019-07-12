@@ -5,7 +5,8 @@ issuer: http://localhost:8080
 algorithm: auto
 
 sessionStorage: 
-  type: memory
+  type: dynamodb
+  region: us-east-1
   sessionDuration: 300
 
 configurationStorage:
@@ -48,3 +49,5 @@ emailTemplateNames:
   resetPassword: reset_password.html
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
+
+adminPanelBuildPath: ./admin_panel/build

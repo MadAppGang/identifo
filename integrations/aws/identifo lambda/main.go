@@ -14,14 +14,14 @@ import (
 )
 
 const (
-	testAppID       = "testAppID"
+	testAppID       = "bk9o707k3t4c72q2qqqq"
 	appsImportPath  = "./import/apps.json"
 	usersImportPath = "./import/users.json"
 )
 
 func main() {
 	srv := initServer()
-	algnhsa.ListenAndServe(srv.Router(), nil)
+	algnhsa.ListenAndServe(srv.Router(), &algnhsa.Options{BinaryContentTypes: []string{"application/javascript", "font/woff", "image/x-icon"}})
 }
 
 func initServer() model.Server {
@@ -46,7 +46,9 @@ func initServer() model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer)
+	adminPanelOption := server.ServeAdminPanelOption()
+
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, adminPanelOption)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}

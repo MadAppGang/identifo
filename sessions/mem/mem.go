@@ -53,7 +53,7 @@ func (m *memoryStorage) ProlongSession(id string, newDuration model.SessionDurat
 		return model.ErrorNotFound
 	}
 
-	session.ExpirationDate = time.Now().Add(newDuration.Duration)
+	session.ExpirationTime = time.Now().Add(newDuration.Duration).Unix()
 
 	m.sessions[session.ID] = session
 	return nil
