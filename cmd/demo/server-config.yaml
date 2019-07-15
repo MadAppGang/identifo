@@ -12,7 +12,7 @@ sessionStorage:
   sessionDuration: 300
 
 configurationStorage:
-  type: file
+  type: etcd
   settingsKey: identifo/server-settings
 
 smsService:

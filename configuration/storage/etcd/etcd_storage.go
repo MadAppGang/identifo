@@ -75,8 +75,10 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 	if err == nil {
 		// Also update file.
 		go func() {
-			if fileErr := cs.FileStorage.Insert(key, value); fileErr != nil {
+			if fileErr := cs.FileStorage.Insert(cs.FileStorage.ServerConfigPath, value); fileErr != nil {
 				fmt.Println("Could not replicate settings in file: ", fileErr)
+			} else {
+				fmt.Println("Successfully replicated settings in file")
 			}
 		}()
 	}

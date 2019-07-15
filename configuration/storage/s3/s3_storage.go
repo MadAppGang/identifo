@@ -2,7 +2,6 @@ package s3
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -11,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	"github.com/madappgang/identifo/model"
+	"gopkg.in/yaml.v2"
 )
 
 const (
@@ -64,20 +64,27 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 	}
 	defer resp.Body.Close()
 
-	err = json.NewDecoder(resp.Body).Decode(settings)
-	return err
+	if err = yaml.NewDecoder(resp.Body).Decode(settings); err != nil {
+		return fmt.Errorf("Cannot decode S3 response: %s", err)
+	}
+
+	if settings.ConfigurationStorage.Type != model.ConfigurationStorageTypeS3 {
+		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.ConfigurationStorage.Type)
+	}
+
+	return nil
 }
 
 // Insert puts new configuration into the storage.
 func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 	log.Println("Putting new config to S3...")
 
-	valueBytes, ok := value.([]byte)
-	if !ok {
-		return fmt.Errorf("Cannot interpret value as byte slice")
+	valueBytes, err := yaml.Marshal(value)
+	if err != nil {
+		return fmt.Errorf("Cannot marshal settings value: %s", err)
 	}
 
-	_, err := cs.Client.PutObject(&s3.PutObjectInput{
+	_, err = cs.Client.PutObject(&s3.PutObjectInput{
 		Bucket:        aws.String(cs.Bucket),
 		Key:           aws.String(cs.Key),
 		ACL:           aws.String("private"),

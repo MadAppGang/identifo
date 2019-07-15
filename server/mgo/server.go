@@ -15,5 +15,5 @@ func NewServer(settings model.ServerSettings, options ...func(*DatabaseComposer)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(settings, dbComposer)
+	return server.NewServer(settings, dbComposer, nil)
 }

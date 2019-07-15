@@ -13,15 +13,15 @@ import (
 
 // ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
+	ServerConfigPath string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
-	serverConfigPath string
 }
 
 // NewConfigurationStorage creates and returns new file configuration storage.
 func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
 	return &ConfigurationStorage{
-		serverConfigPath: settings.SettingsKey,
+		ServerConfigPath: settings.SettingsKey,
 	}, nil
 }
 

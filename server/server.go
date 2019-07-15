@@ -72,10 +72,10 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 	}
 
 	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
-		log.Fatalln("Admin login env variable not set")
+		log.Fatalf("%s not set\n", out.AdminAccount.LoginEnvName)
 	}
 	if len(os.Getenv(out.AdminAccount.PasswordEnvName)) == 0 {
-		log.Fatalln("Admin password env variable not set")
+		log.Fatalf("%s not set\n", out.AdminAccount.PasswordEnvName)
 	}
 
 	if err := out.Validate(); err != nil {
@@ -88,15 +88,17 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 }
 
 // NewServer creates backend service.
-func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
+func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
 	appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
 
-	configurationStorage, err := configurationStorage(settings.ConfigurationStorage, settings.ServerConfigPath)
-	if err != nil {
-		return nil, err
+	if configurationStorage == nil {
+		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.ServerConfigPath)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	s := Server{
@@ -230,17 +232,8 @@ func (s *Server) Close() {
 	s.VerificationCodeStorage().Close()
 }
 
-// ConfigurationStorageOption is an option to set server's configuration storage.
-func ConfigurationStorageOption(configuratonStorage model.ConfigurationStorage) func(*Server) error {
-	return func(s *Server) error {
-		if configuratonStorage != nil {
-			s.configurationStorage = configuratonStorage
-		}
-		return nil
-	}
-}
-
-func configurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (model.ConfigurationStorage, error) {
+// InitConfigurationStorage initializes configuration storage.
+func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (model.ConfigurationStorage, error) {
 	switch settings.Type {
 	case model.ConfigurationStorageTypeEtcd:
 		return configStoreEtcd.NewConfigurationStorage(settings, serverConfigPath)

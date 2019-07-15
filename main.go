@@ -25,7 +25,12 @@ const (
 func main() {
 	forever := make(chan struct{}, 1)
 
-	srv := initServer(nil)
+	configStorage, err := server.InitConfigurationStorage(server.ServerSettings.ConfigurationStorage, server.ServerSettings.ServerConfigPath)
+	if err != nil {
+		log.Fatal("Cannot init config storage:", err)
+	}
+
+	srv := initServer(configStorage)
 	httpSrv := &http.Server{
 		Addr:    server.ServerSettings.GetPort(),
 		Handler: srv.Router(),
@@ -46,6 +51,10 @@ func startHTTPServer(httpSrv *http.Server) {
 }
 
 func initServer(configStorage model.ConfigurationStorage) model.Server {
+	if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
+		log.Panicln("Cannot load server settings: ", err)
+	}
+
 	dbTypes := make(map[model.DatabaseType]bool)
 	var partialComposers []server.PartialDatabaseComposer
 
@@ -66,9 +75,8 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	if err != nil {
 		log.Panicln("Cannot init database composer:", err)
 	}
-	configStorageOption := server.ConfigurationStorageOption(configStorage)
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorageOption)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorage)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}
@@ -100,15 +108,10 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 			log.Panicln("Incorrect configuration storage type")
 		}
 		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcd, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
-	case model.ConfigurationStorageTypeS3:
-		if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
-			log.Panicln("Cannot load server settings from S3: ", err)
-		}
-		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
-	case model.ConfigurationStorageTypeFile:
+	case model.ConfigurationStorageTypeS3, model.ConfigurationStorageTypeFile:
 		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	default:
-		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage)
+		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage.Type)
 	}
 
 	if err != nil {

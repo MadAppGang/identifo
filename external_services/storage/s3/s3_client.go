@@ -2,10 +2,10 @@ package s3
 
 import (
 	"fmt"
-	"os"
+	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
 )
@@ -17,25 +17,23 @@ const (
 
 // NewS3Client creates and returns new S3 client.
 func NewS3Client(region string) (*s3.S3, error) {
-	awsAccessKey := os.Getenv(awsAccessKeyEnvName)
-	if len(awsAccessKey) == 0 {
-		return nil, fmt.Errorf("No %s specified", awsAccessKeyEnvName)
-	}
-	awsSecret := os.Getenv(awsSecretAccessKeyEnvName)
-	if len(awsSecretAccessKeyEnvName) == 0 {
-		return nil, fmt.Errorf("No %s specified", awsSecretAccessKeyEnvName)
-	}
-
 	if len(region) == 0 {
 		return nil, fmt.Errorf("No S3 region for configuration specified")
 	}
 
-	creds := credentials.NewStaticCredentials(awsAccessKey, awsSecret, "")
-	cfg := aws.NewConfig().WithRegion(region).WithCredentials(creds)
-
+	cfg := getConfig(region)
 	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create new session: %s", err)
 	}
 	return s3.New(sess, cfg), nil
+}
+
+func getConfig(region string) *aws.Config {
+	cfg := aws.NewConfig().WithRegion(region)
+
+	cfg.HTTPClient = http.DefaultClient
+	cfg.HTTPClient.Timeout = 10 * time.Second
+
+	return cfg
 }
