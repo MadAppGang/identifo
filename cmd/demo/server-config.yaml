@@ -43,8 +43,6 @@ storage:
     type: boltdb
     path: ./db.db
 
-authorizationParams:
-
 staticFolderPath: ../../static
 emailTemplatesPath: ../../email_templates
 emailTemplateNames:

@@ -64,7 +64,7 @@ const (
 type AuthorizationWay string
 
 const (
-	// NoAuthz is when the app does not have any authorization.
+	// NoAuthz is when the app does not require any authorization.
 	NoAuthz AuthorizationWay = "no authorization"
 	// Internal is for embedded authorization rules.
 	Internal AuthorizationWay = "internal"

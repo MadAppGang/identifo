@@ -404,7 +404,7 @@ type userData struct {
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
-	Role            string                 `bson:"role,omitempty" json:"role,omitempty"`
+	AccessRole      string                 `bson:"access_role,omitempty" json:"access_role,omitempty"`
 }
 
 // User is a data structure for MongoDB storage.
@@ -451,8 +451,8 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
 
-// Role implements model.User interface.
-func (u *User) Role() string { return u.userData.Role }
+// AccessRole implements model.User interface.
+func (u *User) AccessRole() string { return u.userData.AccessRole }
 
 // PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {

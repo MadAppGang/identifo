@@ -43,6 +43,6 @@ type User interface {
 	PasswordHash() string
 	Profile() map[string]interface{}
 	Active() bool
-	Role() string
+	AccessRole() string
 	Sanitize()
 }

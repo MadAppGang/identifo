@@ -42,8 +42,6 @@ loginWith:
   username: true
   federated: true
 
-authorizationParams:
-
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
 emailTemplateNames:

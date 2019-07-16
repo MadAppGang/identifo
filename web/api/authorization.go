@@ -80,7 +80,7 @@ func (ar *Router) authorizeInternal(w http.ResponseWriter, azi authzInfo) error 
 		return err
 	}
 
-	sub := user.Role()
+	sub := user.AccessRole()
 	if sub == "" {
 		sub = anonymousRole
 	}

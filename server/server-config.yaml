@@ -93,11 +93,6 @@ loginWith:
   username: true
   federated: true
 
-# Parameters needed for setting authorizer. If not provided, server will work without any authorization.
-authorizationParams: 
-  # - ./authorization/model.conf
-  # - ./authorization/policy.csv
-
 # Folder for the static files.
 staticFolderPath: ../../web/static
 # Forder for the email templates.

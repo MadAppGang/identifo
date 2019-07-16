@@ -147,13 +147,13 @@ func randUser() *user {
 
 // User data implementation.
 type userData struct {
-	ID       string                 `json:"id,omitempty"`
-	Username string                 `json:"username,omitempty"`
-	Email    string                 `json:"email,omitempty"`
-	Pswd     string                 `json:"pswd,omitempty"`
-	Profile  map[string]interface{} `json:"profile,omitempty"`
-	Active   bool                   `json:"active,omitempty"`
-	Role     string                 `json:"role,omitempty"`
+	ID         string                 `json:"id,omitempty"`
+	Username   string                 `json:"username,omitempty"`
+	Email      string                 `json:"email,omitempty"`
+	Pswd       string                 `json:"pswd,omitempty"`
+	Profile    map[string]interface{} `json:"profile,omitempty"`
+	Active     bool                   `json:"active,omitempty"`
+	AccessRole string                 `json:"access_role,omitempty"`
 }
 
 type user struct {
@@ -189,5 +189,5 @@ func (u *user) Profile() map[string]interface{} { return u.userData.Profile }
 // Active implements model.User interface.
 func (u *user) Active() bool { return u.userData.Active }
 
-// Role implements model.User interface.
-func (u *user) Role() string { return u.userData.Role }
+// AccessRole implements model.User interface.
+func (u *user) AccessRole() string { return u.userData.AccessRole }

@@ -594,7 +594,7 @@ type userData struct {
 	Active          bool                   `json:"active,omitempty"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
-	Role            string                 `json:"role,omitempty"`
+	AccessRole      string                 `json:"access_role,omitempty"`
 }
 
 // federatedUserID is a struct for mapping federated id to user id.
@@ -648,8 +648,8 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
 
-// Role implements model.User interface.
-func (u *User) Role() string { return u.userData.Role }
+// AccessRole implements model.User interface.
+func (u *User) AccessRole() string { return u.userData.AccessRole }
 
 // PasswordHash creates hash with salt for password.
 func PasswordHash(pwd string) string {
