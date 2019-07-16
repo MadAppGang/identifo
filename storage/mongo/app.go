@@ -20,7 +20,7 @@ type appData struct {
 	Description           string                 `bson:"description,omitempty" json:"description,omitempty"`
 	Scopes                []string               `bson:"scopes,omitempty" json:"scopes,omitempty"`
 	Offline               bool                   `bson:"offline" json:"offline"`
-	Type                  model.AppType          `json:"type,omitempty"`
+	Type                  model.AppType          `bson:"type,omitempty" json:"type,omitempty"`
 	RedirectURL           string                 `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
 	RefreshTokenLifespan  int64                  `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64                  `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
@@ -30,7 +30,7 @@ type appData struct {
 	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
-	AppleInfo             *model.AppleInfo       `json:"apple_info,omitempty"`
+	AppleInfo             *model.AppleInfo       `bson:"apple_info,omitempty" json:"apple_info,omitempty"`
 }
 
 // NewAppData instantiates MongoDB app data model from the general one.
