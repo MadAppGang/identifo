@@ -123,8 +123,9 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
 		azi := authzInfo{
-			appID:       app.ID(),
+			app:         app,
 			tokenStr:    tokenString,
 			resourceURI: r.RequestURI,
 			method:      r.Method,

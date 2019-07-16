@@ -27,7 +27,7 @@ type Router struct {
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
-	Authorizer              *casbin.Enforcer
+	Authorizers             map[string]*casbin.Enforcer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
@@ -69,18 +69,6 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	}
 }
 
-// AuthorizationOption is an option to set casbin enforcer for authorization.
-func AuthorizationOption(params []interface{}) func(r *Router) error {
-	return func(r *Router) (err error) {
-		if params == nil {
-			return
-		}
-		r.Authorizer, err = casbin.NewEnforcer(params...)
-		r.Authorizer.EnableLog(true)
-		return
-	}
-}
-
 // NewRouter creates and initilizes new router.
 func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, verificationCodeStorage model.VerificationCodeStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
@@ -93,6 +81,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		tokenService:            tokenService,
 		smsService:              smsService,
 		emailService:            emailService,
+		Authorizers:             make(map[string]*casbin.Enforcer, 1),
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

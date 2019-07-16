@@ -33,6 +33,7 @@ var messages = map[MessageID]string{
 	ErrorAPIAppAccessTokenNotCreated:           "Unable to create access token",
 	ErrorAPIAppRefreshTokenNotCreated:          "Unable to create refresh token",
 	ErrorAPIAppCannotExtractTokenSubject:       "Unable to extract Subject claim from token",
+	ErrorAPIAppCannotInitAuthorizer:            "Unable to init internal authorizer",
 	ErrorAPIAppFederatedProviderNotSupported:   "Federated provider is not supported",
 	ErrorAPIAppFederatedProviderEmptyUserID:    "Federated provider returns empty user ID",
 	ErrorAPIAppFederatedProviderEmptyAppleInfo: "Application does not have Apple info",
@@ -84,6 +85,8 @@ const (
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
 	// ErrorAPIAppCannotExtractTokenSubject is when we cannot extract token "sub".
 	ErrorAPIAppCannotExtractTokenSubject = "error.api.request.token.sub"
+	// ErrorAPIAppCannotInitAuthorizer is when we cannot init internal authorizer.
+	ErrorAPIAppCannotInitAuthorizer = "error.api.request.authorizer.internal.init"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"

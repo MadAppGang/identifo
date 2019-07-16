@@ -26,7 +26,6 @@ type ServerSettings struct {
 	EmailTemplatesPath   string                       `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
 	EmailTemplateNames   EmailTemplateNames           `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
 	AdminPanelBuildPath  string                       `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
-	AuthorizationParams  []interface{}                `yaml:"authorizationParams,omitempty" json:"authorization_params,omitempty"`
 }
 
 // ConfigurationStorageSettings holds together configuration storage settings.

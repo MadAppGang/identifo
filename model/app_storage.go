@@ -24,7 +24,7 @@ type AppData interface {
 	Description() string
 	// Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
 	Scopes() []string
-	// Offline is a boolean value that indicates wheter on not the app supports refresh tokens.
+	// Offline is a boolean value that indicates whether on not the app supports refresh tokens.
 	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
 	Type() AppType
@@ -41,6 +41,9 @@ type AppData interface {
 	TokenPayload() []string
 	Sanitize()
 	RegistrationForbidden() bool
+	AuthzWay() AuthorizationWay
+	AuthzModel() string
+	AuthzPolicy() string
 	AppleInfo() *AppleInfo
 	SetSecret(secret string)
 }
@@ -55,4 +58,16 @@ const (
 	Android AppType = "android"
 	// IOS in an iOS app.
 	IOS AppType = "ios"
+)
+
+// AuthorizationWay is a way of authorization supported by the application.
+type AuthorizationWay string
+
+const (
+	// NoAuthz is when the app does not have any authorization.
+	NoAuthz AuthorizationWay = "no authorization"
+	// Internal is for embedded authorization rules.
+	Internal AuthorizationWay = "internal"
+	// External is for external authorization service.
+	External AuthorizationWay = "external"
 )
