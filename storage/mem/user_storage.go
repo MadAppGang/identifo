@@ -147,12 +147,13 @@ func randUser() *user {
 
 // User data implementation.
 type userData struct {
-	ID       string                 `json:"id,omitempty"`
-	Username string                 `json:"username,omitempty"`
-	Email    string                 `json:"email,omitempty"`
-	Pswd     string                 `json:"pswd,omitempty"`
-	Profile  map[string]interface{} `json:"profile,omitempty"`
-	Active   bool                   `json:"active,omitempty"`
+	ID         string                 `json:"id,omitempty"`
+	Username   string                 `json:"username,omitempty"`
+	Email      string                 `json:"email,omitempty"`
+	Pswd       string                 `json:"pswd,omitempty"`
+	Profile    map[string]interface{} `json:"profile,omitempty"`
+	Active     bool                   `json:"active,omitempty"`
+	TFAEnabled bool                   `json:"tfa_enabled"`
 }
 
 type user struct {

@@ -401,6 +401,7 @@ type userData struct {
 	Pswd            string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile         map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active          bool                   `bson:"active,omitempty" json:"active,omitempty"`
+	TFAEnabled      bool                   `bson:"tfa_enabled" json:"tfa_enabled"`
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`

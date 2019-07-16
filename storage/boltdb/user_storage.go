@@ -551,6 +551,7 @@ type userData struct {
 	Pswd            string                 `json:"pswd,omitempty"`
 	Profile         map[string]interface{} `json:"profile,omitempty"`
 	Active          bool                   `json:"active,omitempty"`
+	TFAEnabled      bool                   `json:"tfa_enabled"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
 }
