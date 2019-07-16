@@ -81,20 +81,23 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	r.APIRouterPath = "/api"
 	r.WebRouterPath = "/web"
 	r.AdminRouterPath = "/admin"
+
 	r.setupRoutes()
 	return &r, nil
 }
 
 // Router is a root router to handle REST API, web, and admin requests.
 type Router struct {
-	APIRouter   model.Router
-	WebRouter   model.Router
-	AdminRouter model.Router
-	RootRouter  *http.ServeMux
+	APIRouter        model.Router
+	WebRouter        model.Router
+	AdminRouter      model.Router
+	AdminPanelRouter model.Router
+	RootRouter       *http.ServeMux
 
-	APIRouterPath   string
-	WebRouterPath   string
-	AdminRouterPath string
+	APIRouterPath        string
+	WebRouterPath        string
+	AdminRouterPath      string
+	AdminPanelRouterPath string
 }
 
 // ServeHTTP implements identifo.Router interface.

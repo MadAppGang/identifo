@@ -30,7 +30,7 @@ func NewSessionManager(sessionDuration SessionDuration, sessionStorage SessionSt
 
 // NewSession creates new session and returns it.
 func (sm *SessionManager) NewSession() (Session, error) {
-	session := Session{ExpirationDate: time.Now().Add(sm.sessionDuration.Duration)}
+	session := Session{ExpirationTime: time.Now().Add(sm.sessionDuration.Duration).Unix()}
 
 	id := make([]byte, 32)
 	if _, err := io.ReadFull(rand.Reader, id); err != nil {

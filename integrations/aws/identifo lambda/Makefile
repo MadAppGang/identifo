@@ -7,14 +7,14 @@ function = Identifo
 # admin_panel_bucket = 
 # aws_profile =
 
-compile:
+compile: update_admin_panel
 		GOOS=linux go build -o $(app)
 
 run:	compile
 		sam local invoke $(app) -e test/event.json 
 
 ship:	compile
-		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt email_templates static import
+		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt admin_panel email_templates static import
 		rm $(app)
 
 deploy:	ship
@@ -35,16 +35,11 @@ update_admin_panel:
 		# Fetch and build source code.
 		wget https://github.com/MadAppGang/identifo-admin/archive/master.zip
 		tar xvf master.zip
-		cd identifo-admin-master && export API_URL=$(api_gateway_endpoint) && \
+		cd identifo-admin-master && \
+		export API_URL=$(api_gateway_endpoint) && export BASE_URL=/develop/adminpanel/ && export ASSETS_PATH=/develop/adminpanel/ && \
 		npm i && npm run build && \
 		rm -rf ../admin_panel/build/* && mv build ../admin_panel
 
 		# Clean up.
 		rm -f master.zip
 		rm -fr identifo-admin-master
-
-deploy_admin_panel: update_admin_panel
-		# Empty bucket.
-		aws s3 rm s3://$(admin_panel_bucket) --recursive
-		# Upload new contents.
-		aws s3 sync admin_panel/build s3://$(admin_panel_bucket) --acl public-read

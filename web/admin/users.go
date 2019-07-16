@@ -21,12 +21,10 @@ type registrationData struct {
 }
 
 func (rd *registrationData) validate() error {
-	usernameLen := len(rd.Username)
-	if usernameLen < 6 || usernameLen > 50 {
+	if usernameLen := len(rd.Username); usernameLen < 6 || usernameLen > 50 {
 		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
 	}
-	pswdLen := len(rd.Password)
-	if pswdLen < 6 || pswdLen > 50 {
+	if pswdLen := len(rd.Password); pswdLen < 6 || pswdLen > 50 {
 		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
 	}
 	return nil

@@ -68,7 +68,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		go ar.UserStorage.UpdateLoginMetadata(user.ID())
+		ar.UserStorage.UpdateLoginMetadata(user.ID())
 		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}

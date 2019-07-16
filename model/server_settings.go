@@ -26,6 +26,7 @@ type ServerSettings struct {
 	StaticFolderPath     string                       `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
 	EmailTemplatesPath   string                       `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
 	EmailTemplateNames   EmailTemplateNames           `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	AdminPanelBuildPath  string                       `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 }
 
 // ConfigurationStorageSettings holds together configuration storage settings.
@@ -51,10 +52,12 @@ const (
 // SessionStorageSettings holds together session storage settings.
 type SessionStorageSettings struct {
 	Type            SessionStorageType `yaml:"type,omitempty" json:"type,omitempty"`
+	SessionDuration SessionDuration    `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
 	Address         string             `yaml:"address,omitempty" json:"address,omitempty"`
 	Password        string             `yaml:"password,omitempty" json:"password,omitempty"`
 	DB              int                `yaml:"db,omitempty" json:"db,omitempty"`
-	SessionDuration SessionDuration    `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
+	Region          string             `yaml:"region,omitempty" json:"region,omitempty"`
+	Endpoint        string             `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 }
 
 // SessionStorageType - where to store admin sessions.
@@ -65,6 +68,8 @@ const (
 	SessionStorageMem = "memory"
 	// SessionStorageRedis means to store sessions in Redis.
 	SessionStorageRedis = "redis"
+	// SessionStorageDynamoDB means to store sessions in DynamoDB.
+	SessionStorageDynamoDB = "dynamodb"
 )
 
 // StorageSettings holds together storage settings for different services.

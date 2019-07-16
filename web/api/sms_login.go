@@ -117,7 +117,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			RefreshToken: refreshToken,
 		}
 
-		go ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.ID())
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

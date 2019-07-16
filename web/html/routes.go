@@ -6,9 +6,9 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//setup all routes
+// Setup all routes.
 func (ar *Router) initRoutes() {
-	//do nothing on empty router (or should panic?)
+	// Do nothing on empty router (or should panic?)
 	if ar.Router == nil {
 		return
 	}
@@ -63,7 +63,7 @@ func (ar *Router) initRoutes() {
 	imagesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ImagesPath))
 	fontsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.FontsPath))
 
-	//setup routes for static files
+	// Setup routes for static files.
 	ar.Router.PathPrefix(`/{css:css/?}`).Handler(http.StripPrefix("/css/", stylesHandler)).Methods("GET")
 	ar.Router.PathPrefix(`/{js:js/?}`).Handler(http.StripPrefix("/js/", scriptsHandler)).Methods("GET")
 	ar.Router.PathPrefix(`/{img:img/?}`).Handler(http.StripPrefix("/img/", imagesHandler)).Methods("GET")
