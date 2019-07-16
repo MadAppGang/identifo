@@ -3,7 +3,6 @@ package mongo
 import (
 	"encoding/json"
 
-	"github.com/madappgang/identifo/model"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -24,12 +23,13 @@ type userData struct {
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
+	AccessRole      string                 `bson:"access_role,omitempty" json:"access_role,omitempty"`
 }
 
 // Sanitize removes sensitive data.
-func (u *User) Sanitize() model.User {
+func (u *User) Sanitize() {
 	u.userData.Pswd = ""
-	return u
+	u.userData.Active = false
 }
 
 // UserFromJSON deserializes user from JSON.
@@ -64,3 +64,6 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
+
+// AccessRole implements model.User interface.
+func (u *User) AccessRole() string { return u.userData.AccessRole }

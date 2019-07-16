@@ -2,8 +2,6 @@ package boltdb
 
 import (
 	"encoding/json"
-
-	"github.com/madappgang/identifo/model"
 )
 
 // User is a user data structure for BoltDB storage.
@@ -22,6 +20,7 @@ type userData struct {
 	Active          bool                   `json:"active,omitempty"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
+	AccessRole      string                 `json:"access_role,omitempty"`
 }
 
 // Marshal serializes data to byte array.
@@ -30,41 +29,43 @@ func (u User) Marshal() ([]byte, error) {
 }
 
 // Sanitize removes all sensitive data.
-func (u User) Sanitize() model.User {
+func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
-	return u
 }
 
 // ID implements model.User interface.
-func (u User) ID() string { return u.userData.ID }
+func (u *User) ID() string { return u.userData.ID }
 
 // Username implements model.User interface.
-func (u User) Username() string { return u.userData.Username }
+func (u *User) Username() string { return u.userData.Username }
 
 // SetUsername implements model.User interface.
-func (u User) SetUsername(username string) { u.userData.Username = username }
+func (u *User) SetUsername(username string) { u.userData.Username = username }
 
 // Email implements model.User interface.
-func (u User) Email() string { return u.userData.Email }
+func (u *User) Email() string { return u.userData.Email }
 
 // SetEmail implements model.Email interface.
-func (u User) SetEmail(email string) { u.userData.Email = email }
+func (u *User) SetEmail(email string) { u.userData.Email = email }
 
 // PasswordHash implements model.User interface.
-func (u User) PasswordHash() string { return u.userData.Pswd }
+func (u *User) PasswordHash() string { return u.userData.Pswd }
 
 // Profile implements model.User interface.
-func (u User) Profile() map[string]interface{} { return u.userData.Profile }
+func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
-func (u User) Active() bool { return u.userData.Active }
+func (u *User) Active() bool { return u.userData.Active }
+
+// AccessRole implements model.User interface.
+func (u *User) AccessRole() string { return u.userData.AccessRole }
 
 // UserFromJSON deserializes user data from JSON.
-func UserFromJSON(d []byte) (User, error) {
+func UserFromJSON(d []byte) (*User, error) {
 	user := userData{}
 	if err := json.Unmarshal(d, &user); err != nil {
-		return User{}, err
+		return &User{}, err
 	}
-	return User{userData: user}, nil
+	return &User{userData: user}, nil
 }

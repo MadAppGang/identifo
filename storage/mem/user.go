@@ -1,27 +1,27 @@
 package mem
 
 import (
-	"github.com/madappgang/identifo/model"
 	"github.com/pallinder/go-randomdata"
 )
 
 // User data implementation.
 type userData struct {
-	ID       string                 `json:"id,omitempty"`
-	Username string                 `json:"username,omitempty"`
-	Email    string                 `json:"email,omitempty"`
-	Pswd     string                 `json:"pswd,omitempty"`
-	Profile  map[string]interface{} `json:"profile,omitempty"`
-	Active   bool                   `json:"active,omitempty"`
+	ID         string                 `json:"id,omitempty"`
+	Username   string                 `json:"username,omitempty"`
+	Email      string                 `json:"email,omitempty"`
+	Pswd       string                 `json:"pswd,omitempty"`
+	Profile    map[string]interface{} `json:"profile,omitempty"`
+	Active     bool                   `json:"active,omitempty"`
+	AccessRole string                 `json:"access_role,omitempty"`
 }
 
 type user struct {
 	userData
 }
 
-func (u *user) Sanitize() model.User {
+func (u *user) Sanitize() {
 	u.userData.Pswd = ""
-	return u
+	u.userData.Active = false
 }
 
 // ID implements model.User interface.
@@ -47,6 +47,9 @@ func (u *user) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *user) Active() bool { return u.userData.Active }
+
+// AccessRole implements model.User interface.
+func (u *user) AccessRole() string { return u.userData.AccessRole }
 
 func randUser() *user {
 	profile := map[string]interface{}{
