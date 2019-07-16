@@ -11,9 +11,8 @@ func NewUserStorage() (model.UserStorage, error) {
 	return &UserStorage{}, nil
 }
 
-// UserStorage implements user storage in memory.
-type UserStorage struct {
-}
+// UserStorage is an in-memory user storage .
+type UserStorage struct{}
 
 // NewUser returns pointer to newly created user.
 func (us *UserStorage) NewUser() model.User {

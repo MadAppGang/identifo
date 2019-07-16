@@ -763,3 +763,9 @@ func (us *UserStorage) ensureTable() error {
 
 // Close does nothing here.
 func (us *UserStorage) Close() {}
+
+// PasswordHash creates hash with salt for password.
+func PasswordHash(pwd string) string {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	return string(hash)
+}
