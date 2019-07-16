@@ -248,6 +248,21 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 	}
 }
 
+// ServeAdminPanelOption is an option to serve admin panel right from the Identifo server.
+func ServeAdminPanelOption() func(*Server) error {
+	return func(s *Server) (err error) {
+		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.AdminPanelBuildPath))
+		if err != nil {
+			return
+		}
+
+		s.MainRouter.AdminPanelRouterPath = "/adminpanel"
+		s.MainRouter.RootRouter.Handle(s.MainRouter.AdminPanelRouterPath+"/", http.StripPrefix(s.MainRouter.AdminPanelRouterPath, s.MainRouter.AdminPanelRouter))
+
+		return nil
+	}
+}
+
 func smsService(settings model.SMSServiceSettings) (model.SMSService, error) {
 	switch settings.Type {
 	case model.SMSServiceTwilio:

@@ -32,8 +32,8 @@ configurationStorage:
   # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
   # If type is file, must be a filename (e.g, server-config.yaml).
   settingsKey: identifo/server-settings
-  endpoints: # Etcd-related setting.
-  region: #S3-related setting.
+  endpoints: # Etcd-related setting. For example, host.docker.internal:2379.
+  region: # S3-related setting.
 
 # Names of environment variables that store admin credentials.
 adminAccount:

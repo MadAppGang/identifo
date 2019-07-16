@@ -103,11 +103,11 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 
 	switch server.ServerSettings.ConfigurationStorage.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		etcd, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
+		etcdStorage, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
 		if !ok {
 			log.Panicln("Incorrect configuration storage type")
 		}
-		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcd, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
+		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcdStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	case model.ConfigurationStorageTypeS3, model.ConfigurationStorageTypeFile:
 		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	default:

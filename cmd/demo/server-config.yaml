@@ -12,8 +12,8 @@ sessionStorage:
   sessionDuration: 300
 
 configurationStorage:
-  type: etcd
-  settingsKey: identifo/server-settings
+  type: mock
+  settingsKey: server-config.yaml
 
 smsService:
   type: mock

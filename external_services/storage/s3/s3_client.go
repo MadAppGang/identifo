@@ -10,11 +10,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 )
 
-const (
-	awsAccessKeyEnvName       = "AWS_ACCESS_KEY"
-	awsSecretAccessKeyEnvName = "AWS_SECRET_ACCESS_KEY"
-)
-
 // NewS3Client creates and returns new S3 client.
 func NewS3Client(region string) (*s3.S3, error) {
 	if len(region) == 0 {
