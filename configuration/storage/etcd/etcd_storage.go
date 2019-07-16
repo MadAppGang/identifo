@@ -42,7 +42,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings, server
 		return nil, err
 	}
 
-	// Init file storage for settings replication.
+	// Init file storage for config replication.
 	settings.SettingsKey = serverConfigPath
 	fileStorage, err := configStorageFile.NewConfigurationStorage(settings)
 	if err != nil {
