@@ -32,6 +32,7 @@ var messages = map[MessageID]string{
 	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
 	ErrorAPIAppAccessTokenNotCreated:           "Unable to create access token",
 	ErrorAPIAppRefreshTokenNotCreated:          "Unable to create refresh token",
+	ErrorAPIAppCannotExtractTokenSubject:       "Unable to extract Subject claim from token",
 	ErrorAPIAppFederatedProviderNotSupported:   "Federated provider is not supported",
 	ErrorAPIAppFederatedProviderEmptyUserID:    "Federated provider returns empty user ID",
 	ErrorAPIAppFederatedProviderEmptyAppleInfo: "Application does not have Apple info",
@@ -76,9 +77,9 @@ const (
 	ErrorAPIRequestSignatureInvalid = "error.api.request.signature.invalid"
 	// ErrorAPIRequestAppIDInvalid means that application ID header value is invalid.
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
-
 	// ErrorAPIRequestTokenInvalid means that the reqesting app is inactive.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
+
 	// ErrorAPIAppInactive means that the token is invalid or empty.
 	ErrorAPIAppInactive = "error.api.app.inactive"
 	// ErrorAPIAppRegistrationForbidden means that registration is forbidden.
@@ -89,6 +90,8 @@ const (
 	ErrorAPIAppAccessTokenNotCreated = "error.api.app.unable_to_create_access_token"
 	// ErrorAPIAppRefreshTokenNotCreated means that registration is forbidden.
 	ErrorAPIAppRefreshTokenNotCreated = "error.api.app.unable_to_create_refresh_token"
+	// ErrorAPIAppCannotExtractTokenSubject is when we cannot extract token "sub".
+	ErrorAPIAppCannotExtractTokenSubject = "error.api.request.token.sub"
 
 	// ErrorAPIAppFederatedProviderNotSupported means that the federated ID provider is not supported.
 	ErrorAPIAppFederatedProviderNotSupported = "api.app.federated.provider.not_supported"

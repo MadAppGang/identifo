@@ -40,6 +40,7 @@ type User interface {
 	SetUsername(string)
 	Email() string
 	SetEmail(string)
+	SetTFAInfo(bool, string)
 	PasswordHash() string
 	Profile() map[string]interface{}
 	Active() bool

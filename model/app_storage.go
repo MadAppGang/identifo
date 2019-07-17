@@ -40,6 +40,7 @@ type AppData interface {
 	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayload() []string
 	Sanitize()
+	TFAEnabled() bool
 	RegistrationForbidden() bool
 	AppleInfo() *AppleInfo
 	SetSecret(secret string)

@@ -27,6 +27,7 @@ type appData struct {
 	TokenLifespan         int64            `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string         `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool             `bson:"registration_forbidden" json:"registration_forbidden"`
+	TFAEnabled            bool             `bson:"tfa_enabled" json:"tfa_enabled"`
 	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
 }
 
@@ -129,6 +130,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// TFAEnabled implements model.AppData interface.
+func (ad *AppData) TFAEnabled() bool { return ad.appData.TFAEnabled }
 
 // AppleInfo implements model.AppData interface.
 func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }

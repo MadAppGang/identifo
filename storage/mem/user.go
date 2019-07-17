@@ -13,6 +13,12 @@ type userData struct {
 	Pswd     string                 `json:"pswd,omitempty"`
 	Profile  map[string]interface{} `json:"profile,omitempty"`
 	Active   bool                   `json:"active,omitempty"`
+	TFAInfo  tfaInfo                `json:"tfa_info"`
+}
+
+type tfaInfo struct {
+	IsEnabled bool   `json:"is_enabled"`
+	Secret    string `json:"-"`
 }
 
 type user struct {
@@ -36,8 +42,17 @@ func (u *user) SetUsername(username string) { u.userData.Username = username }
 // Email implements model.User interface.
 func (u *user) Email() string { return u.userData.Email }
 
-// SetEmail implements model.Email interface.
+// SetEmail implements model.User interface.
 func (u *user) SetEmail(email string) { u.userData.Email = email }
+
+// SetTFAInfo implements model.User interface.
+func (u *user) SetTFAInfo(isEnabled bool, secret string) {
+	tfai := tfaInfo{IsEnabled: isEnabled}
+	if isEnabled {
+		tfai.Secret = secret
+	}
+	u.userData.TFAInfo = tfai
+}
 
 // PasswordHash implements model.User interface.
 func (u *user) PasswordHash() string { return u.userData.Pswd }
