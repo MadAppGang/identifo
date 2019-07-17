@@ -17,10 +17,8 @@ func (ar *Router) SetTFAOption() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := struct {
-			TFAEnabled bool `json:"tfa_enabled"`
-		}{}
-		if err := ar.MustParseJSON(w, r, &d); err != nil {
+		var tfa model.TFAInfo
+		if err := ar.MustParseJSON(w, r, &tfa); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "SetTFAAvailability.MustParseJSON")
 			return
 		}
@@ -31,7 +29,7 @@ func (ar *Router) SetTFAOption() http.HandlerFunc {
 			return
 		}
 
-		if d.TFAEnabled && !app.TFAEnabled() {
+		if tfa.IsEnabled && !app.TFAEnabled() {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "App does not support two-factor authentication", "SetTFAAvailability.TFAEnabled")
 			return
 		}
@@ -55,22 +53,21 @@ func (ar *Router) SetTFAOption() http.HandlerFunc {
 			return
 		}
 
-		tfaSecretStr := ""
-		if d.TFAEnabled {
+		if tfa.IsEnabled {
 			// Generate 2FA secret.
-			tfaSecretStr, err = ar.generate2FASecret(w)
+			tfa.Secret, err = ar.generate2FASecret(w)
 			if err != nil {
 				return
 			}
 		}
-		user.SetTFAInfo(d.TFAEnabled, tfaSecretStr)
+		user.SetTFAInfo(tfa)
 
 		if _, err := ar.userStorage.UpdateUser(userID, user); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "SetTFAAvailability.UpdateUser")
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, tfaSecret{TFASecret: tfaSecretStr})
+		ar.ServeJSON(w, http.StatusOK, tfaSecret{TFASecret: tfa.Secret})
 	}
 }
 

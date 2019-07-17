@@ -3,16 +3,19 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
+	"github.com/xlzd/gotp"
 )
 
 type loginData struct {
 	Username    string   `json:"username,omitempty"`
 	Password    string   `json:"password,omitempty"`
 	DeviceToken string   `json:"device_token,omitempty"`
+	TFACode     string   `json:"tfa_code,omitempty"`
 	Scopes      []string `json:"scopes,omitempty"`
 }
 
@@ -65,6 +68,13 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// Execute two-factor auth if user enabled it.
+		if user.TFAInfo().IsEnabled {
+			if err = ar.execute2FA(w, ld, user.TFAInfo().Secret); err != nil {
+				return
+			}
+		}
+
 		offline := contains(scopes, jwtService.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
 		if err != nil {
@@ -106,3 +116,18 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 	}
 	return
 }
+
+func (ar *Router) execute2FA(w http.ResponseWriter, ld loginData, secret string) error {
+	if len(ld.TFACode) == 0 {
+		err := fmt.Errorf("Empty 2FA code")
+		ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, err.Error(), "LoginWithPassword.execute2FA")
+		return err
+	}
+
+	totp := gotp.NewDefaultTOTP(secret)
+	if verified := totp.Verify(ld.TFACode, int(time.Now().Unix())); !verified {
+
+	}
+	return nil
+}
+

@@ -79,6 +79,10 @@ const (
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
 	// ErrorAPIRequestTokenInvalid means that the reqesting app is inactive.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
+	// ErrorAPIRequestTFACodeEmpty means that the 2FA code is empty.
+	ErrorAPIRequestTFACodeEmpty = "error.api.request.2fa_code.empty"
+	// ErrorAPIRequestTFACodeInvalid means that the 2FA code is invalid.
+	ErrorAPIRequestTFACodeInvalid = "error.api.request.2fa_code.invalid"
 
 	// ErrorAPIAppInactive means that the token is invalid or empty.
 	ErrorAPIAppInactive = "error.api.app.inactive"

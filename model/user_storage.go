@@ -40,9 +40,17 @@ type User interface {
 	SetUsername(string)
 	Email() string
 	SetEmail(string)
-	SetTFAInfo(bool, string)
+	TFAInfo() TFAInfo
+	SetTFAInfo(TFAInfo)
 	PasswordHash() string
 	Profile() map[string]interface{}
 	Active() bool
 	Sanitize() User
 }
+
+// TFAInfo encapsulates two-factor authentication user info.
+type TFAInfo struct {
+	IsEnabled bool   `bson:"is_enabled" json:"is_enabled"`
+	Secret    string `bson:"secret" json:"-"`
+}
+

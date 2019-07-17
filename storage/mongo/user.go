@@ -21,15 +21,10 @@ type userData struct {
 	Pswd            string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
 	Profile         map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
 	Active          bool                   `bson:"active,omitempty" json:"active,omitempty"`
-	TFAInfo         tfaInfo                `bson:"tfa_info" json:"tfa_info"`
+	TFAInfo         model.TFAInfo          `bson:"tfa_info" json:"tfa_info"`
 	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
 	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
-}
-
-type tfaInfo struct {
-	IsEnabled bool   `bson:"is_enabled" json:"is_enabled"`
-	Secret    string `bson:"secret" json:"-"`
 }
 
 // Sanitize removes sensitive data.
@@ -62,14 +57,11 @@ func (u *User) Email() string { return u.userData.Email }
 // SetEmail implements model.User interface.
 func (u *User) SetEmail(email string) { u.userData.Email = email }
 
+// TFAInfo implements model.User interface.
+func (u *User) TFAInfo() model.TFAInfo { return u.userData.TFAInfo }
+
 // SetTFAInfo implements model.User interface.
-func (u *User) SetTFAInfo(isEnabled bool, secret string) {
-	tfai := tfaInfo{IsEnabled: isEnabled}
-	if isEnabled {
-		tfai.Secret = secret
-	}
-	u.userData.TFAInfo = tfai
-}
+func (u *User) SetTFAInfo(tfaInfo model.TFAInfo) { u.userData.TFAInfo = tfaInfo }
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }
