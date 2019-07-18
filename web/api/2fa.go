@@ -1,13 +1,11 @@
 package api
 
 import (
-	"crypto/rand"
-	"encoding/base32"
-	"io"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
+	"github.com/xlzd/gotp"
 )
 
 // SetTFAOption enables or disables two-factor authentication for the user.
@@ -55,10 +53,7 @@ func (ar *Router) SetTFAOption() http.HandlerFunc {
 
 		if tfa.IsEnabled {
 			// Generate 2FA secret.
-			tfa.Secret, err = ar.generate2FASecret(w)
-			if err != nil {
-				return
-			}
+			tfa.Secret = gotp.RandomSecret(16)
 		}
 		user.SetTFAInfo(tfa)
 
@@ -70,13 +65,3 @@ func (ar *Router) SetTFAOption() http.HandlerFunc {
 		ar.ServeJSON(w, http.StatusOK, tfaSecret{TFASecret: tfa.Secret})
 	}
 }
-
-func (ar *Router) generate2FASecret(w http.ResponseWriter) (string, error) {
-	secret := make([]byte, 10)
-	if _, err := io.ReadFull(rand.Reader, secret); err != nil {
-		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "generate2FASecret")
-		return "", err
-	}
-	return base32.StdEncoding.EncodeToString(secret), nil
-}
-

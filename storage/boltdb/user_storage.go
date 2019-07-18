@@ -352,8 +352,8 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 
 // UpdateUser updates user in BoltDB storage.
 func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
-	res, ok := newUser.(*User)
-	if !ok || res == nil {
+	res, ok := newUser.(User) // TODO: change after pointer-receiving User methods are merged.
+	if !ok {
 		return nil, ErrorWrongDataFormat
 	}
 

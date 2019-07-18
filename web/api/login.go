@@ -126,7 +126,9 @@ func (ar *Router) execute2FA(w http.ResponseWriter, ld loginData, secret string)
 
 	totp := gotp.NewDefaultTOTP(secret)
 	if verified := totp.Verify(ld.TFACode, int(time.Now().Unix())); !verified {
-
+		err := fmt.Errorf("Invalid one-time password")
+		ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, err.Error(), "LoginWithPassword.execute2FA")
+		return err
 	}
 	return nil
 }
