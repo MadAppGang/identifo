@@ -22,6 +22,8 @@ type user struct {
 
 func (u *user) Sanitize() model.User {
 	u.userData.Pswd = ""
+	u.userData.Active = false
+	u.userData.TFAInfo.Secret = ""
 	return u
 }
 
