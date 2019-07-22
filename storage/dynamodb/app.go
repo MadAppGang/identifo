@@ -27,6 +27,7 @@ type appData struct {
 	InviteTokenLifespan   int64                  `json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	TFAEnabled            bool                   `json:"tfa_enabled"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`

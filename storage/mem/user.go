@@ -1,6 +1,7 @@
 package mem
 
 import (
+	"github.com/madappgang/identifo/model"
 	"github.com/pallinder/go-randomdata"
 )
 
@@ -12,6 +13,7 @@ type userData struct {
 	Pswd       string                 `json:"pswd,omitempty"`
 	Profile    map[string]interface{} `json:"profile,omitempty"`
 	Active     bool                   `json:"active,omitempty"`
+	TFAInfo    model.TFAInfo          `json:"tfa_info"`
 	AccessRole string                 `json:"access_role,omitempty"`
 }
 
@@ -23,7 +25,6 @@ func (u *user) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
-	return u
 }
 
 // ID implements model.User interface.

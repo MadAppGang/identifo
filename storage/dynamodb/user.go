@@ -3,6 +3,8 @@ package dynamodb
 import (
 	"encoding/json"
 	"log"
+
+	"github.com/madappgang/identifo/model"
 )
 
 // User is a user data structure for DynamoDB storage.
@@ -49,7 +51,6 @@ func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
-	return u
 }
 
 // UserFromJSON deserializes user data from JSON.

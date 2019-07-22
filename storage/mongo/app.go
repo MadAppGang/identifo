@@ -27,6 +27,7 @@ type appData struct {
 	TokenLifespan         int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
+	TFAEnabled            bool                   `bson:"tfa_enabled" json:"tfa_enabled"`
 	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`

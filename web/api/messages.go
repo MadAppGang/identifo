@@ -81,20 +81,12 @@ const (
 	ErrorAPIRequestSignatureInvalid = "error.api.request.signature.invalid"
 	// ErrorAPIRequestAppIDInvalid means that application ID header value is invalid.
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
-	// ErrorAPIRequestTokenInvalid means that the reqesting app is inactive.
+	// ErrorAPIRequestTokenInvalid means that the token is invalid or empty.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
 	// ErrorAPIRequestTFACodeEmpty means that the 2FA code is empty.
 	ErrorAPIRequestTFACodeEmpty = "error.api.request.2fa_code.empty"
 	// ErrorAPIRequestTFACodeInvalid means that the 2FA code is invalid.
 	ErrorAPIRequestTFACodeInvalid = "error.api.request.2fa_code.invalid"
-
-	// ErrorAPIAppInactive means that the token is invalid or empty.
-	// ErrorAPIRequestTokenInvalid means that the token is invalid or empty.
-	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
-	// ErrorAPIAppCannotExtractTokenSubject is when we cannot extract token "sub".
-	ErrorAPIAppCannotExtractTokenSubject = "error.api.request.token.sub"
-	// ErrorAPIAppCannotInitAuthorizer is when we cannot init internal authorizer.
-	ErrorAPIAppCannotInitAuthorizer = "error.api.request.authorizer.internal.init"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"
@@ -108,6 +100,8 @@ const (
 	ErrorAPIAppRefreshTokenNotCreated = "error.api.app.unable_to_create_refresh_token"
 	// ErrorAPIAppCannotExtractTokenSubject is when we cannot extract token "sub".
 	ErrorAPIAppCannotExtractTokenSubject = "error.api.request.token.sub"
+	// ErrorAPIAppCannotInitAuthorizer is when we cannot init internal authorizer.
+	ErrorAPIAppCannotInitAuthorizer = "error.api.request.authorizer.internal.init"
 
 	// ErrorAPIAppFederatedProviderNotSupported means that the federated ID provider is not supported.
 	ErrorAPIAppFederatedProviderNotSupported = "api.app.federated.provider.not_supported"

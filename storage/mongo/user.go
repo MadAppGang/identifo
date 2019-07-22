@@ -3,6 +3,7 @@ package mongo
 import (
 	"encoding/json"
 
+	"github.com/madappgang/identifo/model"
 	"gopkg.in/mgo.v2/bson"
 )
 
@@ -32,7 +33,6 @@ func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
-	return u
 }
 
 // UserFromJSON deserializes user from JSON.
