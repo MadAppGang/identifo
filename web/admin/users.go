@@ -45,7 +45,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 			return
 		}
 
-		user = user.Sanitize()
+		user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -66,8 +66,8 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
-		for i, user := range users {
-			users[i] = user.Sanitize()
+		for _, user := range users {
+			user.Sanitize()
 		}
 
 		searchResponse := struct {
@@ -106,7 +106,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user = user.Sanitize()
+		user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -129,7 +129,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		ar.logger.Printf("User %s updated", userID)
 
-		user = user.Sanitize()
+		user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

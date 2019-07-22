@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:5d3e23515e7916c152cc665eda0f7eaf6fdf8fdfe7c3dbac97049bcbd649b33f"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   digest = "1:59e88402ad54c4138e247a8a270ff6951037e292ecf601667dbedd6f611d0035"
   name = "github.com/akrylysov/algnhsa"
   packages = ["."]
@@ -24,7 +32,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:56c9a92c1a93224170ab403e4ade6befb3b8056be6da9fe0900658f8628f3266"
+  digest = "1:034d869f28b88c98e23dcefb105044a6d02949609ca7586a5d1c56d53bc04661"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -64,8 +72,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "b0b59fd2ceb03908e5d3bcd1449b46ce75508f4b"
-  version = "v1.20.7"
+  revision = "420cda5d6383f94f7d9c231aa44bad3325181950"
+  version = "v1.20.20"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -74,6 +82,26 @@
   pruneopts = "UT"
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
+
+[[projects]]
+  digest = "1:d3d1f7bfcaaa5cc56c36d010937e28d1c6c38810b95086cd445eb433b83cbf75"
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "effect",
+    "errors",
+    "log",
+    "model",
+    "persist",
+    "persist/file-adapter",
+    "rbac",
+    "rbac/default-role-manager",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "aaed1b7a7eac65d37ec4e15e308429fdf0bd6a9e"
+  version = "v1.9.1"
 
 [[projects]]
   digest = "1:b4ba0dcf39b5ba06f69d9cd4eaacaba334801073099eb8be273d595094c99db3"
@@ -145,7 +173,7 @@
   version = "v1.2.1"
 
 [[projects]]
-  digest = "1:239c4c7fd2159585454003d9be7207167970194216193a8a210b8d29576f19c9"
+  digest = "1:f5ce1529abc1204444ec73779f44f94e2fa8fcdb7aca3c355b0c95947e4005c6"
   name = "github.com/golang/protobuf"
   packages = [
     "proto",
@@ -155,16 +183,16 @@
     "ptypes/timestamp",
   ]
   pruneopts = "UT"
-  revision = "b5d812f8a3706043e23a9cd5babf2e5423744d30"
-  version = "v1.3.1"
+  revision = "6c65a5562fc06764971b7c5d05c76c75e84bdbf7"
+  version = "v1.3.2"
 
 [[projects]]
-  digest = "1:3af6be4fee7c08f81f13d36f04ffb63ad4b6b5aaba12cce96095c7c2863d4912"
+  digest = "1:cbec35fe4d5a4fba369a656a8cd65e244ea2c743007d8f6c1ccb132acf9d1296"
   name = "github.com/gorilla/mux"
   packages = ["."]
   pruneopts = "UT"
-  revision = "ed099d42384823742bba0bf9a72b53b55c9e2e38"
-  version = "v1.7.2"
+  revision = "00bdffe0f3c77e27d2cf6f5c70232a2d3e4d9c15"
+  version = "v1.7.3"
 
 [[projects]]
   digest = "1:345ad428d03cc89fa5498d61383d0d7f39afbe8731ca135c0ec92782285121d3"
@@ -214,6 +242,14 @@
   version = "v0.8.1"
 
 [[projects]]
+  branch = "master"
+  digest = "1:399bffeaa067be2f46b747c99b5cf520faefe4aa6811003979fdd9b7c1098f67"
+  name = "github.com/qiangmzsx/string-adapter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "38f25303bb0cd40e674a6fac01e0171ab905f5a1"
+
+[[projects]]
   digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
   name = "github.com/rs/cors"
   packages = ["."]
@@ -231,11 +267,11 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:2487ac387df9670856b707f0e13efcd3fa4bcf8497129b65a5a01abd8bd2aa8d"
+  digest = "1:f8c53f9b7b591bba0a755bebecf013fe8b324904287d6b306d5e5a8feb6033a1"
   name = "github.com/sfreiberg/gotwilio"
   packages = ["."]
   pruneopts = "UT"
-  revision = "14c666f1d505786afd9dbaa8b7b687e8750a7bf1"
+  revision = "499f54b302111c5f2cea59c1419d170f636bc6f9"
 
 [[projects]]
   digest = "1:d688f4ad71b5dfad95c2d74cb0feac09f8f3c32ae5cecc078230dbdeece39e53"
@@ -262,7 +298,7 @@
     "blowfish",
   ]
   pruneopts = "UT"
-  revision = "cc06ce4a13d484c0101a9e92913248488a75786d"
+  revision = "4def268fd1a49955bfb3dda92fe3db4f924f2285"
 
 [[projects]]
   branch = "master"
@@ -278,15 +314,15 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "3b0461eec859c4b73bb64fdc8285971fd33e3938"
+  revision = "da137c7871d730100384dbcf36e6f8fa493aef5b"
 
 [[projects]]
   branch = "master"
-  digest = "1:d4488b7ca589840d020983978f9f139b89872b90d8a6d725de2fcac6c9448273"
+  digest = "1:5632b0c4d972da51b5914f09fc5c1a8535e9d8d5d937e95ef83c423a0dd67f13"
   name = "golang.org/x/sys"
   packages = ["unix"]
   pruneopts = "UT"
-  revision = "c5567b49c5d04a5f83870795b8c0e2df43a8ce32"
+  revision = "fae7ac547cb717d141c433a2a173315e216b64c4"
 
 [[projects]]
   digest = "1:8d8faad6b12a3a4c819a3f9618cb6ee1fa1cfc33253abeeea8b55336721e3405"
@@ -319,10 +355,10 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "6af8c5fc6601ab6b41cd32742a65ce2f5bd9db57"
+  revision = "3bdd9d9f5532d75d09efb230bd767d265245cfe5"
 
 [[projects]]
-  digest = "1:cde568cda33e1c7f75353ae84df1880d5d364d9ffbf269c34cdc23fffe539a45"
+  digest = "1:931727c62baa7a9958acac5d712ae9cc0ea3ff86a664b560febf4f4b0677ee28"
   name = "google.golang.org/grpc"
   packages = [
     ".",
@@ -355,21 +391,22 @@
     "resolver",
     "resolver/dns",
     "resolver/passthrough",
+    "serviceconfig",
     "stats",
     "status",
     "tap",
   ]
   pruneopts = "UT"
-  revision = "501c41df7f472c740d0674ff27122f3f48c80ce7"
-  version = "v1.21.1"
+  revision = "1d89a3c832915b2314551c1d2a506874d62e53f7"
+  version = "v1.22.0"
 
 [[projects]]
-  digest = "1:ee2db1a4b9111947da887ff2f8972dd2cc80906e521a2d856901fa699b4b51ee"
+  digest = "1:ffb045e56464a5f683830c7a8eec153d35c0444c77f6132bc531617ed58a94d2"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "884d31b8cad6a1ec877f2400d555924cea03bbea"
-  version = "v9.29.0"
+  revision = "556b9da3c05f2a935bc086fb5a0bb55dd8112d2d"
+  version = "v9.29.1"
 
 [[projects]]
   branch = "v2"
@@ -407,11 +444,13 @@
     "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
     "github.com/aws/aws-sdk-go/service/ses",
     "github.com/boltdb/bolt",
+    "github.com/casbin/casbin",
     "github.com/dgrijalva/jwt-go",
     "github.com/go-redis/redis",
     "github.com/gorilla/mux",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
+    "github.com/qiangmzsx/string-adapter",
     "github.com/rs/cors",
     "github.com/rs/xid",
     "github.com/sfreiberg/gotwilio",

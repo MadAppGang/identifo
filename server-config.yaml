@@ -95,6 +95,9 @@ smsService:
   authToken: # Twilio-related setting.
   serviceSid: # Twilio-related setting.
 
+# Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
+adminPanelBuildPath: ./admin_panel/build
+
 # Folder for the static files.
 staticFolderPath: ./web/static
 # Forder for the email templates.
@@ -105,6 +108,3 @@ emailTemplateNames:
   resetPassword: reset_password.html
   inviteEmail: invite_email.html
   verifyEmail: verify_email.html
-
-# Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
-adminPanelBuildPath: ./admin_panel/build

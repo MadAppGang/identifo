@@ -5,7 +5,7 @@ import (
 	"time"
 )
 
-//HandleHello - returns hello message
+// HandleHello returns hello message.
 func (ar *Router) HandleHello() http.HandlerFunc {
 	type helloResponse struct {
 		Answer string    `json:"answer,omitempty"`

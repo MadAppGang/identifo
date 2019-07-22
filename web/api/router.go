@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/casbin/casbin"
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -26,6 +27,7 @@ type Router struct {
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
+	Authorizers             map[string]*casbin.Enforcer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
@@ -79,6 +81,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		tokenService:            tokenService,
 		smsService:              smsService,
 		emailService:            emailService,
+		Authorizers:             make(map[string]*casbin.Enforcer, 1),
 	}
 
 	for _, option := range append(defaultOptions(), options...) {
