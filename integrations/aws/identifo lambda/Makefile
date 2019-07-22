@@ -2,9 +2,9 @@
 
 app = Identifo
 function = Identifo
-# Specify your lambda arn, API Gateway endpoint, and AWS profile.
-# aws_arn = 
-# api_gateway_endpoint =
+# Specify needed environment variables.
+# api_gateway_endpoint = 
+# admin_panel_bucket = 
 # aws_profile =
 
 compile: update_admin_panel
@@ -19,6 +19,7 @@ ship:	compile
 
 deploy:	ship
 		aws lambda update-function-code --function-name $(function) --zip-file fileb://$(app)_lambda.zip --publish --profile $(aws_profile)
+		# aws lambda update-function-configuration --function-name $(function) --environment 
 		rm $(app)_lambda.zip
 
 update:	

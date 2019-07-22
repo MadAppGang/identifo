@@ -48,7 +48,7 @@ func initServer() model.Server {
 
 	adminPanelOption := server.ServeAdminPanelOption()
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, adminPanelOption)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, nil, adminPanelOption)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}

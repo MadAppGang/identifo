@@ -26,11 +26,14 @@ sessionStorage:
 
 # Storage for server configuration.
 configurationStorage:
-  type: etcd # Supported values are: "etcd", "mock".
+  # Configuration storage type. Supported values are: "etcd", "s3", and "file".
+  type: etcd
   # Key for accessing server settings in the configuraion storage.
+  # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
+  # If type is file, must be a filename (e.g, server-config.yaml).
   settingsKey: identifo/server-settings
   endpoints: # Etcd-related setting.
-    #- host.docker.internal:2379 
+  region: # S3-related setting.
 
 # Names of environment variables that store admin credentials.
 adminAccount:
