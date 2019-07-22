@@ -82,6 +82,17 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			tokenStr:    accessToken,
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.Authorize(w, azi); err != nil {
+			return
+		}
+
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,

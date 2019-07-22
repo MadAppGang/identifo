@@ -3,8 +3,6 @@ package dynamodb
 import (
 	"encoding/json"
 	"log"
-
-	"github.com/madappgang/identifo/model"
 )
 
 // User is a user data structure for DynamoDB storage.
@@ -24,6 +22,7 @@ type userData struct {
 	TFAInfo         model.TFAInfo          `json:"tfa_info"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
+	AccessRole      string                 `json:"access_role,omitempty"`
 }
 
 // userIndexByNameData represents username index projected user data.
@@ -46,7 +45,7 @@ type federatedUserID struct {
 }
 
 // Sanitize removes sensitive data.
-func (u *User) Sanitize() model.User {
+func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
@@ -92,3 +91,6 @@ func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }
+
+// AccessRole implements model.User interface.
+func (u *User) AccessRole() string { return u.userData.AccessRole }

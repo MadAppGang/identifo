@@ -33,17 +33,21 @@ var messages = map[MessageID]string{
 	ErrorAPIAppAccessTokenNotCreated:           "Unable to create access token",
 	ErrorAPIAppRefreshTokenNotCreated:          "Unable to create refresh token",
 	ErrorAPIAppCannotExtractTokenSubject:       "Unable to extract Subject claim from token",
+	ErrorAPIAppCannotInitAuthorizer:            "Unable to init internal authorizer",
 	ErrorAPIAppFederatedProviderNotSupported:   "Federated provider is not supported",
 	ErrorAPIAppFederatedProviderEmptyUserID:    "Federated provider returns empty user ID",
 	ErrorAPIAppFederatedProviderEmptyAppleInfo: "Application does not have Apple info",
-	ErrorAPIAppFederatedLoginNotSupported:      "Login via federated identity provider is not supported by app",
+	ErrorAPIAppFederatedLoginNotSupported:      "Login with federated identity provider is not supported by app",
 	ErrorAPIAppLoginWithUsernameNotSupported:   "Login with username is not supported by app",
 	ErrorAPIAppPhoneLoginNotSupported:          "Login with phone number is not supported by app",
+	ErrorAPIAppAccessDenied:                    "Access denied",
 }
 
 const (
 	// ErrorAPIInternalServerError means that server got unknown error.
 	ErrorAPIInternalServerError = "api.internal_server_error"
+	// ErrorAPIAppAccessDenied is when access is denied.
+	ErrorAPIAppAccessDenied = "api.app.access_denied"
 	// ErrorAPIUserUnableToCreate is when user cannot create the resource.
 	ErrorAPIUserUnableToCreate = "error.api.user.unable_to_create"
 	// ErrorAPIVerificationCodeInvalid stands for invalid verification code.
@@ -85,6 +89,14 @@ const (
 	ErrorAPIRequestTFACodeInvalid = "error.api.request.2fa_code.invalid"
 
 	// ErrorAPIAppInactive means that the token is invalid or empty.
+	// ErrorAPIRequestTokenInvalid means that the token is invalid or empty.
+	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
+	// ErrorAPIAppCannotExtractTokenSubject is when we cannot extract token "sub".
+	ErrorAPIAppCannotExtractTokenSubject = "error.api.request.token.sub"
+	// ErrorAPIAppCannotInitAuthorizer is when we cannot init internal authorizer.
+	ErrorAPIAppCannotInitAuthorizer = "error.api.request.authorizer.internal.init"
+
+	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"
 	// ErrorAPIAppRegistrationForbidden means that registration is forbidden.
 	ErrorAPIAppRegistrationForbidden = "error.api.app.registration_forbidden"

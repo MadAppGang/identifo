@@ -171,11 +171,11 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 	strictPattern := "^" + name + "$"
 	q := bson.M{"$regex": bson.RegEx{Pattern: strictPattern, Options: "i"}}
 	if err := s.C.Find(bson.M{"username": q}).One(&u); err != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 
 	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
-		return nil, model.ErrorNotFound
+		return nil, model.ErrUserNotFound
 	}
 	//clear password hash
 	u.Pswd = ""

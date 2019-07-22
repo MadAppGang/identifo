@@ -12,22 +12,24 @@ type AppData struct {
 }
 
 type appData struct {
-	ID                    string           `json:"id,omitempty"`
-	Secret                string           `json:"secret,omitempty"`
-	Active                bool             `json:"active"`
-	Name                  string           `json:"name,omitempty"`
-	Description           string           `json:"description,omitempty"`
-	Scopes                []string         `json:"scopes,omitempty"`
-	Offline               bool             `json:"offline"`
-	Type                  model.AppType    `json:"type,omitempty"`
-	RedirectURL           string           `json:"redirect_url,omitempty"`
-	RefreshTokenLifespan  int64            `json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan   int64            `json:"invite_token_lifespan,omitempty"`
-	TokenLifespan         int64            `json:"token_lifespan,omitempty"`
-	TokenPayload          []string         `json:"token_payload,omitempty"`
-	TFAEnabled            bool             `json:"tfa_enabled"`
-	RegistrationForbidden bool             `json:"registration_forbidden"`
-	AppleInfo             *model.AppleInfo `json:"apple_info,omitempty"`
+	ID                    string                 `json:"id,omitempty"`
+	Secret                string                 `json:"secret,omitempty"`
+	Active                bool                   `json:"active"`
+	Name                  string                 `json:"name,omitempty"`
+	Description           string                 `json:"description,omitempty"`
+	Scopes                []string               `json:"scopes,omitempty"`
+	Offline               bool                   `json:"offline"`
+	Type                  model.AppType          `json:"type,omitempty"`
+	RedirectURL           string                 `json:"redirect_url,omitempty"`
+	RefreshTokenLifespan  int64                  `json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan   int64                  `json:"invite_token_lifespan,omitempty"`
+	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
+	TokenPayload          []string               `json:"token_payload,omitempty"`
+	RegistrationForbidden bool                   `json:"registration_forbidden"`
+	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
+	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
+	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
+	AppleInfo             *model.AppleInfo       `json:"apple_info,omitempty"`
 }
 
 // NewAppData instantiates in-memory app data model from the general one.
@@ -126,6 +128,15 @@ func (ad *AppData) RegistrationForbidden() bool { return ad.appData.Registration
 
 // TFAEnabled implements model.AppData interface.
 func (ad *AppData) TFAEnabled() bool { return ad.appData.TFAEnabled }
+
+// AuthzWay implements model.AppData interface.
+func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }
+
+// AuthzModel implements model.AppData interface.
+func (ad *AppData) AuthzModel() string { return ad.appData.AuthorizationModel }
+
+// AuthzPolicy implements model.AppData interface.
+func (ad *AppData) AuthzPolicy() string { return ad.appData.AuthorizationPolicy }
 
 // AppleInfo implements model.AppData interface.
 func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }
