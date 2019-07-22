@@ -7,6 +7,7 @@ import (
 	"reflect"
 	"time"
 
+	configStorageFile "github.com/madappgang/identifo/configuration/storage/file"
 	"github.com/madappgang/identifo/model"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -18,11 +19,12 @@ const (
 
 // ConfigurationStorage is an etcd-backed storage for server configuration.
 type ConfigurationStorage struct {
-	Client *clientv3.Client
+	Client      *clientv3.Client
+	FileStorage *configStorageFile.ConfigurationStorage
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (*ConfigurationStorage, error) {
 	if settings.SettingsKey == "" {
 		return nil, fmt.Errorf("Empty server settings key for etcd")
 	}
@@ -40,7 +42,17 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 		return nil, err
 	}
 
-	return &ConfigurationStorage{Client: c}, nil
+	// Init file storage for config replication.
+	settings.SettingsKey = serverConfigPath
+	fileStorage, err := configStorageFile.NewConfigurationStorage(settings)
+	if err != nil {
+		return nil, err
+	}
+
+	return &ConfigurationStorage{
+		Client:      c,
+		FileStorage: fileStorage,
+	}, nil
 }
 
 // Insert inserts key-value pair to configuration storage.
@@ -60,6 +72,16 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 	}
 
 	_, err = cs.Client.Put(context.Background(), key, strVal)
+	if err == nil {
+		// Also update file.
+		go func() {
+			if fileErr := cs.FileStorage.Insert(cs.FileStorage.ServerConfigPath, value); fileErr != nil {
+				fmt.Println("Could not replicate settings in file: ", fileErr)
+			} else {
+				fmt.Println("Successfully replicated settings in file")
+			}
+		}()
+	}
 	return err
 }
 
@@ -73,3 +95,11 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 	err = json.Unmarshal(res.Kvs[0].Value, settings)
 	return err
 }
+
+// GetUpdateChan implements ConfigurationStorage interface.
+func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
+	return make(chan interface{}, 1)
+}
+
+// CloseUpdateChan implements ConfigurationStorage interface.
+func (cs *ConfigurationStorage) CloseUpdateChan() {}

@@ -9,8 +9,14 @@ sessionStorage:
   region: us-east-1
   sessionDuration: 300
 
+# If using Identifo as AWS Lambda, we cannot update config file,
+# as Lambda environment is a read-only one. That's why we must
+# store configuration file in, for example, S3 bucket.
+# AWS Access Key, Secret Access Key, and bucket name must be stored
+# in environment variables.
 configurationStorage:
-  type: mock
+  type: s3
+  region: us-east-1
 
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN

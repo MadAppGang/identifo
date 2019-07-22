@@ -5,9 +5,9 @@ import (
 	"log"
 	"net/http"
 
-	etcdStorage "github.com/madappgang/identifo/configuration/etcd/storage"
-	etcdWatcher "github.com/madappgang/identifo/configuration/etcd/watcher"
-	mockWatcher "github.com/madappgang/identifo/configuration/mock/watcher"
+	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
+	configWatcherEtcd "github.com/madappgang/identifo/configuration/watcher/etcd"
+	configWatcherGeneric "github.com/madappgang/identifo/configuration/watcher/generic"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/server/boltdb"
@@ -25,7 +25,12 @@ const (
 func main() {
 	forever := make(chan struct{}, 1)
 
-	srv := initServer(nil)
+	configStorage, err := server.InitConfigurationStorage(server.ServerSettings.ConfigurationStorage, server.ServerSettings.ServerConfigPath)
+	if err != nil {
+		log.Fatal("Cannot init config storage:", err)
+	}
+
+	srv := initServer(configStorage)
 	httpSrv := &http.Server{
 		Addr:    server.ServerSettings.GetPort(),
 		Handler: srv.Router(),
@@ -46,6 +51,10 @@ func startHTTPServer(httpSrv *http.Server) {
 }
 
 func initServer(configStorage model.ConfigurationStorage) model.Server {
+	if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
+		log.Panicln("Cannot load server settings: ", err)
+	}
+
 	dbTypes := make(map[model.DatabaseType]bool)
 	var partialComposers []server.PartialDatabaseComposer
 
@@ -67,9 +76,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	configStorageOption := server.ConfigurationStorageOption(configStorage)
-
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorageOption)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorage)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}
@@ -96,15 +103,15 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 
 	switch server.ServerSettings.ConfigurationStorage.Type {
 	case model.ConfigurationStorageTypeEtcd:
-		etcdStorage, ok := configStorage.(*etcdStorage.ConfigurationStorage)
+		etcdStorage, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
 		if !ok {
 			log.Panicln("Incorrect configuration storage type")
 		}
-		cw, err = etcdWatcher.NewConfigurationWatcher(etcdStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
-	case model.ConfigurationStorageTypeMock:
-		cw, err = mockWatcher.NewConfigurationWatcher()
+		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcdStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
+	case model.ConfigurationStorageTypeS3, model.ConfigurationStorageTypeFile:
+		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, server.ServerSettings.ConfigurationStorage.SettingsKey, watchChan)
 	default:
-		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage)
+		log.Panicln("Unknown config storage type:", server.ServerSettings.ConfigurationStorage.Type)
 	}
 
 	if err != nil {
