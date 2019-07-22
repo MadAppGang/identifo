@@ -17,6 +17,7 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 		newAppStorage:              mem.NewAppStorage,
 		newUserStorage:             mem.NewUserStorage,
 		newTokenStorage:            mem.NewTokenStorage,
+		newTokenBlacklist:          mem.NewTokenBlacklist,
 		newVerificationCodeStorage: mem.NewVerificationCodeStorage,
 	}
 
@@ -35,6 +36,7 @@ type DatabaseComposer struct {
 	newAppStorage              func() (model.AppStorage, error)
 	newUserStorage             func() (model.UserStorage, error)
 	newTokenStorage            func() (model.TokenStorage, error)
+	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
 }
 
@@ -43,33 +45,39 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
+	model.TokenBlacklist,
 	model.VerificationCodeStorage,
 	jwtService.TokenService,
 	error,
 ) {
 	appStorage, err := dc.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	tokenBlacklist, err := dc.newTokenBlacklist()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", dc.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
@@ -82,10 +90,10 @@ func (dc *DatabaseComposer) Compose() (
 		userStorage,
 	)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
 }
 
 // NewPartialComposer returns new partial composer with in-memory storage support.
@@ -121,6 +129,7 @@ type PartialDatabaseComposer struct {
 	newAppStorage              func() (model.AppStorage, error)
 	newUserStorage             func() (model.UserStorage, error)
 	newTokenStorage            func() (model.TokenStorage, error)
+	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
 }
 
@@ -140,9 +149,22 @@ func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStora
 
 // TokenStorageComposer returns token storage composer.
 func (pc *PartialDatabaseComposer) TokenStorageComposer() func() (model.TokenStorage, error) {
-	return func() (model.TokenStorage, error) {
-		return pc.newTokenStorage()
+	if pc.newTokenStorage != nil {
+		return func() (model.TokenStorage, error) {
+			return pc.newTokenStorage()
+		}
 	}
+	return nil
+}
+
+// TokenBlacklistComposer returns token blacklist composer.
+func (pc *PartialDatabaseComposer) TokenBlacklistComposer() func() (model.TokenBlacklist, error) {
+	if pc.newTokenBlacklist != nil {
+		return func() (model.TokenBlacklist, error) {
+			return pc.newTokenBlacklist()
+		}
+	}
+	return nil
 }
 
 // VerificationCodeStorageComposer returns verification code storage composer.

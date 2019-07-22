@@ -21,7 +21,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	return nil
 }
 
-// HasToken returns if the token is present in the storage.
+// HasToken returns true if the token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	has := ts.storage[token]
 	return has

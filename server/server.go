@@ -97,6 +97,7 @@ type DatabaseComposer interface {
 		model.AppStorage,
 		model.UserStorage,
 		model.TokenStorage,
+		model.TokenBlacklist,
 		model.VerificationCodeStorage,
 		jwtService.TokenService,
 		error,
@@ -108,6 +109,7 @@ type PartialDatabaseComposer interface {
 	AppStorageComposer() func() (model.AppStorage, error)
 	UserStorageComposer() func() (model.UserStorage, error)
 	TokenStorageComposer() func() (model.TokenStorage, error)
+	TokenBlacklistComposer() func() (model.TokenBlacklist, error)
 	VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error)
 }
 
@@ -117,6 +119,7 @@ type Composer struct {
 	newAppStorage              func() (model.AppStorage, error)
 	newUserStorage             func() (model.UserStorage, error)
 	newTokenStorage            func() (model.TokenStorage, error)
+	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
 }
 
@@ -125,33 +128,39 @@ func (c *Composer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
+	model.TokenBlacklist,
 	model.VerificationCodeStorage,
 	jwtService.TokenService,
 	error,
 ) {
 	appStorage, err := c.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := c.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := c.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	tokenBlacklist, err := c.newTokenBlacklist()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := c.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
@@ -164,10 +173,10 @@ func (c *Composer) Compose() (
 		userStorage,
 	)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
 }
 
 // NewComposer returns new database composer based on passed server settings.
@@ -184,6 +193,9 @@ func NewComposer(settings model.ServerSettings, partialComposers []PartialDataba
 		if pc.TokenStorageComposer() != nil {
 			c.newTokenStorage = pc.TokenStorageComposer()
 		}
+		if pc.TokenBlacklistComposer() != nil {
+			c.newTokenBlacklist = pc.TokenBlacklistComposer()
+		}
 		if pc.VerificationCodeStorageComposer() != nil {
 			c.newVerificationCodeStorage = pc.VerificationCodeStorageComposer()
 		}
@@ -199,7 +211,7 @@ func NewComposer(settings model.ServerSettings, partialComposers []PartialDataba
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...func(*Server) error) (model.Server, error) {
-	appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, err := db.Compose()
+	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -213,6 +225,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, options ...fu
 		appStorage:              appStorage,
 		userStorage:             userStorage,
 		tokenStorage:            tokenStorage,
+		tokenBlacklist:          tokenBlacklist,
 		verificationCodeStorage: verificationCodeStorage,
 		configurationStorage:    configurationStorage,
 	}
@@ -295,6 +308,7 @@ type Server struct {
 	userStorage             model.UserStorage
 	configurationStorage    model.ConfigurationStorage
 	tokenStorage            model.TokenStorage
+	tokenBlacklist          model.TokenBlacklist
 	verificationCodeStorage model.VerificationCodeStorage
 }
 

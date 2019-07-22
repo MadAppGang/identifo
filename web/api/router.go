@@ -21,6 +21,7 @@ type Router struct {
 	appStorage              model.AppStorage
 	userStorage             model.UserStorage
 	tokenStorage            model.TokenStorage
+	tokenBlacklist          model.TokenBlacklist
 	verificationCodeStorage model.VerificationCodeStorage
 	tokenService            jwtService.TokenService
 	smsService              model.SMSService

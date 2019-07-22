@@ -18,6 +18,7 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 		newAppStorage:              boltdb.NewAppStorage,
 		newUserStorage:             boltdb.NewUserStorage,
 		newTokenStorage:            boltdb.NewTokenStorage,
+		newTokenBlacklist:          boltdb.NewTokenBlacklist,
 		newVerificationCodeStorage: boltdb.NewVerificationCodeStorage,
 	}
 
@@ -36,6 +37,7 @@ type DatabaseComposer struct {
 	newAppStorage              func(*bolt.DB) (model.AppStorage, error)
 	newUserStorage             func(*bolt.DB) (model.UserStorage, error)
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
+	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
 }
 
@@ -44,6 +46,7 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
+	model.TokenBlacklist,
 	model.VerificationCodeStorage,
 	jwtService.TokenService,
 	error,
@@ -51,32 +54,37 @@ func (dc *DatabaseComposer) Compose() (
 	// We assume that all BoltDB-backed storages share the same filepath, so we can pick any of them.
 	db, err := boltdb.InitDB(dc.settings.Storage.AppStorage.Path)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	tokenBlacklist, err := dc.newTokenBlacklist(db)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
@@ -89,10 +97,10 @@ func (dc *DatabaseComposer) Compose() (
 		userStorage,
 	)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
 }
 
 // NewPartialComposer returns new partial composer with BoltDB support.
@@ -141,6 +149,7 @@ type PartialDatabaseComposer struct {
 	newAppStorage              func(*bolt.DB) (model.AppStorage, error)
 	newUserStorage             func(*bolt.DB) (model.UserStorage, error)
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
+	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
 }
 
@@ -169,6 +178,16 @@ func (pc *PartialDatabaseComposer) TokenStorageComposer() func() (model.TokenSto
 	if pc.newTokenStorage != nil {
 		return func() (model.TokenStorage, error) {
 			return pc.newTokenStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// TokenBlacklistComposer returns token blacklist composer.
+func (pc *PartialDatabaseComposer) TokenBlacklistComposer() func() (model.TokenBlacklist, error) {
+	if pc.newTokenBlacklist != nil {
+		return func() (model.TokenBlacklist, error) {
+			return pc.newTokenBlacklist(pc.db)
 		}
 	}
 	return nil

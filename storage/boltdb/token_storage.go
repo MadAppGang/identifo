@@ -37,17 +37,17 @@ type TokenStorage struct {
 func (ts *TokenStorage) SaveToken(token string) error {
 	return ts.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
-		//we use token as key and value
+		// We use token as key and value.
 		return b.Put([]byte(token), []byte(token))
 	})
 }
 
-// HasToken returns true if the token in present in the storage.
+// HasToken returns true if the token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	var res bool
 	if err := ts.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
-		//we use token as key and value
+		// We use token as key and value.
 		res = b.Get([]byte(token)) != nil
 		return nil
 	}); err != nil {

@@ -1,6 +1,6 @@
 package model
 
-// TokenStorage implements storage for issued refresh tokens.
+// TokenStorage is a storage for issued refresh tokens.
 type TokenStorage interface {
 	SaveToken(token string) error
 	HasToken(token string) bool
@@ -8,8 +8,9 @@ type TokenStorage interface {
 	Close()
 }
 
-// TokenBlacklist implements token blacklist.
+// TokenBlacklist is a storage for blacklisted tokens.
 type TokenBlacklist interface {
-	Blacklisted(token string) bool
+	IsBlacklisted(token string) bool
 	Add(token string) error
+	Close()
 }

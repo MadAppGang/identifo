@@ -30,14 +30,15 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		tstr := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
-		if tstr == nil {
+		tokenBytes := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
+		if tokenBytes == nil {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token is empty or invalid.", "Token.ExtractTokenFromBearerHeader")
 			return
 		}
+		tokenString := string(tokenBytes)
 
 		v := jwtValidator.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
-		token, err := ar.tokenService.Parse(string(tstr))
+		token, err := ar.tokenService.Parse(tokenString)
 		if err != nil {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")
 			return
@@ -47,8 +48,13 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
+		if blacklisted := ar.tokenBlacklist.IsBlacklisted(tokenString); blacklisted {
+			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, err.Error(), "Token.IsBlacklisted")
+			return
+		}
+
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
-		ctx = context.WithValue(ctx, model.TokenRawContextKey, tstr)
+		ctx = context.WithValue(ctx, model.TokenRawContextKey, tokenBytes)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}

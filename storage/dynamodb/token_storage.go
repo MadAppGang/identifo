@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	//TokensTableName is a table to store refresh tokens.
+	// TokensTableName is a name of a table where refresh tokens are stored.
 	TokensTableName = "RefreshTokens"
 )
 
