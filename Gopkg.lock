@@ -2,6 +2,14 @@
 
 
 [[projects]]
+  digest = "1:5d3e23515e7916c152cc665eda0f7eaf6fdf8fdfe7c3dbac97049bcbd649b33f"
+  name = "github.com/Knetic/govaluate"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "d216395917cc49052c7c7094cf57f09657ca08a8"
+  version = "v3.0.0"
+
+[[projects]]
   digest = "1:59e88402ad54c4138e247a8a270ff6951037e292ecf601667dbedd6f611d0035"
   name = "github.com/akrylysov/algnhsa"
   packages = ["."]
@@ -24,7 +32,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:90c3755cc8011205835f3a7124ad8b9e291d09742cd6f25bcc6a19671a35e02f"
+  digest = "1:034d869f28b88c98e23dcefb105044a6d02949609ca7586a5d1c56d53bc04661"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -69,8 +77,8 @@
     "service/sts",
   ]
   pruneopts = "UT"
-  revision = "29db91562071cdb55ce57e0c3fb3f2abf184749b"
-  version = "v1.20.19"
+  revision = "420cda5d6383f94f7d9c231aa44bad3325181950"
+  version = "v1.20.20"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -79,6 +87,26 @@
   pruneopts = "UT"
   revision = "2f1ce7a837dcb8da3ec595b1dac9d0632f0f99e8"
   version = "v1.3.1"
+
+[[projects]]
+  digest = "1:d3d1f7bfcaaa5cc56c36d010937e28d1c6c38810b95086cd445eb433b83cbf75"
+  name = "github.com/casbin/casbin"
+  packages = [
+    ".",
+    "config",
+    "effect",
+    "errors",
+    "log",
+    "model",
+    "persist",
+    "persist/file-adapter",
+    "rbac",
+    "rbac/default-role-manager",
+    "util",
+  ]
+  pruneopts = "UT"
+  revision = "aaed1b7a7eac65d37ec4e15e308429fdf0bd6a9e"
+  version = "v1.9.1"
 
 [[projects]]
   digest = "1:b4ba0dcf39b5ba06f69d9cd4eaacaba334801073099eb8be273d595094c99db3"
@@ -217,6 +245,14 @@
   pruneopts = "UT"
   revision = "ba968bfe8b2f7e042a574c888954fccecfa385b4"
   version = "v0.8.1"
+
+[[projects]]
+  branch = "master"
+  digest = "1:399bffeaa067be2f46b747c99b5cf520faefe4aa6811003979fdd9b7c1098f67"
+  name = "github.com/qiangmzsx/string-adapter"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "38f25303bb0cd40e674a6fac01e0171ab905f5a1"
 
 [[projects]]
   digest = "1:b0c25f00bad20d783d259af2af8666969e2fc343fa0dc9efe52936bbd67fb758"
@@ -370,12 +406,12 @@
   version = "v1.22.0"
 
 [[projects]]
-  digest = "1:ee2db1a4b9111947da887ff2f8972dd2cc80906e521a2d856901fa699b4b51ee"
+  digest = "1:ffb045e56464a5f683830c7a8eec153d35c0444c77f6132bc531617ed58a94d2"
   name = "gopkg.in/go-playground/validator.v9"
   packages = ["."]
   pruneopts = "UT"
-  revision = "884d31b8cad6a1ec877f2400d555924cea03bbea"
-  version = "v9.29.0"
+  revision = "556b9da3c05f2a935bc086fb5a0bb55dd8112d2d"
+  version = "v9.29.1"
 
 [[projects]]
   branch = "v2"
@@ -415,11 +451,13 @@
     "github.com/aws/aws-sdk-go/service/s3",
     "github.com/aws/aws-sdk-go/service/ses",
     "github.com/boltdb/bolt",
+    "github.com/casbin/casbin",
     "github.com/dgrijalva/jwt-go",
     "github.com/go-redis/redis",
     "github.com/gorilla/mux",
     "github.com/mailgun/mailgun-go",
     "github.com/pallinder/go-randomdata",
+    "github.com/qiangmzsx/string-adapter",
     "github.com/rs/cors",
     "github.com/rs/xid",
     "github.com/sfreiberg/gotwilio",

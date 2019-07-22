@@ -74,9 +74,10 @@ func (c *Client) MyProfile() (User, error) {
 		return user, err
 	}
 
-	user.ID = claims["sub"].(string)
-	if user.ID == "" {
-		return user, fmt.Errorf("ID token has empty subject")
+	var ok bool
+	user.ID, ok = claims["sub"].(string)
+	if user.ID == "" || !ok {
+		return user, fmt.Errorf("ID token has empty or non-string subject")
 	}
 	return user, nil
 }

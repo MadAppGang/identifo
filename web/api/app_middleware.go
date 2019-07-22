@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 	"strings"
 
@@ -21,8 +22,8 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
 		app, err := ar.appStorage.ActiveAppByID(appID)
 		if err != nil {
-			ar.logger.Printf("Error getting App by ID: %v \n", err)
-			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "AppID.AppFromContext")
+			err = fmt.Errorf("Error getting App by ID: %s", err)
+			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, err.Error(), "AppID.AppFromContext")
 			return
 		}
 		ctx := context.WithValue(r.Context(), model.AppDataContextKey, app)

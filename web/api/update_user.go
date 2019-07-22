@@ -10,10 +10,10 @@ import (
 
 // UpdateUser allows to change user login and password.
 func (ar *Router) UpdateUser() http.HandlerFunc {
-
 	type updateResponse struct {
 		Message string `json:"message"`
 	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := updateData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
@@ -30,13 +30,13 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.validate")
 			return
 		}
-		// check that new username is not taken.
+		// Check that new username is not taken.
 		if d.updateUsername && ar.userStorage.UserExists(d.NewUsername) {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, "", "UpdateUser.updateUsername && userStorage.UserExists")
 			return
 		}
 
-		// check that email is not taken.
+		// Check that email is not taken.
 		if d.updateEmail {
 			if _, err := ar.userStorage.UserByEmail(d.NewEmail); err == nil {
 				ar.Error(w, ErrorAPIEmailTaken, http.StatusBadRequest, "", "UpdateUser.updateEmail && UserByEmail")
@@ -44,16 +44,15 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 		}
 
-		// update password
+		// Update password.
 		if d.updatePassword {
-			// check old password.
-			_, err := ar.userStorage.UserByNamePassword(user.Username(), d.OldPassword)
-			if err != nil {
+			// Check old password.
+			if _, err := ar.userStorage.UserByNamePassword(user.Username(), d.OldPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
 			}
 
-			// save new password.
+			// Save new password.
 			err = ar.userStorage.ResetPassword(user.ID(), d.NewPassword)
 			if err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
@@ -61,7 +60,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 		}
 
-		// change username if user specified new one.
+		// Change username if user specified new one.
 		if d.updateUsername {
 			user.SetUsername(d.NewUsername)
 		}
@@ -77,7 +76,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 		}
 
-		// prepare response
+		// Prepare response.
 		updatedFields := []string{}
 		if d.updateUsername {
 			updatedFields = append(updatedFields, "username")
@@ -99,7 +98,6 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		}
 		ar.ServeJSON(w, http.StatusOK, response)
 	}
-
 }
 
 type updateData struct {
