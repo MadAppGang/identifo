@@ -33,30 +33,14 @@ func (ar *Router) Logout() http.HandlerFunc {
 		}
 		accessTokenString := string(accessTokenBytes)
 
-		// Revoke current access token.
-		if err := ar.tokenStorage.RevokeToken(accessTokenString); err != nil {
-			ar.logger.Println("Cannot revoke access token")
-			ar.ServeJSON(w, http.StatusNoContent, nil)
-			return
+		// Blacklist current access token.
+		if err := ar.tokenBlacklist.Add(accessTokenString); err != nil {
+			ar.logger.Printf("Cannot blacklist access token: %s\n", err)
 		}
 
 		// Revoke refresh token, if present.
-		if len(d.RefreshToken) > 0 {
-			atSub, err := ar.getTokenSubject(accessTokenString)
-			if err != nil {
-				ar.logger.Println(err)
-			}
-			rtSub, err := ar.getTokenSubject(d.RefreshToken)
-			if err != nil {
-				ar.logger.Println(err)
-			}
-
-			if atSub != rtSub {
-				ar.logger.Printf("%s tried to revoke refresh token that belong to %s\n", atSub, rtSub)
-			}
-			if err := ar.tokenStorage.RevokeToken(d.RefreshToken); err != nil {
-				ar.logger.Println("Cannot revoke refresh token")
-			}
+		if err := ar.revokeRefreshToken(d.RefreshToken, accessTokenString); err != nil {
+			ar.logger.Printf("Cannot revoke refresh token: %s\n", err)
 		}
 
 		// Detach device token, if present.
@@ -87,4 +71,32 @@ func (ar *Router) getTokenSubject(tokenString string) (string, error) {
 	}
 
 	return sub, nil
+}
+
+func (ar *Router) revokeRefreshToken(refreshTokenString, accessTokenString string) error {
+	if len(refreshTokenString) == 0 {
+		return nil
+	}
+
+	atSub, err := ar.getTokenSubject(accessTokenString)
+	if err != nil {
+		return err
+	}
+	rtSub, err := ar.getTokenSubject(refreshTokenString)
+	if err != nil {
+		return err
+	}
+
+	if atSub != rtSub {
+		return fmt.Errorf("%s tried to revoke refresh token that belong to %s", atSub, rtSub)
+	}
+
+	if err := ar.tokenStorage.DeleteToken(refreshTokenString); err != nil {
+		return fmt.Errorf("Cannot delete refresh token: %s", err)
+	}
+
+	if err := ar.tokenBlacklist.Add(refreshTokenString); err != nil {
+		return fmt.Errorf("Cannot blacklist refresh token: %s", err)
+	}
+	return nil
 }

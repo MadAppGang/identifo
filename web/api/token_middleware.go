@@ -49,7 +49,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		}
 
 		if blacklisted := ar.tokenBlacklist.IsBlacklisted(tokenString); blacklisted {
-			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, err.Error(), "Token.IsBlacklisted")
+			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsBlacklisted")
 			return
 		}
 

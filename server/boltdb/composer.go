@@ -124,6 +124,11 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 		dbPath = settings.TokenStorage.Path
 	}
 
+	if settings.TokenBlacklist.Type == model.DBTypeBoltDB {
+		pc.newTokenBlacklist = boltdb.NewTokenBlacklist
+		dbPath = settings.TokenBlacklist.Path
+	}
+
 	if settings.VerificationCodeStorage.Type == model.DBTypeBoltDB {
 		pc.newVerificationCodeStorage = boltdb.NewVerificationCodeStorage
 		dbPath = settings.VerificationCodeStorage.Path

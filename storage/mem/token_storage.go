@@ -27,9 +27,9 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return has
 }
 
-// RevokeToken removes token from memory storage.
+// DeleteToken removes token from memory storage.
 // Actually, just marks it as deleted.
-func (ts *TokenStorage) RevokeToken(token string) error {
+func (ts *TokenStorage) DeleteToken(token string) error {
 	ts.storage[token] = false
 	return nil
 }

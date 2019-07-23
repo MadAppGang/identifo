@@ -116,26 +116,26 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.UserStorage.Type == model.DBTypeDynamoDB {
 		pc.newUserStorage = dynamodb.NewUserStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbRegion = settings.AppStorage.Region
+		dbEndpoint = settings.UserStorage.Endpoint
+		dbRegion = settings.UserStorage.Region
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeDynamoDB {
 		pc.newTokenStorage = dynamodb.NewTokenStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbRegion = settings.AppStorage.Region
+		dbEndpoint = settings.TokenStorage.Endpoint
+		dbRegion = settings.TokenStorage.Region
 	}
 
 	if settings.TokenBlacklist.Type == model.DBTypeDynamoDB {
 		pc.newTokenBlacklist = dynamodb.NewTokenBlacklist
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbRegion = settings.AppStorage.Region
+		dbEndpoint = settings.TokenStorage.Endpoint
+		dbRegion = settings.TokenStorage.Region
 	}
 
 	if settings.VerificationCodeStorage.Type == model.DBTypeDynamoDB {
 		pc.newVerificationCodeStorage = dynamodb.NewVerificationCodeStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbRegion = settings.AppStorage.Region
+		dbEndpoint = settings.VerificationCodeStorage.Endpoint
+		dbRegion = settings.VerificationCodeStorage.Region
 	}
 
 	db, err := dynamodb.NewDB(dbEndpoint, dbRegion)

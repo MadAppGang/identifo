@@ -91,7 +91,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
-	appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, err := db.Compose()
+	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -148,6 +148,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		TokenStorage:            tokenStorage,
 		VerificationCodeStorage: verificationCodeStorage,
 		TokenService:            tokenService,
+		TokenBlacklist:          tokenBlacklist,
 		SessionService:          sessionService,
 		SessionStorage:          sessionStorage,
 		ConfigurationStorage:    configurationStorage,
@@ -218,6 +219,11 @@ func (s *Server) TokenStorage() model.TokenStorage {
 	return s.tokenStorage
 }
 
+// TokenBlacklist returns server's token blacklist.
+func (s *Server) TokenBlacklist() model.TokenBlacklist {
+	return s.tokenBlacklist
+}
+
 // VerificationCodeStorage returns server's token storage.
 func (s *Server) VerificationCodeStorage() model.VerificationCodeStorage {
 	return s.verificationCodeStorage
@@ -233,6 +239,7 @@ func (s *Server) Close() {
 	s.AppStorage().Close()
 	s.UserStorage().Close()
 	s.TokenStorage().Close()
+	s.TokenBlacklist().Close()
 	s.VerificationCodeStorage().Close()
 }
 

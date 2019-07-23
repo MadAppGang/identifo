@@ -112,6 +112,10 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 		pc.newTokenStorage = mem.NewTokenStorage
 	}
 
+	if settings.TokenBlacklist.Type == model.DBTypeFake {
+		pc.newTokenBlacklist = mem.NewTokenBlacklist
+	}
+
 	if settings.VerificationCodeStorage.Type == model.DBTypeFake {
 		pc.newVerificationCodeStorage = mem.NewVerificationCodeStorage
 	}

@@ -116,26 +116,26 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.UserStorage.Type == model.DBTypeMongoDB {
 		pc.newUserStorage = mongo.NewUserStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.UserStorage.Endpoint
+		dbName = settings.UserStorage.Name
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeMongoDB {
 		pc.newTokenStorage = mongo.NewTokenStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.TokenStorage.Endpoint
+		dbName = settings.TokenStorage.Name
 	}
 
 	if settings.TokenBlacklist.Type == model.DBTypeMongoDB {
 		pc.newTokenBlacklist = mongo.NewTokenBlacklist
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.TokenBlacklist.Endpoint
+		dbName = settings.TokenBlacklist.Name
 	}
 
 	if settings.VerificationCodeStorage.Type == model.DBTypeMongoDB {
 		pc.newVerificationCodeStorage = mongo.NewVerificationCodeStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.VerificationCodeStorage.Endpoint
+		dbName = settings.VerificationCodeStorage.Name
 	}
 
 	db, err := mongo.NewDB(dbEndpoint, dbName)
