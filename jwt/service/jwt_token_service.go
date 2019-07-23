@@ -178,8 +178,8 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 	return token, nil
 }
 
-// NewToken creates new token for user.
-func (ts *JWTokenService) NewToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
+// NewAccessToken creates new access token for user.
+func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
 	if !app.Active() {
 		return nil, ErrInvalidApp
 	}
@@ -209,44 +209,6 @@ func (ts *JWTokenService) NewToken(u model.User, scopes []string, app model.AppD
 			Subject:   u.ID(),
 			Audience:  app.ID(),
 			IssuedAt:  now,
-		},
-	}
-
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
-	}
-
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-	return &ijwt.JWToken{JWT: token, New: true}, nil
-}
-
-// NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken() (ijwt.Token, error) {
-	payload := make(map[string]string)
-	// add payload data here
-
-	now := ijwt.TimeFunc().Unix()
-
-	lifespan := InviteTokenLifespan
-
-	claims := ijwt.Claims{
-		Payload: payload,
-		Type:    InviteTokenType,
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: now + lifespan,
-			Issuer:    ts.issuer,
-			// Subject:   u.ID(),
-			Audience: "identifo",
-			IssuedAt: now,
 		},
 	}
 
@@ -333,8 +295,8 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 	return t, nil
 }
 
-// RefreshToken issues the new access token with access token
-func (ts *JWTokenService) RefreshToken(refreshToken ijwt.Token) (ijwt.Token, error) {
+// RefreshAccessToken issues new access token for provided refresh token.
+func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Token, error) {
 	rt, ok := refreshToken.(*ijwt.JWToken)
 	if !ok || rt == nil {
 		return nil, ijwt.ErrTokenInvalid
@@ -359,7 +321,7 @@ func (ts *JWTokenService) RefreshToken(refreshToken ijwt.Token) (ijwt.Token, err
 		return nil, ErrInvalidUser
 	}
 
-	token, err := ts.NewToken(user, strings.Split(claims.Scopes, " "), app)
+	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app)
 	if err != nil {
 		return nil, err
 	}
@@ -373,6 +335,44 @@ func (ts *JWTokenService) RefreshToken(refreshToken ijwt.Token) (ijwt.Token, err
 		return nil, ErrSavingToken
 	}
 	return token, nil
+}
+
+// NewInviteToken creates new invite token.
+func (ts *JWTokenService) NewInviteToken() (ijwt.Token, error) {
+	payload := make(map[string]string)
+	// add payload data here
+
+	now := ijwt.TimeFunc().Unix()
+
+	lifespan := InviteTokenLifespan
+
+	claims := ijwt.Claims{
+		Payload: payload,
+		Type:    InviteTokenType,
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: now + lifespan,
+			Issuer:    ts.issuer,
+			// Subject:   u.ID(),
+			Audience: "identifo",
+			IssuedAt: now,
+		},
+	}
+
+	var sm jwt.SigningMethod
+	switch ts.algorithm {
+	case ijwt.TokenSignatureAlgorithmES256:
+		sm = jwt.SigningMethodES256
+	case ijwt.TokenSignatureAlgorithmRS256:
+		sm = jwt.SigningMethodRS256
+	default:
+		return nil, ijwt.ErrWrongSignatureAlgorithm
+	}
+
+	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+	return &ijwt.JWToken{JWT: token, New: true}, nil
 }
 
 // NewResetToken creates new token for password resetting.

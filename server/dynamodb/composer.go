@@ -128,8 +128,8 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.TokenBlacklist.Type == model.DBTypeDynamoDB {
 		pc.newTokenBlacklist = dynamodb.NewTokenBlacklist
-		dbEndpoint = settings.TokenStorage.Endpoint
-		dbRegion = settings.TokenStorage.Region
+		dbEndpoint = settings.TokenBlacklist.Endpoint
+		dbRegion = settings.TokenBlacklist.Region
 	}
 
 	if settings.VerificationCodeStorage.Type == model.DBTypeDynamoDB {
