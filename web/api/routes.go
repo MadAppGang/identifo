@@ -39,9 +39,9 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
-	auth.Path(`/{two_factor:two_factor/?}`).Handler(negroni.New(
+	auth.Path(`/{enable_tfa:enable_tfa/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeAccess),
-		negroni.Wrap(ar.SetTFAOption()),
+		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()

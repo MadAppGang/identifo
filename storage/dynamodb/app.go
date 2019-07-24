@@ -27,7 +27,7 @@ type appData struct {
 	InviteTokenLifespan   int64                  `json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
-	TFAEnabled            bool                   `json:"tfa_enabled"`
+	TFAStatus             model.TFAStatus        `json:"tfa_status"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
@@ -134,8 +134,8 @@ func (ad *AppData) TokenLifespan() int64 { return ad.appData.TokenLifespan }
 // TokenPayload implements model.AppData interface.
 func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
-// TFAEnabled implements model.AppData interface.
-func (ad *AppData) TFAEnabled() bool { return ad.appData.TFAEnabled }
+// TFAStatus implements model.AppData interface.
+func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }

@@ -68,9 +68,14 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		// Execute two-factor auth if user enabled it.
-		if user.TFAInfo().IsEnabled {
-			if err = ar.execute2FA(w, ld, user.TFAInfo().Secret); err != nil {
+		if app.TFAStatus() == model.TFAStatusMandatory && ld.TFACode == "" {
+			ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, "TFA is mandatory for this app", "LoginWithPassword.TFAMandatory")
+			return
+		}
+
+		// Execute two-factor auth if user enabled it and app supports it.
+		if user.TFAInfo().IsEnabled && app.TFAStatus() != model.TFAStatusDisabled {
+			if err = ar.execute2FA(w, ld.TFACode, user.TFAInfo().Secret); err != nil {
 				return
 			}
 		}
@@ -128,19 +133,18 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 	return
 }
 
-func (ar *Router) execute2FA(w http.ResponseWriter, ld loginData, secret string) error {
-	if len(ld.TFACode) == 0 {
+func (ar *Router) execute2FA(w http.ResponseWriter, tfaCode, secret string) error {
+	if len(tfaCode) == 0 {
 		err := fmt.Errorf("Empty 2FA code")
 		ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, err.Error(), "LoginWithPassword.execute2FA")
 		return err
 	}
 
 	totp := gotp.NewDefaultTOTP(secret)
-	if verified := totp.Verify(ld.TFACode, int(time.Now().Unix())); !verified {
+	if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !verified {
 		err := fmt.Errorf("Invalid one-time password")
 		ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, err.Error(), "LoginWithPassword.execute2FA")
 		return err
 	}
 	return nil
 }
-

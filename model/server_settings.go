@@ -20,7 +20,7 @@ type ServerSettings struct {
 	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
 	LoginWith            LoginWith                    `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
-	TFAType              TFAType                      `yaml:"tfa_type,omitempty" json:"tfa_type,omitempty"`
+	TFAType              TFAType                      `yaml:"tfaType,omitempty" json:"tfa_type,omitempty"`
 	ServerConfigPath     string                       `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	MailService          MailServiceType              `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
 	SMSService           SMSServiceSettings           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`

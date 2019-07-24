@@ -27,7 +27,7 @@ type appData struct {
 	TokenLifespan         int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
-	TFAEnabled            bool                   `bson:"tfa_enabled" json:"tfa_enabled"`
+	TFAStatus             model.TFAStatus        `bson:"tfa_status" json:"tfa_status"`
 	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
@@ -134,8 +134,8 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
 
-// TFAEnabled implements model.AppData interface.
-func (ad *AppData) TFAEnabled() bool { return ad.appData.TFAEnabled }
+// TFAStatus implements model.AppData interface.
+func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }

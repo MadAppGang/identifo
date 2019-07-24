@@ -40,7 +40,7 @@ type AppData interface {
 	// Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayload() []string
 	Sanitize()
-	TFAEnabled() bool
+	TFAStatus() TFAStatus
 	RegistrationForbidden() bool
 	AuthzWay() AuthorizationWay
 	AuthzModel() string
@@ -71,4 +71,16 @@ const (
 	Internal AuthorizationWay = "internal"
 	// External is for external authorization service.
 	External AuthorizationWay = "external"
+)
+
+// TFAStatus is how the app supports two-factor authentication.
+type TFAStatus string
+
+const (
+	// TFAStatusMandatory for mandatory TFA for all users.
+	TFAStatusMandatory = "mandatory"
+	// TFAStatusOptional for TFA that can be enabled/disable for particular user.
+	TFAStatusOptional = "optional"
+	// TFAStatusDisabled is when the app does not support TFA.
+	TFAStatusDisabled = "disabled"
 )

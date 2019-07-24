@@ -161,6 +161,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.LoginWith),
+			api.TFATypeOption(settings.TFAType),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),

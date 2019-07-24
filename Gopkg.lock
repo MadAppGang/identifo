@@ -32,7 +32,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:ba0e9099c5f3d2983f94dc2de4be310974facd6a3dfe9edda6c9ae2cffb9f367"
+  digest = "1:dc29c64d1cc8b7ffc352a97c842ccbab7220b477b49f1198e5b22ae74763f2ad"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "8ae9ae0c8959def54f4a180ed76812ccc5f888db"
-  version = "v1.21.1"
+  revision = "3d64de9191c7cf300083c8ff3049bf079c5b67ba"
+  version = "v1.21.3"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -316,7 +316,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b5936d38011189ba9b2e5890a38c7ffe0ac7f157eef2ddc0fe752117c50d394d"
+  digest = "1:d2aa096fe6b539afe74dd6ab8e9a160304707f1477b01c637b4bbe20d262a25c"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -328,7 +328,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "da137c7871d730100384dbcf36e6f8fa493aef5b"
+  revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
 
 [[projects]]
   branch = "master"

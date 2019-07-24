@@ -87,6 +87,8 @@ const (
 	ErrorAPIRequestTFACodeEmpty = "error.api.request.2fa_code.empty"
 	// ErrorAPIRequestTFACodeInvalid means that the 2FA code is invalid.
 	ErrorAPIRequestTFACodeInvalid = "error.api.request.2fa_code.invalid"
+	// ErrorAPIRequestTFAAlreadyEnabled means that 2FA is already enabled for the user.
+	ErrorAPIRequestTFAAlreadyEnabled = "error.api.request.2fa.already_enabled"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"
