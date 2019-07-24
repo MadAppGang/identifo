@@ -79,7 +79,7 @@ type TFAStatus string
 const (
 	// TFAStatusMandatory for mandatory TFA for all users.
 	TFAStatusMandatory = "mandatory"
-	// TFAStatusOptional for TFA that can be enabled/disable for particular user.
+	// TFAStatusOptional for TFA that can be enabled/disabled for particular user.
 	TFAStatusOptional = "optional"
 	// TFAStatusDisabled is when the app does not support TFA.
 	TFAStatusDisabled = "disabled"
