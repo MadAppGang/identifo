@@ -48,6 +48,8 @@ loginWith:
   username: true
   federated: true
 
+tfaType: app
+
 staticFolderPath: ./static
 emailTemplatesPath: ./email_templates
 emailTemplateNames:

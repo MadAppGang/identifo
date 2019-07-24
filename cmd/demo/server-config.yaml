@@ -23,6 +23,8 @@ loginWith:
   username: true
   federated: true
 
+tfaType: app
+
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD

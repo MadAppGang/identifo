@@ -20,6 +20,7 @@ type ServerSettings struct {
 	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
 	LoginWith            LoginWith                    `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
+	TFAType              TFAType                      `yaml:"tfa_type,omitempty" json:"tfa_type,omitempty"`
 	ServerConfigPath     string                       `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	MailService          MailServiceType              `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
 	SMSService           SMSServiceSettings           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
@@ -115,6 +116,18 @@ type LoginWith struct {
 	Phone     bool `yaml:"phone" json:"phone,omitempty"`
 	Federated bool `yaml:"federated" json:"federated,omitempty"`
 }
+
+// TFAType is a type of two-factor authentication for apps that support it.
+type TFAType string
+
+const (
+	// TFATypeApp is an app (like Google Authenticator).
+	TFATypeApp TFAType = "app"
+	// TFATypeSMS is an SMS.
+	TFATypeSMS TFAType = "sms"
+	// TFATypeEmail is an email.
+	TFATypeEmail TFAType = "email"
+)
 
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {

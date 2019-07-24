@@ -46,6 +46,10 @@ loginWith:
   username: true
   federated: true
 
+# Type of two-factor authentication, if application enables it.
+# Supported values are: "app" (like Google Authenticator), "sms", "email".
+tfaType: app
+
 # File with server settings.
 serverConfigPath: server-config.yaml
 
