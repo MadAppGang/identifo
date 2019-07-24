@@ -16,7 +16,7 @@ const (
 // NewTokenStorage creates a BoltDB token storage.
 func NewTokenStorage(db *bolt.DB) (model.TokenStorage, error) {
 	ts := &TokenStorage{db: db}
-	// ensure that we have needed bucket in the database
+	// Ensure that we have needed bucket in the database.
 	if err := db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(TokenBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
@@ -37,17 +37,17 @@ type TokenStorage struct {
 func (ts *TokenStorage) SaveToken(token string) error {
 	return ts.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
-		//we use token as key and value
+		// We use token as key and value.
 		return b.Put([]byte(token), []byte(token))
 	})
 }
 
-// HasToken returns true if the token in present in the storage.
+// HasToken returns true if the token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
 	var res bool
 	if err := ts.db.View(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
-		//we use token as key and value
+		// We use token as key and value.
 		res = b.Get([]byte(token)) != nil
 		return nil
 	}); err != nil {
@@ -57,11 +57,11 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return res
 }
 
-// RevokeToken removes token from the storage.
-func (ts *TokenStorage) RevokeToken(token string) error {
+// DeleteToken removes token from the storage.
+func (ts *TokenStorage) DeleteToken(token string) error {
 	return ts.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(TokenBucket))
-		//we use token as key and value
+		// We use token as key and value.
 		return b.Delete([]byte(token))
 	})
 }

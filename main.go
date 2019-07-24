@@ -61,6 +61,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	dbTypes[server.ServerSettings.Storage.AppStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.UserStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.TokenStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.TokenBlacklist.Type] = true
 	dbTypes[server.ServerSettings.Storage.VerificationCodeStorage.Type] = true
 
 	for dbType := range dbTypes {

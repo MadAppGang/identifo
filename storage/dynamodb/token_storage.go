@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	//TokensTableName is a table to store refresh tokens.
+	// TokensTableName is a name of a table where refresh tokens are stored.
 	TokensTableName = "RefreshTokens"
 )
 
@@ -111,8 +111,8 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return true
 }
 
-// RevokeToken removes token from the storage.
-func (ts *TokenStorage) RevokeToken(token string) error {
+// DeleteToken removes token from the storage.
+func (ts *TokenStorage) DeleteToken(token string) error {
 	if !ts.HasToken(token) {
 		return model.ErrorNotFound
 	}

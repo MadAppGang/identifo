@@ -94,7 +94,7 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewToken(user, scopes, app)
+		token, err := ar.TokenService.NewAccessToken(user, scopes, app)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate()

@@ -106,7 +106,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 // loginUser function creates token for user session.
 // refreshToken boolean param tells if function should return refresh token too.
 func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken bool) (accessTokenString, refreshTokenString string, err error) {
-	token, err := ar.tokenService.NewToken(user, scopes, app)
+	token, err := ar.tokenService.NewAccessToken(user, scopes, app)
 	if err != nil {
 		return
 	}

@@ -89,7 +89,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
-		// check error not found, create the new user
+		// Check error not found, create new user.
 		if err == model.ErrUserNotFound && d.RegisterIfNew {
 			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID)
 			if err != nil {
@@ -104,15 +104,15 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
-		// request the permissions for the user
+		// Request permissions for the user.
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "FederatedLogin.RequestScopes")
 			return
 		}
 
-		// generate access token
-		token, err := ar.tokenService.NewToken(user, scopes, app)
+		// Generate access token.
+		token, err := ar.tokenService.NewAccessToken(user, scopes, app)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusUnauthorized, err.Error(), "FederatedLogin.tokenService_NewToken")
 			return

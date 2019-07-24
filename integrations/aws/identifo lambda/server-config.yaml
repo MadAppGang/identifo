@@ -34,6 +34,9 @@ storage:
   tokenStorage:
     type: dynamodb
     region: us-east-1
+  tokenBlacklist:
+    type: dynamodb
+    region: us-east-1
   verificationCodeStorage:
     type: dynamodb
     region: us-east-1

@@ -49,8 +49,8 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	return false
 }
 
-// RevokeToken removes token from the storage.
-func (ts *TokenStorage) RevokeToken(token string) error {
+// DeleteToken removes token from the storage.
+func (ts *TokenStorage) DeleteToken(token string) error {
 	s := ts.db.Session(TokensCollection)
 	defer s.Close()
 
