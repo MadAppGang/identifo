@@ -39,6 +39,9 @@ storage:
   tokenStorage:
     type: boltdb
     path: ./db.db
+  tokenBlacklist:
+    type: boltdb
+    path: ./db.db
   verificationCodeStorage:
     type: boltdb
     path: ./db.db

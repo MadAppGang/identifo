@@ -90,7 +90,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.tokenService.NewToken(user, scopes, app)
+		token, err := ar.tokenService.NewAccessToken(user, scopes, app)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusForbidden, err.Error(), "RegisterWithPassword.tokenService_NewToken")
 			return

@@ -33,7 +33,7 @@ func (ar *Router) initRoutes() {
 
 	auth.Path(`/{token:token/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeRefresh),
-		negroni.Wrap(ar.RefreshToken()),
+		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
 	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeAccess),

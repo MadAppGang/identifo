@@ -74,6 +74,12 @@ storage:
     endpoint: localhost:27017
     region: us-east-2
     path: ./db.db
+  tokenBlacklist:
+    type: boltdb 
+    name: identifo
+    endpoint: localhost:27017
+    region: us-east-2
+    path: ./db.db
   verificationCodeStorage:
     type: boltdb
     name: identifo

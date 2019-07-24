@@ -27,11 +27,12 @@ sessionStorage:
 # Storage for server configuration.
 configurationStorage:
   # Configuration storage type. Supported values are: "etcd", "s3", and "file".
-  type: etcd
+  type: file
   # Key for accessing server settings in the configuraion storage.
+  # If type is etcd, must be a key name (e.g, identifo/server-settings).
   # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
   # If type is file, must be a filename (e.g, server-config.yaml).
-  settingsKey: identifo/server-settings
+  settingsKey: server-config.yaml
   endpoints: # Etcd-related setting.
   region: # S3-related setting.
 
@@ -77,6 +78,12 @@ storage:
     path: ./db.db
   tokenStorage:
     type: boltdb
+    name: identifo
+    endpoint: localhost:27017
+    region: us-east-2
+    path: ./db.db
+  tokenBlacklist:
+    type: boltdb 
     name: identifo
     endpoint: localhost:27017
     region: us-east-2

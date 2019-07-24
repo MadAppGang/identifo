@@ -17,6 +17,7 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 		newAppStorage:              mongo.NewAppStorage,
 		newUserStorage:             mongo.NewUserStorage,
 		newTokenStorage:            mongo.NewTokenStorage,
+		newTokenBlacklist:          mongo.NewTokenBlacklist,
 		newVerificationCodeStorage: mongo.NewVerificationCodeStorage,
 	}
 
@@ -35,6 +36,7 @@ type DatabaseComposer struct {
 	newAppStorage              func(*mongo.DB) (model.AppStorage, error)
 	newUserStorage             func(*mongo.DB) (model.UserStorage, error)
 	newTokenStorage            func(*mongo.DB) (model.TokenStorage, error)
+	newTokenBlacklist          func(*mongo.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*mongo.DB) (model.VerificationCodeStorage, error)
 }
 
@@ -43,6 +45,7 @@ func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
 	model.UserStorage,
 	model.TokenStorage,
+	model.TokenBlacklist,
 	model.VerificationCodeStorage,
 	jwtService.TokenService,
 	error,
@@ -50,32 +53,37 @@ func (dc *DatabaseComposer) Compose() (
 	// We assume that all MongoDB-backed storages share the same database name and connection string, so we can pick any of them.
 	db, err := mongo.NewDB(dc.settings.Storage.AppStorage.Endpoint, dc.settings.Storage.AppStorage.Name)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	tokenBlacklist, err := dc.newTokenBlacklist(db)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
@@ -88,10 +96,10 @@ func (dc *DatabaseComposer) Compose() (
 		userStorage,
 	)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
 }
 
 // NewPartialComposer returns new partial composer with MongoDB support.
@@ -108,20 +116,26 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.UserStorage.Type == model.DBTypeMongoDB {
 		pc.newUserStorage = mongo.NewUserStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.UserStorage.Endpoint
+		dbName = settings.UserStorage.Name
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeMongoDB {
 		pc.newTokenStorage = mongo.NewTokenStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.TokenStorage.Endpoint
+		dbName = settings.TokenStorage.Name
+	}
+
+	if settings.TokenBlacklist.Type == model.DBTypeMongoDB {
+		pc.newTokenBlacklist = mongo.NewTokenBlacklist
+		dbEndpoint = settings.TokenBlacklist.Endpoint
+		dbName = settings.TokenBlacklist.Name
 	}
 
 	if settings.VerificationCodeStorage.Type == model.DBTypeMongoDB {
 		pc.newVerificationCodeStorage = mongo.NewVerificationCodeStorage
-		dbEndpoint = settings.AppStorage.Endpoint
-		dbName = settings.AppStorage.Name
+		dbEndpoint = settings.VerificationCodeStorage.Endpoint
+		dbName = settings.VerificationCodeStorage.Name
 	}
 
 	db, err := mongo.NewDB(dbEndpoint, dbName)
@@ -144,6 +158,7 @@ type PartialDatabaseComposer struct {
 	newAppStorage              func(*mongo.DB) (model.AppStorage, error)
 	newUserStorage             func(*mongo.DB) (model.UserStorage, error)
 	newTokenStorage            func(*mongo.DB) (model.TokenStorage, error)
+	newTokenBlacklist          func(*mongo.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*mongo.DB) (model.VerificationCodeStorage, error)
 }
 
@@ -172,6 +187,16 @@ func (pc *PartialDatabaseComposer) TokenStorageComposer() func() (model.TokenSto
 	if pc.newTokenStorage != nil {
 		return func() (model.TokenStorage, error) {
 			return pc.newTokenStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// TokenBlacklistComposer returns token blacklist composer.
+func (pc *PartialDatabaseComposer) TokenBlacklistComposer() func() (model.TokenBlacklist, error) {
+	if pc.newTokenBlacklist != nil {
+		return func() (model.TokenBlacklist, error) {
+			return pc.newTokenBlacklist(pc.db)
 		}
 	}
 	return nil

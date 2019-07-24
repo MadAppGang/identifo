@@ -32,7 +32,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:034d869f28b88c98e23dcefb105044a6d02949609ca7586a5d1c56d53bc04661"
+  digest = "1:6c55997a1b000a53e9297c23b2f5c9b5790bd581937642bc474e2540f07b76e5"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -75,10 +75,11 @@
     "service/s3",
     "service/ses",
     "service/sts",
+    "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "420cda5d6383f94f7d9c231aa44bad3325181950"
-  version = "v1.20.20"
+  revision = "f062d235348647a0e3ed2cadb16640cf03c8acfb"
+  version = "v1.21.0"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -360,7 +361,7 @@
   name = "google.golang.org/genproto"
   packages = ["googleapis/rpc/status"]
   pruneopts = "UT"
-  revision = "3bdd9d9f5532d75d09efb230bd767d265245cfe5"
+  revision = "c506a9f9061087022822e8da603a52fc387115a8"
 
 [[projects]]
   digest = "1:931727c62baa7a9958acac5d712ae9cc0ea3ff86a664b560febf4f4b0677ee28"
