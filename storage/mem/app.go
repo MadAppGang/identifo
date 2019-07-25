@@ -28,6 +28,8 @@ type appData struct {
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
+	RolesWhitelist        []string               `json:"roles_whitelist,omitempty"`
+	RolesBlacklist        []string               `json:"roles_blacklist,omitempty"`
 	AppleInfo             *model.AppleInfo       `json:"apple_info,omitempty"`
 }
 
@@ -122,6 +124,12 @@ func (ad *AppData) AuthzModel() string { return ad.appData.AuthorizationModel }
 
 // AuthzPolicy implements model.AppData interface.
 func (ad *AppData) AuthzPolicy() string { return ad.appData.AuthorizationPolicy }
+
+// RolesWhitelist implements model.AppData interface.
+func (ad *AppData) RolesWhitelist() []string { return ad.appData.RolesWhitelist }
+
+// RolesBlacklist implements model.AppData interface.
+func (ad *AppData) RolesBlacklist() []string { return ad.appData.RolesBlacklist }
 
 // AppleInfo implements model.AppData interface.
 func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }

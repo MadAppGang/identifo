@@ -104,6 +104,17 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
+			return
+		}
+
 		// Request permissions for the user.
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
@@ -120,17 +131,6 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    tokenString,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 

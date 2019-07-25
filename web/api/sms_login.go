@@ -94,11 +94,6 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
-			return
-		}
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
@@ -106,21 +101,27 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
+			return
+		}
+
+		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
+		if err != nil {
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
+			return
+		}
+
 		offline := contains(scopes, jwtService.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    accessToken,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 

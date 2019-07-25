@@ -83,6 +83,17 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
+			return
+		}
+
 		// Do login flow.
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
 		if err != nil {
@@ -99,17 +110,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    tokenString,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 
