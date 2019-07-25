@@ -32,7 +32,7 @@
   version = "v1.11.1"
 
 [[projects]]
-  digest = "1:6c55997a1b000a53e9297c23b2f5c9b5790bd581937642bc474e2540f07b76e5"
+  digest = "1:dc29c64d1cc8b7ffc352a97c842ccbab7220b477b49f1198e5b22ae74763f2ad"
   name = "github.com/aws/aws-sdk-go"
   packages = [
     "aws",
@@ -78,8 +78,8 @@
     "service/sts/stsiface",
   ]
   pruneopts = "UT"
-  revision = "f062d235348647a0e3ed2cadb16640cf03c8acfb"
-  version = "v1.21.0"
+  revision = "3d64de9191c7cf300083c8ff3049bf079c5b67ba"
+  version = "v1.21.3"
 
 [[projects]]
   digest = "1:0f98f59e9a2f4070d66f0c9c39561f68fcd1dc837b22a852d28d0003aebd1b1e"
@@ -288,6 +288,14 @@
   version = "v1.0.0"
 
 [[projects]]
+  branch = "master"
+  digest = "1:9f59c1f4d14117b1a73bf4393edc06b33d56ad41de6482b042fe295a8be8daff"
+  name = "github.com/xlzd/gotp"
+  packages = ["."]
+  pruneopts = "UT"
+  revision = "c8557ba2c11930b3069b31bfd80f38cc774cc68a"
+
+[[projects]]
   digest = "1:762df97c14bc6eaa5a01a4dcf50820428ae495e020f3ba80762f217889de302c"
   name = "go.etcd.io/etcd"
   packages = ["clientv3"]
@@ -308,7 +316,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b5936d38011189ba9b2e5890a38c7ffe0ac7f157eef2ddc0fe752117c50d394d"
+  digest = "1:d2aa096fe6b539afe74dd6ab8e9a160304707f1477b01c637b4bbe20d262a25c"
   name = "golang.org/x/net"
   packages = [
     "context",
@@ -320,7 +328,7 @@
     "trace",
   ]
   pruneopts = "UT"
-  revision = "da137c7871d730100384dbcf36e6f8fa493aef5b"
+  revision = "ca1201d0de80cfde86cb01aea620983605dfe99b"
 
 [[projects]]
   branch = "master"
@@ -445,7 +453,6 @@
     "github.com/aws/aws-lambda-go/lambda",
     "github.com/aws/aws-sdk-go/aws",
     "github.com/aws/aws-sdk-go/aws/awserr",
-    "github.com/aws/aws-sdk-go/aws/credentials",
     "github.com/aws/aws-sdk-go/aws/session",
     "github.com/aws/aws-sdk-go/service/dynamodb",
     "github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute",
@@ -463,6 +470,7 @@
     "github.com/rs/xid",
     "github.com/sfreiberg/gotwilio",
     "github.com/urfave/negroni",
+    "github.com/xlzd/gotp",
     "go.etcd.io/etcd/clientv3",
     "golang.org/x/crypto/bcrypt",
     "gopkg.in/go-playground/validator.v9",

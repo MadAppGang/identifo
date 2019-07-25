@@ -103,6 +103,10 @@ loginWith:
   username: true
   federated: true
 
+# Type of two-factor authentication, if application enables it.
+# Supported values are: "app" (like Google Authenticator), "sms", "email".
+tfaType: app
+
 # Folder for the static files.
 staticFolderPath: ../../web/static
 # Forder for the email templates.

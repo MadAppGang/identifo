@@ -3,16 +3,19 @@ package api
 import (
 	"fmt"
 	"net/http"
+	"time"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
+	"github.com/xlzd/gotp"
 )
 
 type loginData struct {
 	Username    string   `json:"username,omitempty"`
 	Password    string   `json:"password,omitempty"`
 	DeviceToken string   `json:"device_token,omitempty"`
+	TFACode     string   `json:"tfa_code,omitempty"`
 	Scopes      []string `json:"scopes,omitempty"`
 }
 
@@ -63,6 +66,18 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
 			return
+		}
+
+		if app.TFAStatus() == model.TFAStatusMandatory && ld.TFACode == "" {
+			ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, "TFA is mandatory for this app", "LoginWithPassword.TFAMandatory")
+			return
+		}
+
+		// Execute two-factor auth if user enabled it and app supports it.
+		if user.TFAInfo().IsEnabled && app.TFAStatus() != model.TFAStatusDisabled {
+			if err = ar.execute2FA(w, ld.TFACode, user.TFAInfo().Secret); err != nil {
+				return
+			}
 		}
 
 		offline := contains(scopes, jwtService.OfflineScope)
@@ -116,4 +131,20 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 		return
 	}
 	return
+}
+
+func (ar *Router) execute2FA(w http.ResponseWriter, tfaCode, secret string) error {
+	if len(tfaCode) == 0 {
+		err := fmt.Errorf("Empty 2FA code")
+		ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, err.Error(), "LoginWithPassword.execute2FA")
+		return err
+	}
+
+	totp := gotp.NewDefaultTOTP(secret)
+	if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !verified {
+		err := fmt.Errorf("Invalid one-time password")
+		ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, err.Error(), "LoginWithPassword.execute2FA")
+		return err
+	}
+	return nil
 }

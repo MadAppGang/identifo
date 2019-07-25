@@ -2,6 +2,8 @@ package boltdb
 
 import (
 	"encoding/json"
+
+	"github.com/madappgang/identifo/model"
 )
 
 // User is a user data structure for BoltDB storage.
@@ -18,6 +20,7 @@ type userData struct {
 	Pswd            string                 `json:"pswd,omitempty"`
 	Profile         map[string]interface{} `json:"profile,omitempty"`
 	Active          bool                   `json:"active,omitempty"`
+	TFAInfo         model.TFAInfo          `json:"tfa_info"`
 	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
 	AccessRole      string                 `json:"access_role,omitempty"`
@@ -32,6 +35,7 @@ func (u User) Marshal() ([]byte, error) {
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.Active = false
+	u.userData.TFAInfo.Secret = ""
 }
 
 // ID implements model.User interface.
@@ -48,6 +52,12 @@ func (u *User) Email() string { return u.userData.Email }
 
 // SetEmail implements model.Email interface.
 func (u *User) SetEmail(email string) { u.userData.Email = email }
+
+// TFAInfo implements model.User interface.
+func (u *User) TFAInfo() model.TFAInfo { return u.userData.TFAInfo }
+
+// SetTFAInfo implements model.User interface.
+func (u *User) SetTFAInfo(tfaInfo model.TFAInfo) { u.userData.TFAInfo = tfaInfo }
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }

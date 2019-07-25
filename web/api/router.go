@@ -23,6 +23,7 @@ type Router struct {
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
 	verificationCodeStorage model.VerificationCodeStorage
+	tfaType                 model.TFAType
 	tokenService            jwtService.TokenService
 	smsService              model.SMSService
 	emailService            model.EmailService
@@ -54,10 +55,18 @@ func HostOption(host string) func(*Router) error {
 	}
 }
 
-// SupportedLoginWaysOption are for setting supported ways of logging in into the app.
+// SupportedLoginWaysOption is for setting supported ways of logging in into the app.
 func SupportedLoginWaysOption(loginWays model.LoginWith) func(*Router) error {
 	return func(r *Router) error {
 		r.SupportedLoginWays = loginWays
+		return nil
+	}
+}
+
+// TFATypeOption is for setting two-factor authentication type.
+func TFATypeOption(tfaType model.TFAType) func(*Router) error {
+	return func(r *Router) error {
+		r.tfaType = tfaType
 		return nil
 	}
 }
