@@ -13,22 +13,66 @@ const anonymousRole = "anonymous"
 
 type authzInfo struct {
 	app         model.AppData
-	tokenStr    string
+	userRole    string
 	resourceURI string
 	method      string
 }
 
-// Authorize checks if user has an access to the requested resource.
+// authorize checks if user has an access to the requested resource.
 // If error happens, writes it to ResponseWriter.
 // Also, writes an error on failed authorization.
-func (ar *Router) Authorize(w http.ResponseWriter, azi authzInfo) error {
+func (ar *Router) authorize(w http.ResponseWriter, azi authzInfo) error {
 	switch azi.app.AuthzWay() {
 	case model.NoAuthz, "":
 		return nil
+	case model.RolesWhitelist:
+		return ar.authorizeWhitelist(w, azi)
+	case model.RolesBlacklist:
+		return ar.authorizeBlacklist(w, azi)
 	case model.Internal:
 		return ar.authorizeInternal(w, azi)
 	case model.External:
 		return model.ErrorNotImplemented
+	}
+	return nil
+}
+
+func (ar *Router) authorizeWhitelist(w http.ResponseWriter, azi authzInfo) error {
+	whitelist := azi.app.RolesWhitelist()
+	if whitelist == nil {
+		err := fmt.Errorf("Access denied")
+		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
+		return err
+	}
+
+	role := azi.userRole
+	if role == "" {
+		role = anonymousRole
+	}
+
+	if accessGranted := contains(whitelist, role); !accessGranted {
+		err := fmt.Errorf("Access denied")
+		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
+		return err
+	}
+	return nil
+}
+
+func (ar *Router) authorizeBlacklist(w http.ResponseWriter, azi authzInfo) error {
+	blacklist := azi.app.RolesBlacklist()
+	if blacklist == nil {
+		return nil
+	}
+
+	role := azi.userRole
+	if role == "" {
+		role = anonymousRole
+	}
+
+	if accessDenied := contains(blacklist, role); accessDenied {
+		err := fmt.Errorf("Access denied")
+		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
+		return err
 	}
 	return nil
 }
@@ -64,23 +108,7 @@ func (ar *Router) authorizeInternal(w http.ResponseWriter, azi authzInfo) error 
 		return err
 	}
 
-	userID, err := ar.getTokenSubject(azi.tokenStr)
-	if err != nil {
-		err = fmt.Errorf("Error getting subject from token: %s", err)
-		ar.logger.Println(err)
-		ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusBadRequest, err.Error(), "Authorizer.GetTokenSubject")
-		return err
-	}
-
-	user, err := ar.userStorage.UserByID(userID)
-	if err != nil {
-		err = fmt.Errorf("Error getting user by ID: %s", err)
-		ar.logger.Println(err)
-		ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "Authorizer.UserByID")
-		return err
-	}
-
-	sub := user.AccessRole()
+	sub := azi.userRole
 	if sub == "" {
 		sub = anonymousRole
 	}

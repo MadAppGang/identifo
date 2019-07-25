@@ -73,13 +73,24 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.Profile)
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole(), rd.Profile)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return
 		}
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
+			return
+		}
+
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
 			return
 		}
 
@@ -99,17 +110,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    tokenString,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 

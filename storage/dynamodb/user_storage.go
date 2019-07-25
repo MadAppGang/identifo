@@ -309,7 +309,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (model.User, error) {
 	name = strings.ToLower(name)
 	_, err := us.userIdxByName(name)
 	if err != nil && err != model.ErrUserNotFound {
@@ -318,12 +318,18 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile m
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{Active: true, Username: name, Profile: profile}
+
+	u := userData{
+		Active:     true,
+		Username:   name,
+		AccessRole: role,
+		Profile:    profile,
+	}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
 	if err != nil && err != model.ErrUserNotFound {
 		log.Println("Error getting user by name:", err)
@@ -340,7 +346,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return nil, err
 	} else if err == model.ErrUserNotFound {
 		// no such user, let's create it
-		uData := userData{Username: fid, Active: true}
+		uData := userData{Username: fid, AccessRole: role, Active: true}
 		u, creationErr := us.AddNewUser(&User{userData: uData}, "")
 		if creationErr != nil {
 			log.Println("Error adding new user:", creationErr)
@@ -378,7 +384,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 }
 
 // AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
+func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	_, err := us.userIdxByPhone(phone)
 	if err != nil && err != model.ErrUserNotFound {
 		log.Println(err)
@@ -386,7 +392,13 @@ func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 	} else if err == nil {
 		return nil, model.ErrorUserExists
 	}
-	u := userData{Active: true, Phone: phone, ID: xid.New().String()}
+
+	u := userData{
+		ID:         xid.New().String(),
+		Active:     true,
+		Phone:      phone,
+		AccessRole: role,
+	}
 	return us.AddNewUser(&User{userData: u}, "")
 }
 

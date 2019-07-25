@@ -68,6 +68,17 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
+			return
+		}
+
 		if app.TFAStatus() == model.TFAStatusMandatory && ld.TFACode == "" {
 			ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, "TFA is mandatory for this app", "LoginWithPassword.TFAMandatory")
 			return
@@ -84,17 +95,6 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    accessToken,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 

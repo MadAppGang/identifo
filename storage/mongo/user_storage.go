@@ -208,11 +208,16 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 }
 
 // AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
-	u := userData{ID: bson.NewObjectId(), Active: true, Phone: phone}
-
+func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	s := us.db.Session(UsersCollection)
 	defer s.Close()
+
+	u := userData{
+		ID:         bson.NewObjectId(),
+		Active:     true,
+		Phone:      phone,
+		AccessRole: role,
+	}
 
 	err := s.C.Insert(u)
 	if mgo.IsDup(err) {
@@ -223,19 +228,32 @@ func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password string, profile map[string]interface{}) (model.User, error) {
-	u := userData{ID: bson.NewObjectId(), Active: true, Username: username, Profile: profile}
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, profile map[string]interface{}) (model.User, error) {
+	u := userData{
+		ID:         bson.NewObjectId(),
+		Active:     true,
+		Username:   username,
+		AccessRole: role,
+		Profile:    profile,
+	}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
 	// If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return nil, model.ErrorUserExists
 	}
+
 	sid := string(provider) + ":" + federatedID
-	u := userData{ID: bson.NewObjectId(), Active: true, Username: sid, FederatedIDs: []string{sid}}
+	u := userData{
+		ID:           bson.NewObjectId(),
+		Active:       true,
+		Username:     sid,
+		AccessRole:   role,
+		FederatedIDs: []string{sid},
+	}
 	return us.AddNewUser(&User{userData: u}, "")
 }
 

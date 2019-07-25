@@ -91,7 +91,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
 		// Check error not found, create new user.
 		if err == model.ErrUserNotFound && d.RegisterIfNew {
-			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID)
+			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole())
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
@@ -101,6 +101,17 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		} else if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID")
+			return
+		}
+
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
 			return
 		}
 
@@ -120,17 +131,6 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		tokenString, err := ar.tokenService.String(token)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			tokenStr:    tokenString,
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.Authorize(w, azi); err != nil {
 			return
 		}
 

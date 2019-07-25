@@ -71,12 +71,12 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 }
 
 // AddUserByNameAndPassword returns randomly generated user.
-func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (model.User, error) {
 	return randUser(), nil
 }
 
 // AddUserByPhone returns randomly generated user.
-func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
+func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	return randUser(), nil
 }
 
@@ -86,7 +86,7 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 }
 
 // AddUserWithFederatedID returns randomly generated user.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id, role string) (model.User, error) {
 	return randUser(), nil
 }
 

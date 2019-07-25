@@ -283,8 +283,16 @@ func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, 
 }
 
 // AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
-	u := &User{userData: userData{ID: xid.New().String(), Active: true, Phone: phone, NumOfLogins: 0}}
+func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
+	u := &User{
+		userData: userData{
+			ID:          xid.New().String(),
+			Active:      true,
+			Phone:       phone,
+			AccessRole:  role,
+			NumOfLogins: 0,
+		},
+	}
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
 		data, err := u.Marshal()
@@ -309,14 +317,14 @@ func (us *UserStorage) AddUserByPhone(phone string) (model.User, error) {
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
 	sid := string(provider) + ":" + federatedID
 	// Using user name as a key. If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{Active: true, Username: sid, NumOfLogins: 0}
+	u := userData{Active: true, Username: sid, AccessRole: role, NumOfLogins: 0}
 	u.ID = sid // not sure it's a good idea
 	user := &User{userData: u}
 
@@ -341,12 +349,18 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 }
 
 // AddUserByNameAndPassword creates new user and saves it in the database.
-func (us *UserStorage) AddUserByNameAndPassword(name, password string, profile map[string]interface{}) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (model.User, error) {
 	if us.UserExists(name) {
 		return nil, model.ErrorUserExists
 	}
 
-	u := userData{ID: xid.New().String(), Active: true, Username: name, Profile: profile}
+	u := userData{
+		ID:         xid.New().String(),
+		Active:     true,
+		Username:   name,
+		AccessRole: role,
+		Profile:    profile,
+	}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 

@@ -45,6 +45,9 @@ type AppData interface {
 	AuthzWay() AuthorizationWay
 	AuthzModel() string
 	AuthzPolicy() string
+	RolesWhitelist() []string
+	RolesBlacklist() []string
+	NewUserDefaultRole() string
 	AppleInfo() *AppleInfo
 	SetSecret(secret string)
 }
@@ -69,6 +72,10 @@ const (
 	NoAuthz AuthorizationWay = "no authorization"
 	// Internal is for embedded authorization rules.
 	Internal AuthorizationWay = "internal"
+	// RolesWhitelist is the list of roles allowed to register and login into the application.
+	RolesWhitelist AuthorizationWay = "whitelist"
+	// RolesBlacklist is the list of roles forbidden to register and login into the application.
+	RolesBlacklist AuthorizationWay = "blacklist"
 	// External is for external authorization service.
 	External AuthorizationWay = "external"
 )
