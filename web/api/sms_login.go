@@ -85,19 +85,19 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
-		if err == model.ErrUserNotFound {
-			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber)
-		}
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
-			return
-		}
-
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			return
+		}
+
+		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
+		if err == model.ErrUserNotFound {
+			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole())
+		}
+		if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
 			return
 		}
 

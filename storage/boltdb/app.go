@@ -32,6 +32,7 @@ type appData struct {
 	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
 	RolesWhitelist        []string               `json:"roles_whitelist,omitempty"`
 	RolesBlacklist        []string               `json:"roles_blacklist,omitempty"`
+	NewUserDefaultRole    string                 `json:"new_user_default_role,omitempty"`
 	AppleInfo             *model.AppleInfo       `json:"apple_info,omitempty"`
 }
 
@@ -146,6 +147,9 @@ func (ad *AppData) RolesWhitelist() []string { return ad.appData.RolesWhitelist 
 
 // RolesBlacklist implements model.AppData interface.
 func (ad *AppData) RolesBlacklist() []string { return ad.appData.RolesBlacklist }
+
+// NewUserDefaultRole implements model.AppData interface.
+func (ad *AppData) NewUserDefaultRole() string { return ad.appData.NewUserDefaultRole }
 
 // AppleInfo implements model.AppData interface.
 func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }

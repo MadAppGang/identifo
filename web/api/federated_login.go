@@ -91,7 +91,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
 		// Check error not found, create new user.
 		if err == model.ErrUserNotFound && d.RegisterIfNew {
-			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID)
+			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole())
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return

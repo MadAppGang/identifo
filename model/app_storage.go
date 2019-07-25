@@ -47,6 +47,7 @@ type AppData interface {
 	AuthzPolicy() string
 	RolesWhitelist() []string
 	RolesBlacklist() []string
+	NewUserDefaultRole() string
 	AppleInfo() *AppleInfo
 	SetSecret(secret string)
 }
