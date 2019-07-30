@@ -10,7 +10,7 @@ import (
 
 var emailRegexp = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
 
-//RequestResetPassword - request reset password
+// RequestResetPassword requests password reset.
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequestEmail struct {
 		Email string `json:"email,omitempty"`
@@ -60,8 +60,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			RawQuery: query,
 		}
 
-		err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String())
-		if err != nil {
+		if err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String()); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error:"+err.Error(), "RequestResetPassword.SendResetEmail")
 			return
 		}

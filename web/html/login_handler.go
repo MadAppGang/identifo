@@ -94,7 +94,8 @@ func (ar *Router) LoginHandler(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewAccessToken(user, scopes, app)
+		// TODO: Add TFA support.
+		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate()

@@ -118,7 +118,6 @@ func (es *EmailService) SendTemplateEmail(subject, recipient string, template *t
 
 // SendResetEmail sends reset password emails.
 func (es *EmailService) SendResetEmail(subject, recipient string, data interface{}) error {
-
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.ResetPasswordTemplate, data)
 }
 

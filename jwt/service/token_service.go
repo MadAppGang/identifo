@@ -22,7 +22,7 @@ const (
 
 // TokenService is an abstract token manager.
 type TokenService interface {
-	NewAccessToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
+	NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool) (ijwt.Token, error)
 	NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
 	RefreshAccessToken(token ijwt.Token) (ijwt.Token, error)
 	NewInviteToken() (ijwt.Token, error)

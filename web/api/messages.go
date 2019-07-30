@@ -27,6 +27,11 @@ var messages = map[MessageID]string{
 	ErrorAPIRequestSignatureInvalid:            "Incorrect or empty request signature",
 	ErrorAPIRequestAppIDInvalid:                "Incorrect or empty application ID",
 	ErrorAPIRequestTokenInvalid:                "Incorrect or empty Bearer token",
+	ErrorAPIRequestTFACodeEmpty:                "Empty two-factor authentication code",
+	ErrorAPIRequestTFACodeInvalid:              "Invalid two-factor authentication code",
+	ErrorAPIRequestTFAAlreadyEnabled:           "Two-factor authentication already enabled",
+	ErrorAPIRequestPleaseEnableTFA:             "Please enable two-factor authenticaton",
+	ErrorAPIRequestPleaseDisableTFA:            "Please disable two-factor authenticaton",
 	ErrorAPIAppInactive:                        "Requesting app is inactive",
 	ErrorAPIAppRegistrationForbidden:           "Registration in this app is forbidden",
 	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
@@ -89,6 +94,10 @@ const (
 	ErrorAPIRequestTFACodeInvalid = "error.api.request.2fa_code.invalid"
 	// ErrorAPIRequestTFAAlreadyEnabled means that 2FA is already enabled for the user.
 	ErrorAPIRequestTFAAlreadyEnabled = "error.api.request.2fa.already_enabled"
+	// ErrorAPIRequestPleaseEnableTFA means that user must request TFA and obtain TFA secret to be able to use the app.
+	ErrorAPIRequestPleaseEnableTFA = "error.api.request.2fa.please_enable"
+	// ErrorAPIRequestPleaseDisableTFA means that user must disable TFA to be able to use the app.
+	ErrorAPIRequestPleaseDisableTFA = "error.api.request.2fa.please_disable"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"

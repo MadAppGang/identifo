@@ -32,22 +32,26 @@ func (ar *Router) initRoutes() {
 	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
 
 	auth.Path(`/{token:token/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeRefresh),
+		ar.Token(TokenTypeRefresh, false),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
-	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
-		negroni.Wrap(ar.RequestInviteLink()),
-	)).Methods("POST")
 	auth.Path(`/{enable_tfa:enable_tfa/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(TokenTypeAccess, false),
 		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
+	auth.Path(`/{finalize_tfa:finalize_tfa/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess, true),
+		negroni.Wrap(ar.FinalizeTFA()),
+	)).Methods("POST")
+	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess, false),
+		negroni.Wrap(ar.RequestInviteLink()),
+	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
-		ar.Token(TokenTypeAccess),
+		ar.Token(TokenTypeAccess, false),
 		negroni.Wrap(meRouter),
 	))
 	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")

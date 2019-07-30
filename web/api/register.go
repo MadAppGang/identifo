@@ -55,6 +55,17 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// Check if it makes sense to create new user.
+		azi := authzInfo{
+			app:         app,
+			userRole:    app.NewUserDefaultRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+		if err := ar.authorize(w, azi); err != nil {
+			return
+		}
+
 		// Parse registration data.
 		rd := registrationData{}
 		if ar.MustParseJSON(w, r, &rd) != nil {
@@ -83,17 +94,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			userRole:    user.AccessRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
-		}
-		if err := ar.authorize(w, azi); err != nil {
-			return
-		}
-
 		// Do login flow.
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
 		if err != nil {
@@ -101,7 +101,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.tokenService.NewAccessToken(user, scopes, app)
+		token, err := ar.tokenService.NewAccessToken(user, scopes, app, false)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusForbidden, err.Error(), "RegisterWithPassword.tokenService_NewToken")
 			return

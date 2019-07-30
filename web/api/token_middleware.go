@@ -21,7 +21,7 @@ const (
 )
 
 // Token middleware extracts token and validates it
-func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
+func (ar *Router) Token(tokenType string, allowUnauthorizedTFA bool) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
@@ -51,6 +51,13 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		if blacklisted := ar.tokenBlacklist.IsBlacklisted(tokenString); blacklisted {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsBlacklisted")
 			return
+		}
+
+		if !allowUnauthorizedTFA {
+			if payload := token.Payload(); payload != nil && payload["tfa_authorized"] == "false" {
+				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsTFAuthorized")
+				return
+			}
 		}
 
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)

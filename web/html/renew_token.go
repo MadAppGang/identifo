@@ -48,7 +48,7 @@ func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 
 		tstr, err := getCookie(r, CookieKeyWebCookieToken)
 		if err != nil || tstr == "" {
-			ar.Logger.Printf("Error getting toke from cookie: %v", err)
+			ar.Logger.Printf("Error getting token from cookie: %v", err)
 			deleteCookie(w, CookieKeyWebCookieToken)
 			serveTemplate("not authorized", "", app.RedirectURL())
 			return
@@ -94,7 +94,7 @@ func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewAccessToken(user, scopes, app)
+		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate("server error", "", app.RedirectURL())

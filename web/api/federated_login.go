@@ -19,12 +19,6 @@ type FederatedLoginData struct {
 	AuthorizationCode   string   `json:"authorization_code,omitempty"` // Specific for Sign In with Apple.
 }
 
-// AuthResponse is a response with successful auth data.
-type AuthResponse struct {
-	AccessToken  string `json:"access_token,omitempty"`
-	RefreshToken string `json:"refresh_token,omitempty"`
-}
-
 // FederatedLogin provides login/registration with federated identity.
 // First, user sends the identity provider access token to Identifo.
 // Then, Identifo sends request to identity provider to get user profile and identity user ID,
@@ -123,7 +117,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Generate access token.
-		token, err := ar.tokenService.NewAccessToken(user, scopes, app)
+		token, err := ar.tokenService.NewAccessToken(user, scopes, app, false)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusUnauthorized, err.Error(), "FederatedLogin.tokenService_NewToken")
 			return
