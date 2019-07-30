@@ -146,6 +146,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		result := AuthResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
+			User:         user,
 		}
 
 		ar.userStorage.UpdateLoginMetadata(user.ID())

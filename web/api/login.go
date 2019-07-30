@@ -16,9 +16,10 @@ var (
 
 // AuthResponse is a response with successful auth data.
 type AuthResponse struct {
-	AccessToken    string `json:"access_token,omitempty"`
-	RefreshToken   string `json:"refresh_token,omitempty"`
-	NeedFurtherTFA bool   `json:"need_further_tfa,omitempty"`
+	AccessToken    string     `json:"access_token,omitempty"`
+	RefreshToken   string     `json:"refresh_token,omitempty"`
+	User           model.User `json:"user,omitempty"`
+	NeedFurtherTFA bool       `json:"need_further_tfa,omitempty"`
 }
 
 type loginData struct {
@@ -104,6 +105,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		result := AuthResponse{
 			AccessToken:    accessToken,
 			RefreshToken:   refreshToken,
+			User:           user,
 			NeedFurtherTFA: require2FA,
 		}
 

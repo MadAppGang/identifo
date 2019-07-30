@@ -128,6 +128,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
+			User:         user,
 		}
 
 		ar.userStorage.UpdateLoginMetadata(user.ID())
