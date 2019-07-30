@@ -35,14 +35,18 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
-	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
-		negroni.Wrap(ar.RequestInviteLink()),
-	)).Methods("POST")
 	auth.Path(`/{enable_tfa:enable_tfa/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
+	auth.Path(`/{finalize_tfa:finalize_tfa/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.FinalizeTFA()),
+	)).Methods("POST")
+	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.RequestInviteLink()),
+	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(

@@ -37,8 +37,10 @@ var (
 )
 
 const (
-	// PayloadName is a JWT token payload name.
+	// PayloadName is a JWT token payload "name".
 	PayloadName = "name"
+	// PayloadTFAuthorized is a JWT token payload "tfa_authorized".
+	PayloadTFAuthorized = "tfa_authorized"
 )
 
 // NewJWTokenService returns new JWT token service.
@@ -179,7 +181,7 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 }
 
 // NewAccessToken creates new access token for user.
-func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
+func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool) (ijwt.Token, error) {
 	if !app.Active() {
 		return nil, ErrInvalidApp
 	}
@@ -192,6 +194,10 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
+	if requireTFA {
+		payload[PayloadTFAuthorized] = "false"
+	}
+
 	now := ijwt.TimeFunc().Unix()
 
 	lifespan := app.TokenLifespan()
@@ -321,7 +327,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 		return nil, ErrInvalidUser
 	}
 
-	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app)
+	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app, false)
 	if err != nil {
 		return nil, err
 	}

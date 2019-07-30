@@ -53,6 +53,13 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
+		if r.RequestURI != "/auth/finalize_tfa" {
+			if payload := token.Payload(); payload != nil && payload["tfa_authorized"] == "false" {
+				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsTFAuthorized")
+				return
+			}
+		}
+
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
 		ctx = context.WithValue(ctx, model.TokenRawContextKey, tokenBytes)
 		r = r.WithContext(ctx)

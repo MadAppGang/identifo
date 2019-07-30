@@ -7,10 +7,13 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//DumpRequest dumps request to logger
+// DumpRequest dumps request to logger.
 func (ar *Router) DumpRequest() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		dump, _ := httputil.DumpRequest(r, true)
+		dump, err := httputil.DumpRequest(r, true)
+		if err != nil {
+			ar.Logger.Println("Error dumping request:", err)
+		}
 		ar.Logger.Printf("Request: %s\n", string(dump))
 		next(rw, r)
 	}

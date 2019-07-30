@@ -119,7 +119,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		offline := contains(scopes, jwtService.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
@@ -128,6 +128,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
+			User:         user,
 		}
 
 		ar.userStorage.UpdateLoginMetadata(user.ID())

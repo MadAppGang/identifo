@@ -3,19 +3,29 @@ package api
 import (
 	"fmt"
 	"net/http"
-	"time"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
-	"github.com/xlzd/gotp"
 )
+
+var (
+	errPleaseEnableTFA  = fmt.Errorf("Please enable two-factor authentication to be able to use this app")
+	errPleaseDisableTFA = fmt.Errorf("Please disable two-factor authentication to be able to use this app")
+)
+
+// AuthResponse is a response with successful auth data.
+type AuthResponse struct {
+	AccessToken    string     `json:"access_token,omitempty"`
+	RefreshToken   string     `json:"refresh_token,omitempty"`
+	User           model.User `json:"user,omitempty"`
+	NeedFurtherTFA bool       `json:"need_further_tfa,omitempty"`
+}
 
 type loginData struct {
 	Username    string   `json:"username,omitempty"`
 	Password    string   `json:"password,omitempty"`
 	DeviceToken string   `json:"device_token,omitempty"`
-	TFACode     string   `json:"tfa_code,omitempty"`
 	Scopes      []string `json:"scopes,omitempty"`
 }
 
@@ -79,49 +89,49 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		if app.TFAStatus() == model.TFAStatusMandatory && ld.TFACode == "" {
-			ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, "TFA is mandatory for this app", "LoginWithPassword.TFAMandatory")
+		// Check if we should require user to authenticate with 2FA.
+		require2FA, err := ar.check2FA(w, app.TFAStatus(), user.TFAInfo())
+		if err != nil {
 			return
 		}
 
-		// Execute two-factor auth if user enabled it and app supports it.
-		if user.TFAInfo().IsEnabled && app.TFAStatus() != model.TFAStatusDisabled {
-			if err = ar.execute2FA(w, ld.TFACode, user.TFAInfo().Secret); err != nil {
-				return
-			}
-		}
-
 		offline := contains(scopes, jwtService.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
 		}
 
 		result := AuthResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
+			AccessToken:    accessToken,
+			RefreshToken:   refreshToken,
+			User:           user,
+			NeedFurtherTFA: require2FA,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		if !require2FA {
+			ar.userStorage.UpdateLoginMetadata(user.ID())
+		}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
 
-// loginUser function creates token for user session.
-// refreshToken boolean param tells if function should return refresh token too.
-func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken bool) (accessTokenString, refreshTokenString string, err error) {
-	token, err := ar.tokenService.NewAccessToken(user, scopes, app)
+// loginUser creates and returns access token for a user.
+// createRefreshToken boolean param tells if we should issue refresh token as well.
+func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool) (accessTokenString, refreshTokenString string, err error) {
+	token, err := ar.tokenService.NewAccessToken(user, scopes, app, require2FA)
 	if err != nil {
 		return
 	}
+
 	accessTokenString, err = ar.tokenService.String(token)
 	if err != nil {
 		return
 	}
-	if !createRefreshToken {
+	if !createRefreshToken || require2FA {
 		return
 	}
+
 	refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 	if err != nil {
 		return
@@ -133,18 +143,28 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 	return
 }
 
-func (ar *Router) execute2FA(w http.ResponseWriter, tfaCode, secret string) error {
-	if len(tfaCode) == 0 {
-		err := fmt.Errorf("Empty 2FA code")
-		ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, err.Error(), "LoginWithPassword.execute2FA")
-		return err
+// check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
+// and decides if we require two-factor authentication after all checks are successfully passed.
+func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, userTFAInfo model.TFAInfo) (bool, error) {
+	if appTFAStatus == model.TFAStatusMandatory && !userTFAInfo.IsEnabled {
+		ar.Error(w, ErrorAPIRequestPleaseEnableTFA, http.StatusBadRequest, errPleaseEnableTFA.Error(), "check2FA.mandatory")
+		return false, errPleaseEnableTFA
 	}
 
-	totp := gotp.NewDefaultTOTP(secret)
-	if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !verified {
-		err := fmt.Errorf("Invalid one-time password")
-		ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, err.Error(), "LoginWithPassword.execute2FA")
-		return err
+	if appTFAStatus == model.TFAStatusDisabled && userTFAInfo.IsEnabled {
+		ar.Error(w, ErrorAPIRequestPleaseDisableTFA, http.StatusBadRequest, errPleaseDisableTFA.Error(), "check2FA.appDisabled_userEnabled")
+		return false, errPleaseDisableTFA
 	}
-	return nil
+
+	// Request two-factor auth if user enabled it and app supports it.
+	if userTFAInfo.IsEnabled && appTFAStatus != model.TFAStatusDisabled {
+		if userTFAInfo.Secret == "" {
+			// Then admin must have enabled TFA for this user manually.
+			// User must obtain TFA secret, i.e send EnableTFA request.
+			ar.Error(w, ErrorAPIRequestPleaseEnableTFA, http.StatusConflict, errPleaseEnableTFA.Error(), "check2FA.pleaseEnable")
+			return false, errPleaseEnableTFA
+		}
+		return true, nil
+	}
+	return false, nil
 }
