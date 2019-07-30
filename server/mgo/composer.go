@@ -11,7 +11,7 @@ import (
 )
 
 // NewComposer creates new database composer.
-func NewComposer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              mongo.NewAppStorage,
@@ -20,13 +20,6 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 		newTokenBlacklist:          mongo.NewTokenBlacklist,
 		newVerificationCodeStorage: mongo.NewVerificationCodeStorage,
 	}
-
-	for _, option := range options {
-		if err := option(&c); err != nil {
-			return nil, err
-		}
-	}
-
 	return &c, nil
 }
 

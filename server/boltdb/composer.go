@@ -12,7 +12,7 @@ import (
 )
 
 // NewComposer creates new database composer with BoltDB support.
-func NewComposer(settings model.ServerSettings, options ...func(*DatabaseComposer) error) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              boltdb.NewAppStorage,
@@ -21,13 +21,6 @@ func NewComposer(settings model.ServerSettings, options ...func(*DatabaseCompose
 		newTokenBlacklist:          boltdb.NewTokenBlacklist,
 		newVerificationCodeStorage: boltdb.NewVerificationCodeStorage,
 	}
-
-	for _, option := range options {
-		if err := option(&c); err != nil {
-			return nil, err
-		}
-	}
-
 	return &c, nil
 }
 
