@@ -13,6 +13,7 @@ import (
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
 	configStoreS3 "github.com/madappgang/identifo/configuration/storage/s3"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
+	emailMock "github.com/madappgang/identifo/external_services/mail/mock"
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
@@ -298,6 +299,8 @@ func mailService(serviceType model.MailServiceType, templateNames model.EmailTem
 		return mailgun.NewEmailServiceFromEnv(tpltr), nil
 	case model.MailServiceAWS:
 		return ses.NewEmailServiceFromEnv(tpltr)
+	case model.MailServiceMock:
+		return emailMock.NewEmailService(), nil
 	default:
 		return nil, model.ErrorNotImplemented
 	}

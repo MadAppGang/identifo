@@ -7,23 +7,21 @@ import (
 
 // setup all routes
 func (ar *Router) initRoutes() {
-	// do nothing on empty router (or should panic?)
 	if ar.router == nil {
-		return
+		panic("Empty API router")
 	}
 
-	// all API routes should have appID in it
+	// All requests to the API router should contain appID.
 	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
 
-	// setup root routes
 	ar.router.HandleFunc(`/{ping:ping/?}`, ar.HandlePing()).Methods("GET")
 
-	// setup auth routes
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
 		negroni.Wrap(auth),
 	))
+
 	auth.Path(`/{login:login/?}`).HandlerFunc(ar.LoginWithPassword()).Methods("POST")
 	auth.Path(`/{request_phone_code:request_phone_code/?}`).HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
 	auth.Path(`/{phone_login:phone_login/?}`).HandlerFunc(ar.PhoneLogin()).Methods("POST")
@@ -35,17 +33,22 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeRefresh),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
-	auth.Path(`/{enable_tfa:enable_tfa/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
-		negroni.Wrap(ar.EnableTFA()),
-	)).Methods("PUT")
-	auth.Path(`/{finalize_tfa:finalize_tfa/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
-		negroni.Wrap(ar.FinalizeTFA()),
-	)).Methods("POST")
 	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(ar.RequestInviteLink()),
+	)).Methods("POST")
+
+	auth.Path(`/{tfa/enable:tfa/enable/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.EnableTFA()),
+	)).Methods("PUT")
+	auth.Path(`/{tfa/disable:tfa/disable/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.RequestDisabledTFA()),
+	)).Methods("PUT")
+	auth.Path(`/{tfa/finalize:tfa/finalize/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()

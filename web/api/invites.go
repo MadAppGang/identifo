@@ -25,13 +25,13 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		t, err := ar.tokenService.NewInviteToken()
+		inviteToken, err := ar.tokenService.NewInviteToken()
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return
 		}
 
-		token, err := ar.tokenService.String(t)
+		inviteTokenString, err := ar.tokenService.String(inviteToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.tokenService_String")
 			return
@@ -39,8 +39,14 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes()), " ", ",", -1)
-		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s", app.ID(), scopes, token))
-		host, _ := url.Parse(ar.Host)
+		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s", app.ID(), scopes, inviteTokenString))
+
+		host, err := url.Parse(ar.Host)
+		if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
+			return
+		}
+
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
@@ -48,7 +54,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			RawQuery: query,
 		}
 
-		// send email only if it's specified.
+		// Send email only if it's specified.
 		if d.Email != "" {
 			err = ar.emailService.SendInviteEmail("Invitation", d.Email, u.String())
 			if err != nil {

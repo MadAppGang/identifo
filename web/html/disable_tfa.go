@@ -8,16 +8,9 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-// ResetPassword handles password reset form submission (POST request).
-func (ar *Router) ResetPassword() http.HandlerFunc {
+// DisableTFA handles TFA disablement form submission (POST request).
+func (ar *Router) DisableTFA() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		password := r.FormValue("password")
-		if err := model.StrongPswd(password); err != nil {
-			SetFlash(w, FlashErrorMessageKey, err.Error())
-			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
-			return
-		}
-
 		tokenString := r.Context().Value(model.TokenRawContextKey).(string)
 		token, err := ar.TokenService.Parse(tokenString)
 		if err != nil {
@@ -27,22 +20,35 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 			return
 		}
 
-		if err = ar.UserStorage.ResetPassword(token.UserID(), password); err != nil {
+		user, err := ar.UserStorage.UserByID(token.UserID())
+		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
 		}
 
-		successPath := path.Join(ar.PathPrefix, "password/reset/success")
+		tfa := model.TFAInfo{
+			IsEnabled: false,
+			Secret:    "",
+		}
+		user.SetTFAInfo(tfa)
+
+		if _, err := ar.UserStorage.UpdateUser(token.UserID(), user); err != nil {
+			SetFlash(w, FlashErrorMessageKey, "Server Error")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+
+		successPath := path.Join(ar.PathPrefix, "tfa/disable/success")
 		http.Redirect(w, r, successPath, http.StatusMovedPermanently)
 	}
 }
 
-// ResetPasswordHandler handles reset password GET request.
-func (ar *Router) ResetPasswordHandler() http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPassword))
+// DisableTFAHandler handles disable TFA GET request.
+func (ar *Router) DisableTFAHandler() http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.DisableTFA))
 	if err != nil {
-		ar.Logger.Fatalln("Cannot parse ResetPassword template.", err)
+		ar.Logger.Fatalln("Cannot parse DisableTFA template.", err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

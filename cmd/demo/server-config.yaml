@@ -6,7 +6,7 @@ publicKey: public.pem
 issuer: http://localhost:8080
 algorithm: auto
 
-mailService: aws ses
+mailService: mock
 sessionStorage:
   type: memory
   sessionDuration: 300

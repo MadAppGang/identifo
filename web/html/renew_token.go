@@ -13,8 +13,11 @@ import (
 )
 
 // RenewToken creates new id_token if user is already authenticated.
-func (ar *Router) RenewToken(pathComponents ...string) http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(pathComponents...))
+func (ar *Router) RenewToken() http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.WebMessage))
+	if err != nil {
+		ar.Logger.Fatalln("Cannot parse WebMessage template.", err)
+	}
 	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.WebCookieTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request) {

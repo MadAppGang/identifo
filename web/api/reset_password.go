@@ -26,9 +26,8 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		userExists := ar.userStorage.UserExists(d.Email)
-		if !userExists {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with with email is not exists.", "RequestResetPassword.UserExists")
+		if userExists := ar.userStorage.UserExists(d.Email); !userExists {
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestResetPassword.UserExists")
 			return
 		}
 
@@ -38,20 +37,25 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		t, err := ar.tokenService.NewResetToken(id)
+		resetToken, err := ar.tokenService.NewResetToken(id)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")
 			return
 		}
 
-		token, err := ar.tokenService.String(t)
+		resetTokenString, err := ar.tokenService.String(resetToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.tokenService_String")
 			return
 		}
 
-		query := fmt.Sprintf("token=%s", token)
-		host, _ := url.Parse(ar.Host)
+		query := fmt.Sprintf("token=%s", resetTokenString)
+
+		host, err := url.Parse(ar.Host)
+		if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.URL_parse")
+			return
+		}
 
 		u := &url.URL{
 			Scheme:   host.Scheme,
@@ -61,11 +65,11 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		if err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String()); err != nil {
-			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error:"+err.Error(), "RequestResetPassword.SendResetEmail")
+			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail")
 			return
 		}
 
-		result := map[string]string{"Result": "ok"}
+		result := map[string]string{"result": "ok"}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
