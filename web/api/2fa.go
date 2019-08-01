@@ -182,6 +182,17 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
+			return
+		}
+
+		if app.TFAStatus() == model.TFAStatusMandatory {
+			ar.Error(w, ErrorAPIRequestMandatoryTFA, http.StatusForbidden, "Two-factor authentication is mandatory for this app", "RequestDisabledTFA.TFAStatusMandatory")
+			return
+		}
+
 		userID, err := ar.userStorage.IDByName(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.IDByName")
