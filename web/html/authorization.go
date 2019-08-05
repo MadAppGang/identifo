@@ -48,8 +48,6 @@ func (ar *Router) authorizeWhitelist(azi authzInfo) error {
 		role = anonymousRole
 	}
 
-	fmt.Println(contains(whitelist, role))
-
 	if accessGranted := contains(whitelist, role); !accessGranted {
 		err := fmt.Errorf("Access denied")
 		return err
