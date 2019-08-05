@@ -72,7 +72,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
-		//validate password
+		// Validate password.
 		if err := model.StrongPswd(password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
 			redirectToRegister()
