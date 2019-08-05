@@ -33,6 +33,7 @@ var messages = map[MessageID]string{
 	ErrorAPIRequestPleaseEnableTFA:             "Please enable two-factor authenticaton",
 	ErrorAPIRequestPleaseDisableTFA:            "Please disable two-factor authenticaton",
 	ErrorAPIRequestMandatoryTFA:                "Two-factor authentication is mandatory for this app",
+	ErrorAPIRequestDisabledTFA:                 "Two-factor authentication is disabled for this app",
 	ErrorAPIAppInactive:                        "Requesting app is inactive",
 	ErrorAPIAppRegistrationForbidden:           "Registration in this app is forbidden",
 	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
@@ -101,6 +102,8 @@ const (
 	ErrorAPIRequestPleaseDisableTFA = "error.api.request.2fa.please_disable"
 	// ErrorAPIRequestMandatoryTFA means that user cannot disable TFA for the app.
 	ErrorAPIRequestMandatoryTFA = "error.api.request.2fa.mandatory"
+	// ErrorAPIRequestDisabledTFA means that app does not support.
+	ErrorAPIRequestDisabledTFA = "error.api.request.2fa.disabled"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"
