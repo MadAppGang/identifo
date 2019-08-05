@@ -48,7 +48,7 @@ storage:
     type: boltdb
     path: ./db.db
 
-staticFolderPath: ../../static
+staticFolderPath: ../../web/static
 emailTemplatesPath: ../../email_templates
 emailTemplateNames:
   welcome: welcome.html

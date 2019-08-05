@@ -56,6 +56,20 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    app.NewUserDefaultRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+
+		if err := ar.authorize(azi); err != nil {
+			SetFlash(w, FlashErrorMessageKey, err.Error())
+			redirectToRegister()
+			return
+		}
+
 		//validate password
 		if err := model.StrongPswd(password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())

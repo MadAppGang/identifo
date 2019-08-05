@@ -54,6 +54,20 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    user.AccessRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+
+		if err := ar.authorize(azi); err != nil {
+			SetFlash(w, FlashErrorMessageKey, err.Error())
+			redirectToLogin()
+			return
+		}
+
 		token, err := ar.TokenService.NewWebCookieToken(user)
 		if err != nil {
 			ar.Logger.Printf("Error creating auth token %v", err)
