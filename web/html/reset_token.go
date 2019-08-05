@@ -38,8 +38,7 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 			return
 		}
 
-		userExists := ar.UserStorage.UserExists(name)
-		if !userExists {
+		if userExists := ar.UserStorage.UserExists(name); !userExists {
 			SetFlash(w, FlashErrorMessageKey, "This Email is unregistered")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
 			return

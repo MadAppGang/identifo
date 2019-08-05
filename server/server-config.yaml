@@ -87,8 +87,8 @@ storage:
     region: us-east-2
     path: ./db.db
 
-# Mail service name. Supported values are "mailgun" and "aws ses".
-mailService: aws ses
+# Mail service name. Supported values are "mailgun", "aws ses", and "mock".
+mailService: mock
 
 # SMS service settings.
 smsService:

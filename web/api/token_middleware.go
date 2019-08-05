@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
@@ -12,15 +13,15 @@ import (
 )
 
 const (
-	//TokenHeaderKey header key to keep Bearer token
+	// TokenHeaderKey is a header name for Bearer token.
 	TokenHeaderKey = "Authorization"
-	//TokenTypeRefresh is to handle refresh as bearer token
-	TokenTypeRefresh = "refresh"
-	//TokenTypeAccess is to handle access token type as bearer token
+	// TokenTypeAccess is an access token type.
 	TokenTypeAccess = "access"
+	// TokenTypeRefresh is a refresh token type.
+	TokenTypeRefresh = "refresh"
 )
 
-// Token middleware extracts token and validates it
+// Token middleware extracts token and validates it.
 func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
@@ -53,7 +54,7 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		if r.RequestURI != "/auth/finalize_tfa" {
+		if strings.Trim(r.RequestURI, "/ ") != "auth/tfa/finalize" {
 			if payload := token.Payload(); payload != nil && payload["tfa_authorized"] == "false" {
 				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsTFAuthorized")
 				return
