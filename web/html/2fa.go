@@ -15,6 +15,15 @@ import (
 // DisableTFA handles TFA disablement form submission (POST request).
 func (ar *Router) DisableTFA() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		tokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
+		if !ok {
+			ar.Logger.Println("Error getting token from context")
+			SetFlash(w, FlashErrorMessageKey, "Server Error")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+		tokenString := string(tokenBytes)
+
 		token, ok := r.Context().Value(model.TokenContextKey).(ijwt.Token)
 		if !ok {
 			ar.Logger.Println("Error getting token from context")
@@ -40,6 +49,11 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
+		}
+
+		// Invalidate reset token after use.
+		if err := ar.TokenBlacklist.Add(tokenString); err != nil {
+			ar.Logger.Printf("Cannot blacklist reset token after use: %s\n", err)
 		}
 
 		successPath := path.Join(ar.PathPrefix, "tfa/disable/success")
@@ -77,6 +91,15 @@ func (ar *Router) DisableTFAHandler() http.HandlerFunc {
 // ResetTFA handles TFA resetting form submission (POST request).
 func (ar *Router) ResetTFA() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		tokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
+		if !ok {
+			ar.Logger.Println("Error getting token bytes from context")
+			SetFlash(w, FlashErrorMessageKey, "Server Error")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+		tokenString := string(tokenBytes)
+
 		token, ok := r.Context().Value(model.TokenContextKey).(ijwt.Token)
 		if !ok {
 			ar.Logger.Println("Error getting token from context")
@@ -120,6 +143,11 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
+		}
+
+		// Invalidate reset token after use.
+		if err := ar.TokenBlacklist.Add(tokenString); err != nil {
+			ar.Logger.Printf("Cannot blacklist reset token after use: %s\n", err)
 		}
 
 		successPath := path.Join(ar.PathPrefix, "tfa/reset/success")

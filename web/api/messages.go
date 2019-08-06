@@ -102,7 +102,7 @@ const (
 	ErrorAPIRequestPleaseDisableTFA = "error.api.request.2fa.please_disable"
 	// ErrorAPIRequestMandatoryTFA means that user cannot disable TFA for the app.
 	ErrorAPIRequestMandatoryTFA = "error.api.request.2fa.mandatory"
-	// ErrorAPIRequestDisabledTFA means that app does not support.
+	// ErrorAPIRequestDisabledTFA means that app does not support TFA.
 	ErrorAPIRequestDisabledTFA = "error.api.request.2fa.disabled"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
