@@ -46,7 +46,8 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), model.TokenRawContextKey, tstr)
+		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
+		ctx = context.WithValue(ctx, model.TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	}

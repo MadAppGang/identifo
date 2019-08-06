@@ -22,6 +22,7 @@ type Router struct {
 	AppStorage      model.AppStorage
 	UserStorage     model.UserStorage
 	TokenStorage    model.TokenStorage
+	TokenBlacklist  model.TokenBlacklist
 	TokenService    jwtService.TokenService
 	SMSService      model.SMSService
 	EmailService    model.EmailService
@@ -58,16 +59,17 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenBlacklist model.TokenBlacklist, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		Middleware:   negroni.Classic(),
-		Router:       mux.NewRouter(),
-		AppStorage:   appStorage,
-		UserStorage:  userStorage,
-		TokenStorage: tokenStorage,
-		TokenService: tokenService,
-		SMSService:   smsService,
-		EmailService: emailService,
+		Middleware:     negroni.Classic(),
+		Router:         mux.NewRouter(),
+		AppStorage:     appStorage,
+		UserStorage:    userStorage,
+		TokenStorage:   tokenStorage,
+		TokenBlacklist: tokenBlacklist,
+		TokenService:   tokenService,
+		SMSService:     smsService,
+		EmailService:   emailService,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

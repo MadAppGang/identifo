@@ -16,6 +16,8 @@ type StaticPages struct {
 	ResetPasswordSuccess  string
 	DisableTFA            string
 	DisableTFASuccess     string
+	ResetTFA              string
+	ResetTFASuccess       string
 	TokenError            string
 	WebMessage            string
 	Misconfiguration      string
@@ -54,6 +56,8 @@ var defaultStaticPages = StaticPages{
 	ResetPasswordSuccess:  "reset-password-success.html",
 	DisableTFA:            "disable-tfa.html",
 	DisableTFASuccess:     "disable-tfa-success.html",
+	ResetTFA:              "reset-tfa.html",
+	ResetTFASuccess:       "reset-tfa-success.html",
 	ForgotPasswordSuccess: "forgot-password-success.html",
 	TokenError:            "token-error.html",
 	WebMessage:            "web-message.html",

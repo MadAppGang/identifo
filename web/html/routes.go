@@ -32,6 +32,16 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.DisableTFAHandler()),
 	)).Methods("GET")
 
+	ar.Router.Path(`/tfa/{reset:reset/?}`).Handler(negroni.New(
+		ar.ResetTokenMiddleware(),
+		negroni.WrapFunc(ar.ResetTFA()),
+	)).Methods("POST")
+
+	ar.Router.Path(`/tfa/{reset:reset/?}`).Handler(negroni.New(
+		ar.ResetTokenMiddleware(),
+		negroni.WrapFunc(ar.ResetTFAHandler()),
+	)).Methods("GET")
+
 	ar.Router.HandleFunc(`/password/{forgot:forgot/?}`, ar.SendResetToken()).Methods("POST")
 
 	ar.Router.Path(`/{login:login/?}`).Handler(negroni.New(
@@ -65,7 +75,8 @@ func (ar *Router) initRoutes() {
 	ar.Router.HandleFunc(`/password/forgot/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPasswordSuccess)).Methods("GET")
 	ar.Router.HandleFunc(`/password/reset/{error:error/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.TokenError)).Methods("GET")
 	ar.Router.HandleFunc(`/password/reset/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPasswordSuccess)).Methods("GET")
-	ar.Router.HandleFunc(`/tfa/disable/success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.DisableTFASuccess)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/disable/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.DisableTFASuccess)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetTFASuccess)).Methods("GET")
 	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Misconfiguration)).Methods("GET")
 
 	stylesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.StylesPath))

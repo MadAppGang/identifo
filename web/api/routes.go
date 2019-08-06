@@ -49,6 +49,10 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
+	auth.Path(`/{tfa/reset:tfa/reset/?}`).Handler(negroni.New(
+		ar.Token(TokenTypeAccess),
+		negroni.Wrap(ar.RequestTFAReset()),
+	)).Methods("PUT")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(

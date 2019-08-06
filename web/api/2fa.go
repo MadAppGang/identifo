@@ -118,8 +118,16 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
+			return
+		}
+
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !verified {
+		dontNeedVerification := app.DebugTFACode() != "" && d.TFACode == app.DebugTFACode()
+
+		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.TOTP_Invalid")
 			return
 		}
@@ -128,12 +136,6 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
-			return
-		}
-
-		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
 			return
 		}
 
@@ -228,6 +230,82 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 
 		if err = ar.emailService.SendResetEmail("Disable Two-Factor Authentication", d.Email, u.String()); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail")
+			return
+		}
+
+		result := map[string]string{"result": "ok"}
+		ar.ServeJSON(w, http.StatusOK, result)
+	}
+}
+
+// RequestTFAReset requests link for resetting TFA: deleting old shared secret and establishing the new one.
+func (ar *Router) RequestTFAReset() http.HandlerFunc {
+	type requestBody struct {
+		Email string `json:"email,omitempty"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		d := requestBody{}
+		if ar.MustParseJSON(w, r, &d) != nil {
+			return
+		}
+
+		if !emailRegexp.MatchString(d.Email) {
+			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestTFAReset.emailRegexp_MatchString")
+			return
+		}
+
+		if userExists := ar.userStorage.UserExists(d.Email); !userExists {
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestTFAReset.UserExists")
+			return
+		}
+
+		userID, err := ar.userStorage.IDByName(d.Email)
+		if err != nil {
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.IDByName")
+			return
+		}
+
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
+			return
+		}
+
+		if app.TFAStatus() == model.TFAStatusDisabled {
+			ar.Error(w, ErrorAPIRequestDisabledTFA, http.StatusForbidden, "Two-factor authentication is disabled for this app", "RequestTFAReset.TFAStatusDisabled")
+			return
+		}
+
+		resetToken, err := ar.tokenService.NewResetToken(userID)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.NewResetToken")
+			return
+		}
+
+		resetTokenString, err := ar.tokenService.String(resetToken)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.tokenService_String")
+			return
+		}
+
+		host, err := url.Parse(ar.Host)
+		if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestTFAReset.URL_parse")
+			return
+		}
+
+		query := fmt.Sprintf("token=%s", resetTokenString)
+
+		u := &url.URL{
+			Scheme:   host.Scheme,
+			Host:     host.Host,
+			Path:     path.Join(ar.WebRouterPrefix, "tfa/reset"),
+			RawQuery: query,
+		}
+
+		if err = ar.emailService.SendResetEmail("Reset Two-Factor Authentication", d.Email, u.String()); err != nil {
+			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestTFAReset.SendResetEmail")
 			return
 		}
 
