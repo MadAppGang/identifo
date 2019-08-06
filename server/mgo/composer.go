@@ -74,15 +74,15 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
+	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.General.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.General.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
-		path.Join(dc.settings.PEMFolderPath, dc.settings.PublicKey),
-		dc.settings.Issuer,
+		path.Join(dc.settings.General.PEMFolderPath, dc.settings.General.PrivateKey),
+		path.Join(dc.settings.General.PEMFolderPath, dc.settings.General.PublicKey),
+		dc.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,
 		appStorage,

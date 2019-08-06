@@ -76,15 +76,15 @@ func (c *Composer) Compose() (
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.Algorithm]
+	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.General.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.General.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(c.settings.PEMFolderPath, c.settings.PrivateKey),
-		path.Join(c.settings.PEMFolderPath, c.settings.PublicKey),
-		c.settings.Issuer,
+		path.Join(c.settings.General.PEMFolderPath, c.settings.General.PrivateKey),
+		path.Join(c.settings.General.PEMFolderPath, c.settings.General.PublicKey),
+		c.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,
 		appStorage,
