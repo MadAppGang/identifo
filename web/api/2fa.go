@@ -125,7 +125,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		dontNeedVerification := app.MasterTFA() != "" && d.TFACode == app.MasterTFA()
+		dontNeedVerification := app.DebugTFACode() != "" && d.TFACode == app.DebugTFACode()
 
 		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.TOTP_Invalid")

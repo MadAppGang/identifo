@@ -141,8 +141,8 @@ func (ad *AppData) RegistrationForbidden() bool { return ad.appData.Registration
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
 
-// MasterTFA implements model.AppData interface.
-func (ad *AppData) MasterTFA() string { return ad.appData.MasterTFA }
+// DebugTFACode implements model.AppData interface.
+func (ad *AppData) DebugTFACode() string { return ad.appData.MasterTFA }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }

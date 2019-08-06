@@ -131,7 +131,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 		}
 
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		dontNeedVerification := app.MasterTFA() != "" && tfaCode == app.MasterTFA()
+		dontNeedVerification := app.DebugTFACode() != "" && tfaCode == app.DebugTFACode()
 
 		if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			SetFlash(w, FlashErrorMessageKey, "Invalid TFA code")
