@@ -2,8 +2,10 @@ package html
 
 import (
 	"encoding/json"
+	"html/template"
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
@@ -56,14 +58,28 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
-		//validate password
+		// Authorize user if the app requires authorization.
+		azi := authzInfo{
+			app:         app,
+			userRole:    app.NewUserDefaultRole(),
+			resourceURI: r.RequestURI,
+			method:      r.Method,
+		}
+
+		if err := ar.authorize(azi); err != nil {
+			SetFlash(w, FlashErrorMessageKey, err.Error())
+			redirectToRegister()
+			return
+		}
+
+		// Validate password.
 		if err := model.StrongPswd(password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
 			redirectToRegister()
 			return
 		}
 
-		//create new user
+		// Create new user.
 		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole(), nil)
 		if err != nil {
 			if err == model.ErrorUserExists {
@@ -77,7 +93,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
-		//do login flow
+		// Do login flow.
 		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
 		if err != nil {
 			ar.Logger.Printf("Error: requesting scopes %v.", err)
@@ -101,5 +117,49 @@ func (ar *Router) Register() http.HandlerFunc {
 
 		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
 		redirectToLogin()
+	}
+}
+
+// RegistrationHandler serves registration page.
+func (ar *Router) RegistrationHandler() http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration))
+	if err != nil {
+		ar.Logger.Fatalln("Cannot parse Registration template.", err)
+	}
+	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
+		}
+
+		scopesJSON := strings.TrimSpace(r.URL.Query().Get("scopes"))
+		scopes := []string{}
+		if scopesJSON != "" {
+			if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
+				ar.Logger.Printf("Error: Invalid scopes %v. Error: %v", scopesJSON, err)
+				http.Redirect(w, r, errorPath, http.StatusFound)
+				return
+			}
+		}
+
+		errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)
+		if err != nil {
+			ar.Logger.Printf("Error: getting flash message %v", err)
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Prefix": ar.PathPrefix,
+			"Scopes": scopesJSON,
+			"AppId":  app.ID(),
+		}
+
+		if err = tmpl.Execute(w, data); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
 	}
 }

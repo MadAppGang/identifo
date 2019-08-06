@@ -156,6 +156,8 @@ const (
 	MailServiceMailgun = "mailgun"
 	// MailServiceAWS is an AWS SES service.
 	MailServiceAWS = "aws ses"
+	// MailServiceMock is an email service mock.
+	MailServiceMock = "mock"
 )
 
 // GetPort returns port on which host listens to incoming connections.

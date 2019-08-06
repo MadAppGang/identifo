@@ -6,7 +6,7 @@ publicKey: public.pem
 issuer: http://localhost:8080
 algorithm: auto
 
-mailService: aws ses
+mailService: mock
 sessionStorage:
   type: memory
   sessionDuration: 300
@@ -48,7 +48,7 @@ storage:
     type: boltdb
     path: ./db.db
 
-staticFolderPath: ../../static
+staticFolderPath: ../../web/static
 emailTemplatesPath: ../../email_templates
 emailTemplateNames:
   welcome: welcome.html

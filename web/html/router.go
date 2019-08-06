@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/casbin/casbin"
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -27,6 +28,7 @@ type Router struct {
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
 	EmailTemplates  EmailTemplates
+	Authorizers     map[string]*casbin.Enforcer
 	PathPrefix      string
 	Host            string
 }
