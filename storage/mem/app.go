@@ -25,7 +25,7 @@ type appData struct {
 	TokenPayload          []string               `json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
 	TFAStatus             model.TFAStatus        `json:"tfa_status"`
-	MasterTFA             string                 `json:"master_tfa,omitempty"`
+	DebugTFACode          string                 `json:"debug_tfa_code,omitempty"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
@@ -119,7 +119,7 @@ func (ad *AppData) RegistrationForbidden() bool { return ad.appData.Registration
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
 
 // DebugTFACode implements model.AppData interface.
-func (ad *AppData) DebugTFACode() string { return ad.appData.MasterTFA }
+func (ad *AppData) DebugTFACode() string { return ad.appData.DebugTFACode }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }
