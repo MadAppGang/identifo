@@ -8,6 +8,7 @@ import (
 
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
 )
 
@@ -91,8 +92,25 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			return
 		}
 
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Logger.Println("Error getting app from context")
+			SetFlash(w, FlashErrorMessageKey, "Server Error")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+
+		tfaCode := r.FormValue("tfa_code")
+		if len(tfaCode) == 0 {
+			SetFlash(w, FlashErrorMessageKey, "Empty TFA code")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		if verified := totp.Verify(r.FormValue("tfa_code"), int(time.Now().Unix())); !verified {
+		dontNeedVerification := app.MasterTFA() != "" && tfaCode == app.MasterTFA()
+
+		if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			SetFlash(w, FlashErrorMessageKey, "Invalid TFA code")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return

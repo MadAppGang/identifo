@@ -118,8 +118,16 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
+		app := middleware.AppFromContext(r.Context())
+		if app == nil {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
+			return
+		}
+
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !verified {
+		dontNeedVerification := app.MasterTFA() != "" && d.TFACode == app.MasterTFA()
+
+		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.TOTP_Invalid")
 			return
 		}
@@ -128,12 +136,6 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
-			return
-		}
-
-		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
 			return
 		}
 
