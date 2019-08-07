@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
@@ -82,8 +81,8 @@ func (c *Composer) Compose() (
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(c.settings.General.PEMFolderPath, c.settings.General.PrivateKey),
-		path.Join(c.settings.General.PEMFolderPath, c.settings.General.PublicKey),
+		c.settings.General.PrivateKeyPath,
+		c.settings.General.PublicKeyPath,
 		c.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,

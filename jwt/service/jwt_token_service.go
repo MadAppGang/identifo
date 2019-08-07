@@ -5,6 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
+	"log"
 	"os"
 	"strings"
 
@@ -49,6 +50,7 @@ const (
 // - publicKeyPath - the path to the public key.
 func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenSignatureAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
 	if _, err := os.Stat(privateKeyPath); err != nil {
+		log.Println(9999, privateKeyPath)
 		return nil, ErrKeyFileNotFound
 	}
 	if _, err := os.Stat(publicKeyPath); err != nil {
