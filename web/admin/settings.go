@@ -26,11 +26,11 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	}
 }
 
-// AlterGeneralSettings changes sever's general settings.
-func (ar *Router) AlterGeneralSettings() http.HandlerFunc {
+// UpdateGeneralSettings changes server's general settings.
+func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var generalSettingsUpdate struct {
-			General model.GeneralServerSettings `json:"general"`
+			Data model.GeneralServerSettings `json:"general"`
 		}
 
 		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
@@ -42,7 +42,7 @@ func (ar *Router) AlterGeneralSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.General = generalSettingsUpdate.General
+		newServerSettings.General = generalSettingsUpdate.Data
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
@@ -51,11 +51,11 @@ func (ar *Router) AlterGeneralSettings() http.HandlerFunc {
 	}
 }
 
-// AlterStorageSettings changes storage connection settings.
-func (ar *Router) AlterStorageSettings() http.HandlerFunc {
+// UpdateStorageSettings changes storage connection settings.
+func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var storageSettingsUpdate struct {
-			Storage model.StorageSettings `json:"storage"`
+			Data model.StorageSettings `json:"storage"`
 		}
 
 		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
@@ -67,7 +67,7 @@ func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.Storage = storageSettingsUpdate.Storage
+		newServerSettings.Storage = storageSettingsUpdate.Data
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
@@ -76,11 +76,61 @@ func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 	}
 }
 
-// AlterStaticFilesSettings changes static files settings.
-func (ar *Router) AlterStaticFilesSettings() http.HandlerFunc {
+// UpdateSessionStorageSettings changes admin session storage connection settings.
+func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var sessionStorageSettingsUpdate struct {
+			Data model.SessionStorageSettings `json:"session_storage"`
+		}
+
+		if ar.mustParseJSON(w, r, &sessionStorageSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.SessionStorage = sessionStorageSettingsUpdate.Data
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// UpdateConfigurationStorageSettings changes storage connection settings.
+func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var configurationStorageSettingsUpdate struct {
+			Data model.ConfigurationStorageSettings `json:"configuration_storage"`
+		}
+
+		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.ConfigurationStorage = configurationStorageSettingsUpdate.Data
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// UpdateStaticFilesSettings changes static files settings.
+func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var staticFilesSettingsUpdate struct {
-			StaticFiles model.StaticFilesSettings `json:"static_files"`
+			Data model.StaticFilesSettings `json:"static_files"`
 		}
 
 		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
@@ -92,7 +142,7 @@ func (ar *Router) AlterStaticFilesSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.StaticFiles = staticFilesSettingsUpdate.StaticFiles
+		newServerSettings.StaticFiles = staticFilesSettingsUpdate.Data
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
@@ -101,11 +151,11 @@ func (ar *Router) AlterStaticFilesSettings() http.HandlerFunc {
 	}
 }
 
-// AlterLoginSettings changes app's login settings.
-func (ar *Router) AlterLoginSettings() http.HandlerFunc {
+// UpdateLoginSettings changes app's login settings.
+func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var loginSettingsUpdate struct {
-			Login model.LoginSettings `json:"login"`
+			Data model.LoginSettings `json:"login"`
 		}
 
 		if ar.mustParseJSON(w, r, &loginSettingsUpdate) != nil {
@@ -117,7 +167,7 @@ func (ar *Router) AlterLoginSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.Login = loginSettingsUpdate.Login
+		newServerSettings.Login = loginSettingsUpdate.Data
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
@@ -126,8 +176,8 @@ func (ar *Router) AlterLoginSettings() http.HandlerFunc {
 	}
 }
 
-// AlterExternalServicesSettings changes settings for external services.
-func (ar *Router) AlterExternalServicesSettings() http.HandlerFunc {
+// UpdateExternalServicesSettings changes settings for external services.
+func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var servicesSettingsUpdate struct {
 			ExternalServices model.ExternalServicesSettings `json:"external_services"`
@@ -151,8 +201,8 @@ func (ar *Router) AlterExternalServicesSettings() http.HandlerFunc {
 	}
 }
 
-// AlterAccountSettings changes admin account settings.
-func (ar *Router) AlterAccountSettings() http.HandlerFunc {
+// UpdateAccountSettings changes admin account settings.
+func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		adminDataUpdate := new(adminLoginData)
 

@@ -70,12 +70,14 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.Wrap(settings),
 	))
+	settings.Path("/general").HandlerFunc(ar.UpdateGeneralSettings()).Methods("PUT")
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
-	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PATCH")
-	settings.Path("/general").HandlerFunc(ar.AlterGeneralSettings()).Methods("PUT")
-	settings.Path("/storage").HandlerFunc(ar.AlterStorageSettings()).Methods("PUT")
-	settings.Path("/static").HandlerFunc(ar.AlterStaticFilesSettings()).Methods("PUT")
-	settings.Path("/login").HandlerFunc(ar.AlterLoginSettings()).Methods("PUT")
-	settings.Path("/services").HandlerFunc(ar.AlterExternalServicesSettings()).Methods("PUT")
+	settings.Path("/account").HandlerFunc(ar.UpdateAccountSettings()).Methods("PATCH")
+	settings.Path("/storage").HandlerFunc(ar.UpdateStorageSettings()).Methods("PUT")
+	settings.Path("/storage/session").HandlerFunc(ar.UpdateSessionStorageSettings()).Methods("PUT")
+	settings.Path("/storage/configuration").HandlerFunc(ar.UpdateConfigurationStorageSettings()).Methods("PUT")
+	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesSettings()).Methods("PUT")
+	settings.Path("/login").HandlerFunc(ar.UpdateLoginSettings()).Methods("PUT")
+	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
 	settings.Path("/storage/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
 }
