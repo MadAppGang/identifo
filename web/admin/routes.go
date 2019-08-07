@@ -64,10 +64,6 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchServerSettings()),
 	)).Methods("GET")
-	ar.router.Path(`/{settings:settings/?}`).Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.AlterServerSettings()),
-	)).Methods("PUT")
 
 	settings := mux.NewRouter().PathPrefix("/settings").Subrouter()
 	ar.router.PathPrefix("/settings").Handler(negroni.New(
@@ -76,6 +72,10 @@ func (ar *Router) initRoutes() {
 	))
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
 	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PATCH")
+	settings.Path("/general").HandlerFunc(ar.AlterGeneralSettings()).Methods("PUT")
 	settings.Path("/storage").HandlerFunc(ar.AlterStorageSettings()).Methods("PUT")
+	settings.Path("/static").HandlerFunc(ar.AlterStaticFilesSettings()).Methods("PUT")
+	settings.Path("/login").HandlerFunc(ar.AlterLoginSettings()).Methods("PUT")
+	settings.Path("/services").HandlerFunc(ar.AlterExternalServicesSettings()).Methods("PUT")
 	settings.Path("/storage/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
 }

@@ -26,20 +26,28 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	}
 }
 
-// AlterServerSettings changes the whole set of server settings.
-func (ar *Router) AlterServerSettings() http.HandlerFunc {
+// AlterGeneralSettings changes sever's general settings.
+func (ar *Router) AlterGeneralSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		newset := new(model.ServerSettings)
+		var generalSettingsUpdate struct {
+			General model.GeneralServerSettings `json:"general"`
+		}
 
-		if ar.mustParseJSON(w, r, newset) != nil {
+		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
 			return
 		}
 
-		if ar.updateServerSettings(w, newset) != nil {
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newset)
+		newServerSettings.General = generalSettingsUpdate.General
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.General)
 	}
 }
 
@@ -65,6 +73,81 @@ func (ar *Router) AlterStorageSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// AlterStaticFilesSettings changes static files settings.
+func (ar *Router) AlterStaticFilesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var staticFilesSettingsUpdate struct {
+			StaticFiles model.StaticFilesSettings `json:"static_files"`
+		}
+
+		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.StaticFiles = staticFilesSettingsUpdate.StaticFiles
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
+	}
+}
+
+// AlterLoginSettings changes app's login settings.
+func (ar *Router) AlterLoginSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var loginSettingsUpdate struct {
+			Login model.LoginSettings `json:"login"`
+		}
+
+		if ar.mustParseJSON(w, r, &loginSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.Login = loginSettingsUpdate.Login
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Login)
+	}
+}
+
+// AlterExternalServicesSettings changes settings for external services.
+func (ar *Router) AlterExternalServicesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var servicesSettingsUpdate struct {
+			ExternalServices model.ExternalServicesSettings `json:"external_services"`
+		}
+
+		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.ExternalServices = servicesSettingsUpdate.ExternalServices
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
 	}
 }
 
