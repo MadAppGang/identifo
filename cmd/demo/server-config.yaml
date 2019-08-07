@@ -1,35 +1,13 @@
-host: http://localhost:8080
-
-pemFolderPath: ../../jwt
-privateKey: private.pem
-publicKey: public.pem
-issuer: http://localhost:8080
-algorithm: auto
-
-mailService: mock
-sessionStorage:
-  type: memory
-  sessionDuration: 300
-
-configurationStorage:
-  type: file
-  settingsKey: server-config.yaml
-
-smsService:
-  type: mock
-
-loginWith:
-  phone: true
-  username: true
-  federated: true
-
-tfaType: app
+general:
+  host: http://localhost:8080
+  privateKeyPath: ../../jwt/private.pem
+  publicKeyPath: ../../jwt/public.pem
+  issuer: http://localhost:8080
+  algorithm: auto
 
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
-
-serverConfigPath: ./server-config.yaml
 
 storage:
   appStorage:
@@ -48,10 +26,33 @@ storage:
     type: boltdb
     path: ./db.db
 
-staticFolderPath: ../../web/static
-emailTemplatesPath: ../../email_templates
-emailTemplateNames:
-  welcome: welcome.html
-  resetPassword: reset_password.html
-  inviteEmail: invite_email.html
-  verifyEmail: verify_email.html
+sessionStorage:
+  type: memory
+  sessionDuration: 300
+
+configurationStorage:
+  type: file
+  settingsKey: server-config.yaml
+
+staticFiles:
+  serverConfigPath: server-config.yaml
+  staticFolderPath: ../../web/static   # Folder for the static files.
+  emailTemplatesPath: ../../email_templates
+  emailTemplateNames: 
+    welcome: welcome.html
+    resetPassword: reset_password.html
+    inviteEmail: invite_email.html
+    verifyEmail: verify_email.html
+  adminPanelBuildPath: ../../admin_panel/build
+
+login:
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  tfaType: app
+
+externalServices: 
+  mailService: mock
+  smsService:
+    type: mock

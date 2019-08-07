@@ -2,7 +2,6 @@ package fake
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
@@ -74,8 +73,8 @@ func (dc *DatabaseComposer) Compose() (
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(dc.settings.General.PEMFolderPath, dc.settings.General.PrivateKey),
-		path.Join(dc.settings.General.PEMFolderPath, dc.settings.General.PublicKey),
+		dc.settings.General.PrivateKeyPath,
+		dc.settings.General.PublicKeyPath,
 		dc.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,

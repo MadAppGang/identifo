@@ -1,18 +1,9 @@
-# General server settings.
-general:
-  # HTTP address of Indentifo server.
-  host: http://localhost:8080
-
-  # Folder where public and private keys are stored.
-  pemFolderPath: ./jwt
-  # Private key for signing JWT tokens.
-  privateKey: private.pem
-  # Public key for verifying JWT tokens.
-  publicKey: public.pem
-  # JWT token issuer.
-  issuer: http://localhost:8080
-  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
-  algorithm: auto
+general:  # General server settings.
+  host: http://localhost:8080 # HTTP address of Indentifo server.
+  privateKeyPath: jwt/private.pem # Private key for signing JWT tokens.
+  publicKeyPath: jwt/public.pem   # Public key for verifying JWT tokens.
+  issuer: http://localhost:8080   # JWT token issuer.
+  algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
 adminAccount:
@@ -89,25 +80,18 @@ configurationStorage:
   region: # S3-related setting.
 
 staticFiles:
-  # File with server settings.
-  serverConfigPath: server-config.yaml
-
-  # Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
-  adminPanelBuildPath: ./admin_panel/build
-
-  # Folder for the static files.
-  staticFolderPath: ./web/static
-  # Forder for the email templates.
-  emailTemplatesPath: ./email_templates
-  # Email template names.
-  emailTemplateNames:
+  serverConfigPath: server-config.yaml   # File with server settings.
+  staticFolderPath: ./web/static   # Folder for the static files.
+  emailTemplatesPath: ./email_templates   # Forder for the email templates.
+  emailTemplateNames:   # Email template names.
     welcome: welcome.html
     resetPassword: reset_password.html
     inviteEmail: invite_email.html
     verifyEmail: verify_email.html
+  # Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
+  adminPanelBuildPath: ./admin_panel/build
 
-login:
-  # Supported login ways.
+login:   # Supported login ways.
   loginWith:
     phone: true
     username: true
@@ -116,11 +100,9 @@ login:
   # Supported values are: "app" (like Google Authenticator), "sms", "email".
   tfaType: app
 
-externalServices:
-  # Mail service name. Supported values are "mailgun", "aws ses", and "mock".
-  mailService: mock
-  # SMS service settings.
-  smsService:
+externalServices: 
+  mailService: mock  # Mail service name. Supported values are "mailgun", "aws ses", and "mock".
+  smsService:   # SMS service settings.
     type: mock # Supported values are: "twilio", "mock".
     accountSid: # Twilio-related setting.
     authToken: # Twilio-related setting.

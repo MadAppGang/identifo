@@ -21,12 +21,11 @@ type ServerSettings struct {
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
-	Host          string `yaml:"host,omitempty" json:"host,omitempty"`
-	PEMFolderPath string `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
-	PrivateKey    string `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	PublicKey     string `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Issuer        string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm     string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Host           string `yaml:"host,omitempty" json:"host,omitempty"`
+	PrivateKeyPath string `yaml:"privateKeyPath,omitempty" json:"private_key_path,omitempty"`
+	PublicKeyPath  string `yaml:"publicKeyPath,omitempty" json:"public_key_path,omitempty"`
+	Issuer         string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	Algorithm      string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 }
 
 // AdminAccountSettings are names of environment variables that store admin credentials.
