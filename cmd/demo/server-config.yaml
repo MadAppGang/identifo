@@ -43,7 +43,7 @@ staticFiles:
     resetPassword: reset_password.html
     inviteEmail: invite_email.html
     verifyEmail: verify_email.html
-    adminPanelBuildPath: ../../admin_panel/build
+  adminPanelBuildPath: ../../admin_panel/build
 
 login:
   loginWith:
