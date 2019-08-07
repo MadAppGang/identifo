@@ -6,6 +6,7 @@ import (
 
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/mem"
 )
 
@@ -183,7 +184,7 @@ func TestNewToken(t *testing.T) {
 	}
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
-	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, "", 0, 0, 0, tokenPayload, true)
+	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, "", 0, 0, 0, tokenPayload, true, model.TFAStatusDisabled, "", model.NoAuthz, "", "", []string{}, []string{}, "user")
 	token, err := ts.NewAccessToken(user, scopes, &app, false)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
