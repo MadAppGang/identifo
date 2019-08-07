@@ -1,58 +1,14 @@
-# HTTP address of Indentifo server.
-host: http://localhost:8080
-
-# Folder where public and private keys are stored.
-pemFolderPath: ./jwt
-# Private key for signing JWT tokens.
-privateKey: private.pem
-# Public key for verifying JWT tokens.
-publicKey: public.pem
-# JWT token issuer.
-issuer: http://localhost:8080
-# Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
-algorithm: auto
-
-# Storage for admin sessions.
-sessionStorage: 
-  type: memory # Supported values are "memory", "redis", and "dynamodb".
-  # Admin session duration in seconds.
-  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
-  sessionDuration: 300
-  address: # Redis-related setting.
-  password: # Redis-related setting.
-  db: # Redis-related setting.
-  region: # DynamoDB-related setting.
-  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
-
-# Storage for server configuration.
-configurationStorage:
-  # Configuration storage type. Supported values are: "etcd", "s3", and "file".
-  type: file
-  # Key for accessing server settings in the configuraion storage.
-  # If type is etcd, must be a key name (e.g, identifo/server-settings).
-  # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
-  # If type is file, must be a filename (e.g, server-config.yaml).
-  settingsKey: server-config.yaml
-  endpoints: # Etcd-related setting.
-  region: # S3-related setting.
+general:  # General server settings.
+  host: http://localhost:8080 # HTTP address of Indentifo server.
+  privateKeyPath: jwt/private.pem # Private key for signing JWT tokens.
+  publicKeyPath: jwt/public.pem   # Public key for verifying JWT tokens.
+  issuer: http://localhost:8080   # JWT token issuer.
+  algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
-
-# Supported login ways.
-loginWith:
-  phone: true
-  username: true
-  federated: true
-
-# Type of two-factor authentication, if application enables it.
-# Supported values are: "app" (like Google Authenticator), "sms", "email".
-tfaType: app
-
-# File with server settings.
-serverConfigPath: server-config.yaml
 
 # Storage settings holds together all storage settings.
 # All settings for particular database engine (i.e, filepaths for BoltDB,
@@ -99,26 +55,55 @@ storage:
     region: us-east-2
     path: ./db.db
 
-# Mail service name. Supported values are "mailgun", "aws ses", and "mock".
-mailService: mock
+# Storage for admin sessions.
+sessionStorage: 
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
+  # Admin session duration in seconds.
+  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  sessionDuration: 300
+  address: # Redis-related setting.
+  password: # Redis-related setting.
+  db: # Redis-related setting.
+  region: # DynamoDB-related setting.
+  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
 
-# SMS service settings.
-smsService:
-  type: mock # Supported values are: "twilio", "mock".
-  accountSid: # Twilio-related setting.
-  authToken: # Twilio-related setting.
-  serviceSid: # Twilio-related setting.
+# Storage for server configuration.
+configurationStorage:
+  # Configuration storage type. Supported values are: "etcd", "s3", and "file".
+  type: file
+  # Key for accessing server settings in the configuraion storage.
+  # If type is etcd, must be a key name (e.g, identifo/server-settings).
+  # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
+  # If type is file, must be a filename (e.g, server-config.yaml).
+  settingsKey: server-config.yaml
+  endpoints: # Etcd-related setting.
+  region: # S3-related setting.
 
-# Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
-adminPanelBuildPath: ./admin_panel/build
+staticFiles:
+  serverConfigPath: server-config.yaml   # File with server settings.
+  staticFolderPath: ./web/static   # Folder for the static files.
+  emailTemplatesPath: ./email_templates   # Forder for the email templates.
+  emailTemplateNames:   # Email template names.
+    welcome: welcome.html
+    resetPassword: reset_password.html
+    inviteEmail: invite_email.html
+    verifyEmail: verify_email.html
+  # Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
+  adminPanelBuildPath: ./admin_panel/build
 
-# Folder for the static files.
-staticFolderPath: ./web/static
-# Forder for the email templates.
-emailTemplatesPath: ./email_templates
-# Email template names.
-emailTemplateNames:
-  welcome: welcome.html
-  resetPassword: reset_password.html
-  inviteEmail: invite_email.html
-  verifyEmail: verify_email.html
+login:   # Supported login ways.
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  # Type of two-factor authentication, if application enables it.
+  # Supported values are: "app" (like Google Authenticator), "sms", "email".
+  tfaType: app
+
+externalServices: 
+  mailService: mock  # Mail service name. Supported values are "mailgun", "aws ses", and "mock".
+  smsService:   # SMS service settings.
+    type: mock # Supported values are: "twilio", "mock".
+    accountSid: # Twilio-related setting.
+    authToken: # Twilio-related setting.
+    serviceSid: # Twilio-related setting.

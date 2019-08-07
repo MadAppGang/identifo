@@ -1,28 +1,12 @@
-pemFolderPath: ./jwt
-privateKey: private.pem
-publicKey: public.pem
-issuer: http://localhost:8080
-algorithm: auto
-
-sessionStorage: 
-  type: dynamodb
-  region: us-east-1
-  sessionDuration: 300
-
-# If using Identifo as AWS Lambda, we cannot update config file,
-# as Lambda environment is a read-only one. That's why we must
-# store configuration file in, for example, S3 bucket.
-# AWS Access Key, Secret Access Key, and bucket name must be stored
-# in environment variables.
-configurationStorage:
-  type: s3
-  region: us-east-1
+general:  # General server settings.
+  privateKeyPath: jwt/private.pem 
+  publicKeyPath: jwt/public.pem
+  issuer: http://localhost:8080   
+  algorithm: auto
 
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
-
-serverConfigPath: server-config.yaml
 
 storage:
   appStorage:
@@ -41,24 +25,39 @@ storage:
     type: dynamodb
     region: us-east-1
 
-mailService: aws ses
+sessionStorage: 
+  type: dynamodb
+  region: us-east-1
+  sessionDuration: 300
 
-smsService:
-  type: mock
+# If using Identifo as AWS Lambda, we cannot update config file,
+# as Lambda environment is a read-only one. That's why we must
+# store configuration file in, for example, S3 bucket.
+# AWS Access Key, Secret Access Key, and bucket name must be stored
+# in environment variables.
+configurationStorage:
+  type: s3
+  region: us-east-1
 
-loginWith:
-  phone: true
-  username: true
-  federated: true
+staticFiles:
+  serverConfigPath: server-config.yaml
+  staticFolderPath: ./static
+  emailTemplatesPath: ./email_templates
+  emailTemplateNames:
+    welcome: welcome.html
+    resetPassword: reset_password.html
+    inviteEmail: invite_email.html
+    verifyEmail: verify_email.html
+  adminPanelBuildPath: ./admin_panel/build
 
-tfaType: app
+login:
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  tfaType: app
 
-staticFolderPath: ./static
-emailTemplatesPath: ./email_templates
-emailTemplateNames:
-  welcome: welcome.html
-  resetPassword: reset_password.html
-  inviteEmail: invite_email.html
-  verifyEmail: verify_email.html
-
-adminPanelBuildPath: ./admin_panel/build
+externalServices: 
+  mailService: aws ses 
+  smsService:
+    type: mock

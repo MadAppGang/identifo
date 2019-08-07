@@ -2,7 +2,6 @@ package server
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
@@ -76,15 +75,15 @@ func (c *Composer) Compose() (
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.Algorithm]
+	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.General.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.General.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(c.settings.PEMFolderPath, c.settings.PrivateKey),
-		path.Join(c.settings.PEMFolderPath, c.settings.PublicKey),
-		c.settings.Issuer,
+		c.settings.General.PrivateKeyPath,
+		c.settings.General.PublicKeyPath,
+		c.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,
 		appStorage,
