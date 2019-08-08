@@ -15,7 +15,7 @@ type UserStorage interface {
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
 	UserByNamePassword(name, password string) (User, error)
-	AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (User, error)
+	AddUserByNameAndPassword(name, password, role string) (User, error)
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id, role string) (User, error)
@@ -40,10 +40,11 @@ type User interface {
 	SetUsername(string)
 	Email() string
 	SetEmail(string)
+	Phone() string
+	SetPhone(string)
 	TFAInfo() TFAInfo
 	SetTFAInfo(TFAInfo)
 	PasswordHash() string
-	Profile() map[string]interface{}
 	Active() bool
 	AccessRole() string
 	Sanitize()

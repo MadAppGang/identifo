@@ -13,17 +13,16 @@ type User struct {
 
 // User data implementation.
 type userData struct {
-	ID              string                 `json:"id,omitempty"`
-	Username        string                 `json:"username,omitempty"`
-	Email           string                 `json:"email,omitempty"`
-	Phone           string                 `json:"phone,omitempty"`
-	Pswd            string                 `json:"pswd,omitempty"`
-	Profile         map[string]interface{} `json:"profile,omitempty"`
-	Active          bool                   `json:"active,omitempty"`
-	TFAInfo         model.TFAInfo          `json:"tfa_info"`
-	NumOfLogins     int                    `json:"num_of_logins,omitempty"`
-	LatestLoginTime int64                  `json:"latest_login_time,omitempty"`
-	AccessRole      string                 `json:"access_role,omitempty"`
+	ID              string        `json:"id,omitempty"`
+	Username        string        `json:"username,omitempty"`
+	Email           string        `json:"email,omitempty"`
+	Phone           string        `json:"phone,omitempty"`
+	Pswd            string        `json:"pswd,omitempty"`
+	Active          bool          `json:"active,omitempty"`
+	TFAInfo         model.TFAInfo `json:"tfa_info"`
+	NumOfLogins     int           `json:"num_of_logins,omitempty"`
+	LatestLoginTime int64         `json:"latest_login_time,omitempty"`
+	AccessRole      string        `json:"access_role,omitempty"`
 }
 
 // Marshal serializes data to byte array.
@@ -53,6 +52,12 @@ func (u *User) Email() string { return u.userData.Email }
 // SetEmail implements model.Email interface.
 func (u *User) SetEmail(email string) { u.userData.Email = email }
 
+// Phone implements model.User interface.
+func (u *User) Phone() string { return u.userData.Phone }
+
+// SetPhone implements model.Phone interface.
+func (u *User) SetPhone(phone string) { u.userData.Phone = phone }
+
 // TFAInfo implements model.User interface.
 func (u *User) TFAInfo() model.TFAInfo { return u.userData.TFAInfo }
 
@@ -61,9 +66,6 @@ func (u *User) SetTFAInfo(tfaInfo model.TFAInfo) { u.userData.TFAInfo = tfaInfo 
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }
-
-// Profile implements model.User interface.
-func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }

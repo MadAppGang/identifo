@@ -309,7 +309,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(name, password, role string) (model.User, error) {
 	name = strings.ToLower(name)
 	_, err := us.userIdxByName(name)
 	if err != nil && err != model.ErrUserNotFound {
@@ -323,7 +323,6 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password, role string, pro
 		Active:     true,
 		Username:   name,
 		AccessRole: role,
-		Profile:    profile,
 	}
 	return us.AddNewUser(&User{userData: u}, password)
 }

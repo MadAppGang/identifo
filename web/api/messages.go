@@ -34,6 +34,8 @@ var messages = map[MessageID]string{
 	ErrorAPIRequestPleaseDisableTFA:            "Please disable two-factor authenticaton",
 	ErrorAPIRequestMandatoryTFA:                "Two-factor authentication is mandatory for this app",
 	ErrorAPIRequestDisabledTFA:                 "Two-factor authentication is disabled for this app",
+	ErrorAPIRequestPleaseSetPhoneForTFA:        "Please specify your phone number to be able to receive one-time passwords",
+	ErrorAPIRequestPleaseSetEmailForTFA:        "Please specify your email address to be able to receive one-time passwords",
 	ErrorAPIAppInactive:                        "Requesting app is inactive",
 	ErrorAPIAppRegistrationForbidden:           "Registration in this app is forbidden",
 	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
@@ -90,6 +92,7 @@ const (
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
 	// ErrorAPIRequestTokenInvalid means that the token is invalid or empty.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
+
 	// ErrorAPIRequestTFACodeEmpty means that the 2FA code is empty.
 	ErrorAPIRequestTFACodeEmpty = "error.api.request.2fa_code.empty"
 	// ErrorAPIRequestTFACodeInvalid means that the 2FA code is invalid.
@@ -104,6 +107,10 @@ const (
 	ErrorAPIRequestMandatoryTFA = "error.api.request.2fa.mandatory"
 	// ErrorAPIRequestDisabledTFA means that app does not support TFA.
 	ErrorAPIRequestDisabledTFA = "error.api.request.2fa.disabled"
+	// ErrorAPIRequestPleaseSetPhoneForTFA means that user must set up their phone number to be able to receive TOTPs in SMS.
+	ErrorAPIRequestPleaseSetPhoneForTFA = "error.api.request.2fa.set_phone"
+	// ErrorAPIRequestPleaseSetEmailForTFA means that user must set up their email address to be able to receive TOTPs on the email.
+	ErrorAPIRequestPleaseSetEmailForTFA = "error.api.request.2fa.set_email"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"

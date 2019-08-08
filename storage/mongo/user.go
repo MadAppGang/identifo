@@ -14,18 +14,17 @@ type User struct {
 
 // User data implementation.
 type userData struct {
-	ID              bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Username        string                 `bson:"username,omitempty" json:"username,omitempty"`
-	Email           string                 `bson:"email,omitempty" json:"email,omitempty"`
-	Phone           string                 `bson:"phone,omitempty" json:"phone,omitempty"`
-	Pswd            string                 `bson:"pswd,omitempty" json:"pswd,omitempty"`
-	Profile         map[string]interface{} `bson:"profile,omitempty" json:"profile,omitempty"`
-	Active          bool                   `bson:"active,omitempty" json:"active,omitempty"`
-	TFAInfo         model.TFAInfo          `bson:"tfa_info" json:"tfa_info"`
-	FederatedIDs    []string               `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
-	NumOfLogins     int                    `bson:"num_of_logins" json:"num_of_logins,omitempty"`
-	LatestLoginTime int64                  `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
-	AccessRole      string                 `bson:"access_role,omitempty" json:"access_role,omitempty"`
+	ID              bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
+	Username        string        `bson:"username,omitempty" json:"username,omitempty"`
+	Email           string        `bson:"email,omitempty" json:"email,omitempty"`
+	Phone           string        `bson:"phone,omitempty" json:"phone,omitempty"`
+	Pswd            string        `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Active          bool          `bson:"active,omitempty" json:"active,omitempty"`
+	TFAInfo         model.TFAInfo `bson:"tfa_info" json:"tfa_info"`
+	FederatedIDs    []string      `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
+	NumOfLogins     int           `bson:"num_of_logins" json:"num_of_logins,omitempty"`
+	LatestLoginTime int64         `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
+	AccessRole      string        `bson:"access_role,omitempty" json:"access_role,omitempty"`
 }
 
 // Sanitize removes sensitive data.
@@ -59,6 +58,12 @@ func (u *User) Email() string { return u.userData.Email }
 // SetEmail implements model.User interface.
 func (u *User) SetEmail(email string) { u.userData.Email = email }
 
+// Phone implements model.User interface.
+func (u *User) Phone() string { return u.userData.Phone }
+
+// SetPhone implements model.Phone interface.
+func (u *User) SetPhone(phone string) { u.userData.Phone = phone }
+
 // TFAInfo implements model.User interface.
 func (u *User) TFAInfo() model.TFAInfo { return u.userData.TFAInfo }
 
@@ -67,9 +72,6 @@ func (u *User) SetTFAInfo(tfaInfo model.TFAInfo) { u.userData.TFAInfo = tfaInfo 
 
 // PasswordHash implements model.User interface.
 func (u *User) PasswordHash() string { return u.userData.Pswd }
-
-// Profile implements model.User interface.
-func (u *User) Profile() map[string]interface{} { return u.userData.Profile }
 
 // Active implements model.User interface.
 func (u *User) Active() bool { return u.userData.Active }

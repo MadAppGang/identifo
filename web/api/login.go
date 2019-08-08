@@ -7,6 +7,7 @@ import (
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
+	"github.com/xlzd/gotp"
 )
 
 var (
@@ -111,6 +112,19 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 
 		if !require2FA {
 			ar.userStorage.UpdateLoginMetadata(user.ID())
+			ar.ServeJSON(w, http.StatusOK, result)
+			return
+		}
+
+		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret).Now()
+		if ar.tfaType == model.TFATypeSMS {
+			if err := ar.sendTFACodeInSMS(w, totp, user); err != nil {
+				return
+			}
+		} else if ar.tfaType == model.TFATypeEmail {
+			if err := ar.sendTFACodeOnEmail(w, totp, user); err != nil {
+				return
+			}
 		}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
@@ -167,4 +181,12 @@ func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, 
 		return true, nil
 	}
 	return false, nil
+}
+
+func (ar *Router) sendTFACodeInSMS(w http.ResponseWriter, totp string, user model.User) error {
+	return nil
+}
+
+func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, totp string, user model.User) error {
+	return nil
 }
