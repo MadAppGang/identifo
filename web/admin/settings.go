@@ -272,7 +272,7 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.ExternalServices)
 	}
 }
 
