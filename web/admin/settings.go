@@ -26,182 +26,7 @@ func (ar *Router) FetchAccountSettings() http.HandlerFunc {
 	}
 }
 
-// UpdateGeneralSettings changes server's general settings.
-func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var generalSettingsUpdate struct {
-			Data model.GeneralServerSettings `json:"general"`
-		}
-
-		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.General = generalSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.General)
-	}
-}
-
-// UpdateStorageSettings changes storage connection settings.
-func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var storageSettingsUpdate struct {
-			Data model.StorageSettings `json:"storage"`
-		}
-
-		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.Storage = storageSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
-	}
-}
-
-// UpdateSessionStorageSettings changes admin session storage connection settings.
-func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var sessionStorageSettingsUpdate struct {
-			Data model.SessionStorageSettings `json:"session_storage"`
-		}
-
-		if ar.mustParseJSON(w, r, &sessionStorageSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.SessionStorage = sessionStorageSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
-	}
-}
-
-// UpdateConfigurationStorageSettings changes storage connection settings.
-func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var configurationStorageSettingsUpdate struct {
-			Data model.ConfigurationStorageSettings `json:"configuration_storage"`
-		}
-
-		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.ConfigurationStorage = configurationStorageSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
-	}
-}
-
-// UpdateStaticFilesSettings changes static files settings.
-func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var staticFilesSettingsUpdate struct {
-			Data model.StaticFilesSettings `json:"static_files"`
-		}
-
-		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.StaticFiles = staticFilesSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
-	}
-}
-
-// UpdateLoginSettings changes app's login settings.
-func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var loginSettingsUpdate struct {
-			Data model.LoginSettings `json:"login"`
-		}
-
-		if ar.mustParseJSON(w, r, &loginSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.Login = loginSettingsUpdate.Data
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Login)
-	}
-}
-
-// UpdateExternalServicesSettings changes settings for external services.
-func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var servicesSettingsUpdate struct {
-			ExternalServices model.ExternalServicesSettings `json:"external_services"`
-		}
-
-		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
-			return
-		}
-
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.ExternalServices = servicesSettingsUpdate.ExternalServices
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
-	}
-}
-
-// UpdateAccountSettings changes admin account settings.
+// UpdateAccountSettings updates admin account settings.
 func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		adminDataUpdate := new(adminLoginData)
@@ -238,6 +63,216 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, nil)
+	}
+}
+
+// FetchGeneralSettings fetches server's general settings.
+func (ar *Router) FetchGeneralSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.General)
+	}
+}
+
+// UpdateGeneralSettings changes server's general settings.
+func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var generalSettingsUpdate model.GeneralServerSettings
+
+		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.General = generalSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.General)
+	}
+}
+
+// FetchStorageSettings fetches server's general settings.
+func (ar *Router) FetchStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Storage)
+	}
+}
+
+// UpdateStorageSettings changes storage connection settings.
+func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var storageSettingsUpdate model.StorageSettings
+
+		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.Storage = storageSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// FetchSessionStorageSettings fetches session storage settings.
+func (ar *Router) FetchSessionStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.SessionStorage)
+	}
+}
+
+// UpdateSessionStorageSettings changes admin session storage connection settings.
+func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var sessionStorageSettingsUpdate model.SessionStorageSettings
+
+		if ar.mustParseJSON(w, r, &sessionStorageSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.SessionStorage = sessionStorageSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// FetchConfigurationStorageSettings fetches configuration storage settings.
+func (ar *Router) FetchConfigurationStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.ConfigurationStorage)
+	}
+}
+
+// UpdateConfigurationStorageSettings changes storage connection settings.
+func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var configurationStorageSettingsUpdate model.ConfigurationStorageSettings
+
+		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.ConfigurationStorage = configurationStorageSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+	}
+}
+
+// FetchStaticFilesSettings fetches static files settings.
+func (ar *Router) FetchStaticFilesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.StaticFiles)
+	}
+}
+
+// UpdateStaticFilesSettings changes static files settings.
+func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var staticFilesSettingsUpdate model.StaticFilesSettings
+
+		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.StaticFiles = staticFilesSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
+	}
+}
+
+// FetchLoginSettings fetches app's login settings.
+func (ar *Router) FetchLoginSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Login)
+	}
+}
+
+// UpdateLoginSettings changes app's login settings.
+func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var loginSettingsUpdate model.LoginSettings
+
+		if ar.mustParseJSON(w, r, &loginSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.Login = loginSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.Login)
+	}
+}
+
+// FetchExternalServicesSettings fetches settings for external services.
+func (ar *Router) FetchExternalServicesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.ExternalServices)
+	}
+}
+
+// UpdateExternalServicesSettings changes settings for external services.
+func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var servicesSettingsUpdate model.ExternalServicesSettings
+
+		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
+			return
+		}
+
+		newServerSettings := new(model.ServerSettings)
+		if err := ar.getServerSettings(w, newServerSettings); err != nil {
+			return
+		}
+
+		newServerSettings.ExternalServices = servicesSettingsUpdate
+		if ar.updateServerSettings(w, newServerSettings) != nil {
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
 	}
 }
 
