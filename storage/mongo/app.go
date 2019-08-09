@@ -79,7 +79,7 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 // MakeAppData creates new MongoDB app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
 	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
-	tfaStatus model.TFAStatus, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
@@ -99,6 +99,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
 		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
 		AuthorizationWay:      authzWay,
 		AuthorizationModel:    authzModel,
 		AuthorizationPolicy:   authzPolicy,

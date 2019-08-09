@@ -55,7 +55,10 @@ func NewAppData(data model.AppData) AppData {
 }
 
 // MakeAppData creates new in-memory app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) AppData {
+
 	return AppData{appData: appData{
 		ID:                    id,
 		Secret:                secret,
@@ -70,6 +73,14 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
+		AuthorizationWay:      authzWay,
+		AuthorizationModel:    authzModel,
+		AuthorizationPolicy:   authzPolicy,
+		RolesWhitelist:        rolesWhitelist,
+		RolesBlacklist:        rolesBlacklist,
+		NewUserDefaultRole:    newUserDefaultRole,
 	}}
 }
 

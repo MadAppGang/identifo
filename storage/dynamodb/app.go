@@ -73,7 +73,9 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 }
 
 // MakeAppData creates new DynamoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, registrationForbidden bool) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 	if _, err := xid.FromString(id); err != nil {
 		log.Println("Cannot create ID from the string representation:", err)
 		return AppData{}, model.ErrorWrongDataFormat
@@ -90,7 +92,16 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		RefreshTokenLifespan:  refreshTokenLifespan,
 		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
+		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
+		AuthorizationWay:      authzWay,
+		AuthorizationModel:    authzModel,
+		AuthorizationPolicy:   authzPolicy,
+		RolesWhitelist:        rolesWhitelist,
+		RolesBlacklist:        rolesBlacklist,
+		NewUserDefaultRole:    newUserDefaultRole,
 	}}, nil
 }
 
