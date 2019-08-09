@@ -268,7 +268,8 @@ func (us *UserStorage) prepareUserForSaving(usr model.User) (*User, error) {
 	if !ok {
 		return nil, model.ErrorWrongDataFormat
 	}
-	// generate new ID if it's not set
+
+	// Generate new ID if it's not set.
 	if _, err := xid.FromString(u.ID()); err != nil {
 		u.userData.ID = xid.New().String()
 	}
@@ -309,9 +310,9 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(name, password, role string) (model.User, error) {
-	name = strings.ToLower(name)
-	_, err := us.userIdxByName(name)
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string) (model.User, error) {
+	username = strings.ToLower(username)
+	_, err := us.userIdxByName(username)
 	if err != nil && err != model.ErrUserNotFound {
 		log.Println(err)
 		return nil, err
@@ -321,9 +322,16 @@ func (us *UserStorage) AddUserByNameAndPassword(name, password, role string) (mo
 
 	u := userData{
 		Active:     true,
-		Username:   name,
+		Username:   username,
 		AccessRole: role,
 	}
+	if model.EmailRegexp.MatchString(u.Username) {
+		u.Email = u.Username
+	}
+	if model.PhoneRegexp.MatchString(u.Username) {
+		u.Phone = u.Username
+	}
+
 	return us.AddNewUser(&User{userData: u}, password)
 }
 

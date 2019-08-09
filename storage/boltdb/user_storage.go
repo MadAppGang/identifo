@@ -349,17 +349,25 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 }
 
 // AddUserByNameAndPassword creates new user and saves it in the database.
-func (us *UserStorage) AddUserByNameAndPassword(name, password, role string) (model.User, error) {
-	if us.UserExists(name) {
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string) (model.User, error) {
+	if us.UserExists(username) {
 		return nil, model.ErrorUserExists
 	}
 
 	u := userData{
 		ID:         xid.New().String(),
 		Active:     true,
-		Username:   name,
+		Username:   username,
 		AccessRole: role,
 	}
+
+	if model.EmailRegexp.MatchString(username) {
+		u.Email = username
+	}
+	if model.PhoneRegexp.MatchString(username) {
+		u.Phone = username
+	}
+
 	return us.AddNewUser(&User{userData: u}, password)
 }
 

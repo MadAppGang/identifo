@@ -15,6 +15,8 @@ var (
 	errPleaseDisableTFA = fmt.Errorf("Please disable two-factor authentication to be able to use this app")
 )
 
+const smsTFACode = "%v is your one-time password!"
+
 // AuthResponse is a response with successful auth data.
 type AuthResponse struct {
 	AccessToken    string     `json:"access_token,omitempty"`
@@ -117,16 +119,17 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret).Now()
-		if ar.tfaType == model.TFATypeSMS {
-			if err := ar.sendTFACodeInSMS(w, totp, user); err != nil {
-				return
-			}
-		} else if ar.tfaType == model.TFATypeEmail {
-			if err := ar.sendTFACodeOnEmail(w, totp, user); err != nil {
-				return
-			}
+
+		switch ar.tfaType {
+		case model.TFATypeSMS:
+			ar.sendTFACodeInSMS(w, totp, user.Phone())
+			return
+		case model.TFATypeEmail:
+			ar.sendTFACodeOnEmail(w, totp, user.Phone())
+			return
+		default:
+			ar.ServeJSON(w, http.StatusOK, result)
 		}
-		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
 
@@ -183,10 +186,30 @@ func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, 
 	return false, nil
 }
 
-func (ar *Router) sendTFACodeInSMS(w http.ResponseWriter, totp string, user model.User) error {
-	return nil
+func (ar *Router) sendTFACodeInSMS(w http.ResponseWriter, phone, totp string) {
+	if phone == "" {
+		ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "", "tfaInSMS.empty_phone")
+		return
+	}
+
+	if err := ar.smsService.SendSMS(phone, fmt.Sprintf(smsTFACode, totp)); err != nil {
+		err = fmt.Errorf("Unable to send sms. %s", err)
+		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendSMS")
+		return
+	}
+	ar.ServeJSON(w, http.StatusOK, nil)
 }
 
-func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, totp string, user model.User) error {
-	return nil
+func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, email, totp string) {
+	if email == "" {
+		ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "", "tfaInSMS.empty_email")
+		return
+	}
+
+	if err := ar.emailService.SendTFAEmail("One-time password", email, totp); err != nil {
+		err = fmt.Errorf("Unable to send email. %s", err)
+		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendTFAEmail")
+		return
+	}
+	ar.ServeJSON(w, http.StatusOK, nil)
 }

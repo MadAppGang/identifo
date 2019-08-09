@@ -78,7 +78,7 @@ func (es emailService) SendResetEmail(subject, recipient string, data interface{
 
 // SendInviteEmail sends invite email to the recipient.
 func (es emailService) SendInviteEmail(subject, recipient string, data interface{}) error {
-	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteEmailTemplate, data)
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteTemplate, data)
 }
 
 // SendWelcomeEmail sends welcoming emails.
@@ -86,7 +86,12 @@ func (es emailService) SendWelcomeEmail(subject, recipient string, data interfac
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.WelcomeTemplate, data)
 }
 
-// SendVerifyEmail sends email address verification emails.
+// SendVerifyEmail sends verification emails.
 func (es emailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
-	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyEmailTemplate, data)
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyTemplate, data)
+}
+
+// SendTFAEmail sends email address verification emails.
+func (es emailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.TFATemplate, data)
 }

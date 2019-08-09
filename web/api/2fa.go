@@ -180,7 +180,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		if !emailRegexp.MatchString(d.Email) {
+		if !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestDisabledTFA.emailRegexp_MatchString")
 			return
 		}
@@ -256,7 +256,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		if !emailRegexp.MatchString(d.Email) {
+		if !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestTFAReset.emailRegexp_MatchString")
 			return
 		}

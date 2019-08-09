@@ -33,7 +33,7 @@ func (rd *registrationData) validate() error {
  * at least 1 upper case
  */
 
-// RegisterWithPassword register new user with password
+// RegisterWithPassword registers new user with password.
 func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 	type registrationResponse struct {
 		AccessToken  string     `json:"access_token,omitempty"`

@@ -235,6 +235,12 @@ func (us *UserStorage) AddUserByNameAndPassword(username, password, role string)
 		Username:   username,
 		AccessRole: role,
 	}
+	if model.EmailRegexp.MatchString(u.Username) {
+		u.Email = u.Username
+	}
+	if model.PhoneRegexp.MatchString(u.Username) {
+		u.Phone = u.Username
+	}
 	return us.AddNewUser(&User{userData: u}, password)
 }
 
