@@ -91,7 +91,7 @@ func (es emailService) SendVerifyEmail(subject, recipient string, data interface
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyTemplate, data)
 }
 
-// SendTFAEmail sends email address verification emails.
+// SendTFAEmail sends emails with one-time password.
 func (es emailService) SendTFAEmail(subject, recipient string, data interface{}) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.TFATemplate, data)
 }

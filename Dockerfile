@@ -16,7 +16,7 @@ WORKDIR /root/
 COPY --from=builder /app .
 COPY *config.yaml ./
 COPY jwt/*.pem ./jwt/
-COPY web/static ./static
+COPY web/static ./web/static
 COPY cmd/import/apps.json ./apps.json
 COPY cmd/import/users.json ./users.json
 COPY email_templates ./email_templates
