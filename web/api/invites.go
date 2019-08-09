@@ -7,6 +7,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -20,7 +21,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
 			return
 		}
-		if d.Email != "" && !emailRegexp.MatchString(d.Email) {
+		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestInviteLink.emailRegexp_MatchString")
 			return
 		}

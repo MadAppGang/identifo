@@ -52,3 +52,8 @@ func (es emailService) SendWelcomeEmail(subject, recipient string, data interfac
 func (es emailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
 	return nil
 }
+
+// SendTFAEmail returns nil error.
+func (es emailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+	return nil
+}

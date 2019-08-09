@@ -46,8 +46,9 @@ staticFiles:
   emailTemplateNames:
     welcome: welcome.html
     resetPassword: reset_password.html
-    inviteEmail: invite_email.html
-    verifyEmail: verify_email.html
+    invite: invite_email.html
+    verify: verify_email.html
+    tfa: tfa_email.html
   adminPanelBuildPath: ./admin_panel/build
 
 login:

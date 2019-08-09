@@ -14,11 +14,10 @@ const (
 )
 
 type registrationData struct {
-	Username   string                 `json:"username,omitempty"`
-	Password   string                 `json:"password,omitempty"`
-	AccessRole string                 `json:"access_role,omitempty"`
-	Profile    map[string]interface{} `json:"user_profile,omitempty"`
-	Scope      []string               `json:"scope,omitempty"`
+	Username   string   `json:"username,omitempty"`
+	Password   string   `json:"password,omitempty"`
+	AccessRole string   `json:"access_role,omitempty"`
+	Scope      []string `json:"scope,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -101,7 +100,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole, rd.Profile)
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

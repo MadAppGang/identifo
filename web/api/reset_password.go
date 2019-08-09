@@ -5,10 +5,9 @@ import (
 	"net/http"
 	"net/url"
 	"path"
-	"regexp"
-)
 
-var emailRegexp = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
+	"github.com/madappgang/identifo/model"
+)
 
 // RequestResetPassword requests password reset.
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
@@ -21,7 +20,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
-		if !emailRegexp.MatchString(d.Email) {
+		if !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestResetPassword.emailRegexp_MatchString")
 			return
 		}

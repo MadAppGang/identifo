@@ -123,7 +123,7 @@ func (es *EmailService) SendResetEmail(subject, recipient string, data interface
 
 // SendInviteEmail sends invite email to the recipient.
 func (es *EmailService) SendInviteEmail(subject, recipient string, data interface{}) error {
-	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteEmailTemplate, data)
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteTemplate, data)
 }
 
 // SendWelcomeEmail sends welcoming emails.
@@ -133,7 +133,12 @@ func (es *EmailService) SendWelcomeEmail(subject, recipient string, data interfa
 
 // SendVerifyEmail sends email address verification emails.
 func (es *EmailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
-	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyEmailTemplate, data)
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyTemplate, data)
+}
+
+// SendTFAEmail sends emails with one-time password.
+func (es *EmailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+	return es.SendTemplateEmail(subject, recipient, es.tmpltr.TFATemplate, data)
 }
 
 func logAWSError(err error) {

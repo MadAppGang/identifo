@@ -55,6 +55,15 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
+		if ar.tfaType == model.TFATypeSMS && user.Phone() == "" {
+			ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "Please specify your phone number to be able to receive one-time passwords", "EnableTFA.setPhone")
+			return
+		}
+		if ar.tfaType == model.TFATypeEmail && user.Email() == "" {
+			ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "Please specify your email address to be able to receive one-time passwords", "EnableTFA.setEmail")
+			return
+		}
+
 		tfa := model.TFAInfo{
 			IsEnabled: true,
 			Secret:    gotp.RandomSecret(16),
@@ -70,11 +79,8 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 		case model.TFATypeApp:
 			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: tfa.Secret})
 			return
-		case model.TFATypeSMS:
-			ar.sendTFASecretInSMS(w, tfa.Secret)
-			return
-		case model.TFATypeEmail:
-			ar.sendTFASecretInEmail(w, tfa.Secret)
+		case model.TFATypeSMS, model.TFATypeEmail:
+			ar.ServeJSON(w, http.StatusOK, nil)
 			return
 		}
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
@@ -174,7 +180,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		if !emailRegexp.MatchString(d.Email) {
+		if !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestDisabledTFA.emailRegexp_MatchString")
 			return
 		}
@@ -250,7 +256,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		if !emailRegexp.MatchString(d.Email) {
+		if !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestTFAReset.emailRegexp_MatchString")
 			return
 		}
@@ -312,12 +318,4 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 		result := map[string]string{"result": "ok"}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
-}
-
-func (ar *Router) sendTFASecretInSMS(w http.ResponseWriter, tfaSecret string) {
-	ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Not yet implemented", "sendTFASecretInSMS")
-}
-
-func (ar *Router) sendTFASecretInEmail(w http.ResponseWriter, tfaSecret string) {
-	ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Not yet implemented", "sendTFASecretInEmail")
 }

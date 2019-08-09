@@ -15,6 +15,7 @@ type EmailService interface {
 	SendInviteEmail(subject, recipient string, data interface{}) error
 	SendWelcomeEmail(subject, recipient string, data interface{}) error
 	SendVerifyEmail(subject, recipient string, data interface{}) error
+	SendTFAEmail(subject, recipient string, data interface{}) error
 
 	Templater() *EmailTemplater
 }
@@ -34,13 +35,18 @@ func NewEmailTemplater(templateNames EmailTemplateNames, templatePath string) (*
 		return nil, err
 	}
 
-	f = path.Join(templatePath, templateNames.InviteEmail)
-	if et.InviteEmailTemplate, err = template.New(path.Base(f)).ParseFiles(f); err != nil {
+	f = path.Join(templatePath, templateNames.Invite)
+	if et.InviteTemplate, err = template.New(path.Base(f)).ParseFiles(f); err != nil {
 		return nil, err
 	}
 
-	f = path.Join(templatePath, templateNames.VerifyEmail)
-	if et.VerifyEmailTemplate, err = template.New(path.Base(f)).ParseFiles(f); err != nil {
+	f = path.Join(templatePath, templateNames.Verify)
+	if et.VerifyTemplate, err = template.New(path.Base(f)).ParseFiles(f); err != nil {
+		return nil, err
+	}
+
+	f = path.Join(templatePath, templateNames.TFA)
+	if et.TFATemplate, err = template.New(path.Base(f)).ParseFiles(f); err != nil {
 		return nil, err
 	}
 	return &et, nil
@@ -50,14 +56,16 @@ func NewEmailTemplater(templateNames EmailTemplateNames, templatePath string) (*
 type EmailTemplater struct {
 	WelcomeTemplate       *template.Template
 	ResetPasswordTemplate *template.Template
-	InviteEmailTemplate   *template.Template
-	VerifyEmailTemplate   *template.Template
+	InviteTemplate        *template.Template
+	VerifyTemplate        *template.Template
+	TFATemplate           *template.Template
 }
 
 // EmailTemplateNames stores email template names.
 type EmailTemplateNames struct {
 	Welcome       string `yaml:"welcome,omitempty" json:"welcome,omitempty"`
 	ResetPassword string `yaml:"resetPassword,omitempty" json:"reset_password,omitempty"`
-	InviteEmail   string `yaml:"inviteEmail,omitempty" json:"invite_email,omitempty"`
-	VerifyEmail   string `yaml:"verifyEmail,omitempty" json:"verify_email,omitempty"`
+	Invite        string `yaml:"invite,omitempty" json:"invite,omitempty"`
+	Verify        string `yaml:"verify,omitempty" json:"verify,omitempty"`
+	TFA           string `yaml:"tfa,omitempty" json:"tfa,omitempty"`
 }

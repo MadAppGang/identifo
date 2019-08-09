@@ -7,15 +7,10 @@ import (
 	"fmt"
 	"math/big"
 	"net/http"
-	"regexp"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
-)
-
-var (
-	phoneRegExp = regexp.MustCompile(`^[\+][0-9]{9,15}$`)
 )
 
 const (
@@ -38,17 +33,15 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 			return
 		}
 
-		// TODO: add limiter here. Check frequency of requests
+		// TODO: add limiter here. Check frequency of requests.
 		code := randStringBytes(phoneVerificationCodeLength)
-		err := ar.verificationCodeStorage.CreateVerificationCode(authData.PhoneNumber, code)
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.PutVerificationCode")
+		if err := ar.verificationCodeStorage.CreateVerificationCode(authData.PhoneNumber, code); err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.CreateVerificationCode")
 			return
 		}
 
-		err = ar.smsService.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code))
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to send sms. Error: "+err.Error(), "RequestVerificationCode.SendSMS")
+		if err := ar.smsService.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code)); err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unable to send sms. %s", err), "RequestVerificationCode.SendSMS")
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, map[string]string{"message": "SMS code is sent"})
@@ -165,7 +158,7 @@ func (l *PhoneLogin) validateCodeAndPhone() error {
 }
 
 func (l *PhoneLogin) validatePhone() error {
-	if !phoneRegExp.MatchString(l.PhoneNumber) {
+	if !model.PhoneRegexp.MatchString(l.PhoneNumber) {
 		return errors.New("Phone number is not valid. ")
 	}
 	return nil

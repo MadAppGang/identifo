@@ -1,9 +1,19 @@
 package model
 
-import "errors"
+import (
+	"errors"
+	"regexp"
+)
 
 // ErrUserNotFound is when user not found.
 var ErrUserNotFound = errors.New("User not found. ")
+
+var (
+	// EmailRegexp is a regexp which all valid emails must match.
+	EmailRegexp = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)
+	// PhoneRegexp is a regexp which all valid phone numbers must match.
+	PhoneRegexp = regexp.MustCompile(`^[\+][0-9]{9,15}$`)
+)
 
 // UserStorage is an abstract user storage.
 type UserStorage interface {
@@ -15,7 +25,7 @@ type UserStorage interface {
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
 	UserByNamePassword(name, password string) (User, error)
-	AddUserByNameAndPassword(name, password, role string, profile map[string]interface{}) (User, error)
+	AddUserByNameAndPassword(username, password, role string) (User, error)
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id, role string) (User, error)
@@ -40,10 +50,10 @@ type User interface {
 	SetUsername(string)
 	Email() string
 	SetEmail(string)
+	Phone() string
 	TFAInfo() TFAInfo
 	SetTFAInfo(TFAInfo)
 	PasswordHash() string
-	Profile() map[string]interface{}
 	Active() bool
 	AccessRole() string
 	Sanitize()

@@ -81,13 +81,14 @@ configurationStorage:
 
 staticFiles:
   serverConfigPath: server-config.yaml   # File with server settings.
-  staticFolderPath: ./static   # Folder for the static files.
+  staticFolderPath: ./web/static   # Folder for the static files.
   emailTemplatesPath: ./email_templates   # Forder for the email templates.
   emailTemplateNames:   # Email template names.
     welcome: welcome.html
     resetPassword: reset_password.html
-    inviteEmail: invite_email.html
-    verifyEmail: verify_email.html
+    invite: invite_email.html
+    verify: verify_email.html
+    tfa: tfa_email.html
   # Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
   adminPanelBuildPath: ./admin_panel/build
 

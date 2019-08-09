@@ -131,7 +131,7 @@ func (d *updateData) validate(user model.User) error {
 		}
 	}
 
-	if d.updateEmail && !emailRegexp.MatchString(d.NewEmail) {
+	if d.updateEmail && !model.EmailRegexp.MatchString(d.NewEmail) {
 		return errors.New("Email is not valid. ")
 	}
 	return nil
