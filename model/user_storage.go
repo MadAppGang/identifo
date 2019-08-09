@@ -51,7 +51,6 @@ type User interface {
 	Email() string
 	SetEmail(string)
 	Phone() string
-	SetPhone(string)
 	TFAInfo() TFAInfo
 	SetTFAInfo(TFAInfo)
 	PasswordHash() string

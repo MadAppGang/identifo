@@ -55,9 +55,6 @@ func (u *User) SetEmail(email string) { u.userData.Email = email }
 // Phone implements model.User interface.
 func (u *User) Phone() string { return u.userData.Phone }
 
-// SetPhone implements model.Phone interface.
-func (u *User) SetPhone(phone string) { u.userData.Phone = phone }
-
 // TFAInfo implements model.User interface.
 func (u *User) TFAInfo() model.TFAInfo { return u.userData.TFAInfo }
 

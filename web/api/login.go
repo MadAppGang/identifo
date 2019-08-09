@@ -125,7 +125,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ar.sendTFACodeInSMS(w, totp, user.Phone())
 			return
 		case model.TFATypeEmail:
-			ar.sendTFACodeOnEmail(w, totp, user.Phone())
+			ar.sendTFACodeOnEmail(w, totp, user.Email())
 			return
 		default:
 			ar.ServeJSON(w, http.StatusOK, result)
