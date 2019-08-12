@@ -67,7 +67,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			Method:      r.Method,
 		}
 
-		if err := ar.Authorizer.Authorize(azi); err != nil {
+		if ar.Authorizer == nil || err := ar.Authorizer.Authorize(azi); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
 			redirectToLogin()
 			return

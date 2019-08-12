@@ -89,7 +89,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
-		if err := ar.Authorizer.Authorize(azi); err != nil {
+		if ar.Authorizer == nil || err := ar.Authorizer.Authorize(azi); err != nil {
 			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "LoginWithPassword.Authorizer")
 			return
 		}

@@ -34,7 +34,7 @@ type AuthzInfo struct {
 	Method      string
 }
 
-// Authorize perfroms actuall authorization.
+// Authorize performs authorization.
 func (az *Authorizer) Authorize(azi AuthzInfo) error {
 	switch azi.App.AuthzWay() {
 	case model.NoAuthz, "":
