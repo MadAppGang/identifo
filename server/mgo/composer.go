@@ -2,7 +2,6 @@ package mgo
 
 import (
 	"fmt"
-	"path"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
@@ -74,15 +73,15 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.Algorithm]
+	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.General.Algorithm]
 	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.Algorithm)
+		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.General.Algorithm)
 	}
 
 	tokenService, err := jwtService.NewJWTokenService(
-		path.Join(dc.settings.PEMFolderPath, dc.settings.PrivateKey),
-		path.Join(dc.settings.PEMFolderPath, dc.settings.PublicKey),
-		dc.settings.Issuer,
+		dc.settings.General.PrivateKeyPath,
+		dc.settings.General.PublicKeyPath,
+		dc.settings.General.Issuer,
 		tokenServiceAlg,
 		tokenStorage,
 		appStorage,

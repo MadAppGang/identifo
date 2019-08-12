@@ -28,6 +28,7 @@ type appData struct {
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
 	TFAStatus             model.TFAStatus        `bson:"tfa_status" json:"tfa_status"`
+	DebugTFACode          string                 `bson:"debug_tfa_code,omitempty" json:"debug_tfa_code,omitempty"`
 	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
@@ -56,6 +57,13 @@ func NewAppData(data model.AppData) (AppData, error) {
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
+		TFAStatus:             data.TFAStatus(),
+		AuthorizationWay:      data.AuthzWay(),
+		AuthorizationModel:    data.AuthzModel(),
+		AuthorizationPolicy:   data.AuthzPolicy(),
+		RolesWhitelist:        data.RolesWhitelist(),
+		RolesBlacklist:        data.RolesBlacklist(),
+		NewUserDefaultRole:    data.NewUserDefaultRole(),
 	}}, nil
 }
 
@@ -69,7 +77,10 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 }
 
 // MakeAppData creates new MongoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
+
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
@@ -87,6 +98,14 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
+		AuthorizationWay:      authzWay,
+		AuthorizationModel:    authzModel,
+		AuthorizationPolicy:   authzPolicy,
+		RolesWhitelist:        rolesWhitelist,
+		RolesBlacklist:        rolesBlacklist,
+		NewUserDefaultRole:    newUserDefaultRole,
 	}}, nil
 }
 
@@ -139,6 +158,9 @@ func (ad *AppData) RegistrationForbidden() bool { return ad.appData.Registration
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
+
+// DebugTFACode implements model.AppData interface.
+func (ad *AppData) DebugTFACode() string { return ad.appData.DebugTFACode }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }

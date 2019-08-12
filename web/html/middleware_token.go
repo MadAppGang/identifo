@@ -11,21 +11,20 @@ import (
 	"github.com/urfave/negroni"
 )
 
-//ResetTokenMiddleware checks token in questy and validate it
+// ResetTokenMiddleware extracts reset token and validates it.
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/reset/error")
 	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.ResetTokenType)
+
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tstr := ""
 		switch r.Method {
 		case http.MethodGet:
 			tstr = r.URL.Query().Get("token")
 		case http.MethodPost:
-			err := r.ParseForm()
-			if err != nil {
+			if err := r.ParseForm(); err != nil {
 				break
 			}
-
 			tstr = r.FormValue("token")
 		}
 
@@ -47,7 +46,8 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), model.TokenRawContextKey, tstr)
+		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
+		ctx = context.WithValue(ctx, model.TokenRawContextKey, tstr)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(w, r)
 	}

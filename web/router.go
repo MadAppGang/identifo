@@ -59,6 +59,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.AppStorage,
 		settings.UserStorage,
 		settings.TokenStorage,
+		settings.TokenBlacklist,
 		settings.TokenService,
 		settings.SMSService,
 		settings.EmailService,

@@ -13,6 +13,7 @@ import (
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
 	configStoreS3 "github.com/madappgang/identifo/configuration/storage/s3"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
+	emailMock "github.com/madappgang/identifo/external_services/mail/mock"
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
@@ -84,7 +85,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 		log.Fatalln(err)
 	}
 
-	if err = os.Setenv(serverConfigPathEnvName, out.ServerConfigPath); err != nil {
+	if err = os.Setenv(serverConfigPathEnvName, out.StaticFiles.ServerConfigPath); err != nil {
 		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
 	}
 }
@@ -97,7 +98,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 
 	if configurationStorage == nil {
-		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.ServerConfigPath)
+		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFiles.ServerConfigPath)
 		if err != nil {
 			return nil, err
 		}
@@ -118,12 +119,12 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
-	ms, err := mailService(settings.MailService, settings.EmailTemplateNames, settings.EmailTemplatesPath)
+	ms, err := mailService(settings.ExternalServices.MailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
 
-	sms, err := smsService(settings.SMSService)
+	sms, err := smsService(settings.ExternalServices.SMSService)
 	if err != nil {
 		return nil, err
 	}
@@ -131,15 +132,15 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	// env variable can rewrite host option
 	hostName := os.Getenv("HOST_NAME")
 	if len(hostName) == 0 {
-		hostName = settings.Host
+		hostName = settings.General.Host
 	}
 
 	staticFiles := html.StaticFilesPath{
-		StylesPath:  path.Join(settings.StaticFolderPath, "css"),
-		ScriptsPath: path.Join(settings.StaticFolderPath, "js"),
-		PagesPath:   settings.StaticFolderPath,
-		ImagesPath:  path.Join(settings.StaticFolderPath, "img"),
-		FontsPath:   path.Join(settings.StaticFolderPath, "fonts"),
+		StylesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "css"),
+		ScriptsPath: path.Join(settings.StaticFiles.StaticFolderPath, "js"),
+		PagesPath:   settings.StaticFiles.StaticFolderPath,
+		ImagesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "img"),
+		FontsPath:   path.Join(settings.StaticFiles.StaticFolderPath, "fonts"),
 	}
 
 	routerSettings := web.RouterSetting{
@@ -160,12 +161,12 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
-			api.SupportedLoginWaysOption(settings.LoginWith),
-			api.TFATypeOption(settings.TFAType),
+			api.SupportedLoginWaysOption(settings.Login.LoginWith),
+			api.TFATypeOption(settings.Login.TFAType),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
-			admin.ServerConfigPathOption(settings.ServerConfigPath),
+			admin.ServerConfigPathOption(settings.StaticFiles.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
 		},
 	}
@@ -261,7 +262,7 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 // ServeAdminPanelOption is an option to serve admin panel right from the Identifo server.
 func ServeAdminPanelOption() func(*Server) error {
 	return func(s *Server) (err error) {
-		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.AdminPanelBuildPath))
+		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.StaticFiles.AdminPanelBuildPath))
 		if err != nil {
 			return
 		}
@@ -298,6 +299,8 @@ func mailService(serviceType model.MailServiceType, templateNames model.EmailTem
 		return mailgun.NewEmailServiceFromEnv(tpltr), nil
 	case model.MailServiceAWS:
 		return ses.NewEmailServiceFromEnv(tpltr)
+	case model.MailServiceMock:
+		return emailMock.NewEmailService(), nil
 	default:
 		return nil, model.ErrorNotImplemented
 	}

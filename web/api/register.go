@@ -11,10 +11,9 @@ import (
 )
 
 type registrationData struct {
-	Username string                 `json:"username,omitempty"`
-	Password string                 `json:"password,omitempty"`
-	Profile  map[string]interface{} `json:"user_profile,omitempty"`
-	Scopes   []string               `json:"scopes,omitempty"`
+	Username string   `json:"username,omitempty"`
+	Password string   `json:"password,omitempty"`
+	Scopes   []string `json:"scopes,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -35,7 +34,7 @@ func (rd *registrationData) validate() error {
  * at least 1 upper case
  */
 
-// RegisterWithPassword register new user with password
+// RegisterWithPassword registers new user with password.
 func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 	type registrationResponse struct {
 		AccessToken  string     `json:"access_token,omitempty"`
@@ -86,7 +85,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole(), rd.Profile)
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole())
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return

@@ -1,15 +1,15 @@
 package html
 
 import (
+	"html/template"
 	"net/http"
 	"path"
 
 	"github.com/madappgang/identifo/model"
 )
 
-//ResetPassword handles password reset form submition
+// ResetPassword handles password reset form submission (POST request).
 func (ar *Router) ResetPassword() http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		password := r.FormValue("password")
 		if err := model.StrongPswd(password); err != nil {
@@ -19,10 +19,15 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		}
 
 		tokenString := r.Context().Value(model.TokenRawContextKey).(string)
-		token, _ := ar.TokenService.Parse(tokenString)
-
-		err := ar.UserStorage.ResetPassword(token.UserID(), password)
+		token, err := ar.TokenService.Parse(tokenString)
 		if err != nil {
+			ar.Logger.Println("Error parsing token. ", err)
+			SetFlash(w, FlashErrorMessageKey, "Server Error")
+			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+
+		if err = ar.UserStorage.ResetPassword(token.UserID(), password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
@@ -31,5 +36,31 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		successPath := path.Join(ar.PathPrefix, "password/reset/success")
 		http.Redirect(w, r, successPath, http.StatusMovedPermanently)
 	}
+}
 
+// ResetPasswordHandler handles reset password GET request.
+func (ar *Router) ResetPasswordHandler() http.HandlerFunc {
+	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPassword))
+	if err != nil {
+		ar.Logger.Fatalln("Cannot parse ResetPassword template.", err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		token := r.Context().Value(model.TokenRawContextKey)
+		data := map[string]interface{}{
+			"Error":  errorMessage,
+			"Token":  token,
+			"Prefix": ar.PathPrefix,
+		}
+
+		if err = tmpl.Execute(w, data); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+		}
+	}
 }

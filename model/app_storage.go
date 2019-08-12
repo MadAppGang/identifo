@@ -41,6 +41,7 @@ type AppData interface {
 	TokenPayload() []string
 	Sanitize()
 	TFAStatus() TFAStatus
+	DebugTFACode() string
 	RegistrationForbidden() bool
 	AuthzWay() AuthorizationWay
 	AuthzModel() string

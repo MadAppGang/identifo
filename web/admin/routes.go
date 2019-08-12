@@ -64,18 +64,35 @@ func (ar *Router) initRoutes() {
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchServerSettings()),
 	)).Methods("GET")
-	ar.router.Path(`/{settings:settings/?}`).Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.AlterServerSettings()),
-	)).Methods("PUT")
 
 	settings := mux.NewRouter().PathPrefix("/settings").Subrouter()
 	ar.router.PathPrefix("/settings").Handler(negroni.New(
 		ar.Session(),
 		negroni.Wrap(settings),
 	))
+
+	settings.Path("/general").HandlerFunc(ar.FetchGeneralSettings()).Methods("GET")
+	settings.Path("/general").HandlerFunc(ar.UpdateGeneralSettings()).Methods("PUT")
+
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
-	settings.Path("/account").HandlerFunc(ar.AlterAccountSettings()).Methods("PATCH")
-	settings.Path("/storage").HandlerFunc(ar.AlterStorageSettings()).Methods("PUT")
+	settings.Path("/account").HandlerFunc(ar.UpdateAccountSettings()).Methods("PATCH")
+
+	settings.Path("/storage").HandlerFunc(ar.FetchStorageSettings()).Methods("GET")
+	settings.Path("/storage").HandlerFunc(ar.UpdateStorageSettings()).Methods("PUT")
 	settings.Path("/storage/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
+
+	settings.Path("/storage/session").HandlerFunc(ar.FetchSessionStorageSettings()).Methods("GET")
+	settings.Path("/storage/session").HandlerFunc(ar.UpdateSessionStorageSettings()).Methods("PUT")
+
+	settings.Path("/storage/configuration").HandlerFunc(ar.FetchConfigurationStorageSettings()).Methods("GET")
+	settings.Path("/storage/configuration").HandlerFunc(ar.UpdateConfigurationStorageSettings()).Methods("PUT")
+
+	settings.Path("/static").HandlerFunc(ar.FetchStaticFilesSettings()).Methods("GET")
+	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesSettings()).Methods("PUT")
+
+	settings.Path("/login").HandlerFunc(ar.FetchLoginSettings()).Methods("GET")
+	settings.Path("/login").HandlerFunc(ar.UpdateLoginSettings()).Methods("PUT")
+
+	settings.Path("/services").HandlerFunc(ar.FetchExternalServicesSettings()).Methods("GET")
+	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
 }

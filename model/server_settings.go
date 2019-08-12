@@ -9,25 +9,70 @@ import (
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	Host                 string                       `yaml:"host,omitempty" json:"host,omitempty"`
-	PEMFolderPath        string                       `yaml:"pemFolderPath,omitempty" json:"pem_folder_path,omitempty"`
-	PrivateKey           string                       `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	PublicKey            string                       `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Issuer               string                       `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm            string                       `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	General              GeneralServerSettings        `yaml:"general,omitempty" json:"general,omitempty"`
+	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
+	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	ConfigurationStorage ConfigurationStorageSettings `yaml:"configurationStorage,omitempty" json:"configuration_storage,omitempty"`
 	SessionStorage       SessionStorageSettings       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
-	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	LoginWith            LoginWith                    `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
-	TFAType              TFAType                      `yaml:"tfaType,omitempty" json:"tfa_type,omitempty"`
-	ServerConfigPath     string                       `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	MailService          MailServiceType              `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
-	SMSService           SMSServiceSettings           `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
-	StaticFolderPath     string                       `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath   string                       `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames   EmailTemplateNames           `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AdminPanelBuildPath  string                       `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	StaticFiles          StaticFilesSettings          `yaml:"staticFiles,omitempty" json:"static_files,omitempty"`
+	ExternalServices     ExternalServicesSettings     `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
+	Login                LoginSettings                `yaml:"login,omitempty" json:"login,omitempty"`
+}
+
+// GeneralServerSettings are general server settings.
+type GeneralServerSettings struct {
+	Host           string `yaml:"host,omitempty" json:"host,omitempty"`
+	PrivateKeyPath string `yaml:"privateKeyPath,omitempty" json:"private_key_path,omitempty"`
+	PublicKeyPath  string `yaml:"publicKeyPath,omitempty" json:"public_key_path,omitempty"`
+	Issuer         string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	Algorithm      string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+}
+
+// AdminAccountSettings are names of environment variables that store admin credentials.
+type AdminAccountSettings struct {
+	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name,omitempty"`
+	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name,omitempty"`
+}
+
+// StorageSettings holds together storage settings for different services.
+type StorageSettings struct {
+	AppStorage              DatabaseSettings `yaml:"appStorage,omitempty" json:"app_storage,omitempty"`
+	UserStorage             DatabaseSettings `yaml:"userStorage,omitempty" json:"user_storage,omitempty"`
+	TokenStorage            DatabaseSettings `yaml:"tokenStorage,omitempty" json:"token_storage,omitempty"`
+	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist,omitempty" json:"token_blacklist,omitempty"`
+	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage,omitempty" json:"verification_code_storage,omitempty"`
+}
+
+// DatabaseSettings holds together all settings applicable to a particular database.
+type DatabaseSettings struct {
+	Type     DatabaseType `yaml:"type,omitempty" json:"type,omitempty"`
+	Name     string       `yaml:"name,omitempty" json:"name,omitempty"`
+	Endpoint string       `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+	Region   string       `yaml:"region,omitempty" json:"region,omitempty"`
+	Path     string       `yaml:"path,omitempty" json:"path,omitempty"`
+}
+
+// DatabaseType is a type of database.
+type DatabaseType string
+
+const (
+	// DBTypeBoltDB is for BoltDB.
+	DBTypeBoltDB DatabaseType = "boltdb"
+	// DBTypeMongoDB is for MongoDB.
+	DBTypeMongoDB DatabaseType = "mongodb"
+	// DBTypeDynamoDB is for DynamoDB.
+	DBTypeDynamoDB DatabaseType = "dynamodb"
+	// DBTypeFake is for in-memory storage.
+	DBTypeFake DatabaseType = "fake"
+)
+
+// StaticFilesSettings are settings for static files used by Identifo.
+type StaticFilesSettings struct {
+	ServerConfigPath    string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	StaticFolderPath    string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath  string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames  EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	AdminPanelBuildPath string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 }
 
 // ConfigurationStorageSettings holds together configuration storage settings.
@@ -73,42 +118,16 @@ const (
 	SessionStorageDynamoDB = "dynamodb"
 )
 
-// StorageSettings holds together storage settings for different services.
-type StorageSettings struct {
-	AppStorage              DatabaseSettings `yaml:"appStorage,omitempty" json:"app_storage,omitempty"`
-	UserStorage             DatabaseSettings `yaml:"userStorage,omitempty" json:"user_storage,omitempty"`
-	TokenStorage            DatabaseSettings `yaml:"tokenStorage,omitempty" json:"token_storage,omitempty"`
-	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist,omitempty" json:"token_blacklist,omitempty"`
-	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage,omitempty" json:"verification_code_storage,omitempty"`
+// ExternalServicesSettings are settings for external services.
+type ExternalServicesSettings struct {
+	MailService MailServiceType    `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
+	SMSService  SMSServiceSettings `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
 }
 
-// DatabaseSettings holds together all settings applicable to a particular database.
-type DatabaseSettings struct {
-	Type     DatabaseType `yaml:"type,omitempty" json:"type,omitempty"`
-	Name     string       `yaml:"name,omitempty" json:"name,omitempty"`
-	Endpoint string       `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
-	Region   string       `yaml:"region,omitempty" json:"region,omitempty"`
-	Path     string       `yaml:"path,omitempty" json:"path,omitempty"`
-}
-
-// DatabaseType is a type of database.
-type DatabaseType string
-
-const (
-	// DBTypeBoltDB is for BoltDB.
-	DBTypeBoltDB DatabaseType = "boltdb"
-	// DBTypeMongoDB is for MongoDB.
-	DBTypeMongoDB DatabaseType = "mongodb"
-	// DBTypeDynamoDB is for DynamoDB.
-	DBTypeDynamoDB DatabaseType = "dynamodb"
-	// DBTypeFake is for in-memory storage.
-	DBTypeFake DatabaseType = "fake"
-)
-
-// AdminAccountSettings are names of environment variables that store admin credentials.
-type AdminAccountSettings struct {
-	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name,omitempty"`
-	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name,omitempty"`
+// LoginSettings are settings of login.
+type LoginSettings struct {
+	LoginWith LoginWith `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
+	TFAType   TFAType   `yaml:"tfaType,omitempty" json:"tfa_type,omitempty"`
 }
 
 // LoginWith is a type for configuring supported login ways.
@@ -156,11 +175,13 @@ const (
 	MailServiceMailgun = "mailgun"
 	// MailServiceAWS is an AWS SES service.
 	MailServiceAWS = "aws ses"
+	// MailServiceMock is an email service mock.
+	MailServiceMock = "mock"
 )
 
 // GetPort returns port on which host listens to incoming connections.
 func (ss *ServerSettings) GetPort() string {
-	u, err := url.Parse(ss.Host)
+	u, err := url.Parse(ss.General.Host)
 	if err != nil {
 		panic(err)
 	}

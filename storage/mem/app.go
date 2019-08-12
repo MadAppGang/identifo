@@ -25,6 +25,7 @@ type appData struct {
 	TokenPayload          []string               `json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
 	TFAStatus             model.TFAStatus        `json:"tfa_status"`
+	DebugTFACode          string                 `json:"debug_tfa_code,omitempty"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
@@ -54,7 +55,10 @@ func NewAppData(data model.AppData) AppData {
 }
 
 // MakeAppData creates new in-memory app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool) AppData {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) AppData {
+
 	return AppData{appData: appData{
 		ID:                    id,
 		Secret:                secret,
@@ -69,6 +73,14 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
+		AuthorizationWay:      authzWay,
+		AuthorizationModel:    authzModel,
+		AuthorizationPolicy:   authzPolicy,
+		RolesWhitelist:        rolesWhitelist,
+		RolesBlacklist:        rolesBlacklist,
+		NewUserDefaultRole:    newUserDefaultRole,
 	}}
 }
 
@@ -116,6 +128,9 @@ func (ad *AppData) RegistrationForbidden() bool { return ad.appData.Registration
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
+
+// DebugTFACode implements model.AppData interface.
+func (ad *AppData) DebugTFACode() string { return ad.appData.DebugTFACode }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }

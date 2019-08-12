@@ -26,8 +26,9 @@ type appData struct {
 	RefreshTokenLifespan  int64                  `json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64                  `json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
-	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	TokenPayload          []string               `json:"token_payload,omitempty"`
 	TFAStatus             model.TFAStatus        `json:"tfa_status"`
+	DebugTFACode          string                 `json:"debug_tfa_code,omitempty"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
@@ -72,7 +73,9 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 }
 
 // MakeAppData creates new DynamoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string, refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, registrationForbidden bool) (AppData, error) {
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 	if _, err := xid.FromString(id); err != nil {
 		log.Println("Cannot create ID from the string representation:", err)
 		return AppData{}, model.ErrorWrongDataFormat
@@ -89,7 +92,16 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		RefreshTokenLifespan:  refreshTokenLifespan,
 		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
+		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		TFAStatus:             tfaStatus,
+		DebugTFACode:          debugTFACode,
+		AuthorizationWay:      authzWay,
+		AuthorizationModel:    authzModel,
+		AuthorizationPolicy:   authzPolicy,
+		RolesWhitelist:        rolesWhitelist,
+		RolesBlacklist:        rolesBlacklist,
+		NewUserDefaultRole:    newUserDefaultRole,
 	}}, nil
 }
 
@@ -139,6 +151,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
+
+// DebugTFACode implements model.AppData interface.
+func (ad *AppData) DebugTFACode() string { return ad.appData.DebugTFACode }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
