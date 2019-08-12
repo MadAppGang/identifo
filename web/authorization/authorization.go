@@ -10,10 +10,6 @@ import (
 
 // NewAuthorizer creates a new Authorizer.
 func NewAuthorizer() *Authorizer {
-	a := &Authorizer{
-		internalAuthorizers: make(map[string]*casbin.Enforcer),
-	}
-
 	return &Authorizer{
 		internalAuthorizers: make(map[string]*casbin.Enforcer),
 	}
