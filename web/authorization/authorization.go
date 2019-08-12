@@ -14,7 +14,9 @@ func NewAuthorizer() *Authorizer {
 		internalAuthorizers: make(map[string]*casbin.Enforcer),
 	}
 
-	return a
+	return &Authorizer{
+		internalAuthorizers: make(map[string]*casbin.Enforcer),
+	}
 }
 
 // Authorizer is an entity that authorizes users to an app.
