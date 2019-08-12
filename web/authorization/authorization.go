@@ -1,77 +1,86 @@
-package api
+package authorization
 
 import (
 	"fmt"
-	"net/http"
 
 	"github.com/casbin/casbin"
 	"github.com/madappgang/identifo/model"
 	strCasbin "github.com/qiangmzsx/string-adapter"
 )
 
-const anonymousRole = "anonymous"
+// NewAuthorizer creates a new Authorizer.
+func NewAuthorizer() *Authorizer {
+	a := &Authorizer{
+		internalAuthorizers: make(map[string]*casbin.Enforcer),
+	}
 
-type authzInfo struct {
-	app         model.AppData
-	userRole    string
-	resourceURI string
-	method      string
+	return a
 }
 
-// authorize checks if user has an access to the requested resource.
-// If error happens, writes it to ResponseWriter.
-// Also, writes an error on failed authorization.
-func (ar *Router) authorize(w http.ResponseWriter, azi authzInfo) error {
-	switch azi.app.AuthzWay() {
+// Authorizer is an entity that authorizes users to an app.
+type Authorizer struct {
+	internalAuthorizers map[string]*casbin.Enforcer
+}
+
+const anonymousRole = "anonymous"
+
+// AuthzInfo holds all the data to perform authorization.
+type AuthzInfo struct {
+	App         model.AppData
+	UserRole    string
+	ResourceURI string
+	Method      string
+}
+
+// Authorize perfroms actuall authorization.
+func (az *Authorizer) Authorize(azi AuthzInfo) error {
+	switch azi.App.AuthzWay() {
 	case model.NoAuthz, "":
 		return nil
 	case model.RolesWhitelist:
-		return ar.authorizeWhitelist(w, azi)
+		return az.authorizeWhitelist(azi)
 	case model.RolesBlacklist:
-		return ar.authorizeBlacklist(w, azi)
+		return az.authorizeBlacklist(azi)
 	case model.Internal:
-		return ar.authorizeInternal(w, azi)
+		return az.authorizeInternal(azi)
 	case model.External:
 		return model.ErrorNotImplemented
 	}
 	return nil
 }
 
-func (ar *Router) authorizeWhitelist(w http.ResponseWriter, azi authzInfo) error {
-	whitelist := azi.app.RolesWhitelist()
+func (az *Authorizer) authorizeWhitelist(azi AuthzInfo) error {
+	whitelist := azi.App.RolesWhitelist()
 	if whitelist == nil {
 		err := fmt.Errorf("Access denied")
-		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
 		return err
 	}
 
-	role := azi.userRole
+	role := azi.UserRole
 	if role == "" {
 		role = anonymousRole
 	}
 
 	if accessGranted := contains(whitelist, role); !accessGranted {
 		err := fmt.Errorf("Access denied")
-		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
 		return err
 	}
 	return nil
 }
 
-func (ar *Router) authorizeBlacklist(w http.ResponseWriter, azi authzInfo) error {
-	blacklist := azi.app.RolesBlacklist()
+func (az *Authorizer) authorizeBlacklist(azi AuthzInfo) error {
+	blacklist := azi.App.RolesBlacklist()
 	if blacklist == nil {
 		return nil
 	}
 
-	role := azi.userRole
+	role := azi.UserRole
 	if role == "" {
 		role = anonymousRole
 	}
 
 	if accessDenied := contains(blacklist, role); accessDenied {
 		err := fmt.Errorf("Access denied")
-		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
 		return err
 	}
 	return nil
@@ -100,31 +109,29 @@ p, manager, /auth/phone_login, POST
 p, manager, /auth/federated, POST
 p, anonymous, /auth/register, POST`
 */
-func (ar *Router) authorizeInternal(w http.ResponseWriter, azi authzInfo) error {
-	authorizer, err := ar.initInternalAuthorizer(azi.app)
+func (az *Authorizer) authorizeInternal(azi AuthzInfo) error {
+	authorizer, err := az.initInternalAuthorizer(azi.App)
 	if err != nil {
-		err = fmt.Errorf("Cannot init internal authorizer for app %s: %s", azi.app.ID(), err)
-		ar.Error(w, ErrorAPIAppCannotInitAuthorizer, http.StatusInternalServerError, err.Error(), "Authorizer.authorizeInternal")
+		err = fmt.Errorf("Cannot init internal authorizer for app %s: %s", azi.App.ID(), err)
 		return err
 	}
 
-	sub := azi.userRole
+	sub := azi.UserRole
 	if sub == "" {
 		sub = anonymousRole
 	}
-	obj := azi.resourceURI
-	act := azi.method
+	obj := azi.ResourceURI
+	act := azi.Method
 
 	if accessGranted := authorizer.Enforce(sub, obj, act); !accessGranted {
 		err := fmt.Errorf("Access denied")
-		ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "Authorizer.AccessDenied")
 		return err
 	}
 	return nil
 }
 
-func (ar *Router) initInternalAuthorizer(app model.AppData) (*casbin.Enforcer, error) {
-	authorizer, ok := ar.Authorizers[app.ID()]
+func (az *Authorizer) initInternalAuthorizer(app model.AppData) (*casbin.Enforcer, error) {
+	authorizer, ok := az.internalAuthorizers[app.ID()]
 	if ok {
 		return authorizer, nil
 	}
@@ -137,7 +144,7 @@ func (ar *Router) initInternalAuthorizer(app model.AppData) (*casbin.Enforcer, e
 	strAdapter := strCasbin.NewAdapter(policyStr)
 
 	authorizer = casbin.NewEnforcer(casbin.NewModel(modelStr), strAdapter)
-	ar.Authorizers[app.ID()] = authorizer
+	az.internalAuthorizers[app.ID()] = authorizer
 	authorizer.EnableLog(true)
 
 	return authorizer, nil

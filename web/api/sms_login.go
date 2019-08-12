@@ -11,6 +11,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -102,26 +103,27 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			userRole:    user.AccessRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    user.AccessRole(),
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
 		}
-		if err := ar.authorize(w, azi); err != nil {
+		if err := ar.Authorizer.Authorize(azi); err != nil {
+			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "PhoneLogin.Authorizer")
 			return
 		}
 
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "PhoneLogin.RequestScopes")
 			return
 		}
 
 		offline := contains(scopes, jwtService.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "PhoneLogin.loginUser")
 			return
 		}
 

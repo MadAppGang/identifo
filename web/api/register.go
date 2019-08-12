@@ -6,6 +6,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -56,13 +57,14 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Check if it makes sense to create new user.
-		azi := authzInfo{
-			app:         app,
-			userRole:    app.NewUserDefaultRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    app.NewUserDefaultRole(),
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
 		}
-		if err := ar.authorize(w, azi); err != nil {
+		if err := ar.Authorizer.Authorize(azi); err != nil {
+			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "RegisterWithPassword.Authorizer")
 			return
 		}
 

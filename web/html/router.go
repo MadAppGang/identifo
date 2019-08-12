@@ -7,7 +7,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/casbin/casbin"
+	"github.com/madappgang/identifo/web/authorization"
+
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -28,7 +29,7 @@ type Router struct {
 	StaticPages     StaticPages
 	StaticFilesPath StaticFilesPath
 	EmailTemplates  EmailTemplates
-	Authorizers     map[string]*casbin.Enforcer
+	Authorizer      *authorization.Authorizer
 	PathPrefix      string
 	Host            string
 }
@@ -58,7 +59,7 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		Middleware:   negroni.Classic(),
 		Router:       mux.NewRouter(),
@@ -68,6 +69,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		TokenService: tokenService,
 		SMSService:   smsService,
 		EmailService: emailService,
+		Authorizer:   authorizer,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {
