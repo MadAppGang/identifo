@@ -22,6 +22,7 @@ type ConfigurationStorage struct {
 func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
 	return &ConfigurationStorage{
 		ServerConfigPath: settings.SettingsKey,
+		UpdateChan:       make(chan interface{}, 1),
 	}, nil
 }
 
