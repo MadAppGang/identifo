@@ -32,6 +32,9 @@ type AuthzInfo struct {
 
 // Authorize performs authorization.
 func (az *Authorizer) Authorize(azi AuthzInfo) error {
+	if az == nil {
+		return nil
+	}
 	switch azi.App.AuthzWay() {
 	case model.NoAuthz, "":
 		return nil
