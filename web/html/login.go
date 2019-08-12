@@ -9,6 +9,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -59,14 +60,14 @@ func (ar *Router) Login() http.HandlerFunc {
 		}
 
 		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			userRole:    user.AccessRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    user.AccessRole(),
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
 		}
 
-		if err := ar.authorize(azi); err != nil {
+		if ar.Authorizer == nil || err := ar.Authorizer.Authorize(azi); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
 			redirectToLogin()
 			return

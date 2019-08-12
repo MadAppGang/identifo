@@ -6,7 +6,8 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/casbin/casbin"
+	"github.com/madappgang/identifo/web/authorization"
+
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -29,7 +30,7 @@ type Router struct {
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
-	Authorizers             map[string]*casbin.Enforcer
+	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
@@ -80,7 +81,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenBlacklist model.TokenBlacklist, verificationCodeStorage model.VerificationCodeStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenBlacklist model.TokenBlacklist, verificationCodeStorage model.VerificationCodeStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),
@@ -92,7 +93,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		tokenService:            tokenService,
 		smsService:              smsService,
 		emailService:            emailService,
-		Authorizers:             make(map[string]*casbin.Enforcer, 1),
+		Authorizer:              authorizer,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -59,14 +60,14 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			userRole:    app.NewUserDefaultRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    app.NewUserDefaultRole(),
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
 		}
 
-		if err := ar.authorize(azi); err != nil {
+		if err := ar.Authorizer.Authorize(azi); err != nil {
 			SetFlash(w, FlashErrorMessageKey, err.Error())
 			redirectToRegister()
 			return
