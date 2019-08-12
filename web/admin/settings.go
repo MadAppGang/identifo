@@ -62,7 +62,7 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, http.StatusOK, newAdminData)
 	}
 }
 
