@@ -27,7 +27,9 @@ func (ar *Router) Session() negroni.HandlerFunc {
 // IsLoggedIn checks if admin is logged in.
 func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.isLoggedIn(w, r)
+		if ar.isLoggedIn(w, r) {
+			ar.ServeJSON(w, http.StatusOK, nil)
+		}
 	}
 }
 

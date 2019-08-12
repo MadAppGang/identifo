@@ -62,7 +62,7 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, http.StatusOK, newAdminData)
 	}
 }
 
@@ -152,7 +152,7 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.SessionStorage)
 	}
 }
 
@@ -182,7 +182,7 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.ConfigurationStorage)
 	}
 }
 
