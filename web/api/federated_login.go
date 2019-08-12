@@ -7,6 +7,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
 
@@ -99,13 +100,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Authorize user if the app requires authorization.
-		azi := authzInfo{
-			app:         app,
-			userRole:    user.AccessRole(),
-			resourceURI: r.RequestURI,
-			method:      r.Method,
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    user.AccessRole(),
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
 		}
-		if err := ar.authorize(w, azi); err != nil {
+		if ar.Authorizer == nil || err := ar.Authorizer.Authorize(azi); err != nil {
+			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "FederatedLogin.Authorizer")
 			return
 		}
 

@@ -8,6 +8,7 @@ import (
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/html"
 )
 
@@ -34,6 +35,7 @@ type RouterSetting struct {
 func NewRouter(settings RouterSetting) (model.Router, error) {
 	r := Router{}
 	var err error
+	authorizer := authorization.NewAuthorizer()
 
 	r.APIRouter, err = api.NewRouter(
 		settings.Logger,
@@ -45,6 +47,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.TokenService,
 		settings.SMSService,
 		settings.EmailService,
+		authorizer,
 		settings.APIRouterSettings...,
 	)
 	if err != nil {
@@ -60,6 +63,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.TokenService,
 		settings.SMSService,
 		settings.EmailService,
+		authorizer,
 		settings.WebRouterSettings...,
 	)
 
