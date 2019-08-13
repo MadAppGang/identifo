@@ -1,4 +1,5 @@
 general:  # General server settings.
+  host: http://localhost:8080
   privateKeyPath: jwt/private.pem 
   publicKeyPath: jwt/public.pem
   issuer: http://localhost:8080   

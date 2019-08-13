@@ -23,6 +23,9 @@ func (ss *ServerSettings) Validate() error {
 	if err := ss.SessionStorage.Validate(); err != nil {
 		return err
 	}
+	if err := ss.ConfigurationStorage.Validate(); err != nil {
+		return err
+	}
 	if err := ss.ExternalServices.Validate(); err != nil {
 		return err
 	}
@@ -128,6 +131,37 @@ func (sss *SessionStorageSettings) Validate() error {
 		}
 	case SessionStorageDynamoDB:
 		if len(sss.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
+	}
+	return nil
+}
+
+// Validate validates configuration  storage settings.
+func (css *ConfigurationStorageSettings) Validate() error {
+	subject := "ConfigurationStorageSettings"
+	if css == nil {
+		return fmt.Errorf("Nil %s", subject)
+	}
+
+	if len(css.Type) == 0 {
+		return fmt.Errorf("Empty configuration storage type")
+	}
+	if len(css.SettingsKey) == 0 {
+		return fmt.Errorf("%s. Empty settings key", subject)
+	}
+
+	switch css.Type {
+	case ConfigurationStorageTypeFile:
+		return nil
+	case ConfigurationStorageTypeEtcd:
+		for _, ep := range css.Endpoints {
+			if _, err := url.ParseRequestURI(ep); err != nil {
+				return fmt.Errorf("%s. Invalid etcd enpoint. %s", subject, err)
+			}
+		}
+	case ConfigurationStorageTypeS3:
+		if len(css.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 	}
