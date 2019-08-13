@@ -226,7 +226,6 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		log.Println("Error querying user by id:", err)
 		return nil, ErrorInternalError
 	}
-	user.Sanitize()
 	return user, nil
 }
 
@@ -244,7 +243,6 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 		return nil, ErrorInternalError
 	}
 
-	user.Sanitize()
 	return user, nil
 }
 
