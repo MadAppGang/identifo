@@ -116,6 +116,13 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			return
 		}
 
+		callbackURL := strings.TrimSpace(r.URL.Query().Get("callback_url"))
+		if !contains(app.RedirectURLs(), callbackURL) {
+			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
 		serveTemplate := func() {
 			errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)
 			if err != nil {
@@ -124,10 +131,11 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			}
 
 			data := map[string]interface{}{
-				"Error":  errorMessage,
-				"Prefix": ar.PathPrefix,
-				"Scopes": scopesJSON,
-				"AppId":  app.ID(),
+				"Error":       errorMessage,
+				"Prefix":      ar.PathPrefix,
+				"Scopes":      scopesJSON,
+				"CallbackURL": callbackURL,
+				"AppId":       app.ID(),
 			}
 
 			if err = tmpl.Execute(w, data); err != nil {
@@ -188,7 +196,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			return
 		}
 
-		redirectURL := app.RedirectURL() + "#" + tokenString
-		http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
+		redirectURL := callbackURL + "#" + tokenString
+		http.Redirect(w, r, redirectURL, http.StatusFound)
 	}
 }

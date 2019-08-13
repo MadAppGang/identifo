@@ -28,9 +28,9 @@ type AppData interface {
 	// Do not use refresh tokens with apps that does not have secure storage.
 	Offline() bool
 	Type() AppType
-	// RedirectURL is a redirect URL where to redirect the user after successfull login.
+	// RedirectURLs is the list of allowed urls where user will be redirected after successfull login.
 	// Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
-	RedirectURL() string
+	RedirectURLs() []string
 	// TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
 	TokenLifespan() int64
 	// InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
