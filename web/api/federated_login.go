@@ -14,7 +14,7 @@ import (
 // FederatedLoginData represents federated login input data.
 type FederatedLoginData struct {
 	FederatedIDProvider string   `json:"provider,omitempty" validate:"required"`
-	AccessToken         string   `json:"access_token,omitempty" validate:"required"`
+	AccessToken         string   `json:"access_token,omitempty"`
 	RegisterIfNew       bool     `json:"register_if_new,omitempty"`
 	Scopes              []string `json:"scopes,omitempty"`
 	AuthorizationCode   string   `json:"authorization_code,omitempty"` // Specific for Sign In with Apple.
@@ -70,6 +70,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			if app.AppleInfo() == nil {
 				ar.logger.Println("Empty apple info")
 				ar.Error(w, ErrorAPIAppFederatedProviderEmptyAppleInfo, http.StatusBadRequest, "App does not have Apple info.", "FederatedLogin.switch_providers_apple")
+				return
 			}
 			federatedID, err = ar.AppleUserID(d.AuthorizationCode, app.AppleInfo())
 		default:
