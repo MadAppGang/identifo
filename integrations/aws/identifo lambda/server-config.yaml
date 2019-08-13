@@ -37,6 +37,7 @@ sessionStorage:
 # in environment variables.
 configurationStorage:
   type: s3
+  settingsKey: server-config.yaml
   region: us-east-1
 
 staticFiles:

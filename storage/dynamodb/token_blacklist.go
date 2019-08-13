@@ -51,7 +51,7 @@ func (tb *TokenBlacklist) ensureTable() error {
 			},
 		},
 		BillingMode: aws.String("PAY_PER_REQUEST"),
-		TableName:   aws.String(TokensTableName),
+		TableName:   aws.String(BlacklistedTokensTableName),
 	}
 
 	if _, err = tb.db.C.CreateTable(input); err != nil {

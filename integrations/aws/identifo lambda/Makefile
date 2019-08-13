@@ -4,10 +4,10 @@ app = Identifo
 function = Identifo
 # Specify needed environment variables.
 # api_gateway_endpoint = 
-# admin_panel_bucket = 
-# aws_profile =
+# aws_profile = 
 
 compile: update_admin_panel
+		dep ensure -update
 		GOOS=linux go build -o $(app)
 
 run:	compile
