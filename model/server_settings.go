@@ -1,7 +1,6 @@
 package model
 
 import (
-	"fmt"
 	"net"
 	"net/url"
 	"strings"
@@ -191,15 +190,4 @@ func (ss *ServerSettings) GetPort() string {
 		panic(err)
 	}
 	return strings.Join([]string{":", port}, "")
-}
-
-// Validate makes sure that all crucial fields are set.
-func (ss *ServerSettings) Validate() error {
-	if len(ss.AdminAccount.LoginEnvName) == 0 {
-		return fmt.Errorf("Admin login env variable name not specified")
-	}
-	if len(ss.AdminAccount.PasswordEnvName) == 0 {
-		return fmt.Errorf("Admin password env variable name not specified")
-	}
-	return nil
 }
