@@ -14,9 +14,10 @@ import (
 )
 
 const (
-	usernameKey = "email"
-	passwordKey = "password"
-	scopesKey   = "scopes"
+	usernameKey    = "email"
+	passwordKey    = "password"
+	scopesKey      = "scopes"
+	callbackURLKey = "callbackUrl"
 )
 
 // Login logs user in with email and password.
@@ -27,6 +28,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		username := r.FormValue(usernameKey)
 		password := r.FormValue(passwordKey)
 		scopesJSON := r.FormValue(scopesKey)
+		callbackURL := r.FormValue(callbackURLKey)
 		scopes := []string{}
 		app := middleware.AppFromContext(r.Context())
 
@@ -34,6 +36,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			q := r.URL.Query()
 			q.Set(FormKeyAppID, app.ID())
 			q.Set(scopesKey, scopesJSON)
+			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
 
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusFound)
@@ -54,7 +57,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		if _, err = ar.UserStorage.RequestScopes(user.ID(), scopes); err != nil {
 			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
-			SetFlash(w, FlashErrorMessageKey, err.Error())
+			http.Redirect(w, r, errorPath, http.StatusFound)
 			redirectToLogin()
 			return
 		}
@@ -105,10 +108,12 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
-			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
+			ar.Logger.Printf("Error: App not found.")
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
 		}
 
-		scopesJSON := strings.TrimSpace(r.URL.Query().Get("scopes"))
+		scopesJSON := strings.TrimSpace(r.URL.Query().Get(scopesKey))
 		scopes := []string{}
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
 			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
@@ -116,7 +121,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			return
 		}
 
-		callbackURL := strings.TrimSpace(r.URL.Query().Get("callback_url"))
+		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
 		if !contains(app.RedirectURLs(), callbackURL) {
 			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
 			http.Redirect(w, r, errorPath, http.StatusFound)

@@ -50,7 +50,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			return
 		}
 
-		callbackURL := strings.TrimSpace(r.URL.Query().Get("callbackURL"))
+		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
 		if !contains(app.RedirectURLs(), callbackURL) {
 			message := fmt.Sprintf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
 			ar.Logger.Printf(message)
@@ -90,7 +90,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			return
 		}
 
-		scopesJSON := strings.TrimSpace(r.URL.Query().Get("scopes"))
+		scopesJSON := strings.TrimSpace(r.URL.Query().Get(scopesKey))
 		scopes := []string{}
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
 			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
