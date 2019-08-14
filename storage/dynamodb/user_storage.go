@@ -399,10 +399,12 @@ func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	}
 
 	u := userData{
-		ID:         xid.New().String(),
-		Active:     true,
-		Phone:      phone,
-		AccessRole: role,
+		ID:          xid.New().String(),
+		Username:    phone,
+		Active:      true,
+		Phone:       phone,
+		AccessRole:  role,
+		NumOfLogins: 0,
 	}
 	return us.AddNewUser(&User{userData: u}, "")
 }

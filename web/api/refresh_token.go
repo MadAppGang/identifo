@@ -8,8 +8,8 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-// RefreshTokens issues new access and, if requsted, refresh tokens for provided refresh token.
-// After the new refresh token is issued, the old one gets invalidated.
+// RefreshTokens issues new access and, if requsted, refresh token for provided refresh token.
+// After new tokens are issued, the old refresh token gets invalidated (via blacklisting).
 func (ar *Router) RefreshTokens() http.HandlerFunc {
 	type requestData struct {
 		Scopes []string `json:"scopes,omitempty"`
