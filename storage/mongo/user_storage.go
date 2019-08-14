@@ -213,10 +213,12 @@ func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	defer s.Close()
 
 	u := userData{
-		ID:         bson.NewObjectId(),
-		Active:     true,
-		Phone:      phone,
-		AccessRole: role,
+		ID:          bson.NewObjectId(),
+		Username:    phone,
+		Active:      true,
+		Phone:       phone,
+		AccessRole:  role,
+		NumOfLogins: 0,
 	}
 
 	err := s.C.Insert(u)

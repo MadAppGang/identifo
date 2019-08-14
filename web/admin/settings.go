@@ -81,6 +81,10 @@ func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
 		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
 			return
 		}
+		if err := generalSettingsUpdate.Validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			return
+		}
 
 		newServerSettings := new(model.ServerSettings)
 		if err := ar.getServerSettings(w, newServerSettings); err != nil {
@@ -109,6 +113,10 @@ func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
 		var storageSettingsUpdate model.StorageSettings
 
 		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
+			return
+		}
+		if err := storageSettingsUpdate.Validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -141,6 +149,10 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 		if ar.mustParseJSON(w, r, &sessionStorageSettingsUpdate) != nil {
 			return
 		}
+		if err := sessionStorageSettingsUpdate.Validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			return
+		}
 
 		newServerSettings := new(model.ServerSettings)
 		if err := ar.getServerSettings(w, newServerSettings); err != nil {
@@ -169,6 +181,10 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 		var configurationStorageSettingsUpdate model.ConfigurationStorageSettings
 
 		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
+			return
+		}
+		if err := configurationStorageSettingsUpdate.Validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
 
@@ -259,6 +275,10 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 		var servicesSettingsUpdate model.ExternalServicesSettings
 
 		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
+			return
+		}
+		if err := servicesSettingsUpdate.Validate(); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
 

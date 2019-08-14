@@ -1,4 +1,5 @@
 general:  # General server settings.
+  host: http://localhost:8080
   privateKeyPath: jwt/private.pem 
   publicKeyPath: jwt/public.pem
   issuer: http://localhost:8080   
@@ -37,6 +38,7 @@ sessionStorage:
 # in environment variables.
 configurationStorage:
   type: s3
+  settingsKey: server-config.yaml
   region: us-east-1
 
 staticFiles:

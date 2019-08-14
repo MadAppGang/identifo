@@ -48,7 +48,6 @@ type federatedUserID struct {
 // Sanitize removes sensitive data.
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
-	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
 }
 

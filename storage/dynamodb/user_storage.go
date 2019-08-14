@@ -226,7 +226,6 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		log.Println("Error querying user by id:", err)
 		return nil, ErrorInternalError
 	}
-	user.Sanitize()
 	return user, nil
 }
 
@@ -244,7 +243,6 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 		return nil, ErrorInternalError
 	}
 
-	user.Sanitize()
 	return user, nil
 }
 
@@ -401,10 +399,12 @@ func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 	}
 
 	u := userData{
-		ID:         xid.New().String(),
-		Active:     true,
-		Phone:      phone,
-		AccessRole: role,
+		ID:          xid.New().String(),
+		Username:    phone,
+		Active:      true,
+		Phone:       phone,
+		AccessRole:  role,
+		NumOfLogins: 0,
 	}
 	return us.AddNewUser(&User{userData: u}, "")
 }
