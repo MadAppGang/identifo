@@ -1,4 +1,14 @@
 [
-    {"id": "123456", "username":"User2@madappganf.com","active":false, "pswd":"SecretM123"},
-    {"id": "abcdef", "username":"test@madappgang.com","active":true, "pswd":"SecretM123"}
+    {
+        "id": "123456",
+        "username":"user@madappgang.com",
+        "active": false,
+        "pswd":"SecretM123"
+    },
+    {
+        "id": "abcdef",
+        "username":"test@madappgang.com",
+        "active":true,
+        "pswd":"SecretM123"
+    }
 ]
