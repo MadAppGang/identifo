@@ -157,6 +157,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
 		}
 
+		user.Sanitize()
 		result := &AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,

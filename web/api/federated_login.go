@@ -146,6 +146,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			}
 		}
 
+		user.Sanitize()
 		result := AuthResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,

@@ -23,7 +23,6 @@ type user struct {
 
 func (u *user) Sanitize() {
 	u.userData.Pswd = ""
-	u.userData.Active = false
 	u.userData.TFAInfo.Secret = ""
 }
 

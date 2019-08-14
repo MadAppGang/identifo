@@ -120,6 +120,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
+		user.Sanitize()
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,

@@ -130,7 +130,6 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		user.Sanitize()
-
 		result := registrationResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
