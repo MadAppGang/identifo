@@ -23,7 +23,6 @@ import (
 	redis "github.com/madappgang/identifo/sessions/redis"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
-	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
 	"gopkg.in/yaml.v2"
@@ -155,6 +154,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		ConfigurationStorage:    configurationStorage,
 		SMSService:              sms,
 		EmailService:            ms,
+		AdminPanelBuildPath:     settings.StaticFiles.AdminPanelBuildPath,
 		WebRouterSettings: []func(*html.Router) error{
 			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),
@@ -256,21 +256,6 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 		return configStoreFile.NewConfigurationStorage(settings)
 	default:
 		return nil, model.ErrorNotImplemented
-	}
-}
-
-// ServeAdminPanelOption is an option to serve admin panel right from the Identifo server.
-func ServeAdminPanelOption() func(*Server) error {
-	return func(s *Server) (err error) {
-		s.MainRouter.AdminPanelRouter, err = adminpanel.NewRouter(adminpanel.BuildPathOption(ServerSettings.StaticFiles.AdminPanelBuildPath))
-		if err != nil {
-			return
-		}
-
-		s.MainRouter.AdminPanelRouterPath = "/adminpanel"
-		s.MainRouter.RootRouter.Handle(s.MainRouter.AdminPanelRouterPath+"/", http.StripPrefix(s.MainRouter.AdminPanelRouterPath, s.MainRouter.AdminPanelRouter))
-
-		return nil
 	}
 }
 

@@ -14,8 +14,11 @@ type Router struct {
 }
 
 // NewRouter creates and initializes new admin panel router.
-func NewRouter(options ...func(*Router) error) (model.Router, error) {
-	apr := &Router{router: mux.NewRouter()}
+func NewRouter(buildPath string, options ...func(*Router) error) (model.Router, error) {
+	apr := &Router{
+		router:    mux.NewRouter(),
+		buildPath: buildPath,
+	}
 
 	for _, option := range options {
 		if err := option(apr); err != nil {
