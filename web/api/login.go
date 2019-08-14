@@ -136,6 +136,15 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	}
 }
 
+// IsLoggedIn is for checking whether user is logged in or not.
+// In fact, all needed work is done in Token middleware.
+// If we reached this code, user is logged in (presented valid and not blacklisted access token).
+func (ar *Router) IsLoggedIn() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		ar.ServeJSON(w, http.StatusOK, nil)
+	}
+}
+
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
 func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool) (accessTokenString, refreshTokenString string, err error) {
