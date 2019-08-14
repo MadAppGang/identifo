@@ -1,11 +1,14 @@
 package api
 
 import (
+	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/base64"
+	"io/ioutil"
 	"math/big"
 	"net/http"
+	"time"
 )
 
 //https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
@@ -118,5 +121,19 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 		//A JSON object that represents a set of JWKs. The JSON object MUST have a keys member, which is an array of JWKs.
 		result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
 		ar.ServeJSON(w, http.StatusOK, result)
+	}
+}
+
+// SupportSignInWithApple lets Apple servers download apple-developer-domain-association.txt.
+func (ar *Router) SupportSignInWithApple() http.HandlerFunc {
+	data, err := ioutil.ReadFile("./web/static/apple-developer-domain-association.txt")
+	if err != nil {
+		ar.logger.Fatalln("Cannot parse apple-developer-domain-association.txt:", err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", "attachment; filename=apple-developer-domain-association.txt")
+		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+		http.ServeContent(w, r, "apple-developer-domain-association.txt.txt", time.Now(), bytes.NewReader(data))
 	}
 }
