@@ -11,8 +11,9 @@ import (
 	"time"
 )
 
-//https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-//Identifo is not OIDC provider, that's why we are providing here information only for token validation
+// OIDCConfiguration describes OIDC configuration.
+// Additional info: https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata.
+// Identifo is not an OIDC provider, that's why we only provide the information for token validation.
 type OIDCConfiguration struct {
 	Issuer                 string   `json:"issuer"`
 	JwksURI                string   `json:"jwks_uri"`
@@ -67,58 +68,58 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 	}
 }
 
-//OIDCJwks
-//When creating applications and resources servers (APIs) in Identifo,
-//two algorithms are supported for signing JSON Web Tokens (JWTs): RS256 and ES256.
-//RS256 and ES256 generate an asymmetric signature, which means a private key must be used to sign the JWT
-//and a different public key must be used to verify the signature.
+// OIDCJwks returns JSON Web Keys object.
+// Identifo supports two algorithms for signing JSON Web Tokens (JWTs): RS256 and ES256.
+// RS256 and ES256 generate an asymmetric signature, which means a private key must be used to sign the JWT,
+// and a different public key must be used to verify the signature.
 //
-//At the most basic level, the JWKS is a set of keys containing the public keys that should
-//be used to verify any JWT issued by the authorization server.
-//This endpoint exposes a JWKS endpoint for each tenant, which is found at
-//https://YOUR_IDENTIFO_DOMAIN/.well-known/jwks.json.
-//Currently Identifo only supports a single JWK for signing,
-//however it is important to assume this endpoint technically could contain multiple JWKs.
+// At the most basic level, the JWKS is a set of keys containing the public keys that should
+// be used to verify any JWT issued by the authorization server.
+// This endpoint exposes a JWKS endpoint for each tenant, which can be found at https://YOUR_IDENTIFO_DOMAIN/.well-known/jwks.json.
+// Currently Identifo only supports a single JWK for signing,
+// however it is important to assume this endpoint technically could contain multiple JWKs.
 func (ar *Router) OIDCJwks() http.HandlerFunc {
-
 	return func(w http.ResponseWriter, r *http.Request) {
-
-		if ar.jwk == nil {
-			ar.jwk = &jwk{
-				Use: "sig",
-				Alg: ar.tokenService.Algorithm(),
-				Kid: ar.tokenService.KeyID(),
-			}
-
-			switch pub := ar.tokenService.PublicKey().(type) {
-			case *rsa.PublicKey:
-				//https://tools.ietf.org/html/rfc7518#section-6.3.1
-				ar.jwk.Kty = "RSA"
-				ar.jwk.N = base64.RawURLEncoding.EncodeToString(pub.N.Bytes())
-				ar.jwk.E = base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pub.E)).Bytes())
-			case *ecdsa.PublicKey:
-				// https://tools.ietf.org/html/rfc7518#section-6.2.1
-				p := pub.Curve.Params()
-				n := p.BitSize / 8
-				if p.BitSize%8 != 0 {
-					n++
-				}
-				x := pub.X.Bytes()
-				if n > len(x) {
-					x = append(make([]byte, n-len(x)), x...)
-				}
-				y := pub.Y.Bytes()
-				if n > len(y) {
-					y = append(make([]byte, n-len(y)), y...)
-				}
-				ar.jwk.Kty = "EC"
-				ar.jwk.Crv = p.Name
-				ar.jwk.X = base64.RawURLEncoding.EncodeToString(x)
-				ar.jwk.Y = base64.RawURLEncoding.EncodeToString(y)
-			}
-
+		if ar.jwk != nil {
+			// A JSON object that represents a set of JWKs. The JSON object MUST have a keys member, which is an array of JWKs.
+			result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
+			ar.ServeJSON(w, http.StatusOK, result)
+			return
 		}
-		//A JSON object that represents a set of JWKs. The JSON object MUST have a keys member, which is an array of JWKs.
+
+		ar.jwk = &jwk{
+			Use: "sig",
+			Alg: ar.tokenService.Algorithm(),
+			Kid: ar.tokenService.KeyID(),
+		}
+
+		switch pub := ar.tokenService.PublicKey().(type) {
+		case *rsa.PublicKey:
+			// https://tools.ietf.org/html/rfc7518#section-6.3.1
+			ar.jwk.Kty = "RSA"
+			ar.jwk.N = base64.RawURLEncoding.EncodeToString(pub.N.Bytes())
+			ar.jwk.E = base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pub.E)).Bytes())
+		case *ecdsa.PublicKey:
+			// https://tools.ietf.org/html/rfc7518#section-6.2.1
+			p := pub.Curve.Params()
+			n := p.BitSize / 8
+			if p.BitSize%8 != 0 {
+				n++
+			}
+			x := pub.X.Bytes()
+			if n > len(x) {
+				x = append(make([]byte, n-len(x)), x...)
+			}
+			y := pub.Y.Bytes()
+			if n > len(y) {
+				y = append(make([]byte, n-len(y)), y...)
+			}
+			ar.jwk.Kty = "EC"
+			ar.jwk.Crv = p.Name
+			ar.jwk.X = base64.RawURLEncoding.EncodeToString(x)
+			ar.jwk.Y = base64.RawURLEncoding.EncodeToString(y)
+		}
+
 		result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
@@ -126,14 +127,18 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 // SupportSignInWithApple lets Apple servers download apple-developer-domain-association.txt.
 func (ar *Router) SupportSignInWithApple() http.HandlerFunc {
-	data, err := ioutil.ReadFile("./web/static/apple-developer-domain-association.txt")
+	if ar.appleDomainAssociationPath == "" {
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
+	}
+
+	data, err := ioutil.ReadFile(ar.appleDomainAssociationPath)
 	if err != nil {
-		ar.logger.Fatalln("Cannot parse apple-developer-domain-association.txt:", err)
+		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Disposition", "attachment; filename=apple-developer-domain-association.txt")
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		http.ServeContent(w, r, "apple-developer-domain-association.txt.txt", time.Now(), bytes.NewReader(data))
+		http.ServeContent(w, r, "apple-developer-domain-association.txt", time.Now(), bytes.NewReader(data))
 	}
 }

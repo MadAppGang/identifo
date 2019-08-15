@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/base64"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"strings"
@@ -44,10 +43,11 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 		}
 
 		var body []byte
+		t := r.Header.Get(TimestampHeaderKey)
+
 		if r.Method == "GET" {
-			t := r.Header.Get(TimestampHeaderKey)
-			body = []byte(r.URL.String() + t)
-			fmt.Println(r.URL.String() + t)
+			body = []byte(r.URL.RequestURI() + t)
+			ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(GET request)")
 		} else {
 			// Extract body.
 			b, err := ioutil.ReadAll(r.Body)
@@ -55,6 +55,10 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 				ar.logger.Printf("Error reading body: %v", err)
 				ar.Error(rw, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.readBody")
 				return
+			}
+			if len(b) == 0 {
+				b = []byte(r.URL.RequestURI() + t)
+				ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(POST request)")
 			}
 			body = b
 		}

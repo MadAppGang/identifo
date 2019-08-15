@@ -89,6 +89,7 @@ staticFiles:
     invite: invite_email.html
     verify: verify_email.html
     tfa: tfa_email.html
+  appleDomainAssociation: apple-developer-domain-association.txt
   adminPanelBuildPath: ./admin_panel/build # If not provided, admin panel is not being served.
 
 login:   # Supported login ways.

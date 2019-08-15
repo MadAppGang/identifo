@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/madappgang/identifo/web/authorization"
 
@@ -16,24 +17,25 @@ import (
 
 // Router is a router that handles all API requests.
 type Router struct {
-	middleware              *negroni.Negroni
-	logger                  *log.Logger
-	router                  *mux.Router
-	appStorage              model.AppStorage
-	userStorage             model.UserStorage
-	tokenStorage            model.TokenStorage
-	tokenBlacklist          model.TokenBlacklist
-	verificationCodeStorage model.VerificationCodeStorage
-	tfaType                 model.TFAType
-	tokenService            jwtService.TokenService
-	smsService              model.SMSService
-	emailService            model.EmailService
-	oidcConfiguration       *OIDCConfiguration
-	jwk                     *jwk
-	Authorizer              *authorization.Authorizer
-	Host                    string
-	SupportedLoginWays      model.LoginWith
-	WebRouterPrefix         string
+	middleware                 *negroni.Negroni
+	logger                     *log.Logger
+	router                     *mux.Router
+	appStorage                 model.AppStorage
+	userStorage                model.UserStorage
+	tokenStorage               model.TokenStorage
+	tokenBlacklist             model.TokenBlacklist
+	verificationCodeStorage    model.VerificationCodeStorage
+	tfaType                    model.TFAType
+	tokenService               jwtService.TokenService
+	smsService                 model.SMSService
+	emailService               model.EmailService
+	oidcConfiguration          *OIDCConfiguration
+	jwk                        *jwk
+	appleDomainAssociationPath string
+	Authorizer                 *authorization.Authorizer
+	Host                       string
+	SupportedLoginWays         model.LoginWith
+	WebRouterPrefix            string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -76,6 +78,14 @@ func TFATypeOption(tfaType model.TFAType) func(*Router) error {
 func WebRouterPrefixOption(prefix string) func(*Router) error {
 	return func(r *Router) error {
 		r.WebRouterPrefix = prefix
+		return nil
+	}
+}
+
+// AppleDomainAssociationPathOption sets appleDomainAssociationPath value.
+func AppleDomainAssociationPathOption(staticFolderPath, filename string) func(*Router) error {
+	return func(r *Router) error {
+		r.appleDomainAssociationPath = path.Join(staticFolderPath, filename)
 		return nil
 	}
 }
@@ -130,7 +140,7 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
 
 // Error writes an API error message to the response and logger.
 func (ar *Router) Error(w http.ResponseWriter, errID MessageID, status int, details, where string) {
-	// errorResponse is a generic response for sending a error.
+	// errorResponse is a generic response for sending an error.
 	type errorResponse struct {
 		ID              MessageID `json:"id"`
 		Message         string    `json:"message,omitempty"`

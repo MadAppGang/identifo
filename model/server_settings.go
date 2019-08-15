@@ -67,11 +67,12 @@ const (
 
 // StaticFilesSettings are settings for static files used by Identifo.
 type StaticFilesSettings struct {
-	ServerConfigPath    string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	StaticFolderPath    string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath  string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames  EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AdminPanelBuildPath string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	ServerConfigPath       string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	StaticFolderPath       string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath     string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames     EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	AppleDomainAssociation string             `yaml:"appleDomainAssociation,omitempty" json:"apple_domain_association,omitempty"`
+	AdminPanelBuildPath    string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 }
 
 // ConfigurationStorageSettings holds together configuration storage settings.
