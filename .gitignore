@@ -24,3 +24,5 @@ integrations/aws/*/jwt/*.pem
 integrations/*/*/admin_panel/build
 integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
+integrations/aws/identifo lambda/static/apple-developer-domain-association.txt
+web/static/apple-developer-domain-association.txt

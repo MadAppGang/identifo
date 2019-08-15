@@ -60,6 +60,7 @@ func (ar *Router) initRoutes() {
 		ar.Token(TokenTypeAccess),
 		negroni.Wrap(meRouter),
 	))
+	meRouter.Path("").HandlerFunc(ar.IsLoggedIn()).Methods("GET")
 	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	meRouter.Path(`/{logout:logout/?}`).HandlerFunc(ar.Logout()).Methods("POST")
 
@@ -72,4 +73,5 @@ func (ar *Router) initRoutes() {
 
 	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
 	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")
+	oidc.Path(`/{apple-developer-domain-association.txt:apple-developer-domain-association.txt/?}`).HandlerFunc(ar.SupportSignInWithApple()).Methods("GET")
 }

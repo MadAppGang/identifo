@@ -7,6 +7,7 @@ import (
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
+	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/html"
@@ -26,6 +27,7 @@ type RouterSetting struct {
 	SessionStorage          model.SessionStorage
 	ConfigurationStorage    model.ConfigurationStorage
 	Logger                  *log.Logger
+	AdminPanelBuildPath     string
 	APIRouterSettings       []func(*api.Router) error
 	WebRouterSettings       []func(*html.Router) error
 	AdminRouterSettings     []func(*admin.Router) error
@@ -85,6 +87,14 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		return nil, err
 	}
 
+	if settings.AdminPanelBuildPath != "" {
+		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.AdminPanelBuildPath)
+		if err != nil {
+			return nil, err
+		}
+		r.AdminPanelRouterPath = "/adminpanel"
+	}
+
 	r.APIRouterPath = "/api"
 	r.WebRouterPath = "/web"
 	r.AdminRouterPath = "/admin"
@@ -118,4 +128,8 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
 	ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
+	if ar.AdminPanelRouterPath != "" {
+		ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
+	}
+
 }

@@ -88,8 +88,7 @@ staticFiles:
     invite: invite_email.html
     verify: verify_email.html
     tfa: tfa_email.html
-  # Needed when serving admin panel right from the Identifo server (e.g, as AWS Lamdba).
-  adminPanelBuildPath: ../../admin_panel/build
+  adminPanelBuildPath: ../../admin_panel/build # If not provided, admin panel is not being served.
 
 login:   # Supported login ways.
   loginWith:

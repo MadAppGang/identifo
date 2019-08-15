@@ -11,19 +11,6 @@ services:
       - identifo
     volumes:
       - ./server-config.yaml:/root/server-config.yaml
-  identifo-admin-panel:
-    image: identifo-admin-panel:latest
-    build: ./admin_panel
-    depends_on:
-      - identifo
-    env_file:
-      - .env
-    volumes:
-      - ./admin_panel/build:/usr/share/nginx/html/
-    ports:
-      - "3000:3000"
-    networks:
-     - identifo
 
 networks:
   identifo:
