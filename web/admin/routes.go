@@ -74,6 +74,8 @@ func (ar *Router) initRoutes() {
 	settings.Path("/general").HandlerFunc(ar.FetchGeneralSettings()).Methods("GET")
 	settings.Path("/general").HandlerFunc(ar.UpdateGeneralSettings()).Methods("PUT")
 
+	settings.Path("/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
+
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
 	settings.Path("/account").HandlerFunc(ar.UpdateAccountSettings()).Methods("PATCH")
 

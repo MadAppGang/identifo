@@ -2,6 +2,7 @@ package admin
 
 import (
 	"fmt"
+	"io"
 	"net/http"
 	"os"
 
@@ -293,6 +294,53 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, newServerSettings.ExternalServices)
+	}
+}
+
+// UploadJWTKeys is for uploading public and private keys used for signing JWTs.
+func (ar *Router) UploadJWTKeys() http.HandlerFunc {
+	keyFilenames := map[string]string{
+		"public.pem":  ar.ServerSettings.General.PublicKeyPath,
+		"private.pem": ar.ServerSettings.General.PrivateKeyPath,
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(1024 * 1024 * 1); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "Error parsing a request body as multipart/form-data: "+err.Error())
+			return
+		}
+
+		keys := r.MultipartForm.File["keys"]
+
+		// Check that we've got only filenames we need.
+		for _, fileHeader := range keys {
+			if _, ok := keyFilenames[fileHeader.Filename]; !ok {
+				ar.Error(w, fmt.Errorf("Invalid key field name '%s'", fileHeader.Filename), http.StatusBadRequest, "")
+				return
+			}
+		}
+
+		for _, fileHeader := range keys {
+			f, err := fileHeader.Open()
+			if err != nil {
+				ar.Error(w, err, http.StatusBadRequest, "Error uploading key: "+err.Error())
+				return
+			}
+			defer f.Close()
+
+			keyFile, err := os.OpenFile(keyFilenames[fileHeader.Filename], os.O_WRONLY|os.O_CREATE, 0666)
+			if err != nil {
+				ar.Error(w, fmt.Errorf("Cannot open key file: %s", err.Error()), http.StatusInternalServerError, err.Error())
+				return
+			}
+			defer keyFile.Close()
+
+			if _, err := io.Copy(keyFile, f); err != nil {
+				ar.Error(w, fmt.Errorf("Cannot copy key file contents: %s", err.Error()), http.StatusInternalServerError, err.Error())
+				return
+			}
+		}
+		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }
 
