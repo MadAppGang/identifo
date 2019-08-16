@@ -1,8 +1,8 @@
 general:  # General server settings.
-  host: http://localhost:8080 # HTTP address of Indentifo server.
+  host: http://localhost:8081 # HTTP address of Indentifo server.
   privateKeyPath: jwt/private.pem # Private key for signing JWT tokens.
   publicKeyPath: jwt/public.pem   # Public key for verifying JWT tokens.
-  issuer: http://localhost:8080   # JWT token issuer.
+  issuer: http://localhost:8081   # JWT token issuer.
   algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
@@ -89,6 +89,7 @@ staticFiles:
     invite: invite_email.html
     verify: verify_email.html
     tfa: tfa_email.html
+  appleDomainAssociation: apple-developer-domain-association.txt
   adminPanelBuildPath: ./admin_panel/build # If not provided, admin panel is not being served.
 
 login:   # Supported login ways.

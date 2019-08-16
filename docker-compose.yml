@@ -6,11 +6,15 @@ services:
     env_file:
       - .env
     ports:
-      - "8111:8080"
+      - "8081:8081"
     networks:
       - identifo
     volumes:
       - ./server-config.yaml:/root/server-config.yaml
+      - ./jwt/:/root/jwt/
+      - ./email_templates/:/root/email_templates/
+      - ./web/static/:/root/web/static/
+      - ./admin_panel/build/:/root/admin_panel/build/
 
 networks:
   identifo:

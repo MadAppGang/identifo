@@ -1,8 +1,8 @@
 general:  # General server settings.
-  host: http://localhost:8080
+  host: http://localhost:8081
   privateKeyPath: jwt/private.pem 
   publicKeyPath: jwt/public.pem
-  issuer: http://localhost:8080   
+  issuer: http://localhost:8081   
   algorithm: auto
 
 adminAccount:
@@ -51,6 +51,7 @@ staticFiles:
     invite: invite_email.html
     verify: verify_email.html
     tfa: tfa_email.html
+  appleDomainAssociation: apple-developer-domain-association.txt
   adminPanelBuildPath: ./admin_panel/build
 
 login:

@@ -185,4 +185,8 @@ func (ad *AppData) Sanitize() {
 	if ad.appData.AppleInfo != nil {
 		ad.appData.AppleInfo.ClientSecret = ""
 	}
+
+	ad.appData.AuthorizationWay = ""
+	ad.appData.AuthorizationModel = ""
+	ad.appData.AuthorizationPolicy = ""
 }

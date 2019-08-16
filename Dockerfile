@@ -14,7 +14,7 @@ FROM alpine:latest
 RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /app .
-COPY *config.yaml ./
+COPY server-config.yaml ./
 COPY jwt/*.pem ./jwt/
 COPY web/static ./web/static
 COPY cmd/import/apps.json ./apps.json

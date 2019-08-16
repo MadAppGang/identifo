@@ -225,7 +225,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:b85c66121da6956812c9356276e1b389b9464ddf1b93d96919f7456426a2a16e"
+  digest = "1:a0d7903915b0e7c2764d93348ce20934b6ca4edcc90e1ff260fcdbf2a29c53c5"
   name = "github.com/madappgang/identifo"
   packages = [
     "configuration/storage/etcd",
@@ -264,7 +264,7 @@
     "web/middleware",
   ]
   pruneopts = "UT"
-  revision = "c789d46b37766a7bf4e10ffd52a27d6b20abf5cb"
+  revision = "65527ef35cb57c6e7bbb33d1e92de0afee89a48b"
 
 [[projects]]
   digest = "1:6ad77325212e02cc2c76bc974fcfb59a227018afddbd3bc78ea3cc53dadb2554"

@@ -163,6 +163,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
+			api.AppleDomainAssociationPathOption(settings.StaticFiles.StaticFolderPath, settings.StaticFiles.AppleDomainAssociation),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
