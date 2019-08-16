@@ -14,7 +14,7 @@ run:	compile
 		sam local invoke $(app) -e test/event.json 
 
 ship:	compile
-		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt admin_panel email_templates static import web/static
+		zip -r $(app)_lambda.zip $(app) server-config.yaml jwt admin_panel email_templates static import
 		rm $(app)
 
 deploy:	ship
