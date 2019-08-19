@@ -22,7 +22,7 @@ type appData struct {
 	Scopes                []string               `json:"scopes,omitempty"`
 	Offline               bool                   `json:"offline"`
 	Type                  model.AppType          `json:"type,omitempty"`
-	RedirectURL           string                 `json:"redirect_url,omitempty"`
+	RedirectURLs          []string               `json:"redirect_urls,omitempty"`
 	RefreshTokenLifespan  int64                  `json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64                  `json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
@@ -53,7 +53,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		Description:           data.Description(),
 		Scopes:                data.Scopes(),
 		Offline:               data.Offline(),
-		RedirectURL:           data.RedirectURL(),
+		RedirectURLs:          data.RedirectURLs(),
 		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
 		InviteTokenLifespan:   data.InviteTokenLifespan(),
 		TokenLifespan:         data.TokenLifespan(),
@@ -73,7 +73,7 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 }
 
 // MakeAppData creates new DynamoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
 	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 	if _, err := xid.FromString(id); err != nil {
@@ -88,7 +88,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		Description:           description,
 		Scopes:                scopes,
 		Offline:               offline,
-		RedirectURL:           redirectURL,
+		RedirectURLs:          redirectURLs,
 		RefreshTokenLifespan:  refreshTokenLifespan,
 		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
@@ -134,8 +134,8 @@ func (ad *AppData) Offline() bool { return ad.appData.Offline }
 // Type implements model.AppData interface.
 func (ad *AppData) Type() model.AppType { return ad.appData.Type }
 
-// RedirectURL implements model.AppData interface.
-func (ad *AppData) RedirectURL() string { return ad.appData.RedirectURL }
+// RedirectURLs implements model.AppData interface.
+func (ad *AppData) RedirectURLs() []string { return ad.appData.RedirectURLs }
 
 // RefreshTokenLifespan implements model.AppData interface.
 func (ad *AppData) RefreshTokenLifespan() int64 { return ad.appData.RefreshTokenLifespan }

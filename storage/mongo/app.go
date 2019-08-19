@@ -21,7 +21,7 @@ type appData struct {
 	Scopes                []string               `bson:"scopes,omitempty" json:"scopes,omitempty"`
 	Offline               bool                   `bson:"offline" json:"offline"`
 	Type                  model.AppType          `bson:"type,omitempty" json:"type,omitempty"`
-	RedirectURL           string                 `bson:"redirect_url,omitempty" json:"redirect_url,omitempty"`
+	RedirectURLs          []string               `bson:"redirect_urls,omitempty" json:"redirect_urls,omitempty"`
 	RefreshTokenLifespan  int64                  `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
 	InviteTokenLifespan   int64                  `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
 	TokenLifespan         int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
@@ -51,7 +51,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		Description:           data.Description(),
 		Scopes:                data.Scopes(),
 		Offline:               data.Offline(),
-		RedirectURL:           data.RedirectURL(),
+		RedirectURLs:          data.RedirectURLs(),
 		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
 		InviteTokenLifespan:   data.InviteTokenLifespan(),
 		TokenLifespan:         data.TokenLifespan(),
@@ -77,7 +77,7 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 }
 
 // MakeAppData creates new MongoDB app data instance.
-func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURL string,
+func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
 	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 
@@ -92,7 +92,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		Description:           description,
 		Scopes:                scopes,
 		Offline:               offline,
-		RedirectURL:           redirectURL,
+		RedirectURLs:          redirectURLs,
 		RefreshTokenLifespan:  refreshTokenLifespan,
 		InviteTokenLifespan:   inviteTokenLifespan,
 		TokenLifespan:         tokenLifespan,
@@ -138,8 +138,8 @@ func (ad *AppData) Offline() bool { return ad.appData.Offline }
 // Type implements model.AppData interface.
 func (ad *AppData) Type() model.AppType { return ad.appData.Type }
 
-// RedirectURL implements model.AppData interface.
-func (ad *AppData) RedirectURL() string { return ad.appData.RedirectURL }
+// RedirectURLs implements model.AppData interface.
+func (ad *AppData) RedirectURLs() []string { return ad.appData.RedirectURLs }
 
 // InviteTokenLifespan implements model.AppData interface.
 func (ad *AppData) InviteTokenLifespan() int64 { return ad.appData.InviteTokenLifespan }
