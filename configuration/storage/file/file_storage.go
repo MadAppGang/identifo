@@ -86,7 +86,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(ss *model.ServerSettings) err
 	return nil
 }
 
-// InsertKeys inserts new public and private keys to the S3 bucket.
+// InsertKeys inserts new public and private keys.
 func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
 	if err := cs.keyStorage.InsertKeys(keys); err != nil {
 		return err

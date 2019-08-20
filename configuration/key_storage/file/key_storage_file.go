@@ -9,7 +9,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-var supportedSignatureAlgorithms = []ijwt.TokenSignatureAlgorithm{ijwt.TokenSignatureAlgorithmES256, ijwt.TokenSignatureAlgorithmRS256}
+var supportedSignatureAlgorithms = [2]ijwt.TokenSignatureAlgorithm{ijwt.TokenSignatureAlgorithmES256, ijwt.TokenSignatureAlgorithmRS256}
 
 // KeyStorage is a wrapper over public and private key files.
 type KeyStorage struct {
