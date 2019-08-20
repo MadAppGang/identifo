@@ -1,10 +1,6 @@
 package mgo
 
 import (
-	"fmt"
-
-	"github.com/madappgang/identifo/jwt"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/mongo"
 )
@@ -39,59 +35,40 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
-	jwtService.TokenService,
 	error,
 ) {
 	// We assume that all MongoDB-backed storages share the same database name and connection string, so we can pick any of them.
 	db, err := mongo.NewDB(dc.settings.Storage.AppStorage.Endpoint, dc.settings.Storage.AppStorage.Name)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := dc.newTokenBlacklist(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.General.Algorithm]
-	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s ", dc.settings.General.Algorithm)
-	}
-
-	tokenService, err := jwtService.NewJWTokenService(
-		dc.settings.General.PrivateKeyPath,
-		dc.settings.General.PublicKeyPath,
-		dc.settings.General.Issuer,
-		tokenServiceAlg,
-		tokenStorage,
-		appStorage,
-		userStorage,
-	)
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
-	}
-
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with MongoDB support.

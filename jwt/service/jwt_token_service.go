@@ -5,7 +5,7 @@ import (
 	"crypto/x509"
 	"encoding/base64"
 	"errors"
-	"os"
+	"fmt"
 	"strings"
 
 	jwt "github.com/dgrijalva/jwt-go"
@@ -15,8 +15,6 @@ import (
 )
 
 var (
-	// ErrKeyFileNotFound is when key file not found.
-	ErrKeyFileNotFound = errors.New("Key file not found")
 	// ErrCreatingToken is a token creation error.
 	ErrCreatingToken = errors.New("Error creating token")
 	// ErrSavingToken is a token saving error.
@@ -47,32 +45,14 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.TokenSignatureAlgorithm, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
-	if _, err := os.Stat(privateKeyPath); err != nil {
-		return nil, ErrKeyFileNotFound
-	}
-	if _, err := os.Stat(publicKeyPath); err != nil {
-		return nil, ErrKeyFileNotFound
+func NewJWTokenService(keys *model.JWTKeys, issuer, alg string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
+	tokenServiceAlg, ok := ijwt.StrToTokenSignAlg[alg]
+	if !ok {
+		return nil, fmt.Errorf("Unknown token service algorithm %s ", alg)
 	}
 
-	var privateKey interface{}
-	var err error
-
-	// Trying to guess algo from the private key file.
-	if alg == ijwt.TokenSignatureAlgorithmAuto {
-		if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenSignatureAlgorithmES256); err == nil {
-			alg = ijwt.TokenSignatureAlgorithmES256
-		} else if privateKey, err = ijwt.LoadPrivateKeyFromPEM(privateKeyPath, ijwt.TokenSignatureAlgorithmRS256); err == nil {
-			alg = ijwt.TokenSignatureAlgorithmRS256
-		}
-	}
-	if alg == ijwt.TokenSignatureAlgorithmAuto {
-		return nil, ijwt.ErrWrongSignatureAlgorithm
-	}
-
-	publicKey, err := ijwt.LoadPublicKeyFromPEM(publicKeyPath, alg)
-	if err != nil {
-		return nil, err
+	if keys == nil || keys.Private == nil || keys.Public == nil {
+		return nil, fmt.Errorf("One of the keys is empty, or both")
 	}
 
 	t := &JWTokenService{
@@ -82,9 +62,9 @@ func NewJWTokenService(privateKeyPath, publicKeyPath, issuer string, alg ijwt.To
 		userStorage:            userStorage,
 		resetTokenLifespan:     int64(2 * 60 * 60),      // 2 hours is a default expiration time for refresh tokens.
 		webCookieTokenLifespan: int64(2 * 24 * 60 * 60), // 2 days is a default default expiration time for access tokens.
-		algorithm:              alg,
-		privateKey:             privateKey,
-		publicKey:              publicKey,
+		algorithm:              tokenServiceAlg,
+		privateKey:             keys.Private,
+		publicKey:              keys.Public,
 	}
 
 	// Apply options.

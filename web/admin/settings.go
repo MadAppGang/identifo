@@ -2,7 +2,6 @@ package admin
 
 import (
 	"fmt"
-	"io"
 	"net/http"
 	"os"
 
@@ -299,28 +298,17 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 
 // UploadJWTKeys is for uploading public and private keys used for signing JWTs.
 func (ar *Router) UploadJWTKeys() http.HandlerFunc {
-	keyFilenames := map[string]string{
-		"public.pem":  ar.ServerSettings.General.PublicKeyPath,
-		"private.pem": ar.ServerSettings.General.PrivateKeyPath,
-	}
-
 	return func(w http.ResponseWriter, r *http.Request) {
 		if err := r.ParseMultipartForm(1024 * 1024 * 1); err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "Error parsing a request body as multipart/form-data: "+err.Error())
 			return
 		}
 
-		keys := r.MultipartForm.File["keys"]
+		formKeys := r.MultipartForm.File["keys"]
 
-		// Check that we've got only filenames we need.
-		for _, fileHeader := range keys {
-			if _, ok := keyFilenames[fileHeader.Filename]; !ok {
-				ar.Error(w, fmt.Errorf("Invalid key field name '%s'", fileHeader.Filename), http.StatusBadRequest, "")
-				return
-			}
-		}
+		keys := &model.JWTKeys{}
 
-		for _, fileHeader := range keys {
+		for _, fileHeader := range formKeys {
 			f, err := fileHeader.Open()
 			if err != nil {
 				ar.Error(w, err, http.StatusBadRequest, "Error uploading key: "+err.Error())
@@ -328,17 +316,20 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			}
 			defer f.Close()
 
-			keyFile, err := os.OpenFile(keyFilenames[fileHeader.Filename], os.O_WRONLY|os.O_CREATE, 0666)
-			if err != nil {
-				ar.Error(w, fmt.Errorf("Cannot open key file: %s", err.Error()), http.StatusInternalServerError, err.Error())
+			switch fileHeader.Filename {
+			case "private.pem":
+				keys.Private = f
+			case "public.pem":
+				keys.Public = f
+			default:
+				ar.Error(w, fmt.Errorf("Invalid key field name '%s'", fileHeader.Filename), http.StatusBadRequest, "")
 				return
 			}
-			defer keyFile.Close()
+		}
 
-			if _, err := io.Copy(keyFile, f); err != nil {
-				ar.Error(w, fmt.Errorf("Cannot copy key file contents: %s", err.Error()), http.StatusInternalServerError, err.Error())
-				return
-			}
+		if err := ar.configurationStorage.InsertKeys(keys); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
 		}
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
@@ -369,7 +360,7 @@ func (ar *Router) getServerSettings(w http.ResponseWriter, ss *model.ServerSetti
 }
 
 func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model.ServerSettings) error {
-	if err := ar.configurationStorage.Insert(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
+	if err := ar.configurationStorage.InsertConfig(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
 		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err

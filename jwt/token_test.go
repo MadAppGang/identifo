@@ -4,6 +4,7 @@ import (
 	"reflect"
 	"testing"
 
+	configStorageFile "github.com/madappgang/identifo/configuration/storage/file"
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -11,8 +12,8 @@ import (
 )
 
 const (
-	privateKey         = "./private.pem"
-	publicKey          = "./public.pem"
+	privateKeyPath     = "./private.pem"
+	publicKeyPath      = "./public.pem"
 	testIssuer         = "identifo.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAifQ.Sqmh_44nXg3Lxs9jr9YCDZVNJN459Br4ODnZIt3EY72opwy5hzYL_l_hua4PJCM0WmYNLB-nKC80TS84LO5muw"
 )
@@ -20,19 +21,37 @@ const (
 func TestNewTokenService(t *testing.T) {
 	us, err := mem.NewUserStorage()
 	if err != nil {
-		t.Errorf("Unable to create user storage %v", err)
+		t.Fatalf("Unable to create user storage %v", err)
 	}
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
-		t.Errorf("Unable to create token storage %v", err)
+		t.Fatalf("Unable to create token storage %v", err)
 	}
 	as, err := mem.NewAppStorage()
 	if err != nil {
-		t.Errorf("Unable to create app storage %v", err)
+		t.Fatalf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
+
+	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
+		Type: model.ConfigurationStorageTypeFile,
+		KeyStorage: model.KeyStorageSettings{
+			Type:       model.KeyStorageTypeFile,
+			PrivateKey: privateKeyPath,
+			PublicKey:  publicKeyPath,
+		},
+	})
 	if err != nil {
-		t.Errorf("Unable to create service %v", err)
+		t.Fatalf("Unable to init configuration storage. %v", err)
+	}
+
+	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+	if err != nil {
+		t.Fatalf("Unable to load key files. %v", err)
+	}
+
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	if err != nil {
+		t.Fatalf("Unable to create token service. %v", err)
 	}
 	type args struct {
 		private string
@@ -45,14 +64,32 @@ func TestNewTokenService(t *testing.T) {
 		want    jwtService.TokenService
 		wantErr bool
 	}{
-		{"successfull creation", args{privateKey, publicKey, testIssuer}, ts, false},
-		{"invalid private path", args{"somepath", publicKey, testIssuer}, nil, true},
-		{"invalid public path", args{privateKey, "domefakepath", testIssuer}, nil, true},
+		{"successfull creation", args{privateKeyPath, publicKeyPath, testIssuer}, ts, false},
+		{"invalid private path", args{"somepath", publicKeyPath, testIssuer}, nil, true},
+		{"invalid public path", args{privateKeyPath, "somepath", testIssuer}, nil, true},
 		{"empty file pathes", args{"", "", testIssuer}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			got, err := jwtService.NewJWTokenService(tt.args.private, tt.args.public, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
+			configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
+				Type: model.ConfigurationStorageTypeFile,
+				KeyStorage: model.KeyStorageSettings{
+					Type:       model.KeyStorageTypeFile,
+					PrivateKey: tt.args.private,
+					PublicKey:  tt.args.public,
+				},
+			})
+			if err != nil {
+				t.Fatalf("Unable to init configuration storage. %v", err)
+			}
+
+			keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+			if (err != nil) != tt.wantErr {
+				t.Errorf("LoadKeys error = %v, wantErr %v", err, tt.wantErr)
+				return
+			}
+
+			got, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -67,26 +104,43 @@ func TestNewTokenService(t *testing.T) {
 func TestParseString(t *testing.T) {
 	us, err := mem.NewUserStorage()
 	if err != nil {
-		t.Errorf("Unable to create user storage %v", err)
+		t.Fatalf("Unable to create user storage %v", err)
 	}
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
-		t.Errorf("Unable to create token storage %v", err)
+		t.Fatalf("Unable to create token storage %v", err)
 	}
 	as, err := mem.NewAppStorage()
 	if err != nil {
-		t.Errorf("Unable to create app storage %v", err)
+		t.Fatalf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
+	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
+		Type: model.ConfigurationStorageTypeFile,
+		KeyStorage: model.KeyStorageSettings{
+			Type:       model.KeyStorageTypeFile,
+			PrivateKey: privateKeyPath,
+			PublicKey:  publicKeyPath,
+		},
+	})
 	if err != nil {
-		t.Errorf("Unable to create service %v", err)
+		t.Fatalf("Unable to init configuration storage. %v", err)
+	}
+
+	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+	if err != nil {
+		t.Fatalf("Cannot load keys = %s", err)
+	}
+
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	if err != nil {
+		t.Fatalf("Unable to create service %v", err)
 	}
 	token, err := ts.Parse(tokenStringExample)
 	if err != nil {
-		t.Errorf("Unable to parse token %v", err)
+		t.Fatalf("Unable to parse token. %v", err)
 	}
 	if token == nil {
-		t.Error("Token is empty")
+		t.Fatalf("Token is empty")
 	}
 
 	tkn, ok := token.(*ijwt.JWToken)
@@ -103,7 +157,6 @@ func TestParseString(t *testing.T) {
 	if claims.IssuedAt != 1516239022 {
 		t.Errorf("Claims issued At is invalid, got %v, want: %v", claims.IssuedAt, 1516239022)
 	}
-
 }
 
 func TestTokenToString(t *testing.T) {
@@ -119,7 +172,23 @@ func TestTokenToString(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
+	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
+		Type: model.ConfigurationStorageTypeFile,
+		KeyStorage: model.KeyStorageSettings{
+			Type:       model.KeyStorageTypeFile,
+			PrivateKey: privateKeyPath,
+			PublicKey:  publicKeyPath,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Unable to init configuration storage. %v", err)
+	}
+
+	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+	if err != nil {
+		t.Fatalf("Cannot load keys = %s", err)
+	}
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -172,7 +241,22 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create app storage %v", err)
 	}
-	ts, err := jwtService.NewJWTokenService(privateKey, publicKey, testIssuer, ijwt.TokenSignatureAlgorithmES256, tstor, as, us)
+	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
+		Type: model.ConfigurationStorageTypeFile,
+		KeyStorage: model.KeyStorageSettings{
+			Type:       model.KeyStorageTypeFile,
+			PrivateKey: privateKeyPath,
+			PublicKey:  publicKeyPath,
+		},
+	})
+	if err != nil {
+		t.Fatalf("Unable to init configuration storage. %v", err)
+	}
+	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+	if err != nil {
+		t.Fatalf("Cannot load keys = %s", err)
+	}
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -214,5 +298,4 @@ func TestNewToken(t *testing.T) {
 	if claims2.Audience != app.ID() {
 		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID())
 	}
-
 }

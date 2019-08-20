@@ -1,10 +1,6 @@
 package server
 
 import (
-	"fmt"
-
-	"github.com/madappgang/identifo/jwt"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -16,7 +12,6 @@ type DatabaseComposer interface {
 		model.TokenStorage,
 		model.TokenBlacklist,
 		model.VerificationCodeStorage,
-		jwtService.TokenService,
 		error,
 	)
 }
@@ -47,53 +42,34 @@ func (c *Composer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
-	jwtService.TokenService,
 	error,
 ) {
 	appStorage, err := c.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := c.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := c.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := c.newTokenBlacklist()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := c.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[c.settings.General.Algorithm]
-	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", c.settings.General.Algorithm)
-	}
-
-	tokenService, err := jwtService.NewJWTokenService(
-		c.settings.General.PrivateKeyPath,
-		c.settings.General.PublicKeyPath,
-		c.settings.General.Issuer,
-		tokenServiceAlg,
-		tokenStorage,
-		appStorage,
-		userStorage,
-	)
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
-	}
-
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewComposer returns new database composer based on passed server settings.

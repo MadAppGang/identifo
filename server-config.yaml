@@ -1,7 +1,5 @@
 general:  # General server settings.
   host: http://localhost:8081 # HTTP address of Indentifo server.
-  privateKeyPath: jwt/private.pem # Private key for signing JWT tokens.
-  publicKeyPath: jwt/public.pem   # Public key for verifying JWT tokens.
   issuer: http://localhost:8081   # JWT token issuer.
   algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
@@ -78,6 +76,15 @@ configurationStorage:
   settingsKey: server-config.yaml
   endpoints: # Etcd-related setting.
   region: # S3-related setting.
+  keyStorage: # Storage for keys used for signing and verifying JWTs.
+    type: file # Key storage type. Supported values are "file" and "s3".
+    # Key names.
+    # If type is file, must be a filename (e.g, public.pem).
+    # If type is s3, must be a name of an object in the bucket (e.g, public.pem).
+    publicKey: jwt/public.pem
+    privateKey: jwt/private.pem
+    region: # S3-related setting.
+
 
 staticFiles:
   serverConfigPath: server-config.yaml   # File with server settings.

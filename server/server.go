@@ -2,6 +2,7 @@ package server
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
@@ -17,6 +18,8 @@ import (
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
+	ijwt "github.com/madappgang/identifo/jwt"
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
@@ -91,16 +94,22 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
-	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, err := db.Compose()
-	if err != nil {
-		return nil, err
-	}
-
+	var err error
 	if configurationStorage == nil {
 		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFiles.ServerConfigPath)
 		if err != nil {
 			return nil, err
 		}
+	}
+
+	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, err := db.Compose()
+	if err != nil {
+		return nil, err
+	}
+
+	tokenService, err := initTokenService(settings.General, configurationStorage, tokenStorage, appStorage, userStorage)
+	if err != nil {
+		return nil, err
 	}
 
 	s := Server{
@@ -112,18 +121,18 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		configurationStorage:    configurationStorage,
 	}
 
-	sessionStorage, err := sessionStorage(settings)
+	sessionStorage, err := initSessionStorage(settings)
 	if err != nil {
 		return nil, err
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
-	ms, err := mailService(settings.ExternalServices.MailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
+	ms, err := initMailService(settings.ExternalServices.MailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
 
-	sms, err := smsService(settings.ExternalServices.SMSService)
+	sms, err := initSMSService(settings.ExternalServices.SMSService)
 	if err != nil {
 		return nil, err
 	}
@@ -260,7 +269,41 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 	}
 }
 
-func smsService(settings model.SMSServiceSettings) (model.SMSService, error) {
+func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {
+	tokenServiceAlg, ok := ijwt.StrToTokenSignAlg[generalSettings.Algorithm]
+	if !ok {
+		return nil, fmt.Errorf("Unknown token service algorithm %s", generalSettings.Algorithm)
+	}
+
+	keys, err := configStorage.LoadKeys(tokenServiceAlg)
+	if err != nil {
+		return nil, err
+	}
+
+	tokenService, err := jwtService.NewJWTokenService(
+		keys,
+		generalSettings.Issuer,
+		generalSettings.Algorithm,
+		tokenStorage,
+		appStorage,
+		userStorage,
+	)
+	return tokenService, err
+}
+
+func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, error) {
+	switch settings.SessionStorage.Type {
+	case model.SessionStorageRedis:
+		return redis.NewSessionStorage(settings.SessionStorage)
+	case model.SessionStorageMem:
+		return mem.NewSessionStorage()
+	case model.SessionStorageDynamoDB:
+		return dynamodb.NewSessionStorage(settings.SessionStorage)
+	default:
+		return nil, model.ErrorNotImplemented
+	}
+}
+func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error) {
 	switch settings.Type {
 	case model.SMSServiceTwilio:
 		return twilio.NewSMSService(settings)
@@ -271,7 +314,7 @@ func smsService(settings model.SMSServiceSettings) (model.SMSService, error) {
 	}
 }
 
-func mailService(serviceType model.MailServiceType, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
+func initMailService(serviceType model.MailServiceType, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
 	tpltr, err := model.NewEmailTemplater(templateNames, templatesPath)
 	if err != nil {
 		return nil, err
@@ -287,19 +330,6 @@ func mailService(serviceType model.MailServiceType, templateNames model.EmailTem
 		return ses.NewEmailServiceFromEnv(tpltr)
 	case model.MailServiceMock:
 		return emailMock.NewEmailService(), nil
-	default:
-		return nil, model.ErrorNotImplemented
-	}
-}
-
-func sessionStorage(settings model.ServerSettings) (model.SessionStorage, error) {
-	switch settings.SessionStorage.Type {
-	case model.SessionStorageRedis:
-		return redis.NewSessionStorage(settings.SessionStorage)
-	case model.SessionStorageMem:
-		return mem.NewSessionStorage()
-	case model.SessionStorageDynamoDB:
-		return dynamodb.NewSessionStorage(settings.SessionStorage)
 	default:
 		return nil, model.ErrorNotImplemented
 	}
