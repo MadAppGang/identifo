@@ -6,12 +6,9 @@
   <body>
     <script>
     (function ( window, document ) {
-      var callbackURL = "{{.CallbackURL}}";
-      var origin;
-      if (callbackURL) {
-        origin = new URL(callbackURL).origin;
-      } else {
-        origin = "*"
+      var redirectUri = "{{.RedirectUri}}";
+      if (!redirectUri) {
+        redirectUri = "*"
       }
 
       var authorizationResponse = {
@@ -20,7 +17,7 @@
       };
 
       var mainWin = window.opener ? window.opener : window.parent;
-      mainWin.postMessage(authorizationResponse, origin);
+      mainWin.postMessage(authorizationResponse, redirectUri);
   })(this, this.document);
     </script>
   </body>

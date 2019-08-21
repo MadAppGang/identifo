@@ -18,6 +18,7 @@ const (
 	passwordKey    = "password"
 	scopesKey      = "scopes"
 	callbackURLKey = "callbackUrl"
+	redirectURIKey = "redirectUri"
 )
 
 // Login logs user in with email and password.
