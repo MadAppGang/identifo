@@ -119,6 +119,9 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 	if err != nil {
 		return fmt.Errorf("Cannot get value by key %s: %s", cs.settingsKey, err)
 	}
+	if len(res.Kvs) == 0 {
+		return fmt.Errorf("Etcd: No value for key %s", cs.settingsKey)
+	}
 
 	err = json.Unmarshal(res.Kvs[0].Value, settings)
 	return err

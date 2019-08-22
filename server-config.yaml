@@ -79,7 +79,7 @@ configurationStorage:
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: file # Key storage type. Supported values are "file" and "s3".
     # Key names.
-    # If type is file, must be a filename (e.g, public.pem).
+    # If type is file, must be a filepath (e.g, jwt/public.pem).
     # If type is s3, must be a name of an object in the bucket (e.g, public.pem).
     publicKey: jwt/public.pem
     privateKey: jwt/private.pem
