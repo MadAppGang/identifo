@@ -111,7 +111,7 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 
 		app, err := ar.appStorage.UpdateApp(appID, ad)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
 			return
 		}
 

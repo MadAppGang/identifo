@@ -163,7 +163,7 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 	// use ID from the request if it's not set
 	if len(res.ID()) == 0 {
-		res.appData.ID = bson.ObjectId(appID)
+		res.appData.ID = bson.ObjectIdHex(appID)
 	}
 
 	s := as.db.Session(AppsCollection)
@@ -171,10 +171,10 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 	var ad appData
 	update := mgo.Change{
-		Update:    bson.M{"$set": *res},
+		Update:    bson.M{"$set": res.appData},
 		ReturnNew: true,
 	}
-	if _, err := s.C.FindId(bson.ObjectId(appID)).Apply(update, &ad); err != nil {
+	if _, err := s.C.FindId(bson.ObjectIdHex(appID)).Apply(update, &ad); err != nil {
 		return nil, err
 	}
 
