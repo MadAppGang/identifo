@@ -155,15 +155,15 @@ func (cs *ConfigurationStorage) idleInsertConfig() {
 	key := cs.settingsKey
 	settings := new(model.ServerSettings)
 	if err := cs.LoadServerSettings(settings); err != nil {
-		log.Println("Could not load server settings.", err)
+		log.Println("Error while idle config insert: could not load server settings.", err)
 		return
 	}
-	if key == "" && settings == nil {
-		log.Println("Empty key and settings")
+	if key == "" {
+		log.Println("Error while idle config insert: empty key.")
 		return
 	}
 	if err := cs.InsertConfig(key, settings); err != nil {
-		log.Println("Error while idle config insertion.", err)
+		log.Println("Error while idle config insert.", err)
 		return
 	}
 }
