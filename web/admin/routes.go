@@ -74,8 +74,6 @@ func (ar *Router) initRoutes() {
 	settings.Path("/general").HandlerFunc(ar.FetchGeneralSettings()).Methods("GET")
 	settings.Path("/general").HandlerFunc(ar.UpdateGeneralSettings()).Methods("PUT")
 
-	settings.Path("/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
-
 	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
 	settings.Path("/account").HandlerFunc(ar.UpdateAccountSettings()).Methods("PATCH")
 
@@ -97,4 +95,7 @@ func (ar *Router) initRoutes() {
 
 	settings.Path("/services").HandlerFunc(ar.FetchExternalServicesSettings()).Methods("GET")
 	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
+
+	settings.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
+	settings.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadAppleDomainAssociation()).Methods("POST")
 }
