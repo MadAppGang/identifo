@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -14,10 +13,6 @@ import (
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"gopkg.in/yaml.v2"
-)
-
-const (
-	identifoConfigS3BucketEnvName = "IDENTIFO_CONFIG_BUCKET"
 )
 
 // ConfigurationStorage is a server configuration storage in S3.
@@ -37,11 +32,6 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 		return nil, err
 	}
 
-	bucket := os.Getenv(identifoConfigS3BucketEnvName)
-	if len(bucket) == 0 {
-		return nil, fmt.Errorf("No %s specified", identifoConfigS3BucketEnvName)
-	}
-
 	var keyStorage model.KeyStorage
 
 	switch settings.KeyStorage.Type {
@@ -58,7 +48,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 
 	cs := &ConfigurationStorage{
 		Client:     s3client,
-		Bucket:     bucket,
+		Bucket:     settings.Bucket,
 		ObjectName: settings.SettingsKey,
 		keyStorage: keyStorage,
 		UpdateChan: make(chan interface{}, 1),

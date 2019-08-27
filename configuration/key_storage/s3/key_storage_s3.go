@@ -5,17 +5,12 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
-)
-
-const (
-	identifoConfigS3BucketEnvName = "IDENTIFO_CONFIG_BUCKET"
 )
 
 // KeyStorage is a wrapper over public and private key files.
@@ -28,11 +23,6 @@ type KeyStorage struct {
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
 func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
-	bucket := os.Getenv(identifoConfigS3BucketEnvName)
-	if len(bucket) == 0 {
-		return nil, fmt.Errorf("No %s specified", identifoConfigS3BucketEnvName)
-	}
-
 	s3Client, err := s3Storage.NewS3Client(settings.Region)
 	if err != nil {
 		return nil, err
@@ -40,7 +30,7 @@ func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
 
 	return &KeyStorage{
 		Client:         s3Client,
-		Bucket:         bucket,
+		Bucket:         settings.Bucket,
 		PublicKeyName:  settings.PublicKey,
 		PrivateKeyName: settings.PrivateKey,
 	}, nil

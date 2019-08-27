@@ -78,6 +78,7 @@ type ConfigurationStorageSettings struct {
 	Type        ConfigurationStorageType `yaml:"type,omitempty" json:"type,omitempty"`
 	SettingsKey string                   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
 	Endpoints   []string                 `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
+	Bucket      string                   `yaml:"bucket,omitempty" json:"bucket,omitempty"`
 	Region      string                   `yaml:"region,omitempty" json:"region,omitempty"`
 	KeyStorage  KeyStorageSettings       `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
 }
@@ -123,6 +124,7 @@ type KeyStorageSettings struct {
 	PrivateKey string         `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
 	PublicKey  string         `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
 	Region     string         `yaml:"region,omitempty" json:"region,omitempty"`
+	Bucket     string         `yaml:"bucket,omitempty" json:"bucket,omitempty"`
 }
 
 // KeyStorageType is a type of the key storage.
@@ -137,9 +139,49 @@ const (
 
 // ExternalServicesSettings are settings for external services.
 type ExternalServicesSettings struct {
-	MailService MailServiceType    `yaml:"mailService,omitempty" json:"mail_service,omitempty"`
-	SMSService  SMSServiceSettings `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
+	EmailService EmailServiceSettings `yaml:"emailService,omitempty" json:"email_service,omitempty"`
+	SMSService   SMSServiceSettings   `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
 }
+
+// EmailServiceType - how to send email to clients.
+type EmailServiceType string
+
+const (
+	// EmailServiceMailgun is a Mailgun service.
+	EmailServiceMailgun = "mailgun"
+	// EmailServiceAWS is an AWS SES service.
+	EmailServiceAWS = "aws ses"
+	// EmailServiceMock is an email service mock.
+	EmailServiceMock = "mock"
+)
+
+// EmailServiceSettings holds together settings for the email service.
+type EmailServiceSettings struct {
+	Type       EmailServiceType `yaml:"type,omitempty" json:"type,omitempty"`
+	Domain     string           `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
+	PublicKey  string           `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
+	PrivateKey string           `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
+	Sender     string           `yaml:"sender,omitempty" json:"sender,omitempty"`
+	Region     string           `yaml:"region,omitempty" json:"region,omitempty"`
+}
+
+// SMSServiceSettings holds together settings for SMS service.
+type SMSServiceSettings struct {
+	Type       SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
+	AccountSid string         `yaml:"domain,omitempty" json:"domain,omitempty"`
+	AuthToken  string         `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
+	ServiceSid string         `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
+}
+
+// SMSServiceType - service for sending sms messages.
+type SMSServiceType string
+
+const (
+	// SMSServiceTwilio is a Twillo SMS service.
+	SMSServiceTwilio SMSServiceType = "twilio"
+	// SMSServiceMock is an SMS service mock.
+	SMSServiceMock SMSServiceType = "mock"
+)
 
 // LoginSettings are settings of login.
 type LoginSettings struct {
@@ -164,36 +206,6 @@ const (
 	TFATypeSMS TFAType = "sms"
 	// TFATypeEmail is an email.
 	TFATypeEmail TFAType = "email"
-)
-
-// SMSServiceSettings holds together settings for SMS service.
-type SMSServiceSettings struct {
-	Type       SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-	AccountSid string         `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
-	AuthToken  string         `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
-	ServiceSid string         `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
-}
-
-// SMSServiceType - service to to use for sending sms.
-type SMSServiceType string
-
-const (
-	// SMSServiceTwilio is a Twillo SMS service.
-	SMSServiceTwilio SMSServiceType = "twilio"
-	// SMSServiceMock is an SMS service mock.
-	SMSServiceMock SMSServiceType = "mock"
-)
-
-// MailServiceType - how to send email to clients.
-type MailServiceType string
-
-const (
-	// MailServiceMailgun is a Mailgun service.
-	MailServiceMailgun = "mailgun"
-	// MailServiceAWS is an AWS SES service.
-	MailServiceAWS = "aws ses"
-	// MailServiceMock is an email service mock.
-	MailServiceMock = "mock"
 )
 
 // GetPort returns port on which host listens to incoming connections.

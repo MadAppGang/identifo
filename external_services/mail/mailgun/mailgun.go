@@ -3,21 +3,9 @@ package mailgun
 import (
 	"bytes"
 	"html/template"
-	"os"
 
 	"github.com/madappgang/identifo/model"
 	mailgun "github.com/mailgun/mailgun-go"
-)
-
-const (
-	// MailgunDomainKey is a name of env variable that contains Mailgun domain value.
-	MailgunDomainKey = "MAILGUN_DOMAIN"
-	// MailgunPrivateKey is a name of env variable that contains Mailgun private key value.
-	MailgunPrivateKey = "MAILGUN_PRIVATE_KEY"
-	// MailgunPublicKey is a name of env variable that contains Mailgun public key value.
-	MailgunPublicKey = "MAILGUN_PUBLIC_KEY"
-	// MailgunSenderKey is a name of env variable that contains Mailgun sender key value.
-	MailgunSenderKey = "MAILGUN_SENDER"
 )
 
 type emailService struct {
@@ -26,20 +14,10 @@ type emailService struct {
 	tmpltr  *model.EmailTemplater
 }
 
-// NewEmailServiceFromEnv creates new mail service getting all settings from env.
-func NewEmailServiceFromEnv(templater *model.EmailTemplater) model.EmailService {
-	domain := os.Getenv(MailgunDomainKey)
-	privateKey := os.Getenv(MailgunPrivateKey)
-	publicKey := os.Getenv(MailgunPublicKey)
-	sender := os.Getenv(MailgunSenderKey)
-
-	return NewEmailService(domain, privateKey, publicKey, sender, templater)
-}
-
 // NewEmailService creates and inits new email service.
-func NewEmailService(domain, apiKey, publicAPIKey, sender string, templater *model.EmailTemplater) model.EmailService {
-	mg := mailgun.NewMailgun(domain, apiKey, publicAPIKey)
-	return emailService{mailgun: mg, sender: sender, tmpltr: templater}
+func NewEmailService(ess model.EmailServiceSettings, templater *model.EmailTemplater) model.EmailService {
+	mg := mailgun.NewMailgun(ess.Domain, ess.PrivateKey, ess.PublicKey)
+	return emailService{mailgun: mg, sender: ess.Sender, tmpltr: templater}
 }
 
 // SendMessage sends email with plain text.

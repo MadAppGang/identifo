@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"os"
 )
 
 // Validate makes sure that all crucial fields are set.
@@ -76,8 +77,9 @@ func (ss *StorageSettings) Validate() error {
 
 // Validate validates database settings.
 func (dbs *DatabaseSettings) Validate() error {
+	subject := "DatabaseSettings"
 	if dbs == nil {
-		return fmt.Errorf("Nil DatabaseSettings")
+		return fmt.Errorf("Nil %s", subject)
 	}
 	if len(dbs.Type) == 0 {
 		return fmt.Errorf("Empty database type")
@@ -101,6 +103,8 @@ func (dbs *DatabaseSettings) Validate() error {
 		if len(dbs.Name) == 0 {
 			return fmt.Errorf("Empty database name")
 		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
 	}
 	return nil
 }
@@ -130,9 +134,13 @@ func (sss *SessionStorageSettings) Validate() error {
 		if len(sss.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
 	}
 	return nil
 }
+
+const identifoConfigS3BucketEnvName = "IDENTIFO_CONFIG_BUCKET"
 
 // Validate validates configuration  storage settings.
 func (css *ConfigurationStorageSettings) Validate() error {
@@ -161,6 +169,14 @@ func (css *ConfigurationStorageSettings) Validate() error {
 		if len(css.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
+		if bucket := os.Getenv(identifoConfigS3BucketEnvName); len(bucket) != 0 {
+			css.Bucket = bucket
+		}
+		if len(css.Bucket) == 0 {
+			return fmt.Errorf("%s. Bucket for config is not set", subject)
+		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
 	}
 
 	if err := css.KeyStorage.Validate(); err != nil {
@@ -168,6 +184,8 @@ func (css *ConfigurationStorageSettings) Validate() error {
 	}
 	return nil
 }
+
+const identifoJWTKeysS3BucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
 
 // Validate validates key storage settings.
 func (kss *KeyStorageSettings) Validate() error {
@@ -186,6 +204,14 @@ func (kss *KeyStorageSettings) Validate() error {
 		if len(kss.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
+		if bucket := os.Getenv(identifoJWTKeysS3BucketEnvName); len(bucket) != 0 {
+			kss.Bucket = bucket
+		}
+		if len(kss.Bucket) == 0 {
+			return fmt.Errorf("%s. Bucket for config is not set", subject)
+		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
 	}
 	return nil
 }
@@ -197,10 +223,13 @@ func (ess *ExternalServicesSettings) Validate() error {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-	if len(ess.MailService) == 0 {
-		return fmt.Errorf("%s. Empty mail service settings", subject)
+	if err := ess.EmailService.Validate(); err != nil {
+		return fmt.Errorf("%s. %s", subject, err)
 	}
-	return ess.SMSService.Validate()
+	if err := ess.SMSService.Validate(); err != nil {
+		return fmt.Errorf("%s. %s", subject, err)
+	}
+	return nil
 }
 
 // Validate validates SMS service settings.
@@ -221,6 +250,79 @@ func (sss *SMSServiceSettings) Validate() error {
 			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
 				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.AccountSid, sss.AuthToken, sss.ServiceSid)
 		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
+	}
+	return nil
+}
+
+const (
+	// mailgunDomainKey is a name of env variable that contains Mailgun domain value.
+	mailgunDomainKey = "MAILGUN_DOMAIN"
+	// mailgunPrivateKey is a name of env variable that contains Mailgun private key value.
+	mailgunPrivateKey = "MAILGUN_PRIVATE_KEY"
+	// mailgunPublicKey is a name of env variable that contains Mailgun public key value.
+	mailgunPublicKey = "MAILGUN_PUBLIC_KEY"
+	// mailgunSenderKey is a name of env variable that contains Mailgun sender key value.
+	mailgunSenderKey = "MAILGUN_SENDER"
+
+	// awsSESSenderKey is a name of env variable that contains AWS SWS sender value.
+	awsSESSenderKey = "AWS_SES_SENDER"
+	// awsSESRegionKey is a name of env variable that contains AWS SWS region value.
+	awsSESRegionKey = "AWS_SES_REGION"
+)
+
+// Validate validates email service settings.
+func (ess *EmailServiceSettings) Validate() error {
+	subject := "EmailServiceSettings"
+	if ess == nil {
+		return fmt.Errorf("Nil %s", subject)
+	}
+	if len(ess.Type) == 0 {
+		return fmt.Errorf("%s. Empty email service type", subject)
+	}
+
+	switch ess.Type {
+	case EmailServiceMock:
+		return nil
+	case EmailServiceAWS:
+		if region := os.Getenv(awsSESRegionKey); len(region) != 0 {
+			ess.Region = region
+		}
+		if sender := os.Getenv(awsSESSenderKey); len(sender) != 0 {
+			ess.Sender = sender
+		}
+		if len(ess.Sender) == 0 {
+			return fmt.Errorf("%s. Empty AWS sender", subject)
+		}
+		if len(ess.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
+	case EmailServiceMailgun:
+		if domain := os.Getenv(mailgunDomainKey); len(domain) != 0 {
+			ess.Domain = domain
+		}
+		if publicKey := os.Getenv(mailgunPublicKey); len(publicKey) != 0 {
+			ess.PublicKey = publicKey
+		}
+		if privateKey := os.Getenv(mailgunPrivateKey); len(privateKey) != 0 {
+			ess.PrivateKey = privateKey
+		}
+		if sender := os.Getenv(mailgunSenderKey); len(sender) != 0 {
+			ess.Sender = sender
+		}
+
+		if len(ess.Domain) == 0 {
+			return fmt.Errorf("%s. Empty Mailgun domain", subject)
+		}
+		if len(ess.PublicKey)*len(ess.PrivateKey) == 0 {
+			return fmt.Errorf("%s. At least one of the keys is empty", subject)
+		}
+		if len(ess.Sender) == 0 {
+			return fmt.Errorf("%s. Empty Mailgun sender", subject)
+		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
 	}
 	return nil
 }
