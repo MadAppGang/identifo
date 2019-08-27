@@ -283,7 +283,6 @@ func initTokenService(generalSettings model.GeneralServerSettings, configStorage
 	tokenService, err := jwtService.NewJWTokenService(
 		keys,
 		generalSettings.Issuer,
-		generalSettings.Algorithm,
 		tokenStorage,
 		appStorage,
 		userStorage,
