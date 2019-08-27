@@ -20,11 +20,9 @@ type ServerSettings struct {
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
-	Host           string `yaml:"host,omitempty" json:"host,omitempty"`
-	PrivateKeyPath string `yaml:"privateKeyPath,omitempty" json:"private_key_path,omitempty"`
-	PublicKeyPath  string `yaml:"publicKeyPath,omitempty" json:"public_key_path,omitempty"`
-	Issuer         string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm      string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Host      string `yaml:"host,omitempty" json:"host,omitempty"`
+	Issuer    string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	Algorithm string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 }
 
 // AdminAccountSettings are names of environment variables that store admin credentials.
@@ -81,6 +79,7 @@ type ConfigurationStorageSettings struct {
 	SettingsKey string                   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
 	Endpoints   []string                 `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
 	Region      string                   `yaml:"region,omitempty" json:"region,omitempty"`
+	KeyStorage  KeyStorageSettings       `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
 }
 
 // ConfigurationStorageType describes type of configuration storage.
@@ -116,6 +115,24 @@ const (
 	SessionStorageRedis = "redis"
 	// SessionStorageDynamoDB means to store sessions in DynamoDB.
 	SessionStorageDynamoDB = "dynamodb"
+)
+
+// KeyStorageSettings are settings for the key storage.
+type KeyStorageSettings struct {
+	Type       KeyStorageType `yaml:"type,omitempty" json:"type,omitempty"`
+	PrivateKey string         `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
+	PublicKey  string         `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
+	Region     string         `yaml:"region,omitempty" json:"region,omitempty"`
+}
+
+// KeyStorageType is a type of the key storage.
+type KeyStorageType string
+
+const (
+	// KeyStorageTypeFile is for storing keys locally.
+	KeyStorageTypeFile = "file"
+	// KeyStorageTypeS3 is for storing keys in the S3 bucket.
+	KeyStorageTypeS3 = "s3"
 )
 
 // ExternalServicesSettings are settings for external services.

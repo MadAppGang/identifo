@@ -8,7 +8,10 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	keyStorageFile "github.com/madappgang/identifo/configuration/key_storage/file"
+	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
+	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"gopkg.in/yaml.v2"
 )
@@ -21,9 +24,10 @@ const (
 type ConfigurationStorage struct {
 	Client           *s3.S3
 	Bucket           string
-	Key              string
+	ObjectName       string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
+	keyStorage       model.KeyStorage
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
@@ -38,14 +42,25 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 		return nil, fmt.Errorf("No %s specified", identifoConfigS3BucketEnvName)
 	}
 
-	if len(settings.SettingsKey) == 0 {
-		return nil, fmt.Errorf("No file key for the bucket specified")
+	var keyStorage model.KeyStorage
+
+	switch settings.KeyStorage.Type {
+	case model.KeyStorageTypeFile:
+		keyStorage, err = keyStorageFile.NewKeyStorage(settings.KeyStorage)
+	case model.KeyStorageTypeS3:
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
+	default:
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
+	}
+	if err != nil {
+		return nil, err
 	}
 
 	cs := &ConfigurationStorage{
 		Client:     s3client,
 		Bucket:     bucket,
-		Key:        settings.SettingsKey,
+		ObjectName: settings.SettingsKey,
+		keyStorage: keyStorage,
 		UpdateChan: make(chan interface{}, 1),
 	}
 	return cs, nil
@@ -55,7 +70,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
 	getObjInput := &s3.GetObjectInput{
 		Bucket: aws.String(cs.Bucket),
-		Key:    aws.String(cs.Key),
+		Key:    aws.String(cs.ObjectName),
 	}
 
 	resp, err := cs.Client.GetObject(getObjInput)
@@ -75,8 +90,8 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 	return nil
 }
 
-// Insert puts new configuration into the storage.
-func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
+// InsertConfig puts new configuration into the storage.
+func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
 	log.Println("Putting new config to S3...")
 
 	valueBytes, err := yaml.Marshal(value)
@@ -86,9 +101,9 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 
 	_, err = cs.Client.PutObject(&s3.PutObjectInput{
 		Bucket:        aws.String(cs.Bucket),
-		Key:           aws.String(cs.Key),
+		Key:           aws.String(cs.ObjectName),
 		ACL:           aws.String("private"),
-		StorageClass:  aws.String("ONEZONE_IA"),
+		StorageClass:  aws.String(s3.ObjectStorageClassStandard),
 		Body:          bytes.NewReader(valueBytes),
 		ContentLength: aws.Int64(int64(len(valueBytes))),
 		ContentType:   aws.String("application/x-yaml"),
@@ -98,7 +113,7 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 		log.Println("Successfully put new configuration to S3")
 	}
 
-	// Indicate config update. To prevent writing to closed channel, make a check.
+	// Indicate config update. To prevent writing to a closed channel, make a check.
 	go func() {
 		if cs.updateChanClosed {
 			log.Println("Attempted to write to closed UpdateChan")
@@ -108,6 +123,27 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 	}()
 
 	return err
+}
+
+// InsertKeys inserts new public and private keys to the S3 bucket.
+func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
+	if err := cs.keyStorage.InsertKeys(keys); err != nil {
+		return err
+	}
+	// Indicate config update. To prevent writing to a closed channel, make a check.
+	go func() {
+		if cs.updateChanClosed {
+			log.Println("Attempted to write to closed UpdateChan")
+			return
+		}
+		cs.UpdateChan <- struct{}{}
+	}()
+	return nil
+}
+
+// LoadKeys loads public and private keys from the key storage.
+func (cs *ConfigurationStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
+	return cs.keyStorage.LoadKeys(alg)
 }
 
 // GetUpdateChan returns update channel.

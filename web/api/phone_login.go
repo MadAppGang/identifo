@@ -70,20 +70,22 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		// check verification code
-		if exists, err := ar.verificationCodeStorage.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
-			return
-		} else if !exists {
-			ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.IsVerificationCodeFound.not_exists")
-			return
-		}
-
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
 			return
+		}
+
+		needVerification := app.DebugTFACode() == "" || authData.Code != app.DebugTFACode()
+		if needVerification { // check verification code
+			if exists, err := ar.verificationCodeStorage.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
+				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
+				return
+			} else if !exists {
+				ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.IsVerificationCodeFound.not_exists")
+				return
+			}
 		}
 
 		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)

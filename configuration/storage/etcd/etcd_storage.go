@@ -4,10 +4,14 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"log"
 	"reflect"
 	"time"
 
+	keyStorageFile "github.com/madappgang/identifo/configuration/key_storage/file"
+	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
 	configStorageFile "github.com/madappgang/identifo/configuration/storage/file"
+	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -21,6 +25,8 @@ const (
 type ConfigurationStorage struct {
 	Client      *clientv3.Client
 	FileStorage *configStorageFile.ConfigurationStorage
+	settingsKey string
+	keyStorage  model.KeyStorage
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
@@ -42,6 +48,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings, server
 		return nil, err
 	}
 
+	settingsKey := settings.SettingsKey
 	// Init file storage for config replication.
 	settings.SettingsKey = serverConfigPath
 	fileStorage, err := configStorageFile.NewConfigurationStorage(settings)
@@ -49,14 +56,30 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings, server
 		return nil, err
 	}
 
+	var keyStorage model.KeyStorage
+
+	switch settings.KeyStorage.Type {
+	case model.KeyStorageTypeFile:
+		keyStorage, err = keyStorageFile.NewKeyStorage(settings.KeyStorage)
+	case model.KeyStorageTypeS3:
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
+	default:
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
+	}
+	if err != nil {
+		return nil, err
+	}
+
 	return &ConfigurationStorage{
 		Client:      c,
 		FileStorage: fileStorage,
+		settingsKey: settingsKey,
+		keyStorage:  keyStorage,
 	}, nil
 }
 
-// Insert inserts key-value pair to configuration storage.
-func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
+// InsertConfig inserts key-value pair to configuration storage.
+func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
 	var strVal string
 	var err error
 
@@ -71,11 +94,16 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 		strVal = string(out)
 	}
 
+	if key == "" && strVal == "" {
+		go cs.idleInsertConfig()
+		return nil
+	}
+
 	_, err = cs.Client.Put(context.Background(), key, strVal)
 	if err == nil {
 		// Also update file.
 		go func() {
-			if fileErr := cs.FileStorage.Insert(cs.FileStorage.ServerConfigPath, value); fileErr != nil {
+			if fileErr := cs.FileStorage.InsertConfig(cs.FileStorage.ServerConfigPath, value); fileErr != nil {
 				fmt.Println("Could not replicate settings in file: ", fileErr)
 			} else {
 				fmt.Println("Successfully replicated settings in file")
@@ -87,13 +115,31 @@ func (cs *ConfigurationStorage) Insert(key string, value interface{}) error {
 
 // LoadServerSettings loads server configuration from configuration storage.
 func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
-	res, err := cs.Client.Get(context.Background(), settings.ConfigurationStorage.SettingsKey)
+	res, err := cs.Client.Get(context.Background(), cs.settingsKey)
 	if err != nil {
-		return fmt.Errorf("Cannot get value by key %s: %s", settings.ConfigurationStorage.SettingsKey, err)
+		return fmt.Errorf("Cannot get value by key %s: %s", cs.settingsKey, err)
+	}
+	if len(res.Kvs) == 0 {
+		return fmt.Errorf("Etcd: No value for key %s", cs.settingsKey)
 	}
 
 	err = json.Unmarshal(res.Kvs[0].Value, settings)
 	return err
+}
+
+// InsertKeys inserts new public and private keys into the key storage.
+func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
+	if err := cs.keyStorage.InsertKeys(keys); err != nil {
+		return err
+	}
+	// Indicate config update by performing idle config insertion.
+	err := cs.InsertConfig("", "")
+	return err
+}
+
+// LoadKeys loads public and private keys from the key storage.
+func (cs *ConfigurationStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
+	return cs.keyStorage.LoadKeys(alg)
 }
 
 // GetUpdateChan implements ConfigurationStorage interface.
@@ -103,3 +149,21 @@ func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 
 // CloseUpdateChan implements ConfigurationStorage interface.
 func (cs *ConfigurationStorage) CloseUpdateChan() {}
+
+// idleInsertConfig inserts existing settings.
+func (cs *ConfigurationStorage) idleInsertConfig() {
+	key := cs.settingsKey
+	settings := new(model.ServerSettings)
+	if err := cs.LoadServerSettings(settings); err != nil {
+		log.Println("Error while idle config insert: could not load server settings.", err)
+		return
+	}
+	if key == "" {
+		log.Println("Error while idle config insert: empty key.")
+		return
+	}
+	if err := cs.InsertConfig(key, settings); err != nil {
+		log.Println("Error while idle config insert.", err)
+		return
+	}
+}

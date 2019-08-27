@@ -42,9 +42,6 @@ func (gss *GeneralServerSettings) Validate() error {
 	if _, err := url.ParseRequestURI(gss.Host); err != nil {
 		return fmt.Errorf("%s. Host is invalid. %s", subject, err)
 	}
-	if len(gss.PublicKeyPath)*len(gss.PublicKeyPath) == 0 {
-		return fmt.Errorf("%s. At least one of key paths is empty", subject)
-	}
 	if len(gss.Algorithm) == 0 {
 		return fmt.Errorf("%s. Algorithm is not set", subject)
 	}
@@ -153,7 +150,7 @@ func (css *ConfigurationStorageSettings) Validate() error {
 
 	switch css.Type {
 	case ConfigurationStorageTypeFile:
-		return nil
+		break
 	case ConfigurationStorageTypeEtcd:
 		for _, ep := range css.Endpoints {
 			if _, err := url.ParseRequestURI(ep); err != nil {
@@ -162,6 +159,31 @@ func (css *ConfigurationStorageSettings) Validate() error {
 		}
 	case ConfigurationStorageTypeS3:
 		if len(css.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
+	}
+
+	if err := css.KeyStorage.Validate(); err != nil {
+		return err
+	}
+	return nil
+}
+
+// Validate validates key storage settings.
+func (kss *KeyStorageSettings) Validate() error {
+	subject := "KeyStorageSettings"
+	if len(kss.Type) == 0 {
+		return fmt.Errorf("%s. Empty key storage type", subject)
+	}
+	if len(kss.PublicKey)*len(kss.PublicKey) == 0 {
+		return fmt.Errorf("%s. At least one of the key names is empty", subject)
+	}
+
+	switch kss.Type {
+	case KeyStorageTypeFile:
+		break
+	case KeyStorageTypeS3:
+		if len(kss.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 	}

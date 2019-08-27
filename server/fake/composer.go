@@ -1,10 +1,6 @@
 package fake
 
 import (
-	"fmt"
-
-	"github.com/madappgang/identifo/jwt"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/storage/mem"
 )
@@ -39,53 +35,34 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
-	jwtService.TokenService,
 	error,
 ) {
 	appStorage, err := dc.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := dc.newTokenBlacklist()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, err
 	}
 
-	tokenServiceAlg, ok := jwt.StrToTokenSignAlg[dc.settings.General.Algorithm]
-	if !ok {
-		return nil, nil, nil, nil, nil, nil, fmt.Errorf("Unknown token service algorithm %s", dc.settings.General.Algorithm)
-	}
-
-	tokenService, err := jwtService.NewJWTokenService(
-		dc.settings.General.PrivateKeyPath,
-		dc.settings.General.PublicKeyPath,
-		dc.settings.General.Issuer,
-		tokenServiceAlg,
-		tokenStorage,
-		appStorage,
-		userStorage,
-	)
-	if err != nil {
-		return nil, nil, nil, nil, nil, nil, err
-	}
-
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, tokenService, nil
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with in-memory storage support.

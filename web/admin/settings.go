@@ -296,6 +296,45 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 	}
 }
 
+// UploadJWTKeys is for uploading public and private keys used for signing JWTs.
+func (ar *Router) UploadJWTKeys() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := r.ParseMultipartForm(1024 * 1024 * 1); err != nil {
+			ar.Error(w, err, http.StatusBadRequest, "Error parsing a request body as multipart/form-data: "+err.Error())
+			return
+		}
+
+		formKeys := r.MultipartForm.File["keys"]
+
+		keys := &model.JWTKeys{}
+
+		for _, fileHeader := range formKeys {
+			f, err := fileHeader.Open()
+			if err != nil {
+				ar.Error(w, err, http.StatusBadRequest, "Error uploading key: "+err.Error())
+				return
+			}
+			defer f.Close()
+
+			switch fileHeader.Filename {
+			case "private.pem":
+				keys.Private = f
+			case "public.pem":
+				keys.Public = f
+			default:
+				ar.Error(w, fmt.Errorf("Invalid key field name '%s'", fileHeader.Filename), http.StatusBadRequest, "")
+				return
+			}
+		}
+
+		if err := ar.configurationStorage.InsertKeys(keys); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		ar.ServeJSON(w, http.StatusOK, nil)
+	}
+}
+
 // TestDatabaseConnection tests database connection.
 func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -321,7 +360,7 @@ func (ar *Router) getServerSettings(w http.ResponseWriter, ss *model.ServerSetti
 }
 
 func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model.ServerSettings) error {
-	if err := ar.configurationStorage.Insert(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
+	if err := ar.configurationStorage.InsertConfig(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
 		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
 		ar.Error(w, err, http.StatusInternalServerError, "")
 		return err
