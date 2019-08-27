@@ -62,6 +62,12 @@ login:
   tfaType: app
 
 externalServices: 
-  mailService: mock
+  emailService:
+    type: mock
+    domain:
+    privateKey:
+    publicKey:
+    sender:
+    region: 
   smsService:
     type: mock

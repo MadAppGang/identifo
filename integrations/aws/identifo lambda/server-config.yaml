@@ -1,7 +1,5 @@
 general:  # General server settings.
   host: http://localhost:8081
-  privateKeyPath: jwt/private.pem 
-  publicKeyPath: jwt/public.pem
   issuer: http://localhost:8081   
   algorithm: auto
 
@@ -40,6 +38,7 @@ configurationStorage:
   type: s3
   settingsKey: server-config.yaml
   region: us-east-1
+  bucket: # If "IDENTIFO_CONFIG_BUCKET" env variable is set, it overrides the value specified here.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: s3 # Key storage type. Supported values are "file" and "s3".
     # Key names.
@@ -48,6 +47,7 @@ configurationStorage:
     publicKey: public.pem
     privateKey: private.pem
     region: us-east-1 # S3-related setting.
+    bucket: # If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
 
 staticFiles:
   serverConfigPath: server-config.yaml
@@ -70,6 +70,12 @@ login:
   tfaType: app
 
 externalServices: 
-  mailService: aws ses 
+  emailService:
+    type: mock
+    domain:
+    privateKey:
+    publicKey:
+    sender:
+    region:
   smsService:
     type: mock

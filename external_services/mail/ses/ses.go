@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"html/template"
 	"log"
-	"os"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -13,30 +12,16 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-const (
-	// SESRegionKey is a region setting for SES.
-	SESRegionKey = "SES_REGION"
-	// SESSenderKey is a sender key for SES.
-	SESSenderKey = "SES_SENDER"
-)
-
 // NewEmailService creates new email service.
-func NewEmailService(sender, region string, templater *model.EmailTemplater) (model.EmailService, error) {
+func NewEmailService(ess model.EmailServiceSettings, templater *model.EmailTemplater) (model.EmailService, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(region)},
+		Region: aws.String(ess.Region)},
 	)
 	if err != nil {
 		return nil, err
 	}
 
-	return &EmailService{Sender: sender, service: ses.New(sess), tmpltr: templater}, nil
-}
-
-// NewEmailServiceFromEnv creates new email service getting settings from env variables.
-func NewEmailServiceFromEnv(templater *model.EmailTemplater) (model.EmailService, error) {
-	region := os.Getenv(SESRegionKey)
-	sender := os.Getenv(SESSenderKey)
-	return NewEmailService(sender, region, templater)
+	return &EmailService{Sender: ess.Sender, service: ses.New(sess), tmpltr: templater}, nil
 }
 
 // EmailService sends email with Amazon Simple Email Service.

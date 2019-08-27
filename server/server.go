@@ -127,7 +127,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
-	ms, err := initMailService(settings.ExternalServices.MailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
+	ms, err := initEmailService(settings.ExternalServices.EmailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
 	}
@@ -303,6 +303,7 @@ func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, er
 		return nil, model.ErrorNotImplemented
 	}
 }
+
 func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error) {
 	switch settings.Type {
 	case model.SMSServiceTwilio:
@@ -314,7 +315,7 @@ func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error)
 	}
 }
 
-func initMailService(serviceType model.MailServiceType, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
+func initEmailService(ess model.EmailServiceSettings, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
 	tpltr, err := model.NewEmailTemplater(templateNames, templatesPath)
 	if err != nil {
 		return nil, err
@@ -323,12 +324,12 @@ func initMailService(serviceType model.MailServiceType, templateNames model.Emai
 		return nil, errors.New("Email templater holds nil value")
 	}
 
-	switch serviceType {
-	case model.MailServiceMailgun:
-		return mailgun.NewEmailServiceFromEnv(tpltr), nil
-	case model.MailServiceAWS:
-		return ses.NewEmailServiceFromEnv(tpltr)
-	case model.MailServiceMock:
+	switch ess.Type {
+	case model.EmailServiceMailgun:
+		return mailgun.NewEmailService(ess, tpltr), nil
+	case model.EmailServiceAWS:
+		return ses.NewEmailService(ess, tpltr)
+	case model.EmailServiceMock:
 		return emailMock.NewEmailService(), nil
 	default:
 		return nil, model.ErrorNotImplemented

@@ -1,6 +1,6 @@
 general:  # General server settings.
-  host: http://localhost:8081 # HTTP address of Indentifo server.
-  issuer: http://localhost:8081   # JWT token issuer.
+  host: http://localhost:8081 # Identifo server URL.
+  issuer: http://localhost:8081   # JWT tokens issuer.
   algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
@@ -75,6 +75,7 @@ configurationStorage:
   settingsKey: identifo/server-settings
   endpoints: # Etcd-related setting. For example, host.docker.internal:2379.
   region: # S3-related setting.
+  bucket: # S3-related setting.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: file # Key storage type. Supported values are "file" and "s3".
     # Key names.
@@ -107,7 +108,13 @@ login:   # Supported login ways.
   tfaType: app
 
 externalServices: 
-  mailService: mock  # Mail service name. Supported values are "mailgun", "aws ses", and "mock".
+  emailService:  # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
+    domain: # Mailgun-related setting.
+    privateKey: # Mailgun-related setting.
+    publicKey: # Mailgun-related setting.
+    sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
   smsService:   # SMS service settings.
     type: mock # Supported values are: "twilio", "mock".
     accountSid: # Twilio-related setting.
