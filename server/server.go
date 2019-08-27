@@ -31,8 +31,11 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
+
 const (
-	serverConfigPathEnvName = "SERVER_CONFIG_PATH"
+	defaultAdminLogin    = "admin@admin.com"
+	defaultAdminPassword = "password"
 )
 
 // ServerSettings are server settings.
@@ -77,10 +80,16 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 	}
 
 	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
-		log.Fatalf("%s not set\n", out.AdminAccount.LoginEnvName)
+		if err := os.Setenv(out.AdminAccount.LoginEnvName, defaultAdminLogin); err != nil {
+			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.LoginEnvName, err)
+		}
+		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.LoginEnvName)
 	}
 	if len(os.Getenv(out.AdminAccount.PasswordEnvName)) == 0 {
-		log.Fatalf("%s not set\n", out.AdminAccount.PasswordEnvName)
+		if err := os.Setenv(out.AdminAccount.PasswordEnvName, defaultAdminPassword); err != nil {
+			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.PasswordEnvName, err)
+		}
+		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.PasswordEnvName)
 	}
 
 	if err := out.Validate(); err != nil {

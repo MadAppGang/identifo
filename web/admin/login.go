@@ -6,8 +6,10 @@ import (
 )
 
 type adminLoginData struct {
-	Login    string `yaml:"admin" json:"email,omitempty"`
-	Password string `yaml:"password" json:"password,omitempty"`
+	Login           string `json:"email"`
+	LoginEnvName    string `json:"email_env_name"`
+	Password        string `json:"password"`
+	PasswordEnvName string `json:"password_env_name"`
 }
 
 // Login logins admin with admin name and password.

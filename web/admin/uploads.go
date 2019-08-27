@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -24,7 +25,7 @@ func (ar *Router) UploadAppleDomainAssociation() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		file, err := os.OpenFile(ar.ServerSettings.StaticFiles.AppleDomainAssociation, os.O_WRONLY|os.O_CREATE, 0666)
+		file, err := os.OpenFile(path.Join(ar.ServerSettings.StaticFiles.StaticFolderPath, ar.ServerSettings.StaticFiles.AppleDomainAssociation), os.O_WRONLY|os.O_CREATE, 0666)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot open file: %s", err.Error()))
 			return
