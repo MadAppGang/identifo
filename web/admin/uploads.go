@@ -94,19 +94,23 @@ func (ar *Router) UploadAASAFile() http.HandlerFunc {
 			return
 		}
 		defer formFile.Close()
+		/*
+				filepath := path.Join(ar.ServerSettings.StaticFiles.StaticFolderPath, ar.ServerSettings.StaticFiles.AppleFilenames.AppSiteAssociation)
+				file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
+				if err != nil {
+					ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot open file: %s", err.Error()))
+					return
+				}
+				defer file.Close()
 
-		filepath := path.Join(ar.ServerSettings.StaticFiles.StaticFolderPath, ar.ServerSettings.StaticFiles.AppleFilenames.AppSiteAssociation)
-		file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot open file: %s", err.Error()))
-			return
-		}
-		defer file.Close()
 
-		if _, err = io.Copy(file, formFile); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot save file: %s", err.Error()))
-			return
-		}
+			if _, err = io.Copy(file, formFile); err != nil {
+				ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot save file: %s", err.Error()))
+				return
+			}
+		*/
+
+		err := ar.staticFilesStorage.UploadFile(ar.staticFilesStorage)
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }

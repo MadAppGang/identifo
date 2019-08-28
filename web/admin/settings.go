@@ -223,7 +223,7 @@ func (ar *Router) FetchStaticFilesSettings() http.HandlerFunc {
 // UpdateStaticFilesSettings changes static files settings.
 func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var staticFilesSettingsUpdate model.StaticFilesSettings
+		var staticFilesSettingsUpdate model.StaticFilesStorageSettings
 
 		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
 			return

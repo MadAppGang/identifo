@@ -17,22 +17,21 @@ import (
 
 // Router handles incoming http connections.
 type Router struct {
-	Middleware      *negroni.Negroni
-	Logger          *log.Logger
-	Router          *mux.Router
-	AppStorage      model.AppStorage
-	UserStorage     model.UserStorage
-	TokenStorage    model.TokenStorage
-	TokenBlacklist  model.TokenBlacklist
-	TokenService    jwtService.TokenService
-	SMSService      model.SMSService
-	EmailService    model.EmailService
-	StaticPages     StaticPages
-	StaticFilesPath StaticFilesPath
-	EmailTemplates  EmailTemplates
-	Authorizer      *authorization.Authorizer
-	PathPrefix      string
-	Host            string
+	Middleware         *negroni.Negroni
+	Logger             *log.Logger
+	Router             *mux.Router
+	AppStorage         model.AppStorage
+	UserStorage        model.UserStorage
+	TokenStorage       model.TokenStorage
+	TokenBlacklist     model.TokenBlacklist
+	TokenService       jwtService.TokenService
+	SMSService         model.SMSService
+	EmailService       model.EmailService
+	StaticFilesStorage model.StaticFilesStorage
+	EmailTemplates     EmailTemplates
+	Authorizer         *authorization.Authorizer
+	PathPrefix         string
+	Host               string
 }
 
 func defaultOptions() []func(*Router) error {

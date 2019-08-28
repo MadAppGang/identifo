@@ -39,6 +39,7 @@ type Router struct {
 	appStorage           model.AppStorage
 	userStorage          model.UserStorage
 	configurationStorage model.ConfigurationStorage
+	staticFilesStorage   model.StaticFilesStorage
 	ServerConfigPath     string
 	ServerSettings       *model.ServerSettings
 	RedirectURL          string

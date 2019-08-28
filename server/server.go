@@ -213,6 +213,7 @@ type Server struct {
 	configurationStorage    model.ConfigurationStorage
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
+	staticFilesStorage      model.StaticFilesStorage
 	verificationCodeStorage model.VerificationCodeStorage
 }
 
