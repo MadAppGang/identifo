@@ -125,13 +125,13 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 	}
 }
 
-// SupportSignInWithApple lets Apple servers download apple-developer-domain-association.txt.
-func (ar *Router) SupportSignInWithApple() http.HandlerFunc {
-	if ar.appleDomainAssociationPath == "" {
+// ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.
+func (ar *Router) ServeADDAFile() http.HandlerFunc {
+	if ar.appleFilenames.DeveloperDomainAssociation == "" {
 		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
 	}
 
-	data, err := ioutil.ReadFile(ar.appleDomainAssociationPath)
+	data, err := ioutil.ReadFile(ar.appleFilenames.DeveloperDomainAssociation)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
 	}
@@ -140,5 +140,23 @@ func (ar *Router) SupportSignInWithApple() http.HandlerFunc {
 		w.Header().Set("Content-Disposition", "attachment; filename=apple-developer-domain-association.txt")
 		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
 		http.ServeContent(w, r, "apple-developer-domain-association.txt", time.Now(), bytes.NewReader(data))
+	}
+}
+
+// ServeAASAFile lets Apple servers download apple-app-site-association file.
+func (ar *Router) ServeAASAFile() http.HandlerFunc {
+	if ar.appleFilenames.AppSiteAssociation == "" {
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
+	}
+
+	data, err := ioutil.ReadFile(ar.appleFilenames.AppSiteAssociation)
+	if err != nil {
+		ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Disposition", "attachment; filename=apple-app-site-association")
+		w.Header().Set("Content-Type", "application/pkcs7-mime")
+		http.ServeContent(w, r, "apple-app-site-association", time.Now(), bytes.NewReader(data))
 	}
 }

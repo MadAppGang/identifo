@@ -14,7 +14,6 @@ services:
       - ./jwt/:/root/jwt/
       - ./email_templates/:/root/email_templates/
       - ./web/static/:/root/web/static/
-      - ./admin_panel/build/:/root/admin_panel/build/
 
 networks:
   identifo:
