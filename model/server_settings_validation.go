@@ -198,7 +198,7 @@ func (kss *KeyStorageSettings) Validate() error {
 	}
 
 	switch kss.Type {
-	case KeyStorageTypeFile:
+	case KeyStorageTypeLocal:
 		break
 	case KeyStorageTypeS3:
 		if len(kss.Region) == 0 {

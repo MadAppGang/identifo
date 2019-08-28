@@ -35,7 +35,7 @@ func TestNewTokenService(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeFile,
+			Type:       model.KeyStorageTypeLocal,
 			PrivateKey: privateKeyPath,
 			PublicKey:  publicKeyPath,
 		},
@@ -74,7 +74,7 @@ func TestNewTokenService(t *testing.T) {
 			configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 				Type: model.ConfigurationStorageTypeFile,
 				KeyStorage: model.KeyStorageSettings{
-					Type:       model.KeyStorageTypeFile,
+					Type:       model.KeyStorageTypeLocal,
 					PrivateKey: tt.args.private,
 					PublicKey:  tt.args.public,
 				},
@@ -117,7 +117,7 @@ func TestParseString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeFile,
+			Type:       model.KeyStorageTypeLocal,
 			PrivateKey: privateKeyPath,
 			PublicKey:  publicKeyPath,
 		},
@@ -175,7 +175,7 @@ func TestTokenToString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeFile,
+			Type:       model.KeyStorageTypeLocal,
 			PrivateKey: privateKeyPath,
 			PublicKey:  publicKeyPath,
 		},
@@ -244,7 +244,7 @@ func TestNewToken(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeFile,
+			Type:       model.KeyStorageTypeLocal,
 			PrivateKey: privateKeyPath,
 			PublicKey:  publicKeyPath,
 		},
