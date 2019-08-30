@@ -69,14 +69,14 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("GET")
 
-	// ar.Router.HandleFunc(`/{register:register/?}`, ar.HTMLFileHandler(model.RegistrationTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/password/{forgot:forgot/?}`, ar.HTMLFileHandler(model.ForgotPasswordTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/password/forgot/{success:success/?}`, ar.HTMLFileHandler(model.ForgotPasswordSuccessTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/password/reset/{error:error/?}`, ar.HTMLFileHandler(model.TokenErrorTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/password/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetPasswordSuccessTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/tfa/disable/{success:success/?}`, ar.HTMLFileHandler(model.DisableTFASuccessTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetTFASuccessTemplateName)).Methods("GET")
-	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(model.MisconfigurationTemplateName)).Methods("GET")
+	// ar.Router.HandleFunc(`/{register:register/?}`, ar.HTMLFileHandler(model.RegistrationStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/{forgot:forgot/?}`, ar.HTMLFileHandler(model.ForgotPasswordStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/forgot/{success:success/?}`, ar.HTMLFileHandler(model.ForgotPasswordSuccessStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/reset/{error:error/?}`, ar.HTMLFileHandler(model.TokenErrorStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetPasswordSuccessStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/disable/{success:success/?}`, ar.HTMLFileHandler(model.DisableTFASuccessStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetTFASuccessStaticPageName)).Methods("GET")
+	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(model.MisconfigurationStaticPageName)).Methods("GET")
 
 	stylesHandler := ar.staticFilesStorage.StylesHandler()
 	scriptsHandler := ar.staticFilesStorage.ScriptsHandler()

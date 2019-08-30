@@ -53,12 +53,6 @@ staticFiles:
   serverConfigPath: server-config.yaml
   staticFolderPath: ./static
   emailTemplatesPath: ./email_templates
-  emailTemplateNames:
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
   adminPanelBuildPath: ./admin_panel/build
   apple:
     developerDomainAssociation: apple/apple-developer-domain-association.txt

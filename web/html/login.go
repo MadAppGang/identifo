@@ -99,7 +99,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 // LoginHandler serves login page or redirects to the callback_url if user is already authenticated.
 func (ar *Router) LoginHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.LoginTemplateName)
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.LoginStaticPageName)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse Login template.", err)
 	}

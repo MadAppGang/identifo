@@ -68,24 +68,21 @@ type StaticFilesStorageSettings struct {
 	Type                StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
 	ServerConfigPath    string                 `yaml:"serverConfig,omitempty" json:"server_config,omitempty"`
 	StaticFilesLocation string                 `yaml:"staticFilesLocation,omitempty" json:"static_files_location,omitempty"`
+	PagesPath           string                 `yaml:"pagesPath,omitempty" json:"pages_path,omitempty"`
 	EmailTemplatesPath  string                 `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames  EmailTemplateNames     `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AdminPanelBuild     string                 `yaml:"adminPanelBuild,omitempty" json:"admin_panel_build,omitempty"`
-	AppleFilenames      AppleFilenames         `yaml:"apple,omitempty" json:"apple,omitempty"`
+	AdminPanelBuildPath string                 `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	AppleFilesPath      string                 `yaml:"appleFilesPath,omitempty" json:"apple_files_path,omitempty"`
 }
 
+// StaticFilesStorageType is a type of static files storage.
 type StaticFilesStorageType string
 
 const (
+	// StaticFilesStorageTypeLocal is for storing static files locally.
 	StaticFilesStorageTypeLocal = "local"
-	StaticFilesStorageTypeS3    = "s3"
+	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
+	StaticFilesStorageTypeS3 = "s3"
 )
-
-// AppleFilenames holds together static files needed for supporting Apple services.
-type AppleFilenames struct {
-	DeveloperDomainAssociation string `yaml:"developerDomainAssociation,omitempty" json:"developer_domain_association,omitempty"`
-	AppSiteAssociation         string `yaml:"appSiteAssociation,omitempty" json:"app_site_association,omitempty"`
-}
 
 // ConfigurationStorageSettings holds together configuration storage settings.
 type ConfigurationStorageSettings struct {
@@ -155,56 +152,6 @@ const (
 type ExternalServicesSettings struct {
 	EmailService EmailServiceSettings `yaml:"emailService,omitempty" json:"email_service,omitempty"`
 	SMSService   SMSServiceSettings   `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
-}
-
-// StaticPages holds together all paths to static pages.
-type StaticPages struct {
-	Login                 string
-	Registration          string
-	ForgotPassword        string
-	ForgotPasswordSuccess string
-	ResetPassword         string
-	ResetPasswordSuccess  string
-	DisableTFA            string
-	DisableTFASuccess     string
-	ResetTFA              string
-	ResetTFASuccess       string
-	TokenError            string
-	WebMessage            string
-	Misconfiguration      string
-}
-
-// EmailTemplates stores email templates.
-type EmailTemplates struct {
-	Welcome       string
-	ResetPassword string
-	VerifyEmail   string
-}
-
-// StaticFilesPaths holds paths to static files.
-type StaticFilesPaths struct {
-	StylesPath     string
-	ScriptsPath    string
-	PagesPath      string
-	ImagesPath     string
-	FontsPath      string
-	EmailTemplates string
-}
-
-var defaultStaticPages = StaticPages{
-	Login:                 "login.html",
-	Registration:          "registration.html",
-	ForgotPassword:        "forgot-password.html",
-	ResetPassword:         "reset-password.html",
-	ResetPasswordSuccess:  "reset-password-success.html",
-	DisableTFA:            "disable-tfa.html",
-	DisableTFASuccess:     "disable-tfa-success.html",
-	ResetTFA:              "reset-tfa.html",
-	ResetTFASuccess:       "reset-tfa-success.html",
-	ForgotPasswordSuccess: "forgot-password-success.html",
-	TokenError:            "token-error.html",
-	WebMessage:            "web-message.html",
-	Misconfiguration:      "misconfiguration.html",
 }
 
 // EmailServiceType - how to send email to clients.

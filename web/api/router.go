@@ -25,13 +25,13 @@ type Router struct {
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
 	verificationCodeStorage model.VerificationCodeStorage
+	staticFilesStorage      model.StaticFilesStorage
 	tfaType                 model.TFAType
 	tokenService            jwtService.TokenService
 	smsService              model.SMSService
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
-	appleFilenames          model.AppleFilenames
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith

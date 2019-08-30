@@ -10,51 +10,60 @@ import (
 
 // StaticFilesStorage is a storage of static files in S3.
 type StaticFilesStorage struct {
-	bucket         string
-	pagesPath      string
-	staticPages    model.StaticPages
-	appleFilenames model.AppleFilenames
+	bucket             string
+	pagesPath          string
+	emailTemplatesPath string
 }
 
 // NewStaticFilesStorage creates and returns new static files storage in S3.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		bucket:         settings.StaticFilesLocation,
-		appleFilenames: settings.AppleFilenames,
+		bucket:    settings.StaticFilesLocation,
+		pagesPath: settings.PagesPath,
 	}, nil
 }
 
-func (sfs *StaticFilesStorage) ParseTemplate(templateName model.TemplateName) (*template.Template, error) {
+// ParseTemplate parses the html template.
+func (sfs *StaticFilesStorage) ParseTemplate(templateName model.StaticPageName) (*template.Template, error) {
 	// TODO: implement
 	return nil, nil
 }
 
-func (sfs *StaticFilesStorage) UploadTemplate(templateName model.TemplateName, contents io.Reader) error {
+// UploadTemplate is for html template uploads.
+func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName, contents io.Reader) error {
 	// TODO: implement
 	return nil
 }
 
+// UploadFile is for static file uploads.
 func (sfs *StaticFilesStorage) UploadFile(filename model.Filename, contents io.Reader) error {
 	// TODO: implement
 	return nil
 }
 
+// StylesHandler returns server of the images folder.
 func (sfs *StaticFilesStorage) StylesHandler() http.Handler {
 	// TODO: implement
 	return nil
 }
 
+// ScriptsHandler returns server of the images folder.
 func (sfs *StaticFilesStorage) ScriptsHandler() http.Handler {
 	// TODO: implement
 	return nil
 }
 
+// ImagesHandler returns server of the images folder.
 func (sfs *StaticFilesStorage) ImagesHandler() http.Handler {
 	// TODO: implement
 	return nil
 }
 
+// FontsHandler returns server of the fonts folder.
 func (sfs *StaticFilesStorage) FontsHandler() http.Handler {
 	// TODO: implement
 	return nil
 }
+
+// Close is to satisfy the interface.
+func (sfs *StaticFilesStorage) Close() {}

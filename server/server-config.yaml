@@ -89,12 +89,6 @@ staticFiles:
   serverConfigPath: ../../server/server-config.yaml   # File with server settings.
   staticFolderPath: ../../web/static   # Folder for the static files.
   emailTemplatesPath: ../../email_templates   # Forder for the email templates.
-  emailTemplateNames:   # Email template names.
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
   adminPanelBuildPath: ../../admin_panel/build # If not provided, admin panel is not being served.
   apple: # Files needed for using Apple services.
     developerDomainAssociation: apple/apple-developer-domain-association.txt

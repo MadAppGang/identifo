@@ -62,7 +62,7 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 
 // DisableTFAHandler handles disable TFA GET request.
 func (ar *Router) DisableTFAHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.DisableTFATemplateName)
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.DisableTFAStaticPageName)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse DisableTFA template.", err)
 	}
@@ -155,7 +155,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 
 // ResetTFAHandler handles reset TFA GET request.
 func (ar *Router) ResetTFAHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.ResetTFATemplateName)
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.ResetTFAStaticPageName)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse ResetTFA template.", err)
 	}

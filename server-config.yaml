@@ -89,20 +89,13 @@ configurationStorage:
 
 staticFilesStorage:
   type: local # Supported values are "local" and "s3".
-  serverConfig: server-config.yaml  # Path to the file with server settings.
-  # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
+    # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
   staticFilesLocation: ./web/static
+  serverConfigPath: server-config.yaml  # Path to the file with server settings.
+  pagesPath: ./html
   emailTemplatesPath: ./email_templates   # Folder for the email templates.
-  emailTemplateNames:   # Email template names.
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
-  adminPanelBuild: ./admin_panel/build # If not provided, admin panel is not being served.
-  apple: # Files needed for using Apple services.
-    developerDomainAssociation: apple/apple-developer-domain-association.txt
-    appSiteAssociation: apple/apple-app-site-association
+  adminPanelBuildPath: ./admin_panel/build # If not provided, admin panel is not being served.
+  appleFilesPath: ./apple
 
 login:   # Supported login ways.
   loginWith:

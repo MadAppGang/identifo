@@ -8,7 +8,7 @@ import (
 )
 
 // HTMLFileHandler receives path to a template and serves it over HTTP.
-func (ar *Router) HTMLFileHandler(templateName model.TemplateName) http.HandlerFunc {
+func (ar *Router) HTMLFileHandler(templateName model.StaticPageName) http.HandlerFunc {
 	tmpl, err := ar.staticFilesStorage.ParseTemplate(templateName)
 	if err != nil {
 		ar.Logger.Fatalf("Cannot parse %v template. %s\n", templateName, err)

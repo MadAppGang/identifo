@@ -13,7 +13,7 @@ import (
 
 // RenewToken creates new id_token if user is already authenticated.
 func (ar *Router) RenewToken() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.WebMessageTemplateName)
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.WebMessageStaticPageName)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse WebMessage template.", err)
 	}

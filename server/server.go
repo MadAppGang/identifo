@@ -142,7 +142,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		return nil, err
 	}
 
-	ms, err := initEmailService(settings.ExternalServices.EmailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
+	ms, err := initEmailService(settings.ExternalServices.EmailService, staticFilesStorage)
 	if err != nil {
 		return nil, err
 	}
@@ -252,6 +252,11 @@ func (s *Server) ConfigurationStorage() model.ConfigurationStorage {
 	return s.configurationStorage
 }
 
+// StaticFilesStorage returns server's static files storage.
+func (s *Server) StaticFilesStorage() model.StaticFilesStorage {
+	return s.staticFilesStorage
+}
+
 // Close closes all database connections.
 func (s *Server) Close() {
 	s.AppStorage().Close()
@@ -259,6 +264,7 @@ func (s *Server) Close() {
 	s.TokenStorage().Close()
 	s.TokenBlacklist().Close()
 	s.VerificationCodeStorage().Close()
+	s.StaticFilesStorage().Close()
 }
 
 // InitConfigurationStorage initializes configuration storage.
@@ -332,8 +338,8 @@ func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error)
 	}
 }
 
-func initEmailService(ess model.EmailServiceSettings, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
-	tpltr, err := model.NewEmailTemplater(templateNames, templatesPath)
+func initEmailService(ess model.EmailServiceSettings, sfs model.StaticFilesStorage) (model.EmailService, error) {
+	tpltr, err := model.NewEmailTemplater(sfs)
 	if err != nil {
 		return nil, err
 	}

@@ -39,7 +39,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 
 // ResetPasswordHandler handles reset password GET request.
 func (ar *Router) ResetPasswordHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.ResetPasswordTemplateName)
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.ResetPasswordStaticPageName)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse ResetPassword template.", err)
 	}
