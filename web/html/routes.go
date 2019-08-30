@@ -1,8 +1,7 @@
 package html
 
 import (
-	"net/http"
-
+	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
 
@@ -70,23 +69,23 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("GET")
 
-	// ar.Router.HandleFunc(`/{register:register/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration)).Methods("GET")
-	ar.Router.HandleFunc(`/password/{forgot:forgot/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPassword)).Methods("GET")
-	ar.Router.HandleFunc(`/password/forgot/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ForgotPasswordSuccess)).Methods("GET")
-	ar.Router.HandleFunc(`/password/reset/{error:error/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.TokenError)).Methods("GET")
-	ar.Router.HandleFunc(`/password/reset/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPasswordSuccess)).Methods("GET")
-	ar.Router.HandleFunc(`/tfa/disable/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.DisableTFASuccess)).Methods("GET")
-	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetTFASuccess)).Methods("GET")
-	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(ar.StaticFilesPath.PagesPath, ar.StaticPages.Misconfiguration)).Methods("GET")
+	// ar.Router.HandleFunc(`/{register:register/?}`, ar.HTMLFileHandler(model.RegistrationTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/{forgot:forgot/?}`, ar.HTMLFileHandler(model.ForgotPasswordTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/forgot/{success:success/?}`, ar.HTMLFileHandler(model.ForgotPasswordSuccessTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/reset/{error:error/?}`, ar.HTMLFileHandler(model.TokenErrorTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/password/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetPasswordSuccessTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/disable/{success:success/?}`, ar.HTMLFileHandler(model.DisableTFASuccessTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetTFASuccessTemplateName)).Methods("GET")
+	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(model.MisconfigurationTemplateName)).Methods("GET")
 
-	stylesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.StylesPath))
-	scriptsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ScriptsPath))
-	imagesHandler := http.FileServer(http.Dir(ar.StaticFilesPath.ImagesPath))
-	fontsHandler := http.FileServer(http.Dir(ar.StaticFilesPath.FontsPath))
+	stylesHandler := ar.staticFilesStorage.StylesHandler()
+	scriptsHandler := ar.staticFilesStorage.ScriptsHandler()
+	imagesHandler := ar.staticFilesStorage.ImagesHandler()
+	fontsHandler := ar.staticFilesStorage.FontsHandler()
 
 	// Setup routes for static files.
-	ar.Router.PathPrefix(`/{css:css/?}`).Handler(http.StripPrefix("/css/", stylesHandler)).Methods("GET")
-	ar.Router.PathPrefix(`/{js:js/?}`).Handler(http.StripPrefix("/js/", scriptsHandler)).Methods("GET")
-	ar.Router.PathPrefix(`/{img:img/?}`).Handler(http.StripPrefix("/img/", imagesHandler)).Methods("GET")
-	ar.Router.PathPrefix(`/{fonts:img/?}`).Handler(http.StripPrefix("/fonts/", fontsHandler)).Methods("GET")
+	ar.Router.PathPrefix(`/{css:css/?}`).Handler(stylesHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{js:js/?}`).Handler(scriptsHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{img:img/?}`).Handler(imagesHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{fonts:fonts/?}`).Handler(fontsHandler).Methods("GET")
 }

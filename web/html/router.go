@@ -27,8 +27,7 @@ type Router struct {
 	TokenService       jwtService.TokenService
 	SMSService         model.SMSService
 	EmailService       model.EmailService
-	StaticFilesStorage model.StaticFilesStorage
-	EmailTemplates     EmailTemplates
+	staticFilesStorage model.StaticFilesStorage
 	Authorizer         *authorization.Authorizer
 	PathPrefix         string
 	Host               string
@@ -36,8 +35,6 @@ type Router struct {
 
 func defaultOptions() []func(*Router) error {
 	return []func(*Router) error{
-		DefaultStaticPagesOptions(),
-		DefaultStaticPathOptions(),
 		PathPrefixOptions("/web"),
 	}
 }

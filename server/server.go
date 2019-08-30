@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
@@ -24,6 +23,8 @@ import (
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
+	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
+	staticStoreS3 "github.com/madappgang/identifo/static/storage/s3"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -136,6 +137,11 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
+	staticFilesStorage, err := initStaticFilesStorage(settings.StaticFiles)
+	if err != nil {
+		return nil, err
+	}
+
 	ms, err := initEmailService(settings.ExternalServices.EmailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
 	if err != nil {
 		return nil, err
@@ -152,14 +158,6 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		hostName = settings.General.Host
 	}
 
-	staticFiles := html.StaticFilesPath{
-		StylesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "css"),
-		ScriptsPath: path.Join(settings.StaticFiles.StaticFolderPath, "js"),
-		PagesPath:   settings.StaticFiles.StaticFolderPath,
-		ImagesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "img"),
-		FontsPath:   path.Join(settings.StaticFiles.StaticFolderPath, "fonts"),
-	}
-
 	routerSettings := web.RouterSetting{
 		AppStorage:              appStorage,
 		UserStorage:             userStorage,
@@ -170,18 +168,16 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		SessionService:          sessionService,
 		SessionStorage:          sessionStorage,
 		ConfigurationStorage:    configurationStorage,
+		StaticFilesStorage:      staticFilesStorage,
 		SMSService:              sms,
 		EmailService:            ms,
-		AdminPanelBuildPath:     settings.StaticFiles.AdminPanelBuildPath,
 		WebRouterSettings: []func(*html.Router) error{
-			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.AppleFilenamesOption(settings.StaticFiles.AppleFilenames, settings.StaticFiles.StaticFolderPath),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
@@ -309,6 +305,17 @@ func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, er
 		return mem.NewSessionStorage()
 	case model.SessionStorageDynamoDB:
 		return dynamodb.NewSessionStorage(settings.SessionStorage)
+	default:
+		return nil, model.ErrorNotImplemented
+	}
+}
+
+func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
+	switch settings.Type {
+	case model.StaticFilesStorageTypeLocal:
+		return staticStoreLocal.NewStaticFilesStorage(settings)
+	case model.StaticFilesStorageTypeS3:
+		return staticStoreS3.NewStaticFilesStorage(settings)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

@@ -25,6 +25,7 @@ type RouterSetting struct {
 	EmailService            model.EmailService
 	SessionService          model.SessionService
 	SessionStorage          model.SessionStorage
+	StaticFilesStorage      model.StaticFilesStorage
 	ConfigurationStorage    model.ConfigurationStorage
 	Logger                  *log.Logger
 	AdminPanelBuildPath     string
