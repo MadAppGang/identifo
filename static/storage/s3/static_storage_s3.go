@@ -26,25 +26,25 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFi
 }
 
 // ParseTemplate parses the html template.
-func (sfs *StaticFilesStorage) ParseTemplate(templateName model.StaticPageName) (*template.Template, error) {
+func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
 	// TODO: implement
 	return nil, nil
 }
 
 // UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.Reader) error {
 	// TODO: implement
 	return nil
 }
 
 // ReadAppleFile is for reading Apple-related static files.
-func (sfs *StaticFilesStorage) ReadAppleFile(filename model.AppleFilename) ([]byte, error) {
+func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 	// TODO: implement
 	return nil, nil
 }
 
 // UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename model.AppleFilename, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Reader) error {
 	// TODO: implement
 	return nil
 }

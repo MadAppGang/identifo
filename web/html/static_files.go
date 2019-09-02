@@ -3,12 +3,10 @@ package html
 import (
 	"net/http"
 	"path"
-
-	"github.com/madappgang/identifo/model"
 )
 
 // HTMLFileHandler receives path to a template and serves it over HTTP.
-func (ar *Router) HTMLFileHandler(templateName model.StaticPageName) http.HandlerFunc {
+func (ar *Router) HTMLFileHandler(templateName string) http.HandlerFunc {
 	tmpl, err := ar.staticFilesStorage.ParseTemplate(templateName)
 	if err != nil {
 		ar.Logger.Fatalf("Cannot parse %v template. %s\n", templateName, err)

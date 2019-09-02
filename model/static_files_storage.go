@@ -8,10 +8,10 @@ import (
 
 // StaticFilesStorage is a wrapper over static files storages.
 type StaticFilesStorage interface {
-	ParseTemplate(templateName StaticPageName) (*template.Template, error)
-	UploadTemplate(templateName StaticPageName, contents io.Reader) error
-	ReadAppleFile(filename AppleFilename) ([]byte, error)
-	UploadAppleFile(filename AppleFilename, contents io.Reader) error
+	ParseTemplate(templateName string) (*template.Template, error)
+	UploadTemplate(templateName string, contents io.Reader) error
+	ReadAppleFile(filename string) ([]byte, error)
+	UploadAppleFile(filename string, contents io.Reader) error
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
 	Close()
@@ -87,37 +87,3 @@ var AppleFilenames = AppleFiles{
 	DeveloperDomainAssociation: "apple-developer-domain-association.txt",
 	AppSiteAssociation:         "apple-app-site-association",
 }
-
-// This enum describes static pages names.
-const (
-	DisableTFAStaticPageName StaticPageName = iota + 1
-	DisableTFASuccessStaticPageName
-	ForgotPasswordStaticPageName
-	ForgotPasswordSuccessStaticPageName
-	InviteEmailStaticPageName
-	LoginStaticPageName
-	MisconfigurationStaticPageName
-	RegistrationStaticPageName
-	ResetPasswordStaticPageName
-	ResetPasswordEmailStaticPageName
-	ResetPasswordSuccessStaticPageName
-	ResetTFAStaticPageName
-	ResetTFASuccessStaticPageName
-	TFAEmailStaticPageName
-	TokenErrorStaticPageName
-	VerifyEmailStaticPageName
-	WebMessageStaticPageName
-	WelcomeEmailStaticPageName
-)
-
-// StaticPageName is a name of html template.
-type StaticPageName int
-
-// This enum describes names of files related to Apple services.
-const (
-	AppSiteAssociationFilename AppleFilename = iota + 1
-	DeveloperDomainAssociationFilename
-)
-
-// AppleFilename is a name of an Apple-related file.
-type AppleFilename int

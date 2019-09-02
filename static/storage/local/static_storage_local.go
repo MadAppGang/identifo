@@ -8,13 +8,9 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
-)
-
-var (
-	staticPages = model.StaticPagesNames
-	appleFiles  = model.AppleFilenames
 )
 
 // StaticFilesStorage is a local storage of static files.
@@ -38,100 +34,31 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFi
 }
 
 // ParseTemplate parses the html template.
-func (sfs *StaticFilesStorage) ParseTemplate(name model.StaticPageName) (*template.Template, error) {
+func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
 	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
 	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
 
-	switch name {
-	case model.DisableTFAStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.DisableTFA))
-	case model.DisableTFASuccessStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.DisableTFASuccess))
-	case model.ForgotPasswordStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ForgotPassword))
-	case model.ForgotPasswordSuccessStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ForgotPasswordSuccess))
-	case model.InviteEmailStaticPageName:
-		return template.ParseFiles(path.Join(emailsPath, staticPages.InviteEmail))
-	case model.LoginStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.Login))
-	case model.MisconfigurationStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.Misconfiguration))
-	case model.RegistrationStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.Registration))
-	case model.ResetPasswordStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetPassword))
-	case model.ResetPasswordEmailStaticPageName:
-		return template.ParseFiles(path.Join(emailsPath, staticPages.ResetPasswordEmail))
-	case model.ResetPasswordSuccessStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetPasswordSuccess))
-	case model.ResetTFAStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetTFA))
-	case model.ResetTFASuccessStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetTFASuccess))
-	case model.TFAEmailStaticPageName:
-		return template.ParseFiles(path.Join(emailsPath, staticPages.TFAEmail))
-	case model.TokenErrorStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.TokenError))
-	case model.VerifyEmailStaticPageName:
-		return template.ParseFiles(path.Join(emailsPath, staticPages.VerifyEmail))
-	case model.WebMessageStaticPageName:
-		return template.ParseFiles(path.Join(pagesPath, staticPages.WebMessage))
-	case model.WelcomeEmailStaticPageName:
-		return template.ParseFiles(path.Join(emailsPath, staticPages.WelcomeEmail))
+	if strings.Contains(strings.ToLower(templateName), "email") {
+		templateName = path.Join(emailsPath, templateName)
+	} else {
+		templateName = path.Join(pagesPath, templateName)
 	}
-	return nil, fmt.Errorf("Unsupported template name %v", name)
+	return template.ParseFiles(templateName)
+
 }
 
 // UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.Reader) error {
 	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
 	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
 
-	var filepath string
-
-	switch templateName {
-	case model.DisableTFAStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.DisableTFA)
-	case model.DisableTFASuccessStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.DisableTFASuccess)
-	case model.ForgotPasswordStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ForgotPassword)
-	case model.ForgotPasswordSuccessStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ForgotPasswordSuccess)
-	case model.InviteEmailStaticPageName:
-		filepath = path.Join(emailsPath, staticPages.InviteEmail)
-	case model.LoginStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.Login)
-	case model.MisconfigurationStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.Misconfiguration)
-	case model.RegistrationStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.Registration)
-	case model.ResetPasswordStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ResetPassword)
-	case model.ResetPasswordEmailStaticPageName:
-		filepath = path.Join(emailsPath, staticPages.ResetPasswordEmail)
-	case model.ResetPasswordSuccessStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ResetPasswordSuccess)
-	case model.ResetTFAStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ResetTFA)
-	case model.ResetTFASuccessStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.ResetTFASuccess)
-	case model.TFAEmailStaticPageName:
-		filepath = path.Join(emailsPath, staticPages.TFAEmail)
-	case model.TokenErrorStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.TokenError)
-	case model.VerifyEmailStaticPageName:
-		filepath = path.Join(emailsPath, staticPages.VerifyEmail)
-	case model.WebMessageStaticPageName:
-		filepath = path.Join(pagesPath, staticPages.WebMessage)
-	case model.WelcomeEmailStaticPageName:
-		filepath = path.Join(emailsPath, staticPages.WelcomeEmail)
-	default:
-		return fmt.Errorf("Unknown template name %v", templateName)
+	if strings.Contains(strings.ToLower(templateName), "email") {
+		templateName = path.Join(emailsPath, templateName)
+	} else {
+		templateName = path.Join(pagesPath, templateName)
 	}
 
-	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(templateName, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("Cannot open file: %s", err.Error())
 	}
@@ -144,49 +71,28 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName,
 }
 
 // ReadAppleFile is for reading Apple-related static files.
-func (sfs *StaticFilesStorage) ReadAppleFile(filename model.AppleFilename) ([]byte, error) {
-	appleFolder := path.Join(sfs.staticFilesFolder, sfs.appleFilesPath)
-	var filepath string
-
-	switch filename {
-	case model.AppSiteAssociationFilename:
-		filepath = path.Join(appleFolder, appleFiles.AppSiteAssociation)
-	case model.DeveloperDomainAssociationFilename:
-		filepath = path.Join(appleFolder, appleFiles.DeveloperDomainAssociation)
-	default:
-		return nil, fmt.Errorf("Unknown filename %v", filename)
-	}
-
+func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
+	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
 	// Check if file exists. If not - return nil error and nil slice.
-	if _, err := os.Stat(filepath); err != nil {
+	if _, err := os.Stat(filename); err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
-		return nil, fmt.Errorf("Error while checking filepath '%s' existence. %s", filepath, err)
+		return nil, fmt.Errorf("Error while checking filename '%s' existence. %s", filename, err)
 	}
 
-	data, err := ioutil.ReadFile(filepath)
+	data, err := ioutil.ReadFile(filename)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot read %s. %s", filepath, err)
+		return nil, fmt.Errorf("Cannot read %s. %s", filename, err)
 	}
 	return data, nil
 }
 
 // UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename model.AppleFilename, contents io.Reader) error {
-	appleFolder := path.Join(sfs.staticFilesFolder, sfs.appleFilesPath)
-	var filepath string
+func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Reader) error {
+	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
 
-	switch filename {
-	case model.AppSiteAssociationFilename:
-		filepath = path.Join(appleFolder, appleFiles.AppSiteAssociation)
-	case model.DeveloperDomainAssociationFilename:
-		filepath = path.Join(appleFolder, appleFiles.DeveloperDomainAssociation)
-	default:
-		return fmt.Errorf("Unknown filename %v", filename)
-	}
-
-	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("Cannot open file: %s", err.Error())
 	}
