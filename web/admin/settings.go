@@ -213,19 +213,19 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 	}
 }
 
-// FetchStaticFilesSettings fetches static files settings.
-func (ar *Router) FetchStaticFilesSettings() http.HandlerFunc {
+// FetchStaticFilesStorageSettings fetches static files settings.
+func (ar *Router) FetchStaticFilesStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.StaticFiles)
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.StaticFilesStorage)
 	}
 }
 
-// UpdateStaticFilesSettings changes static files settings.
-func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
+// UpdateStaticFilesStorageSettings changes static files settings.
+func (ar *Router) UpdateStaticFilesStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var staticFilesSettingsUpdate model.StaticFilesStorageSettings
+		var staticFilesStorageSettingsUpdate model.StaticFilesStorageSettings
 
-		if ar.mustParseJSON(w, r, &staticFilesSettingsUpdate) != nil {
+		if ar.mustParseJSON(w, r, &staticFilesStorageSettingsUpdate) != nil {
 			return
 		}
 
@@ -234,12 +234,12 @@ func (ar *Router) UpdateStaticFilesSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings.StaticFiles = staticFilesSettingsUpdate
+		newServerSettings.StaticFilesStorage = staticFilesStorageSettingsUpdate
 		if ar.updateServerSettings(w, newServerSettings) != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFiles)
+		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFilesStorage)
 	}
 }
 

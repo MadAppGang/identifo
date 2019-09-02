@@ -5,10 +5,11 @@ import (
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/base64"
-	"io/ioutil"
 	"math/big"
 	"net/http"
 	"time"
+
+	"github.com/madappgang/identifo/model"
 )
 
 // OIDCConfiguration describes OIDC configuration.
@@ -127,13 +128,13 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 // ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.
 func (ar *Router) ServeADDAFile() http.HandlerFunc {
-	if ar.appleFilenames.DeveloperDomainAssociation == "" {
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
-	}
-
-	data, err := ioutil.ReadFile(ar.appleFilenames.DeveloperDomainAssociation)
+	data, err := ar.staticFilesStorage.ReadAppleFile(model.DeveloperDomainAssociationFilename)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
+	}
+	if data == nil {
+		ar.logger.Println("Apple Developer Domain Association file does not exist, so won't be served.")
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -145,13 +146,13 @@ func (ar *Router) ServeADDAFile() http.HandlerFunc {
 
 // ServeAASAFile lets Apple servers download apple-app-site-association file.
 func (ar *Router) ServeAASAFile() http.HandlerFunc {
-	if ar.appleFilenames.AppSiteAssociation == "" {
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
-	}
-
-	data, err := ioutil.ReadFile(ar.appleFilenames.AppSiteAssociation)
+	data, err := ar.staticFilesStorage.ReadAppleFile(model.AppSiteAssociationFilename)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
+	}
+	if data == nil {
+		ar.logger.Println("Apple App Site Association file does not exist, so won't be served.")
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

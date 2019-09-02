@@ -78,14 +78,9 @@ func (ar *Router) initRoutes() {
 	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(model.ResetTFASuccessStaticPageName)).Methods("GET")
 	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(model.MisconfigurationStaticPageName)).Methods("GET")
 
-	stylesHandler := ar.staticFilesStorage.StylesHandler()
-	scriptsHandler := ar.staticFilesStorage.ScriptsHandler()
-	imagesHandler := ar.staticFilesStorage.ImagesHandler()
-	fontsHandler := ar.staticFilesStorage.FontsHandler()
-
-	// Setup routes for static files.
-	ar.Router.PathPrefix(`/{css:css/?}`).Handler(stylesHandler).Methods("GET")
-	ar.Router.PathPrefix(`/{js:js/?}`).Handler(scriptsHandler).Methods("GET")
-	ar.Router.PathPrefix(`/{img:img/?}`).Handler(imagesHandler).Methods("GET")
-	ar.Router.PathPrefix(`/{fonts:fonts/?}`).Handler(fontsHandler).Methods("GET")
+	assetHandlers := ar.staticFilesStorage.AssetHandlers()
+	ar.Router.PathPrefix(`/{css:css/?}`).Handler(assetHandlers.StylesHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{js:js/?}`).Handler(assetHandlers.ScriptsHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{img:img/?}`).Handler(assetHandlers.ImagesHandler).Methods("GET")
+	ar.Router.PathPrefix(`/{fonts:fonts/?}`).Handler(assetHandlers.FontsHandler).Methods("GET")
 }

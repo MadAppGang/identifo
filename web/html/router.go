@@ -56,18 +56,19 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenBlacklist model.TokenBlacklist, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sfs model.StaticFilesStorage, ts model.TokenStorage, tb model.TokenBlacklist, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		Middleware:     negroni.Classic(),
-		Router:         mux.NewRouter(),
-		AppStorage:     appStorage,
-		UserStorage:    userStorage,
-		TokenStorage:   tokenStorage,
-		TokenBlacklist: tokenBlacklist,
-		TokenService:   tokenService,
-		SMSService:     smsService,
-		EmailService:   emailService,
-		Authorizer:     authorizer,
+		Middleware:         negroni.Classic(),
+		Router:             mux.NewRouter(),
+		AppStorage:         as,
+		UserStorage:        us,
+		TokenStorage:       ts,
+		TokenBlacklist:     tb,
+		TokenService:       tServ,
+		SMSService:         smsServ,
+		EmailService:       emailServ,
+		staticFilesStorage: sfs,
+		Authorizer:         authorizer,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {
@@ -76,7 +77,7 @@ func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage mode
 		}
 	}
 
-	// setup logger to stdout.
+	// Setup logger to stdout.
 	if logger == nil {
 		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}

@@ -41,6 +41,20 @@ configurationStorage:
     region: # S3-related setting.
 
 
+staticFilesStorage:
+  type: local # Supported values are "local" and "s3".
+  serverConfigPath: server-config.yaml  # Path to the file with server settings.
+  # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
+  # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  staticFilesLocation: ./static   # All following paths are relative to this location.
+  region: # S3-specific setting. Needed when type is s3.
+  pagesPath: ./html # Folder for html pages.
+  emailTemplatesPath: ./email_templates # Folder for the email templates.
+  appleFilesPath: ./apple # Folder for the Apple-related files.
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  adminPanelBuildPath: ./admin_panel/build # Path to the admin panel build. Can be ommited when not serving admin panel. 
+
+
 staticFiles:
   serverConfigPath: server-config.yaml
   staticFolderPath: ../../web/static   # Folder for the static files.

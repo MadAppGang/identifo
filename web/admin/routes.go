@@ -7,9 +7,8 @@ import (
 
 // Setup all routes.
 func (ar *Router) initRoutes() {
-	// do nothing on empty router (or should panic?)
 	if ar.router == nil {
-		return
+		panic("Empty admin router")
 	}
 
 	ar.router.Path(`/{me:me/?}`).Handler(negroni.New(
@@ -87,8 +86,8 @@ func (ar *Router) initRoutes() {
 	settings.Path("/storage/configuration").HandlerFunc(ar.FetchConfigurationStorageSettings()).Methods("GET")
 	settings.Path("/storage/configuration").HandlerFunc(ar.UpdateConfigurationStorageSettings()).Methods("PUT")
 
-	settings.Path("/static").HandlerFunc(ar.FetchStaticFilesSettings()).Methods("GET")
-	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesSettings()).Methods("PUT")
+	settings.Path("/static").HandlerFunc(ar.FetchStaticFilesStorageSettings()).Methods("GET")
+	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesStorageSettings()).Methods("PUT")
 
 	settings.Path("/login").HandlerFunc(ar.FetchLoginSettings()).Methods("GET")
 	settings.Path("/login").HandlerFunc(ar.UpdateLoginSettings()).Methods("PUT")

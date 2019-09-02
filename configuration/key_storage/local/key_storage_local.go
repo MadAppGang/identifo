@@ -57,10 +57,16 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 // LoadKeys loads keys from the key storage.
 func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
 	if _, err := os.Stat(ks.PublicKeyPath); err != nil {
-		return nil, fmt.Errorf("Public key file not found")
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("Public key file not found")
+		}
+		return nil, fmt.Errorf("Error while checking public key existence. %s", err)
 	}
 	if _, err := os.Stat(ks.PrivateKeyPath); err != nil {
-		return nil, fmt.Errorf("Private key file not found")
+		if os.IsNotExist(err) {
+			return nil, fmt.Errorf("Private key file not found")
+		}
+		return nil, fmt.Errorf("Error while checking private key existence. %s", err)
 	}
 
 	keys := new(model.JWTKeys)

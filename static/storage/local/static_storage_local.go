@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"html/template"
 	"io"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"path"
@@ -18,104 +19,114 @@ var (
 
 // StaticFilesStorage is a local storage of static files.
 type StaticFilesStorage struct {
-	staticFilesFolder  string
-	pagesPath          string
-	emailTemplatesPath string
-	appleFilesPath     string
+	staticFilesFolder   string
+	pagesPath           string
+	emailTemplatesPath  string
+	adminPanelBuildPath string
+	appleFilesPath      string
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		staticFilesFolder: settings.StaticFilesLocation,
-		appleFilesPath:    settings.AppleFilesPath,
+		staticFilesFolder:   settings.StaticFilesLocation,
+		pagesPath:           settings.PagesPath,
+		emailTemplatesPath:  settings.EmailTemplatesPath,
+		adminPanelBuildPath: settings.AdminPanelBuildPath,
+		appleFilesPath:      settings.AppleFilesPath,
 	}, nil
 }
 
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(name model.StaticPageName) (*template.Template, error) {
+	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
+	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
+
 	switch name {
 	case model.DisableTFAStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.DisableTFA))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.DisableTFA))
 	case model.DisableTFASuccessStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.DisableTFASuccess))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.DisableTFASuccess))
 	case model.ForgotPasswordStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ForgotPassword))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ForgotPassword))
 	case model.ForgotPasswordSuccessStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ForgotPasswordSuccess))
-	case model.InviteStaticPageName:
-		return template.ParseFiles(path.Join(sfs.emailTemplatesPath, staticPages.Invite))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ForgotPasswordSuccess))
+	case model.InviteEmailStaticPageName:
+		return template.ParseFiles(path.Join(emailsPath, staticPages.InviteEmail))
 	case model.LoginStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.Login))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.Login))
 	case model.MisconfigurationStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.Misconfiguration))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.Misconfiguration))
 	case model.RegistrationStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.Registration))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.Registration))
 	case model.ResetPasswordStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ResetPassword))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetPassword))
 	case model.ResetPasswordEmailStaticPageName:
-		return template.ParseFiles(path.Join(sfs.emailTemplatesPath, staticPages.ResetPasswordEmail))
+		return template.ParseFiles(path.Join(emailsPath, staticPages.ResetPasswordEmail))
 	case model.ResetPasswordSuccessStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ResetPasswordSuccess))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetPasswordSuccess))
 	case model.ResetTFAStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ResetTFA))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetTFA))
 	case model.ResetTFASuccessStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.ResetTFASuccess))
-	case model.TFAStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.TFAStatic))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.ResetTFASuccess))
+	case model.TFAEmailStaticPageName:
+		return template.ParseFiles(path.Join(emailsPath, staticPages.TFAEmail))
 	case model.TokenErrorStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.TokenError))
-	case model.VerifyStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.Verify))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.TokenError))
+	case model.VerifyEmailStaticPageName:
+		return template.ParseFiles(path.Join(emailsPath, staticPages.VerifyEmail))
 	case model.WebMessageStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.WebMessage))
-	case model.WelcomeStaticPageName:
-		return template.ParseFiles(path.Join(sfs.pagesPath, staticPages.Welcome))
+		return template.ParseFiles(path.Join(pagesPath, staticPages.WebMessage))
+	case model.WelcomeEmailStaticPageName:
+		return template.ParseFiles(path.Join(emailsPath, staticPages.WelcomeEmail))
 	}
 	return nil, fmt.Errorf("Unsupported template name %v", name)
 }
 
 // UploadTemplate is for html template uploads.
 func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName, contents io.Reader) error {
+	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
+	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
+
 	var filepath string
 
 	switch templateName {
 	case model.DisableTFAStaticPageName:
-		filepath = path.Join(sfs.staticFilesFolder, staticPages.DisableTFA)
+		filepath = path.Join(pagesPath, staticPages.DisableTFA)
 	case model.DisableTFASuccessStaticPageName:
-		filepath = path.Join(sfs.staticFilesFolder, staticPages.DisableTFASuccess)
+		filepath = path.Join(pagesPath, staticPages.DisableTFASuccess)
 	case model.ForgotPasswordStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ForgotPassword)
+		filepath = path.Join(pagesPath, staticPages.ForgotPassword)
 	case model.ForgotPasswordSuccessStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ForgotPasswordSuccess)
-	case model.InviteStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.Invite)
+		filepath = path.Join(pagesPath, staticPages.ForgotPasswordSuccess)
+	case model.InviteEmailStaticPageName:
+		filepath = path.Join(emailsPath, staticPages.InviteEmail)
 	case model.LoginStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.Login)
+		filepath = path.Join(pagesPath, staticPages.Login)
 	case model.MisconfigurationStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.Misconfiguration)
+		filepath = path.Join(pagesPath, staticPages.Misconfiguration)
 	case model.RegistrationStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.Registration)
+		filepath = path.Join(pagesPath, staticPages.Registration)
 	case model.ResetPasswordStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ResetPassword)
+		filepath = path.Join(pagesPath, staticPages.ResetPassword)
 	case model.ResetPasswordEmailStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ResetPasswordEmail)
+		filepath = path.Join(emailsPath, staticPages.ResetPasswordEmail)
 	case model.ResetPasswordSuccessStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ResetPasswordSuccess)
+		filepath = path.Join(pagesPath, staticPages.ResetPasswordSuccess)
 	case model.ResetTFAStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ResetTFA)
+		filepath = path.Join(pagesPath, staticPages.ResetTFA)
 	case model.ResetTFASuccessStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.ResetTFASuccess)
-	case model.TFAStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.TFAStatic)
+		filepath = path.Join(pagesPath, staticPages.ResetTFASuccess)
+	case model.TFAEmailStaticPageName:
+		filepath = path.Join(emailsPath, staticPages.TFAEmail)
 	case model.TokenErrorStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.TokenError)
-	case model.VerifyStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.Verify)
+		filepath = path.Join(pagesPath, staticPages.TokenError)
+	case model.VerifyEmailStaticPageName:
+		filepath = path.Join(emailsPath, staticPages.VerifyEmail)
 	case model.WebMessageStaticPageName:
-		filepath = path.Join(sfs.pagesPath, staticPages.WebMessage)
-	case model.WelcomeStaticPageName:
-
+		filepath = path.Join(pagesPath, staticPages.WebMessage)
+	case model.WelcomeEmailStaticPageName:
+		filepath = path.Join(emailsPath, staticPages.WelcomeEmail)
 	default:
 		return fmt.Errorf("Unknown template name %v", templateName)
 	}
@@ -132,15 +143,45 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName,
 	return nil
 }
 
-// UploadFile is for static file uploads.
-func (sfs *StaticFilesStorage) UploadFile(filename model.Filename, contents io.Reader) error {
+// ReadAppleFile is for reading Apple-related static files.
+func (sfs *StaticFilesStorage) ReadAppleFile(filename model.AppleFilename) ([]byte, error) {
+	appleFolder := path.Join(sfs.staticFilesFolder, sfs.appleFilesPath)
 	var filepath string
 
 	switch filename {
 	case model.AppSiteAssociationFilename:
-		filepath = path.Join(sfs.staticFilesFolder, appleFiles.AppSiteAssociation)
+		filepath = path.Join(appleFolder, appleFiles.AppSiteAssociation)
 	case model.DeveloperDomainAssociationFilename:
-		filepath = path.Join(sfs.staticFilesFolder, appleFiles.DeveloperDomainAssociation)
+		filepath = path.Join(appleFolder, appleFiles.DeveloperDomainAssociation)
+	default:
+		return nil, fmt.Errorf("Unknown filename %v", filename)
+	}
+
+	// Check if file exists. If not - return nil error and nil slice.
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("Error while checking filepath '%s' existence. %s", filepath, err)
+	}
+
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read %s. %s", filepath, err)
+	}
+	return data, nil
+}
+
+// UploadAppleFile is for Apple-related file uploads.
+func (sfs *StaticFilesStorage) UploadAppleFile(filename model.AppleFilename, contents io.Reader) error {
+	appleFolder := path.Join(sfs.staticFilesFolder, sfs.appleFilesPath)
+	var filepath string
+
+	switch filename {
+	case model.AppSiteAssociationFilename:
+		filepath = path.Join(appleFolder, appleFiles.AppSiteAssociation)
+	case model.DeveloperDomainAssociationFilename:
+		filepath = path.Join(appleFolder, appleFiles.DeveloperDomainAssociation)
 	default:
 		return fmt.Errorf("Unknown filename %v", filename)
 	}
@@ -157,28 +198,36 @@ func (sfs *StaticFilesStorage) UploadFile(filename model.Filename, contents io.R
 	return nil
 }
 
-// StylesHandler returns server of the css folder.
-func (sfs *StaticFilesStorage) StylesHandler() http.Handler {
+// AssetHandlers returns handlers for assets.
+func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 	stylesHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/css/")))
-	return http.StripPrefix("/css/", stylesHandler)
-}
-
-// ScriptsHandler returns server of the js folder.
-func (sfs *StaticFilesStorage) ScriptsHandler() http.Handler {
 	scriptsHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/js/")))
-	return http.StripPrefix("/js/", scriptsHandler)
-}
-
-// ImagesHandler returns server of the img folder.
-func (sfs *StaticFilesStorage) ImagesHandler() http.Handler {
 	imagesHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/img/")))
-	return http.StripPrefix("/img/", imagesHandler)
+	fontsHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/fonts/")))
+
+	return &model.AssetHandlers{
+		StylesHandler:  http.StripPrefix("/css/", stylesHandler),
+		ScriptsHandler: http.StripPrefix("/js/", scriptsHandler),
+		ImagesHandler:  http.StripPrefix("/img/", imagesHandler),
+		FontsHandler:   http.StripPrefix("/fonts/", fontsHandler),
+	}
 }
 
-// FontsHandler returns server of the fonts folder.
-func (sfs *StaticFilesStorage) FontsHandler() http.Handler {
-	fontsHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/fonts/")))
-	return http.StripPrefix("/fonts/", fontsHandler)
+// AdminPanelHandlers returns handlers for the admin panel.
+func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
+	adminPanelFolder := path.Join(sfs.staticFilesFolder, sfs.adminPanelBuildPath)
+
+	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(adminPanelFolder, "/src"))))
+	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join(adminPanelFolder, "/index.html"))
+	}
+	buildHandler := http.FileServer(http.Dir(adminPanelFolder))
+
+	return &model.AdminPanelHandlers{
+		SrcHandler:        srcHandler,
+		ManagementHandler: http.HandlerFunc(managementHandleFunc),
+		BuildHandler:      buildHandler,
+	}
 }
 
 // Close is to satisfy the interface.

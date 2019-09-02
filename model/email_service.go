@@ -33,23 +33,19 @@ func NewEmailTemplater(staticFilesStorage StaticFilesStorage) (*EmailTemplater, 
 	et := EmailTemplater{}
 	var err error
 
-	if et.WelcomeTemplate, err = staticFilesStorage.ParseTemplate(WelcomeStaticPageName); err != nil {
+	if et.WelcomeTemplate, err = staticFilesStorage.ParseTemplate(WelcomeEmailStaticPageName); err != nil {
 		return nil, err
 	}
-
-	if et.ResetPasswordTemplate, err = staticFilesStorage.ParseTemplate(ResetPasswordStaticPageName); err != nil {
+	if et.ResetPasswordTemplate, err = staticFilesStorage.ParseTemplate(ResetPasswordEmailStaticPageName); err != nil {
 		return nil, err
 	}
-
-	if et.InviteTemplate, err = staticFilesStorage.ParseTemplate(InviteStaticPageName); err != nil {
+	if et.InviteTemplate, err = staticFilesStorage.ParseTemplate(InviteEmailStaticPageName); err != nil {
 		return nil, err
 	}
-
-	if et.VerifyTemplate, err = staticFilesStorage.ParseTemplate(VerifyStaticPageName); err != nil {
+	if et.VerifyTemplate, err = staticFilesStorage.ParseTemplate(VerifyEmailStaticPageName); err != nil {
 		return nil, err
 	}
-
-	if et.TFATemplate, err = staticFilesStorage.ParseTemplate(TFAStaticPageName); err != nil {
+	if et.TFATemplate, err = staticFilesStorage.ParseTemplate(TFAEmailStaticPageName); err != nil {
 		return nil, err
 	}
 	return &et, nil

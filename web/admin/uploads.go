@@ -61,7 +61,7 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		if err = ar.staticFilesStorage.UploadFile(model.DeveloperDomainAssociationFilename, formFile); err != nil {
+		if err = ar.staticFilesStorage.UploadAppleFile(model.DeveloperDomainAssociationFilename, formFile); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
@@ -84,7 +84,7 @@ func (ar *Router) UploadAASAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		if err = ar.staticFilesStorage.UploadFile(model.AppSiteAssociationFilename, formFile); err != nil {
+		if err = ar.staticFilesStorage.UploadAppleFile(model.AppSiteAssociationFilename, formFile); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}

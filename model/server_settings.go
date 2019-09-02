@@ -13,7 +13,7 @@ type ServerSettings struct {
 	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	ConfigurationStorage ConfigurationStorageSettings `yaml:"configurationStorage,omitempty" json:"configuration_storage,omitempty"`
 	SessionStorage       SessionStorageSettings       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	StaticFiles          StaticFilesStorageSettings   `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
+	StaticFilesStorage   StaticFilesStorageSettings   `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
 	ExternalServices     ExternalServicesSettings     `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
 	Login                LoginSettings                `yaml:"login,omitempty" json:"login,omitempty"`
 }
@@ -66,12 +66,14 @@ const (
 // StaticFilesStorageSettings are settings for static files storage.
 type StaticFilesStorageSettings struct {
 	Type                StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	ServerConfigPath    string                 `yaml:"serverConfig,omitempty" json:"server_config,omitempty"`
+	ServerConfigPath    string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	StaticFilesLocation string                 `yaml:"staticFilesLocation,omitempty" json:"static_files_location,omitempty"`
+	Region              string                 `yaml:"region,omitempty" json:"region,omitempty"`
 	PagesPath           string                 `yaml:"pagesPath,omitempty" json:"pages_path,omitempty"`
 	EmailTemplatesPath  string                 `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	AdminPanelBuildPath string                 `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 	AppleFilesPath      string                 `yaml:"appleFilesPath,omitempty" json:"apple_files_path,omitempty"`
+	ServeAdminPanel     bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	AdminPanelBuildPath string                 `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 }
 
 // StaticFilesStorageType is a type of static files storage.

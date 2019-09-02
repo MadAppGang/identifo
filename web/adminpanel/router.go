@@ -9,15 +9,15 @@ import (
 
 // Router is an admin panel router.
 type Router struct {
-	router    *mux.Router
-	buildPath string
+	router             *mux.Router
+	staticFilesStorage model.StaticFilesStorage
 }
 
 // NewRouter creates and initializes new admin panel router.
-func NewRouter(buildPath string, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
 	apr := &Router{
-		router:    mux.NewRouter(),
-		buildPath: buildPath,
+		router:             mux.NewRouter(),
+		staticFilesStorage: sfs,
 	}
 
 	for _, option := range options {
@@ -34,12 +34,4 @@ func NewRouter(buildPath string, options ...func(*Router) error) (model.Router, 
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Reroute to our internal implementation.
 	ar.router.ServeHTTP(w, r)
-}
-
-// BuildPathOption sets admin panel build path.
-func BuildPathOption(buildpath string) func(*Router) error {
-	return func(r *Router) error {
-		r.buildPath = buildpath
-		return nil
-	}
 }

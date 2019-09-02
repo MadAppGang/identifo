@@ -97,7 +97,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 		log.Fatalln(err)
 	}
 
-	if err = os.Setenv(serverConfigPathEnvName, out.StaticFiles.ServerConfigPath); err != nil {
+	if err = os.Setenv(serverConfigPathEnvName, out.StaticFilesStorage.ServerConfigPath); err != nil {
 		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
 	}
 }
@@ -106,7 +106,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
 	var err error
 	if configurationStorage == nil {
-		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFiles.ServerConfigPath)
+		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFilesStorage.ServerConfigPath)
 		if err != nil {
 			return nil, err
 		}
@@ -122,6 +122,11 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		return nil, err
 	}
 
+	staticFilesStorage, err := initStaticFilesStorage(settings.StaticFilesStorage)
+	if err != nil {
+		return nil, err
+	}
+
 	s := Server{
 		appStorage:              appStorage,
 		userStorage:             userStorage,
@@ -129,6 +134,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		tokenBlacklist:          tokenBlacklist,
 		verificationCodeStorage: verificationCodeStorage,
 		configurationStorage:    configurationStorage,
+		staticFilesStorage:      staticFilesStorage,
 	}
 
 	sessionStorage, err := initSessionStorage(settings)
@@ -136,11 +142,6 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		return nil, err
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
-
-	staticFilesStorage, err := initStaticFilesStorage(settings.StaticFiles)
-	if err != nil {
-		return nil, err
-	}
 
 	ms, err := initEmailService(settings.ExternalServices.EmailService, staticFilesStorage)
 	if err != nil {
@@ -169,6 +170,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		SessionStorage:          sessionStorage,
 		ConfigurationStorage:    configurationStorage,
 		StaticFilesStorage:      staticFilesStorage,
+		ServeAdminPanel:         settings.StaticFilesStorage.ServeAdminPanel,
 		SMSService:              sms,
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
@@ -181,7 +183,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
-			admin.ServerConfigPathOption(settings.StaticFiles.ServerConfigPath),
+			admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
 		},
 	}

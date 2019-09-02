@@ -3,7 +3,6 @@ package s3
 import (
 	"html/template"
 	"io"
-	"net/http"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -13,13 +12,16 @@ type StaticFilesStorage struct {
 	bucket             string
 	pagesPath          string
 	emailTemplatesPath string
+	appleFilesPath     string
 }
 
 // NewStaticFilesStorage creates and returns new static files storage in S3.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		bucket:    settings.StaticFilesLocation,
-		pagesPath: settings.PagesPath,
+		bucket:             settings.StaticFilesLocation,
+		pagesPath:          settings.PagesPath,
+		emailTemplatesPath: settings.EmailTemplatesPath,
+		appleFilesPath:     settings.AppleFilesPath,
 	}, nil
 }
 
@@ -35,32 +37,26 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName model.StaticPageName,
 	return nil
 }
 
-// UploadFile is for static file uploads.
-func (sfs *StaticFilesStorage) UploadFile(filename model.Filename, contents io.Reader) error {
+// ReadAppleFile is for reading Apple-related static files.
+func (sfs *StaticFilesStorage) ReadAppleFile(filename model.AppleFilename) ([]byte, error) {
+	// TODO: implement
+	return nil, nil
+}
+
+// UploadAppleFile is for Apple-related file uploads.
+func (sfs *StaticFilesStorage) UploadAppleFile(filename model.AppleFilename, contents io.Reader) error {
 	// TODO: implement
 	return nil
 }
 
-// StylesHandler returns server of the images folder.
-func (sfs *StaticFilesStorage) StylesHandler() http.Handler {
+// AssetHandlers returns handlers for assets.
+func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 	// TODO: implement
 	return nil
 }
 
-// ScriptsHandler returns server of the images folder.
-func (sfs *StaticFilesStorage) ScriptsHandler() http.Handler {
-	// TODO: implement
-	return nil
-}
-
-// ImagesHandler returns server of the images folder.
-func (sfs *StaticFilesStorage) ImagesHandler() http.Handler {
-	// TODO: implement
-	return nil
-}
-
-// FontsHandler returns server of the fonts folder.
-func (sfs *StaticFilesStorage) FontsHandler() http.Handler {
+// AdminPanelHandlers returns handlers for the admin panel.
+func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 	// TODO: implement
 	return nil
 }
