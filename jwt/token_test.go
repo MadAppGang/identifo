@@ -49,7 +49,7 @@ func TestNewTokenService(t *testing.T) {
 		t.Fatalf("Unable to load key files. %v", err)
 	}
 
-	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Fatalf("Unable to create token service. %v", err)
 	}
@@ -89,7 +89,7 @@ func TestNewTokenService(t *testing.T) {
 				return
 			}
 
-			got, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+			got, err := jwtService.NewJWTokenService(keys, testIssuer, tstor, as, us)
 			if (err != nil) != tt.wantErr {
 				t.Errorf("NewTokenService() error = %v, wantErr %v", err, tt.wantErr)
 				return
@@ -131,7 +131,7 @@ func TestParseString(t *testing.T) {
 		t.Fatalf("Cannot load keys = %s", err)
 	}
 
-	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Fatalf("Unable to create service %v", err)
 	}
@@ -188,7 +188,7 @@ func TestTokenToString(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Cannot load keys = %s", err)
 	}
-	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
@@ -256,7 +256,7 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Cannot load keys = %s", err)
 	}
-	ts, err := jwtService.NewJWTokenService(keys, testIssuer, ijwt.TokenSignatureAlgorithmES256.String(), tstor, as, us)
+	ts, err := jwtService.NewJWTokenService(keys, testIssuer, tstor, as, us)
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}

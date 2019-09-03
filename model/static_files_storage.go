@@ -2,16 +2,15 @@ package model
 
 import (
 	"html/template"
-	"io"
 	"net/http"
 )
 
 // StaticFilesStorage is a wrapper over static files storages.
 type StaticFilesStorage interface {
 	ParseTemplate(templateName string) (*template.Template, error)
-	UploadTemplate(templateName string, contents io.Reader) error
+	UploadTemplate(templateName string, contents []byte) error
 	ReadAppleFile(filename string) ([]byte, error)
-	UploadAppleFile(filename string, contents io.Reader) error
+	UploadAppleFile(filename string, contents []byte) error
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
 	Close()

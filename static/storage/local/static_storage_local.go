@@ -1,6 +1,7 @@
 package local
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io"
@@ -44,11 +45,10 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 		templateName = path.Join(pagesPath, templateName)
 	}
 	return template.ParseFiles(templateName)
-
 }
 
 // UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
 	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
 	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
 
@@ -64,7 +64,7 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.R
 	}
 	defer file.Close()
 
-	if _, err = io.Copy(file, contents); err != nil {
+	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
 		return fmt.Errorf("Cannot save file: %s", err.Error())
 	}
 	return nil
@@ -89,7 +89,7 @@ func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 }
 
 // UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
 	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
 
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
@@ -98,7 +98,7 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Read
 	}
 	defer file.Close()
 
-	if _, err = io.Copy(file, contents); err != nil {
+	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
 		return fmt.Errorf("Cannot save file: %s", err.Error())
 	}
 	return nil

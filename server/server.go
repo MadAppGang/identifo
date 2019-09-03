@@ -199,7 +199,6 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 			return nil, err
 		}
 	}
-
 	return &s, nil
 }
 
