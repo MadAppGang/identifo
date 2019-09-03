@@ -54,8 +54,19 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 		if len(adminDataUpdate.Login) > 0 {
 			newAdminData.Login = adminDataUpdate.Login
 		}
+		if len(adminDataUpdate.LoginEnvName) > 0 {
+			newAdminData.LoginEnvName = adminDataUpdate.LoginEnvName
+		} else {
+			newAdminData.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
+		}
+
 		if len(adminDataUpdate.Password) > 0 {
 			newAdminData.Password = adminDataUpdate.Password
+		}
+		if len(adminDataUpdate.PasswordEnvName) > 0 {
+			newAdminData.PasswordEnvName = adminDataUpdate.PasswordEnvName
+		} else {
+			newAdminData.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
 		}
 
 		if ar.updateAdminAccountSettings(w, newAdminData) != nil {
@@ -346,24 +357,48 @@ func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLogin
 	}
 
 	ald.Login = adminLogin
+	ald.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
 	ald.Password = adminPassword
+	ald.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
 
 	return nil
 }
 
 func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData *adminLoginData) error {
-	if err := os.Setenv(ar.ServerSettings.AdminAccount.LoginEnvName, newAdminData.Login); err != nil {
+	var needChangeConfig bool
+
+	loginEnvName := ar.ServerSettings.AdminAccount.LoginEnvName
+	if newAdminData.LoginEnvName != loginEnvName {
+		loginEnvName = newAdminData.LoginEnvName
+		needChangeConfig = true
+	}
+	if err := os.Setenv(loginEnvName, newAdminData.Login); err != nil {
 		err = fmt.Errorf("Cannot save new admin login: %s", err)
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	if err := os.Setenv(ar.ServerSettings.AdminAccount.PasswordEnvName, newAdminData.Password); err != nil {
+	passwordEnvName := ar.ServerSettings.AdminAccount.PasswordEnvName
+	if newAdminData.PasswordEnvName != passwordEnvName {
+		passwordEnvName = newAdminData.PasswordEnvName
+		needChangeConfig = true
+	}
+	if err := os.Setenv(passwordEnvName, newAdminData.Password); err != nil {
 		err = fmt.Errorf("Cannot save new admin password: %s", err)
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
-	return nil
+
+	if !needChangeConfig {
+		return nil
+	}
+
+	newSettings := ar.ServerSettings
+	newSettings.AdminAccount.LoginEnvName = loginEnvName
+	newSettings.AdminAccount.PasswordEnvName = passwordEnvName
+
+	err := ar.updateServerSettings(w, newSettings)
+	return err
 }
 
 func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {

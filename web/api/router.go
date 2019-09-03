@@ -17,25 +17,25 @@ import (
 
 // Router is a router that handles all API requests.
 type Router struct {
-	middleware                 *negroni.Negroni
-	logger                     *log.Logger
-	router                     *mux.Router
-	appStorage                 model.AppStorage
-	userStorage                model.UserStorage
-	tokenStorage               model.TokenStorage
-	tokenBlacklist             model.TokenBlacklist
-	verificationCodeStorage    model.VerificationCodeStorage
-	tfaType                    model.TFAType
-	tokenService               jwtService.TokenService
-	smsService                 model.SMSService
-	emailService               model.EmailService
-	oidcConfiguration          *OIDCConfiguration
-	jwk                        *jwk
-	appleDomainAssociationPath string
-	Authorizer                 *authorization.Authorizer
-	Host                       string
-	SupportedLoginWays         model.LoginWith
-	WebRouterPrefix            string
+	middleware              *negroni.Negroni
+	logger                  *log.Logger
+	router                  *mux.Router
+	appStorage              model.AppStorage
+	userStorage             model.UserStorage
+	tokenStorage            model.TokenStorage
+	tokenBlacklist          model.TokenBlacklist
+	verificationCodeStorage model.VerificationCodeStorage
+	tfaType                 model.TFAType
+	tokenService            jwtService.TokenService
+	smsService              model.SMSService
+	emailService            model.EmailService
+	oidcConfiguration       *OIDCConfiguration
+	jwk                     *jwk
+	appleFilenames          model.AppleFilenames
+	Authorizer              *authorization.Authorizer
+	Host                    string
+	SupportedLoginWays      model.LoginWith
+	WebRouterPrefix         string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -82,10 +82,16 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	}
 }
 
-// AppleDomainAssociationPathOption sets appleDomainAssociationPath value.
-func AppleDomainAssociationPathOption(staticFolderPath, filename string) func(*Router) error {
+// AppleFilenamesOption sets appleFilenames value.
+func AppleFilenamesOption(appleFilenames model.AppleFilenames, staticFolderPath string) func(*Router) error {
 	return func(r *Router) error {
-		r.appleDomainAssociationPath = path.Join(staticFolderPath, filename)
+		r.appleFilenames = appleFilenames
+		if r.appleFilenames.AppSiteAssociation != "" {
+			r.appleFilenames.AppSiteAssociation = path.Join(staticFolderPath, appleFilenames.AppSiteAssociation)
+		}
+		if r.appleFilenames.DeveloperDomainAssociation != "" {
+			r.appleFilenames.DeveloperDomainAssociation = path.Join(staticFolderPath, appleFilenames.AppSiteAssociation)
+		}
 		return nil
 	}
 }

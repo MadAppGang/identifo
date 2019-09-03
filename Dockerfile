@@ -17,5 +17,6 @@ COPY web/static ./web/static
 COPY cmd/import/apps.json ./apps.json
 COPY cmd/import/users.json ./users.json
 COPY email_templates ./email_templates
+COPY admin_panel/build ./admin_panel/build
 
 CMD ["./app"]

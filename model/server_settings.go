@@ -65,12 +65,18 @@ const (
 
 // StaticFilesSettings are settings for static files used by Identifo.
 type StaticFilesSettings struct {
-	ServerConfigPath       string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	StaticFolderPath       string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath     string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames     EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AppleDomainAssociation string             `yaml:"appleDomainAssociation,omitempty" json:"apple_domain_association,omitempty"`
-	AdminPanelBuildPath    string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	ServerConfigPath    string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	StaticFolderPath    string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
+	EmailTemplatesPath  string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	EmailTemplateNames  EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
+	AdminPanelBuildPath string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	AppleFilenames      AppleFilenames     `yaml:"apple,omitempty" json:"apple,omitempty"`
+}
+
+// AppleFilenames holds together static files needed for supporting Apple services.
+type AppleFilenames struct {
+	DeveloperDomainAssociation string `yaml:"developerDomainAssociation,omitempty" json:"developer_domain_association,omitempty"`
+	AppSiteAssociation         string `yaml:"appSiteAssociation,omitempty" json:"app_site_association,omitempty"`
 }
 
 // ConfigurationStorageSettings holds together configuration storage settings.

@@ -97,5 +97,6 @@ func (ar *Router) initRoutes() {
 	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
 
 	settings.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
-	settings.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadAppleDomainAssociation()).Methods("POST")
+	settings.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadADDAFile()).Methods("POST")
+	settings.Path("/uploads/apple-app-site-association").HandlerFunc(ar.UploadAASAFile()).Methods("POST")
 }

@@ -73,5 +73,6 @@ func (ar *Router) initRoutes() {
 
 	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
 	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")
-	oidc.Path(`/{apple-developer-domain-association.txt:apple-developer-domain-association.txt/?}`).HandlerFunc(ar.SupportSignInWithApple()).Methods("GET")
+	oidc.Path(`/{apple-developer-domain-association.txt:apple-developer-domain-association.txt/?}`).HandlerFunc(ar.ServeADDAFile()).Methods("GET")
+	oidc.Path(`/{apple-app-site-association:apple-app-site-association/?}`).HandlerFunc(ar.ServeAASAFile()).Methods("GET")
 }

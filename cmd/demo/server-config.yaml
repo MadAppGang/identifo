@@ -51,8 +51,10 @@ staticFiles:
     invite: invite_email.html
     verify: verify_email.html
     tfa: tfa_email.html
-  appleDomainAssociation: apple-developer-domain-association.txt
   adminPanelBuildPath: ../../admin_panel/build
+  apple:
+    developerDomainAssociation: apple/apple-developer-domain-association.txt
+    appSiteAssociation: apple/apple-app-site-association
 
 login:
   loginWith:
