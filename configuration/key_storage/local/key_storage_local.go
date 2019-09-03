@@ -103,5 +103,6 @@ func (ks *KeyStorage) loadKeys(alg ijwt.TokenSignatureAlgorithm, keys *model.JWT
 	}
 	keys.Private = privateKey
 	keys.Public = publicKey
+	keys.Algorithm = alg
 	return nil
 }

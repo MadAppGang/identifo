@@ -45,14 +45,14 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(keys *model.JWTKeys, issuer, alg string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
-	tokenServiceAlg, ok := ijwt.StrToTokenSignAlg[alg]
-	if !ok {
-		return nil, fmt.Errorf("Unknown token service algorithm %s ", alg)
-	}
-
+func NewJWTokenService(keys *model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
 	if keys == nil || keys.Private == nil || keys.Public == nil {
 		return nil, fmt.Errorf("One of the keys is empty, or both")
+	}
+
+	tokenServiceAlg, ok := keys.Algorithm.(ijwt.TokenSignatureAlgorithm)
+	if !ok || tokenServiceAlg == ijwt.TokenSignatureAlgorithmAuto {
+		return nil, fmt.Errorf("Unknown token service algorithm %s ", keys.Algorithm)
 	}
 
 	t := &JWTokenService{

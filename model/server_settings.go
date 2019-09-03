@@ -181,7 +181,7 @@ type EmailServiceSettings struct {
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {
 	Type       SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-	AccountSid string         `yaml:"domain,omitempty" json:"domain,omitempty"`
+	AccountSid string         `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
 	AuthToken  string         `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
 	ServiceSid string         `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
 }
