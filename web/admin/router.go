@@ -95,7 +95,7 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:           negroni.Classic(),
 		router:               mux.NewRouter(),
@@ -104,6 +104,7 @@ func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.Sessi
 		appStorage:           as,
 		userStorage:          us,
 		configurationStorage: cs,
+		staticFilesStorage:   sfs,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

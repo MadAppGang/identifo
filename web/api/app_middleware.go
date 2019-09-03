@@ -7,12 +7,11 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
-
 	"github.com/urfave/negroni"
 )
 
 const (
-	//HeaderKeyAppID header key to keep application ID
+	// HeaderKeyAppID is a header key to keep application ID.
 	HeaderKeyAppID = "X-Identifo-Clientid"
 )
 
