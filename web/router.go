@@ -129,8 +129,8 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
-	ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
-	if ar.AdminPanelRouter != nil {
+	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
+		ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
 		ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
 	}
 }
