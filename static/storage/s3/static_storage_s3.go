@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"io"
 	"io/ioutil"
 	"log"
+	"mime"
+	"net/http"
 	"path"
 	"strings"
 
@@ -132,8 +135,44 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte)
 
 // AssetHandlers returns handlers for assets.
 func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
-	// TODO: implement
-	return &model.AssetHandlers{}
+	folder := strings.TrimLeft(strings.TrimSuffix(sfs.pagesPath, "/html"), ".")
+
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		key := strings.Join([]string{folder, r.URL.Path}, "")
+
+		getStyleInput := &s3.GetObjectInput{
+			Bucket: aws.String(sfs.bucket),
+			Key:    aws.String(key),
+		}
+
+		resp, err := sfs.client.GetObject(getStyleInput)
+		if err != nil {
+			err = fmt.Errorf("Cannot get %s from S3: %s", r.URL.Path, err)
+			writeError(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		defer resp.Body.Close()
+
+		body, err := ioutil.ReadAll(resp.Body)
+		if err != nil {
+			err = fmt.Errorf("Cannot read response from S3: %s", err)
+			writeError(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(key)))
+		if _, err = w.Write(body); err != nil {
+			log.Printf("Error writing body to the response: %s\n", err)
+			return
+		}
+	})
+
+	return &model.AssetHandlers{
+		StylesHandler:  handler,
+		ScriptsHandler: handler,
+		ImagesHandler:  handler,
+		FontsHandler:   handler,
+	}
 }
 
 // AdminPanelHandlers returns handlers for the admin panel.
@@ -144,3 +183,35 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 
 // Close is to satisfy the interface.
 func (sfs *StaticFilesStorage) Close() {}
+
+// writeError writes an error message to the response and logger.
+func writeError(w http.ResponseWriter, err error, code int, userInfo string) {
+	log.Printf("http error: %s (code=%d)\n", err, code)
+
+	// Hide error from client if it is internal.
+	if code == http.StatusInternalServerError {
+		err = model.ErrorInternal
+	}
+
+	w.Header().Set("Content-Type", "text/html; charset=utf-8")
+	responseString := `
+	<!DOCTYPE html>
+	<html>
+	<head>
+	  <title>Home Network</title>
+	</head>
+	<body>
+	<h2>Error</h2></br>
+	<h3>
+	` +
+		fmt.Sprintf("Error: %s, code: %d, userInfo: %s", err.Error(), code, userInfo) +
+		`
+	</h3>
+	</body>
+	</html>
+	`
+	w.WriteHeader(code)
+	if _, wrErr := io.WriteString(w, responseString); wrErr != nil {
+		log.Println("Error writing response string:", wrErr)
+	}
+}
