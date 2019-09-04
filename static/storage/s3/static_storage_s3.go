@@ -176,9 +176,19 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 }
 
 // AdminPanelHandlers returns handlers for the admin panel.
+// Adminpanel build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	// TODO: implement
-	return &model.AdminPanelHandlers{}
+	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
+	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
+	}
+	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
+
+	return &model.AdminPanelHandlers{
+		SrcHandler:        srcHandler,
+		ManagementHandler: http.HandlerFunc(managementHandleFunc),
+		BuildHandler:      buildHandler,
+	}
 }
 
 // Close is to satisfy the interface.

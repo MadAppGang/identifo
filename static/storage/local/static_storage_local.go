@@ -16,21 +16,19 @@ import (
 
 // StaticFilesStorage is a local storage of static files.
 type StaticFilesStorage struct {
-	staticFilesFolder   string
-	pagesPath           string
-	emailTemplatesPath  string
-	adminPanelBuildPath string
-	appleFilesPath      string
+	staticFilesFolder  string
+	pagesPath          string
+	emailTemplatesPath string
+	appleFilesPath     string
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		staticFilesFolder:   settings.StaticFilesLocation,
-		pagesPath:           settings.PagesPath,
-		emailTemplatesPath:  settings.EmailTemplatesPath,
-		adminPanelBuildPath: settings.AdminPanelBuildPath,
-		appleFilesPath:      settings.AppleFilesPath,
+		staticFilesFolder:  settings.StaticFilesLocation,
+		pagesPath:          settings.PagesPath,
+		emailTemplatesPath: settings.EmailTemplatesPath,
+		appleFilesPath:     settings.AppleFilesPath,
 	}, nil
 }
 
@@ -121,13 +119,11 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 
 // AdminPanelHandlers returns handlers for the admin panel.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	adminPanelFolder := path.Join(sfs.staticFilesFolder, sfs.adminPanelBuildPath)
-
-	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(adminPanelFolder, "/src"))))
+	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
 	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(adminPanelFolder, "/index.html"))
+		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
 	}
-	buildHandler := http.FileServer(http.Dir(adminPanelFolder))
+	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
 
 	return &model.AdminPanelHandlers{
 		SrcHandler:        srcHandler,

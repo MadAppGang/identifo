@@ -31,6 +31,9 @@ type AdminPanelHandlers struct {
 	BuildHandler      http.Handler
 }
 
+// AdminPanelBuildPath is a path to built admin panel.
+const AdminPanelBuildPath = "./static/admin_panel/build"
+
 // StaticPagesNames are the names of html pages.
 var StaticPagesNames = StaticPages{
 	DisableTFA:            "disable-tfa.html",
