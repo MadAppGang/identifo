@@ -69,7 +69,7 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
 	}
 
-	return template.New(templateName).Parse(string(tmpl)) // TODO: test
+	return template.New(templateName).Parse(string(tmpl))
 }
 
 // UploadTemplate is for html template uploads.

@@ -23,6 +23,7 @@ import (
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
+	staticStoreDynamo "github.com/madappgang/identifo/static/storage/dynamodb"
 	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
 	staticStoreS3 "github.com/madappgang/identifo/static/storage/s3"
 	"github.com/madappgang/identifo/web"
@@ -322,6 +323,8 @@ func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.St
 		return staticStoreLocal.NewStaticFilesStorage(settings)
 	case model.StaticFilesStorageTypeS3:
 		return staticStoreS3.NewStaticFilesStorage(settings)
+	case model.StaticFilesStorageTypeDynamoDB:
+		return staticStoreDynamo.NewStaticFilesStorage(settings)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

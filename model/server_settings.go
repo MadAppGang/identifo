@@ -69,6 +69,7 @@ type StaticFilesStorageSettings struct {
 	ServerConfigPath    string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
 	StaticFilesLocation string                 `yaml:"staticFilesLocation,omitempty" json:"static_files_location,omitempty"`
 	Region              string                 `yaml:"region,omitempty" json:"region,omitempty"`
+	Endpoint            string                 `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 	PagesPath           string                 `yaml:"pagesPath,omitempty" json:"pages_path,omitempty"`
 	EmailTemplatesPath  string                 `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
 	AppleFilesPath      string                 `yaml:"appleFilesPath,omitempty" json:"apple_files_path,omitempty"`
@@ -84,6 +85,8 @@ const (
 	StaticFilesStorageTypeLocal = "local"
 	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
 	StaticFilesStorageTypeS3 = "s3"
+	// StaticFilesStorageTypeDynamoDB is for storing static files in DynamoDB table.
+	StaticFilesStorageTypeDynamoDB = "dynamodb"
 )
 
 // ConfigurationStorageSettings holds together configuration storage settings.

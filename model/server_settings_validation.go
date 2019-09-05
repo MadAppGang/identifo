@@ -229,6 +229,10 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 		if len(sfs.StaticFilesLocation) == 0 {
 			return fmt.Errorf("%s. Bucket for static files is not set", subject)
 		}
+	case StaticFilesStorageTypeDynamoDB:
+		if len(sfs.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}

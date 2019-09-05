@@ -1,7 +1,6 @@
 package dynamodb
 
 import (
-	"errors"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -12,9 +11,6 @@ import (
 
 // NewDB creates new database connection.
 func NewDB(endpoint string, region string) (*DB, error) {
-	if len(region) == 0 {
-		return nil, errors.New("Empty region string")
-	}
 	config := &aws.Config{
 		Region:   aws.String(region),
 		Endpoint: aws.String(endpoint),

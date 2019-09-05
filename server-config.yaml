@@ -88,12 +88,14 @@ configurationStorage:
     bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
 
 staticFilesStorage:
-  type: local # Supported values are "local" and "s3".
+  type: local # Supported values are "local", "s3", and "dynamodb".
   serverConfigPath: server-config.yaml  # Path to the file with server settings.
   # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
   # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
   staticFilesLocation: ./static   # All following paths are relative to this location.
-  region: # S3-specific setting. Needed when type is s3.
+  region: # Needed when type is "s3" or "dynamodb".
+  endpoint: # DynamoDB-specific setting.
+  endpoint: # DynamoDB-specific setting.
   pagesPath: ./html # Folder for html pages.
   emailTemplatesPath: ./email_templates # Folder for the email templates.
   appleFilesPath: ./apple # Folder for the Apple-related files.

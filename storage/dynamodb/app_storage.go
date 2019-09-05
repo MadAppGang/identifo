@@ -11,10 +11,7 @@ import (
 	"github.com/rs/xid"
 )
 
-var (
-	// AppsTable is table name for storing apps data.
-	AppsTable = "Applications"
-)
+var appsTableName = "Applications"
 
 // NewAppStorage creates new DynamoDB AppStorage implementation.
 func NewAppStorage(db *DB) (model.AppStorage, error) {
@@ -35,31 +32,33 @@ func (as *AppStorage) NewAppData() model.AppData {
 
 // ensureTable ensures that app table exists in database.
 func (as *AppStorage) ensureTable() error {
-	exists, err := as.db.IsTableExists(AppsTable)
+	exists, err := as.db.IsTableExists(appsTableName)
 	if err != nil {
 		log.Println("Error checking Applications table existence:", err)
 		return err
 	}
-	if !exists {
-		// create table, AWS DynamoDB table creation is overcomplicated for sure
-		input := &dynamodb.CreateTableInput{
-			AttributeDefinitions: []*dynamodb.AttributeDefinition{
-				{
-					AttributeName: aws.String("id"),
-					AttributeType: aws.String("S"),
-				},
-			},
-			KeySchema: []*dynamodb.KeySchemaElement{
-				{
-					AttributeName: aws.String("id"),
-					KeyType:       aws.String("HASH"),
-				},
-			},
-			BillingMode: aws.String("PAY_PER_REQUEST"),
-			TableName:   aws.String(AppsTable),
-		}
-		_, err = as.db.C.CreateTable(input)
+	if exists {
+		return nil
 	}
+
+	input := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("id"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("id"),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		BillingMode: aws.String("PAY_PER_REQUEST"),
+		TableName:   aws.String(appsTableName),
+	}
+
+	_, err = as.db.C.CreateTable(input)
 	return err
 }
 
@@ -70,7 +69,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	}
 
 	result, err := as.db.C.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(id),
@@ -141,7 +140,7 @@ func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 
 	input := &dynamodb.PutItemInput{
 		Item:      av,
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 	}
 
 	if _, err = as.db.C.PutItem(input); err != nil {
@@ -163,7 +162,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 				BOOL: aws.Bool(false),
 			},
 		},
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(app.ID()),
@@ -222,7 +221,7 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 // Supports pagination. Search is case-senstive for now.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
 	scanInput := &dynamodb.ScanInput{
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 		Limit:     aws.Int64(int64(limit)),
 	}
 
@@ -263,7 +262,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(id)},
 		},
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 	}
 	_, err := as.db.C.DeleteItem(input)
 	return err
@@ -272,7 +271,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 // TestDatabaseConnection checks whether we can fetch the first document in the applications table.
 func (as *AppStorage) TestDatabaseConnection() error {
 	_, err := as.db.C.Scan(&dynamodb.ScanInput{
-		TableName: aws.String(AppsTable),
+		TableName: aws.String(appsTableName),
 		Limit:     aws.Int64(1),
 	})
 	return err
