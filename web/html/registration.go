@@ -2,7 +2,6 @@ package html
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 	"path"
 	"strings"
@@ -123,7 +122,7 @@ func (ar *Router) Register() http.HandlerFunc {
 
 // RegistrationHandler serves registration page.
 func (ar *Router) RegistrationHandler() http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.Registration))
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.Registration)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse Registration template.", err)
 	}

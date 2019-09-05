@@ -25,7 +25,7 @@ const (
 func main() {
 	forever := make(chan struct{}, 1)
 
-	configStorage, err := server.InitConfigurationStorage(server.ServerSettings.ConfigurationStorage, server.ServerSettings.StaticFiles.ServerConfigPath)
+	configStorage, err := server.InitConfigurationStorage(server.ServerSettings.ConfigurationStorage, server.ServerSettings.StaticFilesStorage.ServerConfigPath)
 	if err != nil {
 		log.Fatal("Cannot init config storage:", err)
 	}

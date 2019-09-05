@@ -16,14 +16,14 @@ vendor
 db.db
 debug
 
-admin_panel/build
-admin_panel/identifo-admin-master
-admin_panel/master.zip
 integrations/aws/identifo lambda/Identifo
 integrations/aws/*/jwt/*.pem
 integrations/*/*/admin_panel/build
 integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
 integrations/aws/identifo lambda/static/apple-developer-domain-association.txt
-web/static/apple/apple-app-site-association
-web/static/apple/apple-developer-domain-association.txt
+static/apple/apple-app-site-association
+static/apple/apple-developer-domain-association.txt
+static/admin_panel/build
+static/admin_panel/identifo-admin-master
+static/admin_panel/master.zip

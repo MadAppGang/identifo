@@ -49,20 +49,16 @@ configurationStorage:
     region: us-east-1 # S3-related setting.
     bucket: # If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
 
-staticFiles:
+staticFilesStorage:
+  type: s3
   serverConfigPath: server-config.yaml
-  staticFolderPath: ./static
+  staticFilesLocation: # If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  region: # S3-specific setting. Needed when type is s3.
+  pagesPath: ./html
   emailTemplatesPath: ./email_templates
-  emailTemplateNames:
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
+  appleFilesPath: ./apple
+  serveAdminPanel: true
   adminPanelBuildPath: ./admin_panel/build
-  apple:
-    developerDomainAssociation: apple/apple-developer-domain-association.txt
-    appSiteAssociation: apple/apple-app-site-association
 
 login:
   loginWith:

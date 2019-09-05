@@ -2,13 +2,13 @@ package html
 
 import (
 	"encoding/json"
-	"html/template"
 	"net/http"
 	"path"
 	"strings"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -99,7 +99,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 // LoginHandler serves login page or redirects to the callback_url if user is already authenticated.
 func (ar *Router) LoginHandler() http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.Login))
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.Login)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse Login template.", err)
 	}

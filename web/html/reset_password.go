@@ -1,7 +1,6 @@
 package html
 
 import (
-	"html/template"
 	"net/http"
 	"path"
 
@@ -40,7 +39,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 
 // ResetPasswordHandler handles reset password GET request.
 func (ar *Router) ResetPasswordHandler() http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.ResetPassword))
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.ResetPassword)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse ResetPassword template.", err)
 	}

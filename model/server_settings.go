@@ -13,7 +13,7 @@ type ServerSettings struct {
 	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
 	ConfigurationStorage ConfigurationStorageSettings `yaml:"configurationStorage,omitempty" json:"configuration_storage,omitempty"`
 	SessionStorage       SessionStorageSettings       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	StaticFiles          StaticFilesSettings          `yaml:"staticFiles,omitempty" json:"static_files,omitempty"`
+	StaticFilesStorage   StaticFilesStorageSettings   `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
 	ExternalServices     ExternalServicesSettings     `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
 	Login                LoginSettings                `yaml:"login,omitempty" json:"login,omitempty"`
 }
@@ -63,21 +63,28 @@ const (
 	DBTypeFake DatabaseType = "fake"
 )
 
-// StaticFilesSettings are settings for static files used by Identifo.
-type StaticFilesSettings struct {
-	ServerConfigPath    string             `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	StaticFolderPath    string             `yaml:"staticFolderPath,omitempty" json:"static_folder_path,omitempty"`
-	EmailTemplatesPath  string             `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	EmailTemplateNames  EmailTemplateNames `yaml:"emailTemplateNames,omitempty" json:"email_template_names,omitempty"`
-	AdminPanelBuildPath string             `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
-	AppleFilenames      AppleFilenames     `yaml:"apple,omitempty" json:"apple,omitempty"`
+// StaticFilesStorageSettings are settings for static files storage.
+type StaticFilesStorageSettings struct {
+	Type                StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
+	ServerConfigPath    string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	StaticFilesLocation string                 `yaml:"staticFilesLocation,omitempty" json:"static_files_location,omitempty"`
+	Region              string                 `yaml:"region,omitempty" json:"region,omitempty"`
+	PagesPath           string                 `yaml:"pagesPath,omitempty" json:"pages_path,omitempty"`
+	EmailTemplatesPath  string                 `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
+	AppleFilesPath      string                 `yaml:"appleFilesPath,omitempty" json:"apple_files_path,omitempty"`
+	ServeAdminPanel     bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	AdminPanelBuildPath string                 `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
 }
 
-// AppleFilenames holds together static files needed for supporting Apple services.
-type AppleFilenames struct {
-	DeveloperDomainAssociation string `yaml:"developerDomainAssociation,omitempty" json:"developer_domain_association,omitempty"`
-	AppSiteAssociation         string `yaml:"appSiteAssociation,omitempty" json:"app_site_association,omitempty"`
-}
+// StaticFilesStorageType is a type of static files storage.
+type StaticFilesStorageType string
+
+const (
+	// StaticFilesStorageTypeLocal is for storing static files locally.
+	StaticFilesStorageTypeLocal = "local"
+	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
+	StaticFilesStorageTypeS3 = "s3"
+)
 
 // ConfigurationStorageSettings holds together configuration storage settings.
 type ConfigurationStorageSettings struct {
@@ -137,8 +144,8 @@ type KeyStorageSettings struct {
 type KeyStorageType string
 
 const (
-	// KeyStorageTypeFile is for storing keys locally.
-	KeyStorageTypeFile = "file"
+	// KeyStorageTypeLocal is for storing keys locally.
+	KeyStorageTypeLocal = "local"
 	// KeyStorageTypeS3 is for storing keys in the S3 bucket.
 	KeyStorageTypeS3 = "s3"
 )

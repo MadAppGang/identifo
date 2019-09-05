@@ -3,18 +3,17 @@ package html
 import (
 	"encoding/json"
 	"fmt"
-	"html/template"
 	"net/http"
-	"path"
 	"strings"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
+	"github.com/madappgang/identifo/model"
 )
 
 // RenewToken creates new id_token if user is already authenticated.
 func (ar *Router) RenewToken() http.HandlerFunc {
-	tmpl, err := template.ParseFiles(path.Join(ar.StaticFilesPath.PagesPath, ar.StaticPages.WebMessage))
+	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.WebMessage)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse WebMessage template.", err)
 	}

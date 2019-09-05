@@ -85,20 +85,18 @@ configurationStorage:
     privateKey: jwt/private.pem
     region: # S3-related setting.
 
-staticFiles:
-  serverConfigPath: ../../server/server-config.yaml   # File with server settings.
-  staticFolderPath: ../../web/static   # Folder for the static files.
-  emailTemplatesPath: ../../email_templates   # Forder for the email templates.
-  emailTemplateNames:   # Email template names.
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
-  adminPanelBuildPath: ../../admin_panel/build # If not provided, admin panel is not being served.
-  apple: # Files needed for using Apple services.
-    developerDomainAssociation: apple/apple-developer-domain-association.txt
-    appSiteAssociation: apple/apple-app-site-association
+staticFilesStorage:
+  type: local # Supported values are "local" and "s3".
+  serverConfigPath: ../../server/server-config.yaml  # Path to the file with server settings.
+  # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
+  # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  staticFilesLocation: ../../static # All following paths are relative to this location.
+  region: # S3-specific setting. Needed when type is s3.
+  pagesPath: ./html # Folder for html pages.
+  emailTemplatesPath: ./email_templates # Folder for the email templates.
+  appleFilesPath: ./apple # Folder for the Apple-related files.
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  adminPanelBuildPath: ./admin_panel/build # Path to the admin panel build. Can be ommited when not serving admin panel. 
 
 login:   # Supported login ways.
   loginWith:
@@ -112,9 +110,9 @@ login:   # Supported login ways.
 externalServices: 
   emailService:  # Email service settings.
     type: mock # Supported values are "mailgun", "aws ses", and "mock".
-    domain: # Mailgun-related setting.
-    privateKey: # Mailgun-related setting.
-    publicKey: # Mailgun-related setting.
+    domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
+    privateKey: # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
+    publicKey: # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
     sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
     region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
   smsService:   # SMS service settings.

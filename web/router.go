@@ -25,9 +25,10 @@ type RouterSetting struct {
 	EmailService            model.EmailService
 	SessionService          model.SessionService
 	SessionStorage          model.SessionStorage
+	StaticFilesStorage      model.StaticFilesStorage
 	ConfigurationStorage    model.ConfigurationStorage
 	Logger                  *log.Logger
-	AdminPanelBuildPath     string
+	ServeAdminPanel         bool
 	APIRouterSettings       []func(*api.Router) error
 	WebRouterSettings       []func(*html.Router) error
 	AdminRouterSettings     []func(*admin.Router) error
@@ -46,6 +47,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.TokenStorage,
 		settings.TokenBlacklist,
 		settings.VerificationCodeStorage,
+		settings.StaticFilesStorage,
 		settings.TokenService,
 		settings.SMSService,
 		settings.EmailService,
@@ -60,6 +62,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.Logger,
 		settings.AppStorage,
 		settings.UserStorage,
+		settings.StaticFilesStorage,
 		settings.TokenStorage,
 		settings.TokenBlacklist,
 		settings.TokenService,
@@ -68,27 +71,27 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		authorizer,
 		settings.WebRouterSettings...,
 	)
-
 	if err != nil {
 		return nil, err
 	}
 
-	r.AdminRouter, err = admin.NewRouter(
-		settings.Logger,
-		settings.SessionService,
-		settings.SessionStorage,
-		settings.AppStorage,
-		settings.UserStorage,
-		settings.ConfigurationStorage,
-		settings.AdminRouterSettings...,
-	)
+	if settings.ServeAdminPanel {
+		r.AdminRouter, err = admin.NewRouter(
+			settings.Logger,
+			settings.SessionService,
+			settings.SessionStorage,
+			settings.AppStorage,
+			settings.UserStorage,
+			settings.ConfigurationStorage,
+			settings.StaticFilesStorage,
+			settings.AdminRouterSettings...,
+		)
+		if err != nil {
+			return nil, err
+		}
+		r.AdminRouterPath = "/admin"
 
-	if err != nil {
-		return nil, err
-	}
-
-	if settings.AdminPanelBuildPath != "" {
-		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.AdminPanelBuildPath)
+		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.StaticFilesStorage)
 		if err != nil {
 			return nil, err
 		}
@@ -97,7 +100,6 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 
 	r.APIRouterPath = "/api"
 	r.WebRouterPath = "/web"
-	r.AdminRouterPath = "/admin"
 
 	r.setupRoutes()
 	return &r, nil
@@ -127,9 +129,8 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
-	ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
-	if ar.AdminPanelRouterPath != "" {
+	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
+		ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
 		ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
 	}
-
 }

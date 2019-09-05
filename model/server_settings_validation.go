@@ -27,6 +27,9 @@ func (ss *ServerSettings) Validate() error {
 	if err := ss.ConfigurationStorage.Validate(); err != nil {
 		return err
 	}
+	if err := ss.StaticFilesStorage.Validate(); err != nil {
+		return err
+	}
 	if err := ss.ExternalServices.Validate(); err != nil {
 		return err
 	}
@@ -140,9 +143,9 @@ func (sss *SessionStorageSettings) Validate() error {
 	return nil
 }
 
-const identifoConfigS3BucketEnvName = "IDENTIFO_CONFIG_BUCKET"
+const identifoConfigBucketEnvName = "IDENTIFO_CONFIG_BUCKET"
 
-// Validate validates configuration  storage settings.
+// Validate validates configuration storage settings.
 func (css *ConfigurationStorageSettings) Validate() error {
 	subject := "ConfigurationStorageSettings"
 	if css == nil {
@@ -169,7 +172,7 @@ func (css *ConfigurationStorageSettings) Validate() error {
 		if len(css.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
-		if bucket := os.Getenv(identifoConfigS3BucketEnvName); len(bucket) != 0 {
+		if bucket := os.Getenv(identifoConfigBucketEnvName); len(bucket) != 0 {
 			css.Bucket = bucket
 		}
 		if len(css.Bucket) == 0 {
@@ -185,7 +188,58 @@ func (css *ConfigurationStorageSettings) Validate() error {
 	return nil
 }
 
-const identifoJWTKeysS3BucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
+const identifoStaticFilesBucketEnvName = "IDENTIFO_STATIC_FILES_BUCKET"
+
+// Validate validates static files storage settings.
+func (sfs *StaticFilesStorageSettings) Validate() error {
+	subject := "StaticFilesStorageSettings"
+	if sfs == nil {
+		return fmt.Errorf("Nil %s", subject)
+	}
+
+	if len(sfs.Type) == 0 {
+		return fmt.Errorf("%s. Empty static files storage type", subject)
+	}
+	if len(sfs.ServerConfigPath) == 0 {
+		return fmt.Errorf("%s. Empty server config path", subject)
+	}
+
+	if len(sfs.PagesPath) == 0 {
+		return fmt.Errorf("%s. Empty html pages path", subject)
+	}
+	if len(sfs.EmailTemplatesPath) == 0 {
+		return fmt.Errorf("%s. Empty email templates path", subject)
+	}
+	if len(sfs.AppleFilesPath) == 0 {
+		return fmt.Errorf("%s. Empty static files location", subject)
+	}
+
+	if sfs.ServeAdminPanel && len(sfs.AdminPanelBuildPath) == 0 {
+		return fmt.Errorf("%s. Please specify admin panel build path or disable serving admin panel", subject)
+	}
+
+	switch sfs.Type {
+	case StaticFilesStorageTypeLocal:
+		if len(sfs.StaticFilesLocation) == 0 {
+			return fmt.Errorf("%s. Empty static files location", subject)
+		}
+	case StaticFilesStorageTypeS3:
+		if len(sfs.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
+		if bucket := os.Getenv(identifoStaticFilesBucketEnvName); len(bucket) != 0 {
+			sfs.StaticFilesLocation = bucket
+		}
+		if len(sfs.StaticFilesLocation) == 0 {
+			return fmt.Errorf("%s. Bucket for static files is not set", subject)
+		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
+	}
+	return nil
+}
+
+const identifoJWTKeysBucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
 
 // Validate validates key storage settings.
 func (kss *KeyStorageSettings) Validate() error {
@@ -198,17 +252,17 @@ func (kss *KeyStorageSettings) Validate() error {
 	}
 
 	switch kss.Type {
-	case KeyStorageTypeFile:
+	case KeyStorageTypeLocal:
 		break
 	case KeyStorageTypeS3:
 		if len(kss.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
-		if bucket := os.Getenv(identifoJWTKeysS3BucketEnvName); len(bucket) != 0 {
+		if bucket := os.Getenv(identifoJWTKeysBucketEnvName); len(bucket) != 0 {
 			kss.Bucket = bucket
 		}
 		if len(kss.Bucket) == 0 {
-			return fmt.Errorf("%s. Bucket for config is not set", subject)
+			return fmt.Errorf("%s. Bucket for keys is not set", subject)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)

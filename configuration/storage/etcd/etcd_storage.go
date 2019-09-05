@@ -8,7 +8,7 @@ import (
 	"reflect"
 	"time"
 
-	keyStorageFile "github.com/madappgang/identifo/configuration/key_storage/file"
+	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
 	configStorageFile "github.com/madappgang/identifo/configuration/storage/file"
 	ijwt "github.com/madappgang/identifo/jwt"
@@ -59,8 +59,8 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings, server
 	var keyStorage model.KeyStorage
 
 	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeFile:
-		keyStorage, err = keyStorageFile.NewKeyStorage(settings.KeyStorage)
+	case model.KeyStorageTypeLocal:
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
 		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:

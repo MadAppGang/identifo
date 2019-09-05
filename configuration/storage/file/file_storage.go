@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	keyStorageFile "github.com/madappgang/identifo/configuration/key_storage/file"
+	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -28,8 +28,8 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 	var err error
 
 	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeFile:
-		keyStorage, err = keyStorageFile.NewKeyStorage(settings.KeyStorage)
+	case model.KeyStorageTypeLocal:
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
 		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:

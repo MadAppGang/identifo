@@ -7,7 +7,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 	"path/filepath"
 
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
@@ -24,6 +23,8 @@ import (
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
+	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
+	staticStoreS3 "github.com/madappgang/identifo/static/storage/s3"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -96,7 +97,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 		log.Fatalln(err)
 	}
 
-	if err = os.Setenv(serverConfigPathEnvName, out.StaticFiles.ServerConfigPath); err != nil {
+	if err = os.Setenv(serverConfigPathEnvName, out.StaticFilesStorage.ServerConfigPath); err != nil {
 		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
 	}
 }
@@ -105,7 +106,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
 	var err error
 	if configurationStorage == nil {
-		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFiles.ServerConfigPath)
+		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFilesStorage.ServerConfigPath)
 		if err != nil {
 			return nil, err
 		}
@@ -121,6 +122,11 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		return nil, err
 	}
 
+	staticFilesStorage, err := initStaticFilesStorage(settings.StaticFilesStorage)
+	if err != nil {
+		return nil, err
+	}
+
 	s := Server{
 		appStorage:              appStorage,
 		userStorage:             userStorage,
@@ -128,6 +134,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		tokenBlacklist:          tokenBlacklist,
 		verificationCodeStorage: verificationCodeStorage,
 		configurationStorage:    configurationStorage,
+		staticFilesStorage:      staticFilesStorage,
 	}
 
 	sessionStorage, err := initSessionStorage(settings)
@@ -136,7 +143,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
-	ms, err := initEmailService(settings.ExternalServices.EmailService, settings.StaticFiles.EmailTemplateNames, settings.StaticFiles.EmailTemplatesPath)
+	ms, err := initEmailService(settings.ExternalServices.EmailService, staticFilesStorage)
 	if err != nil {
 		return nil, err
 	}
@@ -152,14 +159,6 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		hostName = settings.General.Host
 	}
 
-	staticFiles := html.StaticFilesPath{
-		StylesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "css"),
-		ScriptsPath: path.Join(settings.StaticFiles.StaticFolderPath, "js"),
-		PagesPath:   settings.StaticFiles.StaticFolderPath,
-		ImagesPath:  path.Join(settings.StaticFiles.StaticFolderPath, "img"),
-		FontsPath:   path.Join(settings.StaticFiles.StaticFolderPath, "fonts"),
-	}
-
 	routerSettings := web.RouterSetting{
 		AppStorage:              appStorage,
 		UserStorage:             userStorage,
@@ -170,22 +169,21 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		SessionService:          sessionService,
 		SessionStorage:          sessionStorage,
 		ConfigurationStorage:    configurationStorage,
+		StaticFilesStorage:      staticFilesStorage,
+		ServeAdminPanel:         settings.StaticFilesStorage.ServeAdminPanel,
 		SMSService:              sms,
 		EmailService:            ms,
-		AdminPanelBuildPath:     settings.StaticFiles.AdminPanelBuildPath,
 		WebRouterSettings: []func(*html.Router) error{
-			html.StaticPathOptions(staticFiles),
 			html.HostOption(hostName),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.AppleFilenamesOption(settings.StaticFiles.AppleFilenames, settings.StaticFiles.StaticFolderPath),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
-			admin.ServerConfigPathOption(settings.StaticFiles.ServerConfigPath),
+			admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
 		},
 	}
@@ -213,6 +211,7 @@ type Server struct {
 	configurationStorage    model.ConfigurationStorage
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
+	staticFilesStorage      model.StaticFilesStorage
 	verificationCodeStorage model.VerificationCodeStorage
 }
 
@@ -255,6 +254,11 @@ func (s *Server) ConfigurationStorage() model.ConfigurationStorage {
 	return s.configurationStorage
 }
 
+// StaticFilesStorage returns server's static files storage.
+func (s *Server) StaticFilesStorage() model.StaticFilesStorage {
+	return s.staticFilesStorage
+}
+
 // Close closes all database connections.
 func (s *Server) Close() {
 	s.AppStorage().Close()
@@ -262,6 +266,7 @@ func (s *Server) Close() {
 	s.TokenStorage().Close()
 	s.TokenBlacklist().Close()
 	s.VerificationCodeStorage().Close()
+	s.StaticFilesStorage().Close()
 }
 
 // InitConfigurationStorage initializes configuration storage.
@@ -312,6 +317,17 @@ func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, er
 	}
 }
 
+func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
+	switch settings.Type {
+	case model.StaticFilesStorageTypeLocal:
+		return staticStoreLocal.NewStaticFilesStorage(settings)
+	case model.StaticFilesStorageTypeS3:
+		return staticStoreS3.NewStaticFilesStorage(settings)
+	default:
+		return nil, model.ErrorNotImplemented
+	}
+}
+
 func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error) {
 	switch settings.Type {
 	case model.SMSServiceTwilio:
@@ -323,8 +339,8 @@ func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error)
 	}
 }
 
-func initEmailService(ess model.EmailServiceSettings, templateNames model.EmailTemplateNames, templatesPath string) (model.EmailService, error) {
-	tpltr, err := model.NewEmailTemplater(templateNames, templatesPath)
+func initEmailService(ess model.EmailServiceSettings, sfs model.StaticFilesStorage) (model.EmailService, error) {
+	tpltr, err := model.NewEmailTemplater(sfs)
 	if err != nil {
 		return nil, err
 	}

@@ -2,10 +2,7 @@ package admin
 
 import (
 	"fmt"
-	"io"
 	"net/http"
-	"os"
-	"path"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -64,16 +61,8 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		filepath := path.Join(ar.ServerSettings.StaticFiles.StaticFolderPath, ar.ServerSettings.StaticFiles.AppleFilenames.DeveloperDomainAssociation)
-		file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot open file: %s", err.Error()))
-			return
-		}
-		defer file.Close()
-
-		if _, err = io.Copy(file, formFile); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot save file: %s", err.Error()))
+		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.DeveloperDomainAssociation, formFile); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, nil)
@@ -95,16 +84,8 @@ func (ar *Router) UploadAASAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		filepath := path.Join(ar.ServerSettings.StaticFiles.StaticFolderPath, ar.ServerSettings.StaticFiles.AppleFilenames.AppSiteAssociation)
-		file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot open file: %s", err.Error()))
-			return
-		}
-		defer file.Close()
-
-		if _, err = io.Copy(file, formFile); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot save file: %s", err.Error()))
+		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.AppSiteAssociation, formFile); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, nil)

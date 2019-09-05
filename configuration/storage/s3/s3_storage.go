@@ -7,7 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	keyStorageFile "github.com/madappgang/identifo/configuration/key_storage/file"
+	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
@@ -35,8 +35,8 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 	var keyStorage model.KeyStorage
 
 	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeFile:
-		keyStorage, err = keyStorageFile.NewKeyStorage(settings.KeyStorage)
+	case model.KeyStorageTypeLocal:
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
 		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:

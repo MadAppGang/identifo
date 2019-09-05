@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 
 	"github.com/madappgang/identifo/web/authorization"
 
@@ -25,13 +24,13 @@ type Router struct {
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
 	verificationCodeStorage model.VerificationCodeStorage
+	staticFilesStorage      model.StaticFilesStorage
 	tfaType                 model.TFAType
 	tokenService            jwtService.TokenService
 	smsService              model.SMSService
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
 	jwk                     *jwk
-	appleFilenames          model.AppleFilenames
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
@@ -82,33 +81,20 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	}
 }
 
-// AppleFilenamesOption sets appleFilenames value.
-func AppleFilenamesOption(appleFilenames model.AppleFilenames, staticFolderPath string) func(*Router) error {
-	return func(r *Router) error {
-		r.appleFilenames = appleFilenames
-		if r.appleFilenames.AppSiteAssociation != "" {
-			r.appleFilenames.AppSiteAssociation = path.Join(staticFolderPath, appleFilenames.AppSiteAssociation)
-		}
-		if r.appleFilenames.DeveloperDomainAssociation != "" {
-			r.appleFilenames.DeveloperDomainAssociation = path.Join(staticFolderPath, appleFilenames.AppSiteAssociation)
-		}
-		return nil
-	}
-}
-
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, appStorage model.AppStorage, userStorage model.UserStorage, tokenStorage model.TokenStorage, tokenBlacklist model.TokenBlacklist, verificationCodeStorage model.VerificationCodeStorage, tokenService jwtService.TokenService, smsService model.SMSService, emailService model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),
-		appStorage:              appStorage,
-		userStorage:             userStorage,
-		tokenStorage:            tokenStorage,
-		tokenBlacklist:          tokenBlacklist,
-		verificationCodeStorage: verificationCodeStorage,
-		tokenService:            tokenService,
-		smsService:              smsService,
-		emailService:            emailService,
+		appStorage:              as,
+		userStorage:             us,
+		tokenStorage:            ts,
+		tokenBlacklist:          tb,
+		verificationCodeStorage: vcs,
+		staticFilesStorage:      sfs,
+		tokenService:            tServ,
+		smsService:              smsServ,
+		emailService:            emailServ,
 		Authorizer:              authorizer,
 	}
 

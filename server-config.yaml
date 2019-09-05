@@ -78,30 +78,27 @@ configurationStorage:
   region: # S3-related setting.
   bucket: # S3-related setting. If "IDENTIFO_CONFIG_BUCKET" env variable is set, it overrides the value specified here.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
-    type: file # Key storage type. Supported values are "file" and "s3".
+    type: local # Key storage type. Supported values are "local" and "s3".
     # Key names.
-    # If type is file, must be a filepath (e.g, jwt/public.pem).
+    # If type is local, must be a filepath (e.g, jwt/public.pem).
     # If type is s3, must be a name of an object in the bucket (e.g, public.pem).
     publicKey: jwt/public.pem
     privateKey: jwt/private.pem
     region: # S3-related setting.
     bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
 
-
-staticFiles:
-  serverConfigPath: server-config.yaml   # File with server settings.
-  staticFolderPath: ./web/static   # Folder for the static files.
-  emailTemplatesPath: ./email_templates   # Forder for the email templates.
-  emailTemplateNames:   # Email template names.
-    welcome: welcome.html
-    resetPassword: reset_password.html
-    invite: invite_email.html
-    verify: verify_email.html
-    tfa: tfa_email.html
-  adminPanelBuildPath: ./admin_panel/build # If not provided, admin panel is not being served.
-  apple: # Files needed for using Apple services.
-    developerDomainAssociation: apple/apple-developer-domain-association.txt
-    appSiteAssociation: apple/apple-app-site-association
+staticFilesStorage:
+  type: local # Supported values are "local" and "s3".
+  serverConfigPath: server-config.yaml  # Path to the file with server settings.
+  # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
+  # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  staticFilesLocation: ./static   # All following paths are relative to this location.
+  region: # S3-specific setting. Needed when type is s3.
+  pagesPath: ./html # Folder for html pages.
+  emailTemplatesPath: ./email_templates # Folder for the email templates.
+  appleFilesPath: ./apple # Folder for the Apple-related files.
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  adminPanelBuildPath: ./admin_panel/build # Path to the admin panel build. Can be ommited when not serving admin panel. 
 
 login:   # Supported login ways.
   loginWith:
