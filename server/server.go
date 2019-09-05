@@ -318,13 +318,17 @@ func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, er
 }
 
 func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
+	localStaticFilesStorage, err := staticStoreLocal.NewStaticFilesStorage(settings)
+	if err != nil {
+		return nil, err
+	}
 	switch settings.Type {
 	case model.StaticFilesStorageTypeLocal:
-		return staticStoreLocal.NewStaticFilesStorage(settings)
+		return localStaticFilesStorage, nil
 	case model.StaticFilesStorageTypeS3:
-		return staticStoreS3.NewStaticFilesStorage(settings)
+		return staticStoreS3.NewStaticFilesStorage(settings, localStaticFilesStorage)
 	case model.StaticFilesStorageTypeDynamoDB:
-		return staticStoreDynamo.NewStaticFilesStorage(settings)
+		return staticStoreDynamo.NewStaticFilesStorage(settings, localStaticFilesStorage)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

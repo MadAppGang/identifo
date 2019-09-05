@@ -16,44 +16,32 @@ import (
 
 // StaticFilesStorage is a local storage of static files.
 type StaticFilesStorage struct {
-	staticFilesFolder  string
-	pagesPath          string
-	emailTemplatesPath string
-	appleFilesPath     string
+	folder string
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		staticFilesFolder:  settings.StaticFilesLocation,
-		pagesPath:          settings.PagesPath,
-		emailTemplatesPath: settings.EmailTemplatesPath,
-		appleFilesPath:     settings.AppleFilesPath,
+		folder: settings.Folder,
 	}, nil
 }
 
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
-	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
-	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
-
 	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(emailsPath, templateName)
+		templateName = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
 	} else {
-		templateName = path.Join(pagesPath, templateName)
+		templateName = path.Join(sfs.folder, model.PagesPath, templateName)
 	}
 	return template.ParseFiles(templateName)
 }
 
 // UploadTemplate is for html template uploads.
 func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
-	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
-	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
-
 	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(emailsPath, templateName)
+		templateName = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
 	} else {
-		templateName = path.Join(pagesPath, templateName)
+		templateName = path.Join(sfs.folder, model.PagesPath, templateName)
 	}
 
 	file, err := os.OpenFile(templateName, os.O_WRONLY|os.O_CREATE, 0666)
@@ -70,7 +58,7 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 
 // ReadAppleFile is for reading Apple-related static files.
 func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
+	filename = path.Join(sfs.folder, model.AppleFilesPath, filename)
 	// Check if file exists. If not - return nil error and nil slice.
 	if _, err := os.Stat(filename); err != nil {
 		if os.IsNotExist(err) {
@@ -88,7 +76,7 @@ func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 
 // UploadAppleFile is for Apple-related file uploads.
 func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
-	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
+	filename = path.Join(sfs.folder, model.AppleFilesPath, filename)
 
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
@@ -104,10 +92,10 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte)
 
 // AssetHandlers returns handlers for assets.
 func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
-	stylesHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/css/")))
-	scriptsHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/js/")))
-	imagesHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/img/")))
-	fontsHandler := http.FileServer(http.Dir(path.Join(sfs.staticFilesFolder, "/fonts/")))
+	stylesHandler := http.FileServer(http.Dir(path.Join(sfs.folder, "/css/")))
+	scriptsHandler := http.FileServer(http.Dir(path.Join(sfs.folder, "/js/")))
+	imagesHandler := http.FileServer(http.Dir(path.Join(sfs.folder, "/img/")))
+	fontsHandler := http.FileServer(http.Dir(path.Join(sfs.folder, "/fonts/")))
 
 	return &model.AssetHandlers{
 		StylesHandler:  http.StripPrefix("/css/", stylesHandler),
@@ -119,15 +107,17 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 
 // AdminPanelHandlers returns handlers for the admin panel.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
-	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
-	}
-	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
+	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(sfs.folder, model.AdminPanelBuildPath, "/src"))))
+
+	managementHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, path.Join(sfs.folder, model.AdminPanelBuildPath, "/index.html"))
+	})
+
+	buildHandler := http.FileServer(http.Dir(path.Join(sfs.folder, model.AdminPanelBuildPath)))
 
 	return &model.AdminPanelHandlers{
 		SrcHandler:        srcHandler,
-		ManagementHandler: http.HandlerFunc(managementHandleFunc),
+		ManagementHandler: managementHandler,
 		BuildHandler:      buildHandler,
 	}
 }

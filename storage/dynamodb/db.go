@@ -1,7 +1,9 @@
 package dynamodb
 
 import (
+	"context"
 	"log"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/awserr"
@@ -34,7 +36,11 @@ func (db *DB) IsTableExists(table string) (bool, error) {
 	input := &dynamodb.DescribeTableInput{
 		TableName: aws.String(table),
 	}
-	_, err := db.C.DescribeTable(input)
+
+	timeoutCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	_, err := db.C.DescribeTableWithContext(timeoutCtx, input)
 	if AwsErrorErrorNotFound(err) {
 		return false, nil
 		//if table not exists - create table

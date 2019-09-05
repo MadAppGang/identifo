@@ -31,8 +31,14 @@ type AdminPanelHandlers struct {
 	BuildHandler      http.Handler
 }
 
-// AdminPanelBuildPath is a path to built admin panel.
-const AdminPanelBuildPath = "./static/admin_panel/build"
+// These paths describe directories with static files.
+// They are relative to the folder specified in the configuration file.
+const (
+	AdminPanelBuildPath = "./admin_panel/build"
+	PagesPath           = "./html"
+	EmailTemplatesPath  = "./email_templates"
+	AppleFilesPath      = "./apple"
+)
 
 // StaticPagesNames are the names of html pages.
 var StaticPagesNames = StaticPages{

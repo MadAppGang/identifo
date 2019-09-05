@@ -14,6 +14,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/madappgang/identifo/model"
+	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
 	idynamodb "github.com/madappgang/identifo/storage/dynamodb"
 )
 
@@ -21,17 +22,19 @@ const staticFilesTableName = "StaticFiles"
 
 // StaticFilesStorage is a storage of static files in DynamoDB.
 type StaticFilesStorage struct {
-	db *idynamodb.DB
+	db           *idynamodb.DB
+	localStorage *staticStoreLocal.StaticFilesStorage
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
-func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
+func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStorage *staticStoreLocal.StaticFilesStorage) (*StaticFilesStorage, error) {
 	db, err := idynamodb.NewDB(settings.Endpoint, settings.Region)
 	if err != nil {
 		return nil, err
 	}
 	sfs := &StaticFilesStorage{
-		db: db,
+		db:           db,
+		localStorage: localStorage,
 	}
 	if err = sfs.ensureTable(); err != nil {
 		return nil, err
@@ -106,17 +109,7 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 // AdminPanelHandlers returns handlers for the admin panel.
 // Adminpanel build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
-	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
-	}
-	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
-
-	return &model.AdminPanelHandlers{
-		SrcHandler:        srcHandler,
-		ManagementHandler: http.HandlerFunc(managementHandleFunc),
-		BuildHandler:      buildHandler,
-	}
+	return sfs.localStorage.AdminPanelHandlers()
 }
 
 // Close is to satisfy the interface.

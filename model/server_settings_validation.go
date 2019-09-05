@@ -204,29 +204,17 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 		return fmt.Errorf("%s. Empty server config path", subject)
 	}
 
-	if len(sfs.PagesPath) == 0 {
-		return fmt.Errorf("%s. Empty html pages path", subject)
-	}
-	if len(sfs.EmailTemplatesPath) == 0 {
-		return fmt.Errorf("%s. Empty email templates path", subject)
-	}
-	if len(sfs.AppleFilesPath) == 0 {
-		return fmt.Errorf("%s. Empty static files location", subject)
-	}
-
 	switch sfs.Type {
 	case StaticFilesStorageTypeLocal:
-		if len(sfs.StaticFilesLocation) == 0 {
-			return fmt.Errorf("%s. Empty static files location", subject)
-		}
+		return nil
 	case StaticFilesStorageTypeS3:
 		if len(sfs.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 		if bucket := os.Getenv(identifoStaticFilesBucketEnvName); len(bucket) != 0 {
-			sfs.StaticFilesLocation = bucket
+			sfs.Bucket = bucket
 		}
-		if len(sfs.StaticFilesLocation) == 0 {
+		if len(sfs.Bucket) == 0 {
 			return fmt.Errorf("%s. Bucket for static files is not set", subject)
 		}
 	case StaticFilesStorageTypeDynamoDB:

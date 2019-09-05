@@ -16,41 +16,38 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	"github.com/madappgang/identifo/model"
+	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
 )
 
 // StaticFilesStorage is a storage of static files in S3.
 type StaticFilesStorage struct {
-	client             *s3.S3
-	bucket             string
-	region             string
-	pagesPath          string
-	emailTemplatesPath string
-	appleFilesPath     string
+	client       *s3.S3
+	bucket       string
+	folder       string
+	localStorage *staticStoreLocal.StaticFilesStorage
 }
 
 // NewStaticFilesStorage creates and returns new static files storage in S3.
-func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
+func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStorage *staticStoreLocal.StaticFilesStorage) (*StaticFilesStorage, error) {
 	s3Client, err := s3Storage.NewS3Client(settings.Region)
 	if err != nil {
 		return nil, err
 	}
 
 	return &StaticFilesStorage{
-		client:             s3Client,
-		bucket:             settings.StaticFilesLocation,
-		region:             settings.Region,
-		pagesPath:          settings.PagesPath,
-		emailTemplatesPath: settings.EmailTemplatesPath,
-		appleFilesPath:     settings.AppleFilesPath,
+		client:       s3Client,
+		bucket:       settings.Bucket,
+		folder:       settings.Folder,
+		localStorage: localStorage,
 	}, nil
 }
 
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
 	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(sfs.emailTemplatesPath, templateName)
+		templateName = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
 	} else {
-		templateName = path.Join(sfs.pagesPath, templateName)
+		templateName = path.Join(sfs.folder, model.PagesPath, templateName)
 	}
 
 	getTemplateInput := &s3.GetObjectInput{
@@ -75,9 +72,9 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 // UploadTemplate is for html template uploads.
 func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
 	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(sfs.emailTemplatesPath, templateName)
+		templateName = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
 	} else {
-		templateName = path.Join(sfs.pagesPath, templateName)
+		templateName = path.Join(sfs.folder, model.PagesPath, templateName)
 	}
 
 	_, err := sfs.client.PutObject(&s3.PutObjectInput{
@@ -98,7 +95,7 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 	getFileInput := &s3.GetObjectInput{
 		Bucket: aws.String(sfs.bucket),
-		Key:    aws.String(path.Join(sfs.appleFilesPath, filename)),
+		Key:    aws.String(path.Join(sfs.folder, model.AppleFilesPath, filename)),
 	}
 
 	resp, err := sfs.client.GetObject(getFileInput)
@@ -119,7 +116,7 @@ func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 
 // UploadAppleFile is for Apple-related file uploads.
 func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
-	filename = path.Join(sfs.appleFilesPath, filename)
+	filename = path.Join(sfs.folder, model.AppleFilesPath, filename)
 	_, err := sfs.client.PutObject(&s3.PutObjectInput{
 		Bucket:       aws.String(sfs.bucket),
 		Key:          aws.String(filename),
@@ -135,10 +132,8 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte)
 
 // AssetHandlers returns handlers for assets.
 func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
-	folder := strings.TrimLeft(strings.TrimSuffix(sfs.pagesPath, "/html"), ".")
-
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		key := strings.Join([]string{folder, r.URL.Path}, "")
+		key := strings.Join([]string{sfs.folder, r.URL.Path}, "")
 
 		getStyleInput := &s3.GetObjectInput{
 			Bucket: aws.String(sfs.bucket),
@@ -178,17 +173,7 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 // AdminPanelHandlers returns handlers for the admin panel.
 // Adminpanel build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
-	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
-	}
-	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
-
-	return &model.AdminPanelHandlers{
-		SrcHandler:        srcHandler,
-		ManagementHandler: http.HandlerFunc(managementHandleFunc),
-		BuildHandler:      buildHandler,
-	}
+	return sfs.localStorage.AdminPanelHandlers()
 }
 
 // Close is to satisfy the interface.
