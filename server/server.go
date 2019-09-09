@@ -4,10 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
-	"path/filepath"
 
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
@@ -30,7 +28,6 @@ import (
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
-	"gopkg.in/yaml.v2"
 )
 
 const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
@@ -42,66 +39,6 @@ const (
 
 // ServerSettings are server settings.
 var ServerSettings model.ServerSettings
-
-func init() {
-	loadServerConfigurationFromFile(&ServerSettings)
-}
-
-// loadServerConfigurationFromFile loads configuration from the yaml file and writes it to out variable.
-func loadServerConfigurationFromFile(out *model.ServerSettings) {
-	dir, err := os.Getwd()
-	if err != nil {
-		log.Fatalln("Cannot get server configuration file:", err)
-	}
-
-	// Iterate through possible config paths until we find the valid one.
-	configPaths := []string{
-		os.Getenv(serverConfigPathEnvName),
-		"./server-config.yaml",
-		"../../server/server-config.yaml",
-	}
-
-	var configFile []byte
-
-	for _, p := range configPaths {
-		if p == "" {
-			continue
-		}
-		configFile, err = ioutil.ReadFile(filepath.Join(dir, p))
-		if err == nil {
-			break
-		}
-	}
-
-	if err != nil {
-		log.Fatalln("Cannot read server configuration file:", err)
-	}
-
-	if err = yaml.Unmarshal(configFile, out); err != nil {
-		log.Fatalln("Cannot unmarshal server configuration file:", err)
-	}
-
-	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
-		if err := os.Setenv(out.AdminAccount.LoginEnvName, defaultAdminLogin); err != nil {
-			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.LoginEnvName, err)
-		}
-		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.LoginEnvName)
-	}
-	if len(os.Getenv(out.AdminAccount.PasswordEnvName)) == 0 {
-		if err := os.Setenv(out.AdminAccount.PasswordEnvName, defaultAdminPassword); err != nil {
-			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.PasswordEnvName, err)
-		}
-		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.PasswordEnvName)
-	}
-
-	if err := out.Validate(); err != nil {
-		log.Fatalln(err)
-	}
-
-	if err = os.Setenv(serverConfigPathEnvName, out.StaticFilesStorage.ServerConfigPath); err != nil {
-		log.Println("Could not set server config path env variable. Strange yet not critical. Error:", err)
-	}
-}
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
@@ -138,7 +75,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		staticFilesStorage:      staticFilesStorage,
 	}
 
-	sessionStorage, err := initSessionStorage(settings)
+	sessionStorage, err := initSessionStorage(settings.SessionStorage)
 	if err != nil {
 		return nil, err
 	}
@@ -278,9 +215,8 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 		return configStoreS3.NewConfigurationStorage(settings)
 	case model.ConfigurationStorageTypeFile:
 		return configStoreFile.NewConfigurationStorage(settings)
-	default:
-		return nil, model.ErrorNotImplemented
 	}
+	return nil, fmt.Errorf("Configuration storage of type '%s' is not supported", settings.Type)
 }
 
 func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {
@@ -304,17 +240,16 @@ func initTokenService(generalSettings model.GeneralServerSettings, configStorage
 	return tokenService, err
 }
 
-func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, error) {
-	switch settings.SessionStorage.Type {
+func initSessionStorage(settings model.SessionStorageSettings) (model.SessionStorage, error) {
+	switch settings.Type {
 	case model.SessionStorageRedis:
-		return redis.NewSessionStorage(settings.SessionStorage)
+		return redis.NewSessionStorage(settings)
 	case model.SessionStorageMem:
 		return mem.NewSessionStorage()
 	case model.SessionStorageDynamoDB:
-		return dynamodb.NewSessionStorage(settings.SessionStorage)
-	default:
-		return nil, model.ErrorNotImplemented
+		return dynamodb.NewSessionStorage(settings)
 	}
+	return nil, fmt.Errorf("Session storage of type '%s' is not supported", settings.Type)
 }
 
 func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
@@ -329,9 +264,8 @@ func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.St
 		return staticStoreS3.NewStaticFilesStorage(settings, localStaticFilesStorage)
 	case model.StaticFilesStorageTypeDynamoDB:
 		return staticStoreDynamo.NewStaticFilesStorage(settings, localStaticFilesStorage)
-	default:
-		return nil, model.ErrorNotImplemented
 	}
+	return nil, fmt.Errorf("Session storage of type '%s' is not supported", settings.Type)
 }
 
 func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error) {
@@ -340,9 +274,8 @@ func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error)
 		return twilio.NewSMSService(settings)
 	case model.SMSServiceMock:
 		return smsMock.NewSMSService()
-	default:
-		return nil, model.ErrorNotImplemented
 	}
+	return nil, fmt.Errorf("SMS service of type '%s' is not supported", settings.Type)
 }
 
 func initEmailService(ess model.EmailServiceSettings, sfs model.StaticFilesStorage) (model.EmailService, error) {
@@ -361,9 +294,8 @@ func initEmailService(ess model.EmailServiceSettings, sfs model.StaticFilesStora
 		return ses.NewEmailService(ess, tpltr)
 	case model.EmailServiceMock:
 		return emailMock.NewEmailService(), nil
-	default:
-		return nil, model.ErrorNotImplemented
 	}
+	return nil, fmt.Errorf("Email service of type '%s' is not supported", ess.Type)
 }
 
 // ImportApps imports apps from file.
