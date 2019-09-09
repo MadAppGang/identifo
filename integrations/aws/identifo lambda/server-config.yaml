@@ -52,11 +52,9 @@ configurationStorage:
 staticFilesStorage:
   type: s3
   serverConfigPath: server-config.yaml
-  staticFilesLocation: # If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  bucket: # If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
   region: us-east-1 # S3-specific setting. Needed when type is s3.
-  pagesPath: ./html
-  emailTemplatesPath: ./email_templates
-  appleFilesPath: ./apple
+  folder: ./static
   serveAdminPanel: true
 
 login:

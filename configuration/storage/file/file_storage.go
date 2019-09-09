@@ -83,7 +83,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(ss *model.ServerSettings) err
 	if err = yaml.Unmarshal(yamlFile, ss); err != nil {
 		return fmt.Errorf("Cannot unmarshal server configuration file: %s", err)
 	}
-	return nil
+	return ss.Validate()
 }
 
 // InsertKeys inserts new public and private keys.

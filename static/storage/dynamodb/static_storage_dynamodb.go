@@ -45,10 +45,11 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStora
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
 	fileStr, err := sfs.getStaticFile(templateName)
-	if err != nil {
-		return nil, err
+	if err == nil {
+		return template.New(templateName).Parse(fileStr)
 	}
-	return template.New(templateName).Parse(fileStr)
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", templateName, err)
+	return sfs.localStorage.ParseTemplate(templateName)
 }
 
 // UploadTemplate is for html template uploads.
@@ -58,15 +59,17 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 
 // ReadAppleFile is for reading Apple-related static files.
 func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	// Check if file exists. If not - return nil error and nil slice.
 	fileStr, err := sfs.getStaticFile(filename)
-	if err != nil {
-		if err == model.ErrorNotFound {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("Error while checking filename '%s' existence. %s", filename, err)
+	if err == nil {
+		return []byte(fileStr), nil
 	}
-	return []byte(fileStr), nil
+
+	if err == model.ErrorNotFound {
+		return nil, nil
+	}
+
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", filename, err)
+	return sfs.localStorage.ReadAppleFile(filename)
 }
 
 // UploadAppleFile is for Apple-related file uploads.
@@ -78,24 +81,26 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte)
 func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		split := strings.Split(r.URL.Path, "/")
-		if len(split) == 0 || len(split[0]) == 0 {
+
+		lensplit := len(split)
+		if lensplit == 0 || len(split[lensplit-1]) == 0 {
 			err := fmt.Errorf("Empty file name")
 			writeError(w, err, http.StatusNotFound, err.Error())
 			return
 		}
-		name := split[0]
+		name := split[lensplit-1]
 
 		fileStr, err := sfs.getStaticFile(name)
-		if err != nil {
-			writeError(w, err, http.StatusInternalServerError, err.Error())
-			return
+		if err == nil {
+			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+			if _, err = w.Write([]byte(fileStr)); err != nil {
+				log.Printf("Error writing body to the response: %s\n", err)
+			}
 		}
 
-		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
-		if _, err = w.Write([]byte(fileStr)); err != nil {
-			log.Printf("Error writing body to the response: %s\n", err)
-			return
-		}
+		prefix := strings.TrimSuffix(r.URL.Path, name)
+		localHandler := http.FileServer(http.Dir(path.Join(sfs.localStorage.Folder, prefix)))
+		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
 	})
 
 	return &model.AssetHandlers{

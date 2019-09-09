@@ -44,29 +44,30 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStora
 
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
+	var templatePath string
 	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
+		templatePath = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
 	} else {
-		templateName = path.Join(sfs.folder, model.PagesPath, templateName)
+		templatePath = path.Join(sfs.folder, model.PagesPath, templateName)
 	}
 
 	getTemplateInput := &s3.GetObjectInput{
 		Bucket: aws.String(sfs.bucket),
-		Key:    aws.String(templateName),
+		Key:    aws.String(templatePath),
 	}
 
 	resp, err := sfs.client.GetObject(getTemplateInput)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot get %s from S3: %s", templateName, err)
+	if err == nil {
+		tmpl, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
+		}
+		return template.New(templatePath).Parse(string(tmpl))
 	}
-	defer resp.Body.Close()
 
-	tmpl, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
-	}
-
-	return template.New(templateName).Parse(string(tmpl))
+	log.Printf("Error getting %s from S3: %s. Using local storage.\n", templateName, err)
+	return sfs.localStorage.ParseTemplate(templateName)
 }
 
 // UploadTemplate is for html template uploads.
@@ -99,19 +100,20 @@ func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 	}
 
 	resp, err := sfs.client.GetObject(getFileInput)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot get %s from S3: %s", filename, err)
+	if err == nil {
+		file, err := ioutil.ReadAll(resp.Body)
+		resp.Body.Close()
+		if err != nil {
+			return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
+		}
+		if len(file) == 0 {
+			return nil, nil
+		}
+		return file, nil
 	}
-	defer resp.Body.Close()
 
-	file, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
-	}
-	if len(file) == 0 {
-		return nil, nil
-	}
-	return file, nil
+	log.Printf("Error getting %s from S3: %s. Using local storage.\n", filename, err)
+	return sfs.localStorage.ReadAppleFile(filename)
 }
 
 // UploadAppleFile is for Apple-related file uploads.
