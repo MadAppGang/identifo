@@ -134,7 +134,7 @@ func (ar *Router) ServeADDAFile() http.HandlerFunc {
 	}
 	if data == nil {
 		ar.logger.Println("Apple Developer Domain Association file does not exist, so won't be served.")
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusBadRequest, nil) }
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -152,7 +152,7 @@ func (ar *Router) ServeAASAFile() http.HandlerFunc {
 	}
 	if data == nil {
 		ar.logger.Println("Apple App Site Association file does not exist, so won't be served.")
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusOK, nil) }
+		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusBadRequest, nil) }
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {

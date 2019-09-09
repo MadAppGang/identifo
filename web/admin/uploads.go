@@ -78,27 +78,17 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 }
 
 // UploadAASAFile is for uploading Apple App Site Association File.
+// It is being uploaded as a string, not a file, because it may require manual editing.
 func (ar *Router) UploadAASAFile() http.HandlerFunc {
+	type file struct {
+		Contents string `json:"contents"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := r.ParseMultipartForm(1024 * 1024 * 1); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Error parsing a request body as multipart/form-data: %s", err.Error()))
+		assaFile := new(file)
+		if ar.mustParseJSON(w, r, assaFile) != nil {
 			return
 		}
-
-		formFile, _, err := r.FormFile("file")
-		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Cannot read file: %s", err.Error()))
-			return
-		}
-		defer formFile.Close()
-
-		buf := bytes.NewBuffer(nil)
-		if _, err := io.Copy(buf, formFile); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot read file as bytes: %s", err.Error()))
-			return
-		}
-
-		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.AppSiteAssociation, buf.Bytes()); err != nil {
+		if err := ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.AppSiteAssociation, []byte(assaFile.Contents)); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
