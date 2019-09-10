@@ -88,6 +88,7 @@ func (ar *Router) initRoutes() {
 
 	settings.Path("/static").HandlerFunc(ar.FetchStaticFilesStorageSettings()).Methods("GET")
 	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesStorageSettings()).Methods("PUT")
+	settings.Path("/static/template").HandlerFunc(ar.GetStaticFile()).Methods("GET")
 
 	settings.Path("/login").HandlerFunc(ar.FetchLoginSettings()).Methods("GET")
 	settings.Path("/login").HandlerFunc(ar.UpdateLoginSettings()).Methods("PUT")

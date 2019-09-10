@@ -1,8 +1,11 @@
 package model
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
+	"path"
+	"strings"
 )
 
 // StaticFilesStorage is a wrapper over static files storages.
@@ -13,6 +16,7 @@ type StaticFilesStorage interface {
 	UploadAppleFile(filename string, contents []byte) error
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
+	GetFile(name string) ([]byte, error)
 	Close()
 }
 
@@ -94,4 +98,31 @@ type AppleFiles struct {
 var AppleFilenames = AppleFiles{
 	DeveloperDomainAssociation: "apple-developer-domain-association.txt",
 	AppSiteAssociation:         "apple-app-site-association",
+}
+
+// GetStaticFilePathByFilename returns filepath for given static file name.
+func GetStaticFilePathByFilename(filename, staticFolder string) (filepath string, err error) {
+	if strings.Contains(filename, "apple") {
+		return path.Join(staticFolder, AppleFilesPath, filename), nil
+	}
+
+	switch path.Ext(filename) {
+	case ".html":
+		if strings.Contains(filename, "email") {
+			filepath = path.Join(staticFolder, EmailTemplatesPath, filename)
+		} else {
+			filepath = path.Join(staticFolder, PagesPath, filename)
+		}
+	case ".css":
+		filepath = path.Join(staticFolder, "css", filename)
+	case ".js":
+		filepath = path.Join(staticFolder, "js/dist", filename)
+	case ".png", ".jpg", ".jpeg":
+		filepath = path.Join(staticFolder, "img", filename)
+	case ".woff":
+		filepath = path.Join(staticFolder, "fonts", filename)
+	default:
+		err = fmt.Errorf("Unknown extension '%s'", path.Ext(filename))
+	}
+	return
 }

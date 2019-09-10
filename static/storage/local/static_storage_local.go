@@ -58,20 +58,11 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 
 // ReadAppleFile is for reading Apple-related static files.
 func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	filename = path.Join(sfs.Folder, model.AppleFilesPath, filename)
-	// Check if file exists. If not - return nil error and nil slice.
-	if _, err := os.Stat(filename); err != nil {
-		if os.IsNotExist(err) {
-			return nil, nil
-		}
-		return nil, fmt.Errorf("Error while checking filename '%s' existence. %s", filename, err)
+	file, err := sfs.GetFile(filename)
+	if err == model.ErrorNotFound {
+		return nil, nil
 	}
-
-	data, err := ioutil.ReadFile(filename)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot read %s. %s", filename, err)
-	}
-	return data, nil
+	return file, err
 }
 
 // UploadAppleFile is for Apple-related file uploads.
@@ -120,6 +111,27 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 		ManagementHandler: managementHandler,
 		BuildHandler:      buildHandler,
 	}
+}
+
+// GetFile is for fetching a file from a local file system.
+func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
+	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get file. %s", err)
+	}
+
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, model.ErrorNotFound
+		}
+		return nil, fmt.Errorf("Error while checking file '%s' existence. %s", filepath, err)
+	}
+
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read %s. %s", filepath, err)
+	}
+	return data, err
 }
 
 // Close is to satisfy the interface.

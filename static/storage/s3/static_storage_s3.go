@@ -44,30 +44,17 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStora
 
 // ParseTemplate parses the html template.
 func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
-	var templatePath string
-	if strings.Contains(strings.ToLower(templateName), "email") {
-		templatePath = path.Join(sfs.folder, model.EmailTemplatesPath, templateName)
-	} else {
-		templatePath = path.Join(sfs.folder, model.PagesPath, templateName)
+	tmplBytes, err := sfs.GetFile(templateName)
+	if err != nil {
+		return nil, err
 	}
 
-	getTemplateInput := &s3.GetObjectInput{
-		Bucket: aws.String(sfs.bucket),
-		Key:    aws.String(templatePath),
+	tmpl, err := template.New(templateName).Parse(string(tmplBytes))
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse template '%s'. %s", templateName, err)
 	}
+	return tmpl, nil
 
-	resp, err := sfs.client.GetObject(getTemplateInput)
-	if err == nil {
-		tmpl, err := ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
-		if err != nil {
-			return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
-		}
-		return template.New(templatePath).Parse(string(tmpl))
-	}
-
-	log.Printf("Error getting %s from S3: %s. Using local storage.\n", templateName, err)
-	return sfs.localStorage.ParseTemplate(templateName)
 }
 
 // UploadTemplate is for html template uploads.
@@ -94,22 +81,15 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 
 // ReadAppleFile is for reading Apple-related static files.
 func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	getFileInput := &s3.GetObjectInput{
-		Bucket: aws.String(sfs.bucket),
-		Key:    aws.String(path.Join(sfs.folder, model.AppleFilesPath, filename)),
+	// Call private method since we don't want to retry fetching file from the local storage.
+	// If error is not nil and not model.ErrorNotFound, we'll retry the whole ReadAppleFile.
+	file, err := sfs.getFile(filename)
+	if err == nil {
+		return file, nil
 	}
 
-	resp, err := sfs.client.GetObject(getFileInput)
-	if err == nil {
-		file, err := ioutil.ReadAll(resp.Body)
-		resp.Body.Close()
-		if err != nil {
-			return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
-		}
-		if len(file) == 0 {
-			return nil, nil
-		}
-		return file, nil
+	if err == model.ErrorNotFound {
+		return nil, nil
 	}
 
 	log.Printf("Error getting %s from S3: %s. Using local storage.\n", filename, err)
@@ -135,30 +115,28 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte)
 // AssetHandlers returns handlers for assets.
 func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		key := strings.Join([]string{sfs.folder, r.URL.Path}, "")
+		split := strings.Split(r.URL.Path, "/")
 
-		getStyleInput := &s3.GetObjectInput{
-			Bucket: aws.String(sfs.bucket),
-			Key:    aws.String(key),
+		lensplit := len(split)
+		if lensplit == 0 || len(split[lensplit-1]) == 0 {
+			err := fmt.Errorf("Empty file name")
+			writeError(w, err, http.StatusNotFound, err.Error())
+			return
 		}
+		name := split[lensplit-1]
 
-		resp, err := sfs.client.GetObject(getStyleInput)
+		file, err := sfs.GetFile(name)
 		if err != nil {
-			err = fmt.Errorf("Cannot get %s from S3: %s", r.URL.Path, err)
+			if err == model.ErrorNotFound {
+				writeError(w, fmt.Errorf("%s not found", name), http.StatusNotFound, "")
+				return
+			}
 			writeError(w, err, http.StatusInternalServerError, "")
 			return
 		}
-		defer resp.Body.Close()
 
-		body, err := ioutil.ReadAll(resp.Body)
-		if err != nil {
-			err = fmt.Errorf("Cannot read response from S3: %s", err)
-			writeError(w, err, http.StatusInternalServerError, "")
-			return
-		}
-
-		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(key)))
-		if _, err = w.Write(body); err != nil {
+		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+		if _, err = w.Write(file); err != nil {
 			log.Printf("Error writing body to the response: %s\n", err)
 			return
 		}
@@ -176,6 +154,46 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 // Adminpanel build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 	return sfs.localStorage.AdminPanelHandlers()
+}
+
+// GetFile is for fetching a file by name from S3 bucket.
+// It is a wrapper over the private method getFile.
+// It provides fallback behavior via using eponymous local storage method.
+func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
+	file, err := sfs.getFile(name)
+	if err == nil {
+		return file, nil
+	}
+
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
+	return sfs.localStorage.GetFile(name)
+}
+
+func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
+	key, err := model.GetStaticFilePathByFilename(name, sfs.folder)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get file %s. %s", key, err)
+	}
+
+	getFileInput := &s3.GetObjectInput{
+		Bucket: aws.String(sfs.bucket),
+		Key:    aws.String(key),
+	}
+
+	resp, err := sfs.client.GetObject(getFileInput)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get %s from S3: %s", key, err)
+	}
+	defer resp.Body.Close()
+
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read response from S3: %s", err)
+	}
+	if len(body) == 0 {
+		return nil, model.ErrorNotFound
+	}
+	return body, nil
 }
 
 // Close is to satisfy the interface.
