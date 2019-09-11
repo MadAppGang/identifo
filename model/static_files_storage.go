@@ -10,13 +10,12 @@ import (
 
 // StaticFilesStorage is a wrapper over static files storages.
 type StaticFilesStorage interface {
+	GetFile(name string) ([]byte, error)
+	UploadFile(name string, contents []byte) error
 	ParseTemplate(templateName string) (*template.Template, error)
-	UploadTemplate(templateName string, contents []byte) error
-	ReadAppleFile(filename string) ([]byte, error)
-	UploadAppleFile(filename string, contents []byte) error
+	GetAppleFile(name string) ([]byte, error)
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
-	GetFile(name string) ([]byte, error)
 	Close()
 }
 

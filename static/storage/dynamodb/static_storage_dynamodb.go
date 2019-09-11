@@ -42,97 +42,7 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStora
 	return sfs, nil
 }
 
-// ParseTemplate parses the html template.
-func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
-	tmplBytes, err := sfs.GetFile(templateName)
-	if err != nil {
-		return nil, err
-	}
-
-	tmpl, err := template.New(templateName).Parse(string(tmplBytes))
-	if err != nil {
-		return nil, fmt.Errorf("Cannot parse template '%s'. %s", templateName, err)
-	}
-	return tmpl, nil
-}
-
-// UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
-	return sfs.putStaticFile(templateName, contents)
-}
-
-// ReadAppleFile is for reading Apple-related static files.
-func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	// Call private method since we don't want to retry fetching file from the local storage.
-	// If error is not nil and not model.ErrorNotFound, we'll retry the whole ReadAppleFile.
-	file, err := sfs.getFile(filename)
-	if err == nil {
-		return file, nil
-	}
-
-	if err == model.ErrorNotFound {
-		return nil, nil
-	}
-
-	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", filename, err)
-	return sfs.localStorage.ReadAppleFile(filename)
-}
-
-// UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
-	return sfs.putStaticFile(filename, contents)
-}
-
-// AssetHandlers returns handlers for assets.
-func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
-	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		split := strings.Split(r.URL.Path, "/")
-
-		lensplit := len(split)
-		if lensplit == 0 || len(split[lensplit-1]) == 0 {
-			err := fmt.Errorf("Empty file name")
-			writeError(w, err, http.StatusNotFound, err.Error())
-			return
-		}
-		name := split[lensplit-1]
-
-		file, err := sfs.getFile(name)
-		if err == nil {
-			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
-			if _, err = w.Write(file); err != nil {
-				log.Printf("Error writing body to the response: %s\n", err)
-			}
-			return
-		}
-
-		prefix := strings.TrimSuffix(r.URL.Path, name)
-		localHandler := http.FileServer(http.Dir(path.Join(sfs.localStorage.Folder, prefix)))
-		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
-	})
-
-	return &model.AssetHandlers{
-		StylesHandler:  handler,
-		ScriptsHandler: handler,
-		ImagesHandler:  handler,
-		FontsHandler:   handler,
-	}
-}
-
-// AdminPanelHandlers returns handlers for the admin panel.
-// Adminpanel build is always being stored locally, despite the static storage type.
-func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	return sfs.localStorage.AdminPanelHandlers()
-}
-
-// Close is to satisfy the interface.
-func (sfs *StaticFilesStorage) Close() {}
-
-type fileData struct {
-	Name string `json:"name"`
-	File string `json:"file"`
-}
-
-// GetFile is for fetching a file by name from DynamoDB.
+// GetFile is a generic method for fetching a file by name from DynamoDB.
 // It is a wrapper over the private method getFile.
 // It provides fallback behavior via using eponymous local storage method.
 func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
@@ -143,6 +53,11 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 
 	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
 	return sfs.localStorage.GetFile(name)
+}
+
+type fileData struct {
+	Name string `json:"name"`
+	File string `json:"file"`
 }
 
 func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
@@ -173,7 +88,8 @@ func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
 	return []byte(fd.File), nil
 }
 
-func (sfs *StaticFilesStorage) putStaticFile(name string, contents []byte) error {
+// UploadFile is a generic file uploader.
+func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
 	if len(name) == 0 {
 		return model.ErrorWrongDataFormat
 	}
@@ -194,6 +110,83 @@ func (sfs *StaticFilesStorage) putStaticFile(name string, contents []byte) error
 	}
 	return nil
 }
+
+// ParseTemplate parses the html template.
+func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
+	tmplBytes, err := sfs.GetFile(templateName)
+	if err != nil {
+		return nil, err
+	}
+
+	tmpl, err := template.New(templateName).Parse(string(tmplBytes))
+	if err != nil {
+		return nil, fmt.Errorf("Cannot parse template '%s'. %s", templateName, err)
+	}
+	return tmpl, nil
+}
+
+// GetAppleFile is for reading Apple-related static files.
+// Unlike generic GetFile, it does not treat model.ErrorNotFound as error.
+func (sfs *StaticFilesStorage) GetAppleFile(name string) ([]byte, error) {
+	// Call private method since we don't want to retry fetching file from the local storage.
+	// If error is not nil and not model.ErrorNotFound, we'll retry the whole GetAppleFile.
+	file, err := sfs.getFile(name)
+	if err == nil {
+		return file, nil
+	}
+
+	if err == model.ErrorNotFound {
+		return nil, nil
+	}
+
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
+	return sfs.localStorage.GetAppleFile(name)
+}
+
+// AssetHandlers returns handlers for assets.
+func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
+	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		split := strings.Split(r.URL.Path, "/")
+
+		lensplit := len(split)
+		if lensplit == 0 || len(split[lensplit-1]) == 0 {
+			err := fmt.Errorf("Empty file name")
+			writeError(w, err, http.StatusNotFound, err.Error())
+			return
+		}
+		name := split[lensplit-1]
+
+		// Call private method since local handlers, if needed, will be defined later.
+		file, err := sfs.getFile(name)
+		if err == nil {
+			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+			if _, err = w.Write(file); err != nil {
+				log.Printf("Error writing body to the response: %s\n", err)
+			}
+			return
+		}
+
+		prefix := strings.TrimSuffix(r.URL.Path, name)
+		localHandler := http.FileServer(http.Dir(path.Join(sfs.localStorage.Folder, prefix)))
+		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
+	})
+
+	return &model.AssetHandlers{
+		StylesHandler:  handler,
+		ScriptsHandler: handler,
+		ImagesHandler:  handler,
+		FontsHandler:   handler,
+	}
+}
+
+// AdminPanelHandlers returns handlers for the admin panel.
+// Adminpanel build is always being stored locally, despite the static storage type.
+func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
+	return sfs.localStorage.AdminPanelHandlers()
+}
+
+// Close is to satisfy the interface.
+func (sfs *StaticFilesStorage) Close() {}
 
 func (sfs *StaticFilesStorage) ensureTable() error {
 	exists, err := sfs.db.IsTableExists(staticFilesTableName)
@@ -228,11 +221,6 @@ func (sfs *StaticFilesStorage) ensureTable() error {
 // writeError writes an error message to the response and logger.
 func writeError(w http.ResponseWriter, err error, code int, userInfo string) {
 	log.Printf("http error: %s (code=%d)\n", err, code)
-
-	// Hide error from client if it is internal.
-	if code == http.StatusInternalServerError {
-		err = model.ErrorInternal
-	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	responseString := `

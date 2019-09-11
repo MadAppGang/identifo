@@ -9,7 +9,6 @@ import (
 	"net/http"
 	"os"
 	"path"
-	"strings"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -26,25 +25,35 @@ func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFi
 	}, nil
 }
 
-// ParseTemplate parses the html template.
-func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
-	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(sfs.Folder, model.EmailTemplatesPath, templateName)
-	} else {
-		templateName = path.Join(sfs.Folder, model.PagesPath, templateName)
+// GetFile is for fetching a file from a local file system.
+func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
+	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot compose filepath. %s", err)
 	}
-	return template.ParseFiles(templateName)
+
+	if _, err := os.Stat(filepath); err != nil {
+		if os.IsNotExist(err) {
+			return nil, model.ErrorNotFound
+		}
+		return nil, fmt.Errorf("Error while checking file '%s' existence. %s", filepath, err)
+	}
+
+	data, err := ioutil.ReadFile(filepath)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot read %s. %s", filepath, err)
+	}
+	return data, err
 }
 
-// UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
-	if strings.Contains(strings.ToLower(templateName), "email") {
-		templateName = path.Join(sfs.Folder, model.EmailTemplatesPath, templateName)
-	} else {
-		templateName = path.Join(sfs.Folder, model.PagesPath, templateName)
+// UploadFile is a generic file uploader.
+func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
+	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
+	if err != nil {
+		return fmt.Errorf("Cannot compose filepath. %s", err)
 	}
 
-	file, err := os.OpenFile(templateName, os.O_WRONLY|os.O_CREATE, 0666)
+	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
 		return fmt.Errorf("Cannot open file: %s", err.Error())
 	}
@@ -56,29 +65,23 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []by
 	return nil
 }
 
-// ReadAppleFile is for reading Apple-related static files.
-func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
-	file, err := sfs.GetFile(filename)
+// ParseTemplate parses the html template.
+func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
+	filepath, err := model.GetStaticFilePathByFilename(templateName, sfs.Folder)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot compose filepath. %s", err)
+	}
+	return template.ParseFiles(filepath)
+}
+
+// GetAppleFile is for reading Apple-related static files.
+// Unlike generic GetFile, it does not treat model.ErrorNotFound as error.
+func (sfs *StaticFilesStorage) GetAppleFile(name string) ([]byte, error) {
+	file, err := sfs.GetFile(name)
 	if err == model.ErrorNotFound {
 		return nil, nil
 	}
 	return file, err
-}
-
-// UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
-	filename = path.Join(sfs.Folder, model.AppleFilesPath, filename)
-
-	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
-	if err != nil {
-		return fmt.Errorf("Cannot open file: %s", err.Error())
-	}
-	defer file.Close()
-
-	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
-		return fmt.Errorf("Cannot save file: %s", err.Error())
-	}
-	return nil
 }
 
 // AssetHandlers returns handlers for assets.
@@ -111,27 +114,6 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 		ManagementHandler: managementHandler,
 		BuildHandler:      buildHandler,
 	}
-}
-
-// GetFile is for fetching a file from a local file system.
-func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
-	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot get file. %s", err)
-	}
-
-	if _, err := os.Stat(filepath); err != nil {
-		if os.IsNotExist(err) {
-			return nil, model.ErrorNotFound
-		}
-		return nil, fmt.Errorf("Error while checking file '%s' existence. %s", filepath, err)
-	}
-
-	data, err := ioutil.ReadFile(filepath)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot read %s. %s", filepath, err)
-	}
-	return data, err
 }
 
 // Close is to satisfy the interface.
