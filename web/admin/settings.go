@@ -41,39 +41,42 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 			}
 		}
 
-		newAdminData := new(adminLoginData)
-		if err := ar.getAdminAccountSettings(w, newAdminData); err != nil {
+		adminData := new(adminLoginData)
+		if err := ar.getAdminAccountSettings(w, adminData); err != nil {
 			return
 		}
 
-		if newAdminData.Login == adminDataUpdate.Login && newAdminData.Password == adminDataUpdate.Password {
+		namesDidNotChange := adminDataUpdate.LoginEnvName == adminData.LoginEnvName && adminDataUpdate.PasswordEnvName == adminData.PasswordEnvName
+		valuesDidNotChange := adminDataUpdate.Login == adminData.Login && adminDataUpdate.Password == adminData.Password
+
+		if namesDidNotChange && valuesDidNotChange {
 			ar.ServeJSON(w, http.StatusOK, nil)
 			return
 		}
 
 		if len(adminDataUpdate.Login) > 0 {
-			newAdminData.Login = adminDataUpdate.Login
+			adminData.Login = adminDataUpdate.Login
 		}
 		if len(adminDataUpdate.LoginEnvName) > 0 {
-			newAdminData.LoginEnvName = adminDataUpdate.LoginEnvName
+			adminData.LoginEnvName = adminDataUpdate.LoginEnvName
 		} else {
-			newAdminData.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
+			adminData.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
 		}
 
 		if len(adminDataUpdate.Password) > 0 {
-			newAdminData.Password = adminDataUpdate.Password
+			adminData.Password = adminDataUpdate.Password
 		}
 		if len(adminDataUpdate.PasswordEnvName) > 0 {
-			newAdminData.PasswordEnvName = adminDataUpdate.PasswordEnvName
+			adminData.PasswordEnvName = adminDataUpdate.PasswordEnvName
 		} else {
-			newAdminData.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
+			adminData.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
 		}
 
-		if ar.updateAdminAccountSettings(w, newAdminData) != nil {
+		if ar.updateAdminAccountSettings(w, adminData) != nil {
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, newAdminData)
+		ar.ServeJSON(w, http.StatusOK, adminData)
 	}
 }
 

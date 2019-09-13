@@ -171,7 +171,7 @@ const (
 // EmailServiceSettings holds together settings for the email service.
 type EmailServiceSettings struct {
 	Type       EmailServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-	Domain     string           `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
+	Domain     string           `yaml:"domain,omitempty" json:"domain,omitempty"`
 	PublicKey  string           `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
 	PrivateKey string           `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
 	Sender     string           `yaml:"sender,omitempty" json:"sender,omitempty"`
