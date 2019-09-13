@@ -51,7 +51,7 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 		return file, nil
 	}
 
-	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
+	log.Printf("Error getting %s from S3: %s. Using local storage.\n", name, err)
 	return sfs.localStorage.GetFile(name)
 }
 
