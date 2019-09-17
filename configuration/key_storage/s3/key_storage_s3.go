@@ -59,7 +59,7 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 			ACL:          aws.String("private"),
 			StorageClass: aws.String(s3.ObjectStorageClassStandard),
 			Body:         reader,
-			ContentType:  aws.String("application/x-yaml"),
+			ContentType:  aws.String("application/x-pem-file"),
 		})
 		if err == nil {
 			log.Printf("Successfully put %s to S3\n", name)

@@ -214,10 +214,6 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 		return fmt.Errorf("%s. Empty static files location", subject)
 	}
 
-	if sfs.ServeAdminPanel && len(sfs.AdminPanelBuildPath) == 0 {
-		return fmt.Errorf("%s. Please specify admin panel build path or disable serving admin panel", subject)
-	}
-
 	switch sfs.Type {
 	case StaticFilesStorageTypeLocal:
 		if len(sfs.StaticFilesLocation) == 0 {

@@ -7,11 +7,10 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/madappgang/identifo/web/authorization"
-
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
 	"github.com/urfave/negroni"
 )
 
@@ -90,7 +89,7 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sf
 // Error writes an API error message to the response and logger.
 func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo string) {
 	// Log error.
-	ar.Logger.Printf("http error: %s (code=%d)", err, code)
+	ar.Logger.Printf("http error: %s (code=%d)\n", err, code)
 
 	// Hide error from client if it is internal.
 	if code == http.StatusInternalServerError {

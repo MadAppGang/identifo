@@ -58,7 +58,6 @@ staticFilesStorage:
   emailTemplatesPath: ./email_templates
   appleFilesPath: ./apple
   serveAdminPanel: true
-  adminPanelBuildPath: ./admin_panel/build
 
 login:
   loginWith:

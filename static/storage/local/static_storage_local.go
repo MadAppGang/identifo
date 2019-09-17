@@ -1,6 +1,7 @@
 package local
 
 import (
+	"bytes"
 	"fmt"
 	"html/template"
 	"io"
@@ -15,21 +16,19 @@ import (
 
 // StaticFilesStorage is a local storage of static files.
 type StaticFilesStorage struct {
-	staticFilesFolder   string
-	pagesPath           string
-	emailTemplatesPath  string
-	adminPanelBuildPath string
-	appleFilesPath      string
+	staticFilesFolder  string
+	pagesPath          string
+	emailTemplatesPath string
+	appleFilesPath     string
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
 	return &StaticFilesStorage{
-		staticFilesFolder:   settings.StaticFilesLocation,
-		pagesPath:           settings.PagesPath,
-		emailTemplatesPath:  settings.EmailTemplatesPath,
-		adminPanelBuildPath: settings.AdminPanelBuildPath,
-		appleFilesPath:      settings.AppleFilesPath,
+		staticFilesFolder:  settings.StaticFilesLocation,
+		pagesPath:          settings.PagesPath,
+		emailTemplatesPath: settings.EmailTemplatesPath,
+		appleFilesPath:     settings.AppleFilesPath,
 	}, nil
 }
 
@@ -44,11 +43,10 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 		templateName = path.Join(pagesPath, templateName)
 	}
 	return template.ParseFiles(templateName)
-
 }
 
 // UploadTemplate is for html template uploads.
-func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents []byte) error {
 	pagesPath := path.Join(sfs.staticFilesFolder, sfs.pagesPath)
 	emailsPath := path.Join(sfs.staticFilesFolder, sfs.emailTemplatesPath)
 
@@ -64,7 +62,7 @@ func (sfs *StaticFilesStorage) UploadTemplate(templateName string, contents io.R
 	}
 	defer file.Close()
 
-	if _, err = io.Copy(file, contents); err != nil {
+	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
 		return fmt.Errorf("Cannot save file: %s", err.Error())
 	}
 	return nil
@@ -89,7 +87,7 @@ func (sfs *StaticFilesStorage) ReadAppleFile(filename string) ([]byte, error) {
 }
 
 // UploadAppleFile is for Apple-related file uploads.
-func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Reader) error {
+func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents []byte) error {
 	filename = path.Join(sfs.staticFilesFolder, sfs.appleFilesPath, filename)
 
 	file, err := os.OpenFile(filename, os.O_WRONLY|os.O_CREATE, 0666)
@@ -98,7 +96,7 @@ func (sfs *StaticFilesStorage) UploadAppleFile(filename string, contents io.Read
 	}
 	defer file.Close()
 
-	if _, err = io.Copy(file, contents); err != nil {
+	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
 		return fmt.Errorf("Cannot save file: %s", err.Error())
 	}
 	return nil
@@ -121,13 +119,11 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 
 // AdminPanelHandlers returns handlers for the admin panel.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	adminPanelFolder := path.Join(sfs.staticFilesFolder, sfs.adminPanelBuildPath)
-
-	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(adminPanelFolder, "/src"))))
+	srcHandler := http.StripPrefix("/src/", http.FileServer(http.Dir(path.Join(model.AdminPanelBuildPath, "/src"))))
 	managementHandleFunc := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, path.Join(adminPanelFolder, "/index.html"))
+		http.ServeFile(w, r, path.Join(model.AdminPanelBuildPath, "/index.html"))
 	}
-	buildHandler := http.FileServer(http.Dir(adminPanelFolder))
+	buildHandler := http.FileServer(http.Dir(model.AdminPanelBuildPath))
 
 	return &model.AdminPanelHandlers{
 		SrcHandler:        srcHandler,

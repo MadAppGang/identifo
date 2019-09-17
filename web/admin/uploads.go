@@ -1,7 +1,9 @@
 package admin
 
 import (
+	"bytes"
 	"fmt"
+	"io"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
@@ -61,7 +63,13 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.DeveloperDomainAssociation, formFile); err != nil {
+		buf := bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, formFile); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot read file as bytes: %s", err.Error()))
+			return
+		}
+
+		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.DeveloperDomainAssociation, buf.Bytes()); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
@@ -84,7 +92,13 @@ func (ar *Router) UploadAASAFile() http.HandlerFunc {
 		}
 		defer formFile.Close()
 
-		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.AppSiteAssociation, formFile); err != nil {
+		buf := bytes.NewBuffer(nil)
+		if _, err := io.Copy(buf, formFile); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot read file as bytes: %s", err.Error()))
+			return
+		}
+
+		if err = ar.staticFilesStorage.UploadAppleFile(model.AppleFilenames.AppSiteAssociation, buf.Bytes()); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}

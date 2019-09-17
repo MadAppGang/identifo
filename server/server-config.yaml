@@ -96,7 +96,6 @@ staticFilesStorage:
   emailTemplatesPath: ./email_templates # Folder for the email templates.
   appleFilesPath: ./apple # Folder for the Apple-related files.
   serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
-  adminPanelBuildPath: ./admin_panel/build # Path to the admin panel build. Can be ommited when not serving admin panel. 
 
 login:   # Supported login ways.
   loginWith:

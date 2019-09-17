@@ -2,16 +2,15 @@ package model
 
 import (
 	"html/template"
-	"io"
 	"net/http"
 )
 
 // StaticFilesStorage is a wrapper over static files storages.
 type StaticFilesStorage interface {
 	ParseTemplate(templateName string) (*template.Template, error)
-	UploadTemplate(templateName string, contents io.Reader) error
+	UploadTemplate(templateName string, contents []byte) error
 	ReadAppleFile(filename string) ([]byte, error)
-	UploadAppleFile(filename string, contents io.Reader) error
+	UploadAppleFile(filename string, contents []byte) error
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
 	Close()
@@ -31,6 +30,9 @@ type AdminPanelHandlers struct {
 	ManagementHandler http.Handler
 	BuildHandler      http.Handler
 }
+
+// AdminPanelBuildPath is a path to built admin panel.
+const AdminPanelBuildPath = "./static/admin_panel/build"
 
 // StaticPagesNames are the names of html pages.
 var StaticPagesNames = StaticPages{

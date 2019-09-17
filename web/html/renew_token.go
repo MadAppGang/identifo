@@ -23,7 +23,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 		serveTemplate := func(errorMessage, AccessToken, redirectURI string) {
 			if err != nil {
 				ar.Logger.Printf("Error parsing template: %v", err)
-				ar.Error(w, err, 500, "Error parsing template")
+				ar.Error(w, err, http.StatusInternalServerError, "Error parsing template")
 				return
 			}
 
@@ -35,7 +35,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 
 			if err := tmpl.Execute(w, data); err != nil {
 				ar.Logger.Printf("Error executing template: %v", err)
-				ar.Error(w, err, 500, "Error executing template")
+				ar.Error(w, err, http.StatusInternalServerError, "Error executing template")
 				return
 			}
 		}
