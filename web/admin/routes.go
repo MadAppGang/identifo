@@ -23,6 +23,10 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("POST")
 
+	ar.router.Path(`/{restart:restart/?}`).Handler(negroni.New(
+		negroni.WrapFunc(ar.RestartServer()),
+	)).Methods("POST")
+
 	ar.router.Path(`/{apps:apps/?}`).Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchApps()),

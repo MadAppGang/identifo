@@ -125,10 +125,6 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			}
 		}
 
-		if keys == nil {
-			ar.Error(w, fmt.Errorf("Keys are empty"), http.StatusBadRequest, "")
-			return
-		}
 		if keys.Private == nil {
 			ar.Error(w, fmt.Errorf("Empty private key"), http.StatusBadRequest, "")
 			return

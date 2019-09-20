@@ -100,17 +100,8 @@ func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.General = generalSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.General)
+		ar.newSettings.General = generalSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.General)
 	}
 }
 
@@ -134,17 +125,8 @@ func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.Storage = storageSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Storage)
+		ar.newSettings.Storage = storageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.SessionStorage)
 	}
 }
 
@@ -168,17 +150,8 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.SessionStorage = sessionStorageSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.SessionStorage)
+		ar.newSettings.SessionStorage = sessionStorageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.SessionStorage)
 	}
 }
 
@@ -186,6 +159,18 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 func (ar *Router) FetchConfigurationStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.ConfigurationStorage)
+	}
+}
+
+// RestartServer restarts server with new settings.
+func (ar *Router) RestartServer() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if err := ar.configurationStorage.InsertConfig(ar.ServerSettings.ConfigurationStorage.SettingsKey, ar.newSettings); err != nil {
+			ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }
 
@@ -202,17 +187,8 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.ConfigurationStorage = configurationStorageSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.ConfigurationStorage)
+		ar.newSettings.ConfigurationStorage = configurationStorageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.ConfigurationStorage)
 	}
 }
 
@@ -232,17 +208,8 @@ func (ar *Router) UpdateStaticFilesStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.StaticFilesStorage = staticFilesStorageSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.StaticFilesStorage)
+		ar.newSettings.StaticFilesStorage = staticFilesStorageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.StaticFilesStorage)
 	}
 }
 
@@ -262,17 +229,8 @@ func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.Login = loginSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.Login)
+		ar.newSettings.Login = loginSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Login)
 	}
 }
 
@@ -296,17 +254,8 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 			return
 		}
 
-		newServerSettings := new(model.ServerSettings)
-		if err := ar.getServerSettings(w, newServerSettings); err != nil {
-			return
-		}
-
-		newServerSettings.ExternalServices = servicesSettingsUpdate
-		if ar.updateServerSettings(w, newServerSettings) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, newServerSettings.ExternalServices)
+		ar.newSettings.ExternalServices = servicesSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.ExternalServices)
 	}
 }
 
@@ -319,28 +268,6 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 			ar.ServeJSON(w, http.StatusOK, nil)
 		}
 	}
-}
-
-// getServerSettings reads server configuration file and parses it to provided struct.
-func (ar *Router) getServerSettings(w http.ResponseWriter, ss *model.ServerSettings) error {
-	key := ar.ServerSettings.ConfigurationStorage.SettingsKey
-
-	ss.ConfigurationStorage = model.ConfigurationStorageSettings{SettingsKey: key}
-	if err := ar.configurationStorage.LoadServerSettings(ss); err != nil {
-		ar.logger.Println("Cannot read server configuration:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-	return nil
-}
-
-func (ar *Router) updateServerSettings(w http.ResponseWriter, newSettings *model.ServerSettings) error {
-	if err := ar.configurationStorage.InsertConfig(ar.ServerSettings.ConfigurationStorage.SettingsKey, newSettings); err != nil {
-		ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
-		ar.Error(w, err, http.StatusInternalServerError, "")
-		return err
-	}
-	return nil
 }
 
 // getAdminAccountSettings admin account settings and parses them to adminData struct.
@@ -400,8 +327,8 @@ func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData
 	newSettings.AdminAccount.LoginEnvName = loginEnvName
 	newSettings.AdminAccount.PasswordEnvName = passwordEnvName
 
-	err := ar.updateServerSettings(w, newSettings)
-	return err
+	ar.newSettings = newSettings
+	return nil
 }
 
 func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
