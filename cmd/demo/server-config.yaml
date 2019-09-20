@@ -33,12 +33,9 @@ configurationStorage:
   settingsKey: server-config.yaml
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: local # Key storage type. Supported values are "local" and "s3".
-    # Key names.
-    # If type is file, must be a filepath (e.g, jwt/public.pem).
-    # If type is s3, must be a name of an object in the bucket (e.g, public.pem).
-    publicKey: ../../jwt/public.pem
-    privateKey: ../../jwt/private.pem
-    region: # S3-related setting.
+    folder: ../../jwt # Folder for public.pem and private.pem keys. Assumed to be root if ommitted.
+    bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
+    region: # Required if type is 's3'.
 
 staticFilesStorage:
   type: local # Supported values are "local", "s3", and "dynamodb".

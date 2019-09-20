@@ -12,8 +12,7 @@ import (
 )
 
 const (
-	privateKeyPath     = "./private.pem"
-	publicKeyPath      = "./public.pem"
+	keyPath            = "./"
 	testIssuer         = "identifo.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAifQ.Sqmh_44nXg3Lxs9jr9YCDZVNJN459Br4ODnZIt3EY72opwy5hzYL_l_hua4PJCM0WmYNLB-nKC80TS84LO5muw"
 )
@@ -35,9 +34,7 @@ func TestNewTokenService(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeLocal,
-			PrivateKey: privateKeyPath,
-			PublicKey:  publicKeyPath,
+			Type: model.KeyStorageTypeLocal,
 		},
 	})
 	if err != nil {
@@ -54,9 +51,8 @@ func TestNewTokenService(t *testing.T) {
 		t.Fatalf("Unable to create token service. %v", err)
 	}
 	type args struct {
-		private string
-		public  string
-		issuer  string
+		folder string
+		issuer string
 	}
 	tests := []struct {
 		name    string
@@ -64,19 +60,16 @@ func TestNewTokenService(t *testing.T) {
 		want    jwtService.TokenService
 		wantErr bool
 	}{
-		{"successfull creation", args{privateKeyPath, publicKeyPath, testIssuer}, ts, false},
-		{"invalid private path", args{"somepath", publicKeyPath, testIssuer}, nil, true},
-		{"invalid public path", args{privateKeyPath, "somepath", testIssuer}, nil, true},
-		{"empty file pathes", args{"", "", testIssuer}, nil, true},
+		{"successfull creation", args{keyPath, testIssuer}, ts, false},
+		{"invalid key path", args{"somepath", testIssuer}, nil, true},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 				Type: model.ConfigurationStorageTypeFile,
 				KeyStorage: model.KeyStorageSettings{
-					Type:       model.KeyStorageTypeLocal,
-					PrivateKey: tt.args.private,
-					PublicKey:  tt.args.public,
+					Type:   model.KeyStorageTypeLocal,
+					Folder: tt.args.folder,
 				},
 			})
 			if err != nil {
@@ -117,9 +110,7 @@ func TestParseString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeLocal,
-			PrivateKey: privateKeyPath,
-			PublicKey:  publicKeyPath,
+			Type: model.KeyStorageTypeLocal,
 		},
 	})
 	if err != nil {
@@ -175,9 +166,7 @@ func TestTokenToString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeLocal,
-			PrivateKey: privateKeyPath,
-			PublicKey:  publicKeyPath,
+			Type: model.KeyStorageTypeLocal,
 		},
 	})
 	if err != nil {
@@ -244,9 +233,7 @@ func TestNewToken(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type:       model.KeyStorageTypeLocal,
-			PrivateKey: privateKeyPath,
-			PublicKey:  publicKeyPath,
+			Type: model.KeyStorageTypeLocal,
 		},
 	})
 	if err != nil {

@@ -235,9 +235,6 @@ func (kss *KeyStorageSettings) Validate() error {
 	if len(kss.Type) == 0 {
 		return fmt.Errorf("%s. Empty key storage type", subject)
 	}
-	if len(kss.PublicKey)*len(kss.PublicKey) == 0 {
-		return fmt.Errorf("%s. At least one of the key names is empty", subject)
-	}
 
 	switch kss.Type {
 	case KeyStorageTypeLocal:
