@@ -25,9 +25,9 @@ func (ar *Router) GetApp() http.HandlerFunc {
 		if err != nil {
 			if err == model.ErrorNotFound {
 				ar.Error(w, err, http.StatusNotFound, "")
-			} else {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				return
 			}
+			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
 		ar.ServeJSON(w, http.StatusOK, app)

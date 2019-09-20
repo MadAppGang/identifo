@@ -68,7 +68,7 @@ sessionStorage:
 # Storage for server configuration.
 configurationStorage:
   # Configuration storage type. Supported values are: "etcd", "s3", and "file".
-  type: etcd
+  type: file
   # Key for accessing server settings in the configuraion storage.
   # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
   # If type is file, must be a filename (e.g, server-config.yaml).
@@ -77,7 +77,7 @@ configurationStorage:
   region: # S3-related setting.
   bucket: # S3-related setting.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
-    type: file # Key storage type. Supported values are "file" and "s3".
+    type: local # Key storage type. Supported values are "file" and "s3".
     # Key names.
     # If type is file, must be a filepath (e.g, jwt/public.pem).
     # If type is s3, must be a name of an object in the bucket (e.g, public.pem).

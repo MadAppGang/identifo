@@ -128,7 +128,7 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 // ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.
 func (ar *Router) ServeADDAFile() http.HandlerFunc {
-	data, err := ar.staticFilesStorage.ReadAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
+	data, err := ar.staticFilesStorage.GetAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
 	}
@@ -146,7 +146,7 @@ func (ar *Router) ServeADDAFile() http.HandlerFunc {
 
 // ServeAASAFile lets Apple servers download apple-app-site-association file.
 func (ar *Router) ServeAASAFile() http.HandlerFunc {
-	data, err := ar.staticFilesStorage.ReadAppleFile(model.AppleFilenames.AppSiteAssociation)
+	data, err := ar.staticFilesStorage.GetAppleFile(model.AppleFilenames.AppSiteAssociation)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
 	}

@@ -136,11 +136,6 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	// Log error.
 	ar.logger.Printf("admin error: %v (code=%d)", err, code)
 
-	// Hide error from client if it is internal.
-	if code == http.StatusInternalServerError {
-		err = model.ErrorInternal
-	}
-
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	encodeErr := json.NewEncoder(w).Encode(&errorResponse{
