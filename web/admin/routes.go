@@ -95,7 +95,15 @@ func (ar *Router) initRoutes() {
 	settings.Path("/services").HandlerFunc(ar.FetchExternalServicesSettings()).Methods("GET")
 	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
 
-	settings.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
-	settings.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadADDAFile()).Methods("POST")
-	settings.Path("/uploads/apple-app-site-association").HandlerFunc(ar.UploadAASAFile()).Methods("POST")
+	static := mux.NewRouter().PathPrefix("/static").Subrouter()
+	ar.router.PathPrefix("/static").Handler(negroni.New(
+		ar.Session(),
+		negroni.Wrap(static),
+	))
+
+	static.Path(`/{template:template/?}`).HandlerFunc(ar.GetStringifiedFile()).Methods("GET")
+	static.Path(`/{template:template/?}`).HandlerFunc(ar.UploadStringifiedFile()).Methods("PUT")
+
+	static.Path(`/{uploads/keys:uploads/keys/?}`).HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
+	static.Path(`/{uploads/apple-domain-association:uploads/apple-domain-association/?}`).HandlerFunc(ar.UploadADDAFile()).Methods("POST")
 }

@@ -236,7 +236,7 @@
 
 [[projects]]
   branch = "master"
-  digest = "1:551abadcf86e0085dffe3d218cf77e99580ca606509fb72bf20c75abe9effe44"
+  digest = "1:0e93170b0a904c4abefd3c8b9ccce678318503c8331d5f43af9c144e7c4162c5"
   name = "github.com/madappgang/identifo"
   packages = [
     "configuration/key_storage/local",
@@ -279,7 +279,7 @@
     "web/middleware",
   ]
   pruneopts = "UT"
-  revision = "58bfcb54e356eb09f4ca725b28fb3bc9c3c8fa94"
+  revision = "a959e8c2b731207e086b1c7d78bb344df561b24d"
 
 [[projects]]
   digest = "1:6ad77325212e02cc2c76bc974fcfb59a227018afddbd3bc78ea3cc53dadb2554"

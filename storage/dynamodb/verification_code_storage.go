@@ -11,8 +11,8 @@ import (
 )
 
 const (
-	// VerificationCodesTableName is a table name for verification codes.
-	VerificationCodesTableName = "VerificationCodes"
+	// verificationCodesTableName is a table name for verification codes.
+	verificationCodesTableName = "VerificationCodes"
 
 	// verificationCodesExpirationTime specifies time before deleting records.
 	verificationCodesExpirationTime = 5 * time.Minute
@@ -37,12 +37,13 @@ type VerificationCodeStorage struct {
 // IsVerificationCodeFound checks whether verification code can be found.
 func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) (bool, error) {
 	result, err := vcs.db.C.Query(&dynamodb.QueryInput{
-		TableName:              aws.String(VerificationCodesTableName),
+		TableName:              aws.String(verificationCodesTableName),
 		KeyConditionExpression: aws.String("phone = :phone"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":phone": {S: aws.String(phone)},
 		},
 	})
+
 	if err != nil {
 		log.Println("Error querying for verification code:", err)
 		return false, ErrorInternalError
@@ -50,7 +51,6 @@ func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) 
 	if len(result.Items) == 0 {
 		return false, nil
 	}
-
 	return true, nil
 }
 
@@ -61,7 +61,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 		Key: map[string]*dynamodb.AttributeValue{
 			phoneField: {S: aws.String(phone)},
 		},
-		TableName: aws.String(VerificationCodesTableName),
+		TableName: aws.String(verificationCodesTableName),
 	}
 
 	if _, err := vcs.db.C.DeleteItem(delInput); err != nil {
@@ -82,7 +82,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 
 	putInput := &dynamodb.PutItemInput{
 		Item:      item,
-		TableName: aws.String(VerificationCodesTableName),
+		TableName: aws.String(verificationCodesTableName),
 	}
 
 	if _, err := vcs.db.C.PutItem(putInput); err != nil {
@@ -94,7 +94,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 
 // ensureTable ensures that verification code storage table exists in the database.
 func (vcs *VerificationCodeStorage) ensureTable() error {
-	exists, err := vcs.db.IsTableExists(VerificationCodesTableName)
+	exists, err := vcs.db.IsTableExists(verificationCodesTableName)
 	if err != nil {
 		log.Println("Error checking for verification codes table existence:", err)
 		return err
@@ -117,7 +117,7 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 			},
 		},
 		BillingMode: aws.String("PAY_PER_REQUEST"),
-		TableName:   aws.String(VerificationCodesTableName),
+		TableName:   aws.String(verificationCodesTableName),
 	}
 
 	if _, err = vcs.db.C.CreateTable(createTableInput); err != nil {
@@ -130,7 +130,7 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 		Enabled:       aws.Bool(true),
 	}
 	ttlInput := &dynamodb.UpdateTimeToLiveInput{
-		TableName:               aws.String(VerificationCodesTableName),
+		TableName:               aws.String(verificationCodesTableName),
 		TimeToLiveSpecification: ttlSpecification,
 	}
 

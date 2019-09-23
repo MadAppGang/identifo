@@ -65,15 +65,13 @@ const (
 
 // StaticFilesStorageSettings are settings for static files storage.
 type StaticFilesStorageSettings struct {
-	Type                StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	ServerConfigPath    string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	StaticFilesLocation string                 `yaml:"staticFilesLocation,omitempty" json:"static_files_location,omitempty"`
-	Region              string                 `yaml:"region,omitempty" json:"region,omitempty"`
-	PagesPath           string                 `yaml:"pagesPath,omitempty" json:"pages_path,omitempty"`
-	EmailTemplatesPath  string                 `yaml:"emailTemplatesPath,omitempty" json:"email_templates_path,omitempty"`
-	AppleFilesPath      string                 `yaml:"appleFilesPath,omitempty" json:"apple_files_path,omitempty"`
-	ServeAdminPanel     bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
-	AdminPanelBuildPath string                 `yaml:"adminPanelBuildPath,omitempty" json:"admin_panel_build_path,omitempty"`
+	Type             StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
+	ServerConfigPath string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	Folder           string                 `yaml:"folder,omitempty" json:"folder,omitempty"`
+	Bucket           string                 `yaml:"bucket,omitempty" json:"bucket,omitempty"`
+	Region           string                 `yaml:"region,omitempty" json:"region,omitempty"`
+	Endpoint         string                 `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+	ServeAdminPanel  bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
 }
 
 // StaticFilesStorageType is a type of static files storage.
@@ -84,6 +82,8 @@ const (
 	StaticFilesStorageTypeLocal = "local"
 	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
 	StaticFilesStorageTypeS3 = "s3"
+	// StaticFilesStorageTypeDynamoDB is for storing static files in DynamoDB table.
+	StaticFilesStorageTypeDynamoDB = "dynamodb"
 )
 
 // ConfigurationStorageSettings holds together configuration storage settings.

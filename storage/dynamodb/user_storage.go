@@ -17,14 +17,14 @@ import (
 )
 
 const (
-	// UsersTableName is a table where to store users.
-	UsersTableName = "Users"
-	// UsersFederatedIDTableName is a table to store federated ids.
-	UsersFederatedIDTableName = "UsersByFederatedID"
-	// UserTableUsernameIndexName is a user table global index name to access by users by username.
-	UserTableUsernameIndexName = "username-index"
-	// UsersPhoneNumbersIndexName is a table global index to access users by phone numbers.
-	UsersPhoneNumbersIndexName = "phone-index"
+	// usersTableName is a table where to store users.
+	usersTableName = "Users"
+	// usersFederatedIDTableName is a table to store federated ids.
+	usersFederatedIDTableName = "UsersByFederatedID"
+	// userTableUsernameIndexName is a user table global index name to access by users by username.
+	userTableUsernameIndexName = "username-index"
+	// usersPhoneNumbersIndexName is a table global index to access users by phone numbers.
+	usersPhoneNumbersIndexName = "phone-index"
 )
 
 // NewUserStorage creates and provisions new user storage instance.
@@ -53,7 +53,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	}
 
 	result, err := us.db.C.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
 				S: aws.String(idx.String()),
@@ -85,7 +85,7 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvider, id string) (string, error) {
 	fid := string(provider) + ":" + id
 	result, err := us.db.C.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(UsersFederatedIDTableName),
+		TableName: aws.String(usersFederatedIDTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"federated_id": {
 				S: aws.String(fid),
@@ -155,8 +155,8 @@ func (us *UserStorage) Scopes() []string {
 func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) {
 	name = strings.ToLower(name)
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
-		TableName:              aws.String(UsersTableName),
-		IndexName:              aws.String(UserTableUsernameIndexName),
+		TableName:              aws.String(usersTableName),
+		IndexName:              aws.String(userTableUsernameIndexName),
 		KeyConditionExpression: aws.String("username = :n"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(name)},
@@ -183,8 +183,8 @@ func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) 
 // userIdxByPhone returns user data projected on the phone index.
 func (us *UserStorage) userIdxByPhone(phone string) (*userIndexByPhoneData, error) {
 	result, err := us.db.C.Query(&dynamodb.QueryInput{
-		TableName:              aws.String(UsersTableName),
-		IndexName:              aws.String(UsersPhoneNumbersIndexName),
+		TableName:              aws.String(usersTableName),
+		IndexName:              aws.String(usersPhoneNumbersIndexName),
 		KeyConditionExpression: aws.String("phone = :n"),
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":n": {S: aws.String(phone)},
@@ -286,7 +286,7 @@ func (us *UserStorage) addNewUser(u *User) (*User, error) {
 
 	input := &dynamodb.PutItemInput{
 		Item:      uv,
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 	}
 	if _, err = us.db.C.PutItem(input); err != nil {
 		log.Println("Error putting item:", err)
@@ -301,7 +301,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(id)},
 		},
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 	}
 	_, err := us.db.C.DeleteItem(input)
 	return err
@@ -373,7 +373,7 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 
 	input := &dynamodb.PutItemInput{
 		Item:      fedInputData,
-		TableName: aws.String(UsersFederatedIDTableName),
+		TableName: aws.String(usersFederatedIDTableName),
 	}
 	if _, err = us.db.C.PutItem(input); err != nil {
 		log.Println("Error putting item:", err)
@@ -450,7 +450,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 
 	hash := PasswordHash(password)
 	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(idx.String())},
 		},
@@ -474,7 +474,7 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 
 	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
 
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(idx.String())},
 		},
@@ -511,7 +511,7 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 // Supports pagination. Search is case-senstive for now.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	scanInput := &dynamodb.ScanInput{
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 		Limit:     aws.Int64(int64(limit)),
 	}
 
@@ -572,7 +572,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	}
 
 	_, err := us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
-		TableName: aws.String(UsersTableName),
+		TableName: aws.String(usersTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(userID)},
 		},
@@ -592,7 +592,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 // ensureTable ensures that user storage table exists in the database.
 // I'm hiding it in the end of the file, because AWS devs, you are killing me with this API.
 func (us *UserStorage) ensureTable() error {
-	exists, err := us.db.IsTableExists(UsersTableName)
+	exists, err := us.db.IsTableExists(usersTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err
@@ -622,7 +622,7 @@ func (us *UserStorage) ensureTable() error {
 			},
 			GlobalSecondaryIndexes: []*dynamodb.GlobalSecondaryIndex{
 				{
-					IndexName: aws.String(UserTableUsernameIndexName),
+					IndexName: aws.String(userTableUsernameIndexName),
 					KeySchema: []*dynamodb.KeySchemaElement{
 						{
 							AttributeName: aws.String("username"),
@@ -639,7 +639,7 @@ func (us *UserStorage) ensureTable() error {
 					// },
 				},
 				{
-					IndexName: aws.String(UsersPhoneNumbersIndexName),
+					IndexName: aws.String(usersPhoneNumbersIndexName),
 					KeySchema: []*dynamodb.KeySchemaElement{
 						{
 							AttributeName: aws.String("phone"),
@@ -653,7 +653,7 @@ func (us *UserStorage) ensureTable() error {
 				},
 			},
 			BillingMode: aws.String("PAY_PER_REQUEST"),
-			TableName:   aws.String(UsersTableName),
+			TableName:   aws.String(usersTableName),
 		}
 		if _, err = us.db.C.CreateTable(input); err != nil {
 			log.Println("Error creating table:", err)
@@ -662,7 +662,7 @@ func (us *UserStorage) ensureTable() error {
 	}
 
 	// create table to handle federated ID's
-	exists, err = us.db.IsTableExists(UsersFederatedIDTableName)
+	exists, err = us.db.IsTableExists(usersFederatedIDTableName)
 	if err != nil {
 		log.Println("Error checking for table existence:", err)
 		return err
@@ -683,7 +683,7 @@ func (us *UserStorage) ensureTable() error {
 				},
 			},
 			BillingMode: aws.String("PAY_PER_REQUEST"),
-			TableName:   aws.String(UsersFederatedIDTableName),
+			TableName:   aws.String(usersFederatedIDTableName),
 		}
 		if _, err = us.db.C.CreateTable(input); err != nil {
 			log.Println("Error creating table:", err)

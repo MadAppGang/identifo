@@ -9,10 +9,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-const (
-	// BlacklistedTokensTableName is a name of a table where blacklisted tokens are stored.
-	BlacklistedTokensTableName = "BlacklistedTokens"
-)
+const blacklistedTokensTableName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new DynamoDB token storage.
 func NewTokenBlacklist(db *DB) (model.TokenBlacklist, error) {
@@ -28,9 +25,9 @@ type TokenBlacklist struct {
 
 // ensureTable ensures that token blacklist exists.
 func (tb *TokenBlacklist) ensureTable() error {
-	exists, err := tb.db.IsTableExists(BlacklistedTokensTableName)
+	exists, err := tb.db.IsTableExists(blacklistedTokensTableName)
 	if err != nil {
-		log.Printf("Error while checking if %s exists: %v", BlacklistedTokensTableName, err)
+		log.Printf("Error while checking if %s exists: %v", blacklistedTokensTableName, err)
 		return err
 	}
 	if exists {
@@ -51,11 +48,11 @@ func (tb *TokenBlacklist) ensureTable() error {
 			},
 		},
 		BillingMode: aws.String("PAY_PER_REQUEST"),
-		TableName:   aws.String(BlacklistedTokensTableName),
+		TableName:   aws.String(blacklistedTokensTableName),
 	}
 
 	if _, err = tb.db.C.CreateTable(input); err != nil {
-		log.Printf("Error while creating %s table: %v", BlacklistedTokensTableName, err)
+		log.Printf("Error while creating %s table: %v", blacklistedTokensTableName, err)
 		return err
 	}
 	return nil
@@ -78,7 +75,7 @@ func (tb *TokenBlacklist) Add(token string) error {
 
 	input := &dynamodb.PutItemInput{
 		Item:      t,
-		TableName: aws.String(TokensTableName),
+		TableName: aws.String(blacklistedTokensTableName),
 	}
 
 	if _, err = tb.db.C.PutItem(input); err != nil {
@@ -95,7 +92,7 @@ func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
 	}
 
 	result, err := tb.db.C.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(BlacklistedTokensTableName),
+		TableName: aws.String(blacklistedTokensTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String(token),

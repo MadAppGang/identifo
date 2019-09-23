@@ -23,6 +23,7 @@ import (
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
+	staticStoreDynamo "github.com/madappgang/identifo/static/storage/dynamodb"
 	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
 	staticStoreS3 "github.com/madappgang/identifo/static/storage/s3"
 	"github.com/madappgang/identifo/web"
@@ -317,11 +318,17 @@ func initSessionStorage(settings model.ServerSettings) (model.SessionStorage, er
 }
 
 func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
+	localStaticFilesStorage, err := staticStoreLocal.NewStaticFilesStorage(settings)
+	if err != nil {
+		return nil, err
+	}
 	switch settings.Type {
 	case model.StaticFilesStorageTypeLocal:
-		return staticStoreLocal.NewStaticFilesStorage(settings)
+		return localStaticFilesStorage, nil
 	case model.StaticFilesStorageTypeS3:
-		return staticStoreS3.NewStaticFilesStorage(settings)
+		return staticStoreS3.NewStaticFilesStorage(settings, localStaticFilesStorage)
+	case model.StaticFilesStorageTypeDynamoDB:
+		return staticStoreDynamo.NewStaticFilesStorage(settings, localStaticFilesStorage)
 	default:
 		return nil, model.ErrorNotImplemented
 	}

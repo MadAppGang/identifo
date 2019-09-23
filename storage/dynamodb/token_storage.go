@@ -9,10 +9,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-const (
-	// TokensTableName is a name of a table where refresh tokens are stored.
-	TokensTableName = "RefreshTokens"
-)
+const tokensTableName = "RefreshTokens"
 
 // NewTokenStorage creates new DynamoDB token storage.
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
@@ -28,33 +25,35 @@ type TokenStorage struct {
 
 // ensureTable ensures that token storage exists in the database.
 func (ts *TokenStorage) ensureTable() error {
-	exists, err := ts.db.IsTableExists(TokensTableName)
+	exists, err := ts.db.IsTableExists(tokensTableName)
 	if err != nil {
-		log.Printf("Error while checking if %s exists: %v", TokensTableName, err)
+		log.Printf("Error while checking if %s exists: %v", tokensTableName, err)
 		return err
 	}
-	if !exists {
-		//create table, AWS DynamoDB table creation is overcomplicated for sure
-		input := &dynamodb.CreateTableInput{
-			AttributeDefinitions: []*dynamodb.AttributeDefinition{
-				{
-					AttributeName: aws.String("token"),
-					AttributeType: aws.String("S"),
-				},
+	if exists {
+		return nil
+	}
+
+	input := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("token"),
+				AttributeType: aws.String("S"),
 			},
-			KeySchema: []*dynamodb.KeySchemaElement{
-				{
-					AttributeName: aws.String("token"),
-					KeyType:       aws.String("HASH"),
-				},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("token"),
+				KeyType:       aws.String("HASH"),
 			},
-			BillingMode: aws.String("PAY_PER_REQUEST"),
-			TableName:   aws.String(TokensTableName),
-		}
-		if _, err = ts.db.C.CreateTable(input); err != nil {
-			log.Printf("Error while creating %s table: %v", TokensTableName, err)
-			return err
-		}
+		},
+		BillingMode: aws.String("PAY_PER_REQUEST"),
+		TableName:   aws.String(tokensTableName),
+	}
+
+	if _, err = ts.db.C.CreateTable(input); err != nil {
+		log.Printf("Error while creating %s table: %v", tokensTableName, err)
+		return err
 	}
 	return nil
 }
@@ -76,7 +75,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 
 	input := &dynamodb.PutItemInput{
 		Item:      t,
-		TableName: aws.String(TokensTableName),
+		TableName: aws.String(tokensTableName),
 	}
 
 	if _, err = ts.db.C.PutItem(input); err != nil {
@@ -93,7 +92,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 	}
 
 	result, err := ts.db.C.GetItem(&dynamodb.GetItemInput{
-		TableName: aws.String(TokensTableName),
+		TableName: aws.String(tokensTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String(token),
@@ -117,7 +116,7 @@ func (ts *TokenStorage) DeleteToken(token string) error {
 		return model.ErrorNotFound
 	}
 	if _, err := ts.db.C.DeleteItem(&dynamodb.DeleteItemInput{
-		TableName: aws.String(TokensTableName),
+		TableName: aws.String(tokensTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"token": {
 				S: aws.String(token),

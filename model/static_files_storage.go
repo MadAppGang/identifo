@@ -1,16 +1,19 @@
 package model
 
 import (
+	"fmt"
 	"html/template"
 	"net/http"
+	"path"
+	"strings"
 )
 
 // StaticFilesStorage is a wrapper over static files storages.
 type StaticFilesStorage interface {
+	GetFile(name string) ([]byte, error)
+	UploadFile(name string, contents []byte) error
 	ParseTemplate(templateName string) (*template.Template, error)
-	UploadTemplate(templateName string, contents []byte) error
-	ReadAppleFile(filename string) ([]byte, error)
-	UploadAppleFile(filename string, contents []byte) error
+	GetAppleFile(name string) ([]byte, error)
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
 	Close()
@@ -31,8 +34,14 @@ type AdminPanelHandlers struct {
 	BuildHandler      http.Handler
 }
 
-// AdminPanelBuildPath is a path to built admin panel.
-const AdminPanelBuildPath = "./static/admin_panel/build"
+// These paths describe directories with static files.
+// They are relative to the folder specified in the configuration file.
+const (
+	AdminPanelBuildPath = "./admin_panel/build"
+	PagesPath           = "./html"
+	EmailTemplatesPath  = "./email_templates"
+	AppleFilesPath      = "./apple"
+)
 
 // StaticPagesNames are the names of html pages.
 var StaticPagesNames = StaticPages{
@@ -88,4 +97,31 @@ type AppleFiles struct {
 var AppleFilenames = AppleFiles{
 	DeveloperDomainAssociation: "apple-developer-domain-association.txt",
 	AppSiteAssociation:         "apple-app-site-association",
+}
+
+// GetStaticFilePathByFilename returns filepath for given static file name.
+func GetStaticFilePathByFilename(filename, staticFolder string) (filepath string, err error) {
+	if strings.Contains(filename, "apple") {
+		return path.Join(staticFolder, AppleFilesPath, filename), nil
+	}
+
+	switch path.Ext(filename) {
+	case ".html":
+		if strings.Contains(filename, "email") {
+			filepath = path.Join(staticFolder, EmailTemplatesPath, filename)
+		} else {
+			filepath = path.Join(staticFolder, PagesPath, filename)
+		}
+	case ".css":
+		filepath = path.Join(staticFolder, "css", filename)
+	case ".js":
+		filepath = path.Join(staticFolder, "js/dist", filename)
+	case ".png", ".jpg", ".jpeg":
+		filepath = path.Join(staticFolder, "img", filename)
+	case ".woff":
+		filepath = path.Join(staticFolder, "fonts", filename)
+	default:
+		err = fmt.Errorf("Unknown extension '%s'", path.Ext(filename))
+	}
+	return
 }

@@ -42,15 +42,12 @@ configurationStorage:
 
 
 staticFilesStorage:
-  type: local # Supported values are "local" and "s3".
+  type: local # Supported values are "local", "s3", and "dynamodb".
   serverConfigPath: server-config.yaml  # Path to the file with server settings.
-  # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
-  # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
-  staticFilesLocation: ./static   # All following paths are relative to this location.
-  region: # S3-specific setting. Needed when type is s3.
-  pagesPath: ./html # Folder for html pages.
-  emailTemplatesPath: ./email_templates # Folder for the email templates.
-  appleFilesPath: ./apple # Folder for the Apple-related files.
+  folder: ./static # Folder for static files. All following paths are relative to this location. Assumed to be root if ommitted.
+  bucket: # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
+  region: # Required when type is "s3" or "dynamodb".
+  endpoint: # DynamoDB-specific setting. Can be ommitted when region is set.
   serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
 
 login:

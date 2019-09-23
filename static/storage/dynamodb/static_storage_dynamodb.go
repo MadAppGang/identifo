@@ -1,11 +1,9 @@
-package s3
+package dynamodb
 
 import (
-	"bytes"
 	"fmt"
 	"html/template"
 	"io"
-	"io/ioutil"
 	"log"
 	"mime"
 	"net/http"
@@ -13,36 +11,38 @@ import (
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
-	"github.com/aws/aws-sdk-go/service/s3"
-	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
+	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/madappgang/identifo/model"
 	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
+	idynamodb "github.com/madappgang/identifo/storage/dynamodb"
 )
 
-// StaticFilesStorage is a storage of static files in S3.
+const staticFilesTableName = "StaticFiles"
+
+// StaticFilesStorage is a storage of static files in DynamoDB.
 type StaticFilesStorage struct {
-	client       *s3.S3
-	bucket       string
-	folder       string
+	db           *idynamodb.DB
 	localStorage *staticStoreLocal.StaticFilesStorage
 }
 
-// NewStaticFilesStorage creates and returns new static files storage in S3.
+// NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStorage *staticStoreLocal.StaticFilesStorage) (*StaticFilesStorage, error) {
-	s3Client, err := s3Storage.NewS3Client(settings.Region)
+	db, err := idynamodb.NewDB(settings.Endpoint, settings.Region)
 	if err != nil {
 		return nil, err
 	}
-
-	return &StaticFilesStorage{
-		client:       s3Client,
-		bucket:       settings.Bucket,
-		folder:       settings.Folder,
+	sfs := &StaticFilesStorage{
+		db:           db,
 		localStorage: localStorage,
-	}, nil
+	}
+	if err = sfs.ensureTable(); err != nil {
+		return nil, err
+	}
+	return sfs, nil
 }
 
-// GetFile is for fetching a file by name from the S3 bucket.
+// GetFile is a generic method for fetching a file by name from DynamoDB.
 // It is a wrapper over the private method getFile.
 // It provides fallback behavior via using eponymous local storage method.
 func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
@@ -51,53 +51,62 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 		return file, nil
 	}
 
-	log.Printf("Error getting %s from S3: %s. Using local storage.\n", name, err)
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
 	return sfs.localStorage.GetFile(name)
 }
 
+type fileData struct {
+	Name string `json:"name"`
+	File string `json:"file"`
+}
+
 func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
-	key, err := model.GetStaticFilePathByFilename(name, sfs.folder)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot get file %s. %s", key, err)
+	if len(name) == 0 {
+		return nil, model.ErrorWrongDataFormat
 	}
 
-	getFileInput := &s3.GetObjectInput{
-		Bucket: aws.String(sfs.bucket),
-		Key:    aws.String(key),
-	}
+	result, err := sfs.db.C.GetItem(&dynamodb.GetItemInput{
+		TableName: aws.String(staticFilesTableName),
+		Key: map[string]*dynamodb.AttributeValue{
+			"name": {
+				S: aws.String(name),
+			},
+		},
+	})
 
-	resp, err := sfs.client.GetObject(getFileInput)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot get %s from S3: %s", key, err)
+		return nil, fmt.Errorf("Error getting static file from db: %s", err)
 	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot read response from S3: %s", err)
-	}
-	if len(body) == 0 {
+	if result.Item == nil {
 		return nil, model.ErrorNotFound
 	}
-	return body, nil
+
+	fd := new(fileData)
+	if err = dynamodbattribute.UnmarshalMap(result.Item, fd); err != nil {
+		return nil, fmt.Errorf("Error unmarshalling static file data: %s", err)
+	}
+	return []byte(fd.File), nil
 }
 
 // UploadFile is a generic file uploader.
 func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
-	filepath, err := model.GetStaticFilePathByFilename(name, sfs.folder)
-	if err != nil {
-		return fmt.Errorf("Cannot compose filepath. %s", err)
+	if len(name) == 0 {
+		return model.ErrorWrongDataFormat
 	}
-	_, err = sfs.client.PutObject(&s3.PutObjectInput{
-		Bucket:       aws.String(sfs.bucket),
-		Key:          aws.String(filepath),
-		ACL:          aws.String("private"),
-		StorageClass: aws.String(s3.ObjectStorageClassStandard),
-		Body:         bytes.NewReader(contents),
-		ContentType:  aws.String(mime.TypeByExtension(path.Ext(name))),
-	})
-	if err == nil {
-		log.Printf("Successfully put %s to S3\n", filepath)
+
+	f := &fileData{Name: name, File: string(contents)}
+	marshalled, err := dynamodbattribute.MarshalMap(f)
+	if err != nil {
+		return fmt.Errorf("Error marshalling static file: %s", err)
+	}
+
+	input := &dynamodb.PutItemInput{
+		Item:      marshalled,
+		TableName: aws.String(staticFilesTableName),
+	}
+
+	if _, err = sfs.db.C.PutItem(input); err != nil {
+		return fmt.Errorf("Error putting static file to storage: %s", err)
 	}
 	return nil
 }
@@ -118,10 +127,10 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 
 // GetAppleFile is for reading Apple-related static files.
 // Unlike generic GetFile, it does not treat model.ErrorNotFound as error.
-func (sfs *StaticFilesStorage) GetAppleFile(filename string) ([]byte, error) {
+func (sfs *StaticFilesStorage) GetAppleFile(name string) ([]byte, error) {
 	// Call private method since we don't want to retry fetching file from the local storage.
 	// If error is not nil and not model.ErrorNotFound, we'll retry the whole GetAppleFile.
-	file, err := sfs.getFile(filename)
+	file, err := sfs.getFile(name)
 	if err == nil {
 		return file, nil
 	}
@@ -130,8 +139,8 @@ func (sfs *StaticFilesStorage) GetAppleFile(filename string) ([]byte, error) {
 		return nil, nil
 	}
 
-	log.Printf("Error getting %s from S3: %s. Using local storage.\n", filename, err)
-	return sfs.localStorage.GetAppleFile(filename)
+	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
+	return sfs.localStorage.GetAppleFile(name)
 }
 
 // AssetHandlers returns handlers for assets.
@@ -147,21 +156,19 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 		}
 		name := split[lensplit-1]
 
-		file, err := sfs.GetFile(name)
-		if err != nil {
-			if err == model.ErrorNotFound {
-				writeError(w, fmt.Errorf("%s not found", name), http.StatusNotFound, "")
-				return
+		// Call private method since local handlers, if needed, will be defined later.
+		file, err := sfs.getFile(name)
+		if err == nil {
+			w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
+			if _, err = w.Write(file); err != nil {
+				log.Printf("Error writing body to the response: %s\n", err)
 			}
-			writeError(w, err, http.StatusInternalServerError, "")
 			return
 		}
 
-		w.Header().Set("Content-Type", mime.TypeByExtension(path.Ext(name)))
-		if _, err = w.Write(file); err != nil {
-			log.Printf("Error writing body to the response: %s\n", err)
-			return
-		}
+		prefix := strings.TrimSuffix(r.URL.Path, name)
+		localHandler := http.FileServer(http.Dir(path.Join(sfs.localStorage.Folder, prefix)))
+		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
 	})
 
 	return &model.AssetHandlers{
@@ -180,6 +187,36 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 
 // Close is to satisfy the interface.
 func (sfs *StaticFilesStorage) Close() {}
+
+func (sfs *StaticFilesStorage) ensureTable() error {
+	exists, err := sfs.db.IsTableExists(staticFilesTableName)
+	if err != nil {
+		return fmt.Errorf("Error checking static files table existence: %s", err)
+	}
+	if exists {
+		return nil
+	}
+
+	input := &dynamodb.CreateTableInput{
+		AttributeDefinitions: []*dynamodb.AttributeDefinition{
+			{
+				AttributeName: aws.String("name"),
+				AttributeType: aws.String("S"),
+			},
+		},
+		KeySchema: []*dynamodb.KeySchemaElement{
+			{
+				AttributeName: aws.String("name"),
+				KeyType:       aws.String("HASH"),
+			},
+		},
+		BillingMode: aws.String("PAY_PER_REQUEST"),
+		TableName:   aws.String(staticFilesTableName),
+	}
+
+	_, err = sfs.db.C.CreateTable(input)
+	return err
+}
 
 // writeError writes an error message to the response and logger.
 func writeError(w http.ResponseWriter, err error, code int, userInfo string) {

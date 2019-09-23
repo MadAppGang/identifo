@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	jwt "github.com/dgrijalva/jwt-go"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -91,9 +92,25 @@ func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys
 
 		if keyName == ks.PublicKeyName {
 			keys.Public = key
+			keys.Algorithm, err = ks.guessTokenServiceAlgorithm(key)
+			if err != nil {
+				return nil, err
+			}
 		} else {
 			keys.Private = key
 		}
 	}
 	return keys, nil
+}
+
+func (ks *KeyStorage) guessTokenServiceAlgorithm(publicKey []byte) (interface{}, error) {
+	_, errES := jwt.ParseECPublicKeyFromPEM(publicKey)
+	if errES == nil {
+		return ijwt.TokenSignatureAlgorithmES256, nil
+	}
+	_, errRS := jwt.ParseRSAPublicKeyFromPEM(publicKey)
+	if errRS == nil {
+		return ijwt.TokenSignatureAlgorithmRS256, nil
+	}
+	return nil, fmt.Errorf("Cannot guess token service algorithm. It's neither ES256 (%s), nor RS256 (%s)", errES, errRS)
 }
