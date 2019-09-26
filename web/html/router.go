@@ -93,12 +93,12 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sf
 		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
+	ar.initRoutes()
 	if ar.cors != nil {
 		ar.Middleware.Use(ar.cors)
 	}
 	ar.Middleware.UseHandler(ar.Router)
 
-	ar.initRoutes()
 	return &ar, nil
 }
 
