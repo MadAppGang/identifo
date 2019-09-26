@@ -11,6 +11,7 @@ import (
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -30,6 +31,7 @@ type Router struct {
 	Authorizer         *authorization.Authorizer
 	PathPrefix         string
 	Host               string
+	cors               *cors.Cors
 }
 
 func defaultOptions() []func(*Router) error {
@@ -50,6 +52,16 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 func HostOption(host string) func(r *Router) error {
 	return func(r *Router) error {
 		r.Host = host
+		return nil
+	}
+}
+
+// CorsOption sets cors option.
+func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+	return func(r *Router) error {
+		if corsOptions != nil && corsOptions.HTML != nil {
+			r.cors = cors.New(*corsOptions.HTML)
+		}
 		return nil
 	}
 }
@@ -81,8 +93,12 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sf
 		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	ar.initRoutes()
+	if ar.cors != nil {
+		ar.Middleware.Use(ar.cors)
+	}
 	ar.Middleware.UseHandler(ar.Router)
+
+	ar.initRoutes()
 	return &ar, nil
 }
 

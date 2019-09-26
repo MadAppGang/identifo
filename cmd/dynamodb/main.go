@@ -16,7 +16,7 @@ const (
 )
 
 func initServer() model.Server {
-	srv, err := dynamodb.NewServer(server.ServerSettings)
+	srv, err := dynamodb.NewServer(server.ServerSettings, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
