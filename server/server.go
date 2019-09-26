@@ -104,7 +104,7 @@ func loadServerConfigurationFromFile(out *model.ServerSettings) {
 }
 
 // NewServer creates backend service.
-func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, options ...func(*Server) error) (model.Server, error) {
+func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, cors *model.CorsOptions, options ...func(*Server) error) (model.Server, error) {
 	var err error
 	if configurationStorage == nil {
 		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFilesStorage.ServerConfigPath)
@@ -176,16 +176,19 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
+			html.CorsOption(cors),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
+			api.CorsOption(cors),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
 			admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
+			admin.CorsOption(cors),
 		},
 	}
 

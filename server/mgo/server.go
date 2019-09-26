@@ -6,10 +6,10 @@ import (
 )
 
 // NewServer creates new backend service with MongoDB support.
-func NewServer(settings model.ServerSettings, options ...func(*server.Server) error) (model.Server, error) {
+func NewServer(settings model.ServerSettings, cors *model.CorsOptions, serverOptions ...func(*server.Server) error) (model.Server, error) {
 	dbComposer, err := NewComposer(settings)
 	if err != nil {
 		return nil, err
 	}
-	return server.NewServer(settings, dbComposer, nil, options...)
+	return server.NewServer(settings, dbComposer, nil, cors, serverOptions...)
 }
