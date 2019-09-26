@@ -120,12 +120,12 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
+	ar.initRoutes()
 	if ar.cors != nil {
 		ar.middleware.Use(ar.cors)
 	}
 	ar.middleware.UseHandler(ar.router)
 
-	ar.initRoutes()
 	return &ar, nil
 }
 
