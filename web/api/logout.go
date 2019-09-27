@@ -59,7 +59,6 @@ func (ar *Router) Logout() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, response)
-		return
 	}
 }
 
