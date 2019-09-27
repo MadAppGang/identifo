@@ -15,16 +15,13 @@ func (ar *Router) Logout() http.HandlerFunc {
 		DeviceToken  string `json:"device_token,omitempty"`
 	}
 
-	type logoutResponse struct {
+	response := struct {
 		Message string `json:"message"`
+	}{
+		Message: "Done",
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := logoutData{}
-		if ar.MustParseJSON(w, r, &d) != nil {
-			return
-		}
-
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
 			ar.logger.Println("Cannot fetch access token bytes from context")
@@ -36,6 +33,16 @@ func (ar *Router) Logout() http.HandlerFunc {
 		// Blacklist current access token.
 		if err := ar.tokenBlacklist.Add(accessTokenString); err != nil {
 			ar.logger.Printf("Cannot blacklist access token: %s\n", err)
+		}
+
+		if r.Body == http.NoBody {
+			ar.ServeJSON(w, http.StatusOK, response)
+			return
+		}
+
+		d := logoutData{}
+		if ar.MustParseJSON(w, r, &d) != nil {
+			return
 		}
 
 		// Revoke refresh token, if present.
@@ -51,9 +58,6 @@ func (ar *Router) Logout() http.HandlerFunc {
 			}
 		}
 
-		response := logoutResponse{
-			Message: "Done",
-		}
 		ar.ServeJSON(w, http.StatusOK, response)
 	}
 }

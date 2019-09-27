@@ -69,7 +69,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			return
 		}
 
-		if r.Method != "GET" {
+		if r.Method != "GET" && r.Body != http.NoBody {
 			// Return body as Reader to next handlers.
 			r.Body = ioutil.NopCloser(bytes.NewBuffer(body))
 		}
