@@ -57,6 +57,9 @@ func (ar *Router) Logout() http.HandlerFunc {
 				ar.logger.Println("Cannot detach device token")
 			}
 		}
+
+		ar.ServeJSON(w, http.StatusOK, response)
+		return
 	}
 }
 
