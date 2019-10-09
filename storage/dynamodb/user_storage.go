@@ -308,7 +308,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
 	username = strings.ToLower(username)
 	_, err := us.userIdxByName(username)
 	if err != nil && err != model.ErrUserNotFound {
@@ -322,6 +322,7 @@ func (us *UserStorage) AddUserByNameAndPassword(username, password, role string)
 		Active:     true,
 		Username:   username,
 		AccessRole: role,
+		Anonymous:  isAnonymous,
 	}
 	if model.EmailRegexp.MatchString(u.Username) {
 		u.Email = u.Username

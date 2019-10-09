@@ -24,6 +24,7 @@ type userData struct {
 	NumOfLogins     int           `json:"num_of_logins,omitempty"`
 	LatestLoginTime int64         `json:"latest_login_time,omitempty"`
 	AccessRole      string        `json:"access_role,omitempty"`
+	Anonymous       bool          `json:"anonymous,omitempty"`
 }
 
 // userIndexByNameData represents username index projected user data.
@@ -93,3 +94,9 @@ func (u *User) Active() bool { return u.userData.Active }
 
 // AccessRole implements model.User interface.
 func (u *User) AccessRole() string { return u.userData.AccessRole }
+
+// IsAnonymous implements model.User interface.
+func (u *User) IsAnonymous() bool { return u.userData.Anonymous }
+
+// Deanonimize implements model.User interface.
+func (u *User) Deanonimize() { u.userData.Anonymous = false }

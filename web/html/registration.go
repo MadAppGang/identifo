@@ -80,7 +80,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole())
+		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole(), false)
 		if err != nil {
 			if err == model.ErrorUserExists {
 				SetFlash(w, FlashErrorMessageKey, err.Error())
