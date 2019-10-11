@@ -12,17 +12,19 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-const initConfigFilename = "init-config.yaml"
+const (
+	defaultAdminLogin    = "admin@admin.com"
+	defaultAdminPassword = "password"
+)
+
+const warningMsg = "WARNING! Config file could not be read, so the default server-config.yaml will be used for the server configuration. Note that when using Docker container, changes made to this file won't survive the container restart."
 
 func init() {
-	warningMsg := `WARNING! Config file could not be read, so the default server-config.yaml will be used for the server configuration.
-Note that when using Docker container, changes made to this file won't survive the container restart.`
-
 	configFlag := flag.String("config", "", "Path to the file that describes the location of a server configuration file")
 	flag.Parse()
 
 	if configFlag == nil || len(*configFlag) == 0 {
-		log.Println("Config file path not specified.\n", warningMsg)
+		log.Println("Config file path not specified.")
 		loadDefaultServerConfiguration(&ServerSettings)
 		return
 	}
@@ -32,7 +34,7 @@ Note that when using Docker container, changes made to this file won't survive t
 		log.Fatalf("Cannot get current working directory: %s\n", err)
 	}
 
-	initConfigBytes, err := ioutil.ReadFile(filepath.Join(wd, initConfigFilename))
+	initConfigBytes, err := ioutil.ReadFile(filepath.Join(wd, *configFlag))
 	if err != nil {
 		log.Println("Cannot read init configuration file: ", err, warningMsg)
 		loadDefaultServerConfiguration(&ServerSettings)
@@ -54,27 +56,50 @@ Note that when using Docker container, changes made to this file won't survive t
 
 	switch ic.Location {
 	case "local":
-		err = loadConfigFromFile(ic)
+		loadConfigFromFile(ic, &ServerSettings)
 	case "etcd":
-		err = loadConfigFromEtcd(ic)
+		loadConfigFromEtcd(ic, &ServerSettings)
 	case "s3":
-		err = loadConfigFromS3(ic)
+		loadConfigFromS3(ic, &ServerSettings)
+	default:
+		log.Fatalf("Unknown configuration location %s", ic.Location)
 	}
 	if err != nil {
 		log.Fatalf("Cannot load config. %s", err)
 	}
 }
 
-func loadConfigFromFile(ic *initialConfig) error {
-	return nil // TODO: implement
+func loadConfigFromFile(ic *initialConfig, out *model.ServerSettings) {
+	log.Println("Loading server configuration from specified file...")
+	dir, err := os.Getwd()
+	if err != nil {
+		log.Fatalln("Cannot get server configuration file:", err)
+	}
+
+	configFile, err := ioutil.ReadFile(filepath.Join(dir, ic.Folder, ic.Filename))
+	if err != nil {
+		log.Fatalln("Cannot read server configuration file:", err)
+	}
+
+	if err = yaml.Unmarshal(configFile, out); err != nil {
+		log.Fatalln("Cannot unmarshal server configuration file:", err)
+	}
+
+	if err := out.Validate(); err != nil {
+		log.Fatalln(err)
+	}
+
+	loadAdminEnvVars(out.AdminAccount)
+
+	log.Println("Server configuration loaded from the file.")
 }
 
-func loadConfigFromEtcd(ic *initialConfig) error {
-	return nil // TODO: implement
+func loadConfigFromEtcd(ic *initialConfig, out *model.ServerSettings) {
+	// TODO: implement
 }
 
-func loadConfigFromS3(ic *initialConfig) error {
-	return nil // TODO: implement
+func loadConfigFromS3(ic *initialConfig, out *model.ServerSettings) {
+	// TODO: implement
 }
 
 // initialConfig is for settings required by the server on the start.
@@ -115,8 +140,11 @@ func (ic *initialConfig) Validate() error {
 	return nil
 }
 
+const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
+
 // loadDefaultServerConfiguration loads configuration from the yaml file and writes it to out variable.
 func loadDefaultServerConfiguration(out *model.ServerSettings) {
+	log.Println(warningMsg, "\n", "Loading default server configuration...")
 	dir, err := os.Getwd()
 	if err != nil {
 		log.Fatalln("Cannot get server configuration file:", err)
@@ -149,20 +177,24 @@ func loadDefaultServerConfiguration(out *model.ServerSettings) {
 		log.Fatalln("Cannot unmarshal server configuration file:", err)
 	}
 
-	if len(os.Getenv(out.AdminAccount.LoginEnvName)) == 0 {
-		if err := os.Setenv(out.AdminAccount.LoginEnvName, defaultAdminLogin); err != nil {
-			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.LoginEnvName, err)
-		}
-		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.LoginEnvName)
-	}
-	if len(os.Getenv(out.AdminAccount.PasswordEnvName)) == 0 {
-		if err := os.Setenv(out.AdminAccount.PasswordEnvName, defaultAdminPassword); err != nil {
-			log.Fatalf("Could not set default %s: %s\n", out.AdminAccount.PasswordEnvName, err)
-		}
-		log.Printf("WARNING! %s not set. Default value will be used.\n", out.AdminAccount.PasswordEnvName)
-	}
-
 	if err := out.Validate(); err != nil {
 		log.Fatalln(err)
+	}
+	loadAdminEnvVars(out.AdminAccount)
+	log.Println("Default server configuration loaded.")
+}
+
+func loadAdminEnvVars(vars model.AdminAccountSettings) {
+	if len(os.Getenv(vars.LoginEnvName)) == 0 {
+		if err := os.Setenv(vars.LoginEnvName, defaultAdminLogin); err != nil {
+			log.Fatalf("Could not set default %s: %s\n", vars.LoginEnvName, err)
+		}
+		log.Printf("WARNING! %s not set. Default value will be used.\n", vars.LoginEnvName)
+	}
+	if len(os.Getenv(vars.PasswordEnvName)) == 0 {
+		if err := os.Setenv(vars.PasswordEnvName, defaultAdminPassword); err != nil {
+			log.Fatalf("Could not set default %s: %s\n", vars.PasswordEnvName, err)
+		}
+		log.Printf("WARNING! %s not set. Default value will be used.\n", vars.PasswordEnvName)
 	}
 }

@@ -30,13 +30,6 @@ import (
 	"github.com/madappgang/identifo/web/html"
 )
 
-const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
-
-const (
-	defaultAdminLogin    = "admin@admin.com"
-	defaultAdminPassword = "password"
-)
-
 // ServerSettings are server settings.
 var ServerSettings model.ServerSettings
 
