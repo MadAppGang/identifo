@@ -108,16 +108,22 @@ type PartialDatabaseComposer struct {
 
 // AppStorageComposer returns app storage composer.
 func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage, error) {
-	return func() (model.AppStorage, error) {
-		return pc.newAppStorage()
+	if pc.newAppStorage != nil {
+		return func() (model.AppStorage, error) {
+			return pc.newAppStorage()
+		}
 	}
+	return nil
 }
 
 // UserStorageComposer returns user storage composer.
 func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
-	return func() (model.UserStorage, error) {
-		return pc.newUserStorage()
+	if pc.newUserStorage != nil {
+		return func() (model.UserStorage, error) {
+			return pc.newUserStorage()
+		}
 	}
+	return nil
 }
 
 // TokenStorageComposer returns token storage composer.
@@ -142,7 +148,10 @@ func (pc *PartialDatabaseComposer) TokenBlacklistComposer() func() (model.TokenB
 
 // VerificationCodeStorageComposer returns verification code storage composer.
 func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error) {
-	return func() (model.VerificationCodeStorage, error) {
-		return pc.newVerificationCodeStorage()
+	if pc.newVerificationCodeStorage != nil {
+		return func() (model.VerificationCodeStorage, error) {
+			return pc.newVerificationCodeStorage()
+		}
 	}
+	return nil
 }
