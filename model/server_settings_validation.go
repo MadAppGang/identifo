@@ -287,6 +287,11 @@ func (sss *SMSServiceSettings) Validate() error {
 	switch sss.Type {
 	case SMSServiceMock:
 		return nil
+	case SMSServiceNexmo:
+		if len(sss.ApiKey)*len(sss.ApiSecret) == 0 {
+			return fmt.Errorf("%s. Error creating Nexmo SMS service, missing at least one of the parameters:"+
+				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.ApiKey, sss.ApiSecret)
+		}
 	case SMSServiceTwilio:
 		if len(sss.AccountSid)*len(sss.AuthToken)*len(sss.ServiceSid) == 0 {
 			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
