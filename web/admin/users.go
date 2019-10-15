@@ -100,7 +100,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole)
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole, false)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

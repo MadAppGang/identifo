@@ -63,6 +63,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Change username if user specified new one.
 		if d.updateUsername {
 			user.SetUsername(d.NewUsername)
+			user.Deanonimize()
 		}
 
 		if d.updateEmail {

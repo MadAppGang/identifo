@@ -15,6 +15,7 @@ type userData struct {
 	Active     bool          `json:"active,omitempty"`
 	TFAInfo    model.TFAInfo `json:"tfa_info"`
 	AccessRole string        `json:"access_role,omitempty"`
+	Anonymous  bool          `json:"anonymous,omitempty"`
 }
 
 type user struct {
@@ -58,6 +59,12 @@ func (u *user) Active() bool { return u.userData.Active }
 
 // AccessRole implements model.User interface.
 func (u *user) AccessRole() string { return u.userData.AccessRole }
+
+// IsAnonymous implements model.User interface.
+func (u *user) IsAnonymous() bool { return u.userData.Anonymous }
+
+// Deanonimize implements model.User interface.
+func (u *user) Deanonimize() { u.userData.Anonymous = false }
 
 func randUser() *user {
 	return &user{
