@@ -42,6 +42,8 @@ configurationStorage:
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: s3 # Key storage type. Supported values are "local" and "s3".
     folder: # Folder for public.pem and private.pem keys. Assumed to be root if ommitted.
+    privateKey: private.pem
+    publicKey: public.pem
     bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
     region: us-east-1 # Required if type is 's3'.
 

@@ -250,7 +250,7 @@ func (kss *KeyStorageSettings) Validate() error {
 			return fmt.Errorf("%s. Bucket for keys is not set", subject)
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		return fmt.Errorf("%s. Unknown type '%s'", subject, kss.Type)
 	}
 	return nil
 }

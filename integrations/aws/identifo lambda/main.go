@@ -46,7 +46,7 @@ func initServer() model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, nil)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, nil, nil)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}
