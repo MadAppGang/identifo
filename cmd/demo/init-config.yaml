@@ -1,6 +1,4 @@
-# This is an example file to pass to a program on docker-container start:
-# `docker run identifo:latest -config config.yaml`.
-# It is needed to define the configuration storage of a server.
+# This file is needed to define the configuration storage of a server.
 
 location: local # Can be 'local', 'etcd', or 's3'.
 folder: # Folder that contains server configuration file, when type is 'local' or 's3'. Assumed to be root if ommitted.
