@@ -14,7 +14,7 @@ type SMSService struct {
 
 // NewSMSService creates, inits and returns Nexmo-backed SMS service.
 func NewSMSService(settings model.SMSServiceSettings) (*SMSService, error) {
-	client, err := nexmo.NewClient(settings.ApiKey, settings.ApiSecret)
+	client, err := nexmo.NewClient(settings.APIKey, settings.APISecret)
 	if err != nil {
 		return nil, err
 	}

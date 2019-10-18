@@ -40,6 +40,7 @@ type Client struct {
 
 type appleTokenResponse struct {
 	IDToken string `json:"id_token"`
+	Error   string `json:"error"`
 }
 
 // User is what we can get about the user from Apple.
@@ -55,7 +56,7 @@ func (c *Client) MyProfile() (User, error) {
 	form.Set("client_id", c.ClientID)
 	form.Set("client_secret", c.ClientSecret)
 	form.Set("code", c.AuthorizationCode)
-	form.Set("grant_type", "authorization_token")
+	form.Set("grant_type", "authorization_code")
 
 	var user User
 
@@ -70,7 +71,7 @@ func (c *Client) MyProfile() (User, error) {
 	}
 
 	claims := jwt.MapClaims{}
-	if _, err := jwt.ParseWithClaims(resp.IDToken, claims, nil); err != nil {
+	if _, _, err := new(jwt.Parser).ParseUnverified(resp.IDToken, claims); err != nil {
 		return user, err
 	}
 
@@ -95,19 +96,19 @@ func (c *Client) formRequest(method, path string, form url.Values) (*http.Reques
 	return req, nil
 }
 
-func (c *Client) do(req *http.Request, v interface{}) (*http.Response, error) {
+func (c *Client) do(req *http.Request, atr *appleTokenResponse) (*http.Response, error) {
 	resp, err := c.HTTPClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 	defer resp.Body.Close()
 
-	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("Apple response error: %d", resp.StatusCode)
+	if err = json.NewDecoder(resp.Body).Decode(atr); err != nil {
+		return nil, err
 	}
 
-	if err = json.NewDecoder(resp.Body).Decode(v); err != nil {
-		return nil, err
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("Apple response error: %s, status: %d", atr, resp.StatusCode)
 	}
 	return resp, nil
 }

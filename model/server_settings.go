@@ -186,8 +186,8 @@ type SMSServiceSettings struct {
 	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
 	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
 	// Nexmo related config
-	ApiKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
-	ApiSecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
+	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
+	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
 }
 
 // SMSServiceType - service for sending sms messages.
