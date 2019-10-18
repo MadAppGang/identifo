@@ -12,8 +12,7 @@ services:
     volumes:
       - ./server-config.yaml:/root/server-config.yaml
       - ./jwt/:/root/jwt/
-      - ./email_templates/:/root/email_templates/
-      - ./web/static/:/root/web/static/
+      - ./static/:/root/static/
 
 networks:
   identifo:
