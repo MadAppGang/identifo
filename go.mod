@@ -20,7 +20,7 @@ require (
 	github.com/mailgun/mailgun-go v1.1.1
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/pallinder/go-randomdata v1.2.0
-	github.com/pkg/errors v0.8.1
+	github.com/pkg/errors v0.8.1 // indirect
 	github.com/qiangmzsx/string-adapter v0.0.0-20180323073508-38f25303bb0c
 	github.com/rs/cors v1.6.0
 	github.com/rs/xid v1.2.1
