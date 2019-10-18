@@ -1,10 +1,10 @@
-FROM golang:1.12.8 as builder
+FROM golang:1.12.2 as builder
 
 # Copy the code from the host and compile it
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
-COPY go.mod go.sum ./
-RUN GO111MODULE=on go mod download
 COPY . ./
+ENV GO111MODULE=on
+RUN go mod download
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app .
 
 FROM alpine:latest
@@ -13,10 +13,8 @@ WORKDIR /root/
 COPY --from=builder /app .
 COPY server-config.yaml ./
 COPY jwt/*.pem ./jwt/
-COPY web/static ./web/static
-COPY cmd/import/apps.json ./apps.json
-COPY cmd/import/users.json ./users.json
-COPY email_templates ./email_templates
-COPY admin_panel/build ./admin_panel/build
+COPY static ./static
+COPY cmd/import/apps.json ./cmd/import/apps.json
+COPY cmd/import/users.json ./cmd/import/users.json
 
 CMD ["./app"]
