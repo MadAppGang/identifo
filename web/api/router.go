@@ -6,17 +6,18 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/madappgang/identifo/web/authorization"
-
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/authorization"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
 // Router is a router that handles all API requests.
 type Router struct {
 	middleware              *negroni.Negroni
+	cors                    *cors.Cors
 	logger                  *log.Logger
 	router                  *mux.Router
 	appStorage              model.AppStorage
@@ -53,6 +54,16 @@ func defaultOptions() []func(*Router) error {
 func HostOption(host string) func(*Router) error {
 	return func(r *Router) error {
 		r.Host = host
+		return nil
+	}
+}
+
+// CorsOption sets cors option.
+func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+	return func(r *Router) error {
+		if corsOptions != nil && corsOptions.API != nil {
+			r.cors = cors.New(*corsOptions.API)
+		}
 		return nil
 	}
 }
@@ -109,6 +120,9 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
+	if ar.cors != nil {
+		ar.middleware.Use(ar.cors)
+	}
 	ar.initRoutes()
 	ar.middleware.UseHandler(ar.router)
 

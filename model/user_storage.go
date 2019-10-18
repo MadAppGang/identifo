@@ -25,7 +25,7 @@ type UserStorage interface {
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
 	UserByNamePassword(name, password string) (User, error)
-	AddUserByNameAndPassword(username, password, role string) (User, error)
+	AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (User, error)
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id, role string) (User, error)
@@ -57,6 +57,7 @@ type User interface {
 	Active() bool
 	AccessRole() string
 	Sanitize()
+	Deanonimize()
 }
 
 // TFAInfo encapsulates two-factor authentication user info.

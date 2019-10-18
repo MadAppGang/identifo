@@ -230,12 +230,13 @@ func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
 	u := userData{
 		ID:         bson.NewObjectId(),
 		Active:     true,
 		Username:   username,
 		AccessRole: role,
+		Anonymous:  isAnonymous,
 	}
 	if model.EmailRegexp.MatchString(u.Username) {
 		u.Email = u.Username

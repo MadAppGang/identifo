@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/schema v1.1.0 // indirect
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
+	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/pallinder/go-randomdata v1.2.0
 	github.com/pkg/errors v0.8.1 // indirect
 	github.com/qiangmzsx/string-adapter v0.0.0-20180323073508-38f25303bb0c
@@ -36,5 +37,6 @@ require (
 	google.golang.org/grpc v1.22.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1
 	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
+	gopkg.in/njern/gonexmo.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )

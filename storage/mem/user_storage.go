@@ -71,7 +71,7 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 }
 
 // AddUserByNameAndPassword returns randomly generated user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
 	return randUser(), nil
 }
 

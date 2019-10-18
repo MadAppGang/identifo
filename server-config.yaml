@@ -118,3 +118,5 @@ externalServices:
     accountSid: # Twilio-related setting.
     authToken: # Twilio-related setting.
     serviceSid: # Twilio-related setting.
+    apiKey: # Nexmo-related setting.
+    apiSecret: # Nexmo-related setting.

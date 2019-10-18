@@ -11,15 +11,16 @@ import (
 )
 
 type registrationData struct {
-	Username string   `json:"username,omitempty"`
-	Password string   `json:"password,omitempty"`
-	Scopes   []string `json:"scopes,omitempty"`
+	Username  string   `json:"username,omitempty"`
+	Password  string   `json:"password,omitempty"`
+	Scopes    []string `json:"scopes,omitempty"`
+	Anonymous bool     `json:"anonymous,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
 	usernameLen := len(rd.Username)
 	if usernameLen < 6 || usernameLen > 50 {
-		return fmt.Errorf("Incorrect email length %d, expected a number between 6 and 50", usernameLen)
+		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
 	}
 	pswdLen := len(rd.Password)
 	if pswdLen < 6 || pswdLen > 50 {
@@ -85,7 +86,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole())
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole(), rd.Anonymous)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return

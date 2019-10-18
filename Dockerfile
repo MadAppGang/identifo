@@ -1,10 +1,11 @@
-FROM golang:1.12.8 as builder
+FROM golang:1.12.2 as builder
 
 # Copy the code from the host and compile it
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
 COPY . ./
-RUN GO111MODULE=on go mod vendor
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /identifo .
+ENV GO111MODULE=on
+RUN go mod download
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app .
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates

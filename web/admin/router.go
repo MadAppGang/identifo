@@ -13,25 +13,10 @@ import (
 	"github.com/urfave/negroni"
 )
 
-var corsOptions *cors.Cors
-
-func init() {
-	allowedOrigins := []string{"http://localhost:*"}
-	if adminPanelURL := os.Getenv("ADMIN_PANEL_URL"); len(adminPanelURL) > 0 {
-		allowedOrigins = append(allowedOrigins, adminPanelURL)
-	}
-
-	corsOptions = cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
-		AllowCredentials: true,
-	})
-}
-
 // Router is a router that handles admin requests.
 type Router struct {
 	middleware           *negroni.Negroni
+	cors                 *cors.Cors
 	logger               *log.Logger
 	router               *mux.Router
 	sessionService       model.SessionService
@@ -59,6 +44,16 @@ func defaultOptions() []func(*Router) error {
 func HostOption(host string) func(*Router) error {
 	return func(r *Router) error {
 		r.Host = host
+		return nil
+	}
+}
+
+// CorsOption sets cors option.
+func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+	return func(r *Router) error {
+		if corsOptions != nil && corsOptions.Admin != nil {
+			r.cors = cors.New(*corsOptions.Admin)
+		}
 		return nil
 	}
 }
@@ -119,9 +114,13 @@ func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.Sessi
 		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	ar.middleware.Use(corsOptions)
-	ar.middleware.UseHandler(ar.router)
+	if ar.cors == nil {
+		ar.cors = ar.defaultCORS()
+	}
+	ar.middleware.Use(ar.cors)
+
 	ar.initRoutes()
+	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
 }
@@ -169,4 +168,18 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	if _, err = w.Write(data); err != nil {
 		log.Printf("error writing http response: %s", err)
 	}
+}
+
+func (ar *Router) defaultCORS() *cors.Cors {
+	allowedOrigins := []string{"http://localhost:*"}
+	if adminPanelURL := os.Getenv("ADMIN_PANEL_URL"); len(adminPanelURL) > 0 {
+		allowedOrigins = append(allowedOrigins, adminPanelURL)
+	}
+
+	return cors.New(cors.Options{
+		AllowedOrigins:   allowedOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
+		AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
+		AllowCredentials: true,
+	})
 }

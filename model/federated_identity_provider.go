@@ -26,6 +26,6 @@ func (fid FederatedIdentityProvider) IsValid() bool {
 
 // AppleInfo represents the information needed for Sign In with Apple.
 type AppleInfo struct {
-	ClientID     string `json:"client_id,omitempty"`
-	ClientSecret string `json:"client_secret,omitempty"`
+	ClientID     string `json:"client_id,omitempty" bson:"client_id,omitempty"`
+	ClientSecret string `json:"client_secret,omitempty" bson:"client_secret,omitempty"`
 }
