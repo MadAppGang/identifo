@@ -27,6 +27,7 @@ type Router struct {
 	staticFilesStorage   model.StaticFilesStorage
 	ServerConfigPath     string
 	ServerSettings       *model.ServerSettings
+	newSettings          *model.ServerSettings
 	RedirectURL          string
 	PathPrefix           string
 	Host                 string
@@ -69,6 +70,7 @@ func ServerConfigPathOption(configPath string) func(*Router) error {
 func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
 	return func(r *Router) error {
 		r.ServerSettings = settings
+		r.newSettings = settings
 		return nil
 	}
 }

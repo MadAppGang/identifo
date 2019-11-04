@@ -91,14 +91,6 @@ func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
 	if err := cs.keyStorage.InsertKeys(keys); err != nil {
 		return err
 	}
-	// Indicate config update. To prevent writing to a closed channel, make a check.
-	go func() {
-		if cs.updateChanClosed {
-			log.Println("Attempted to write to closed UpdateChan")
-			return
-		}
-		cs.UpdateChan <- struct{}{}
-	}()
 	return nil
 }
 

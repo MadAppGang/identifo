@@ -132,9 +132,7 @@ func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
 	if err := cs.keyStorage.InsertKeys(keys); err != nil {
 		return err
 	}
-	// Indicate config update by performing idle config insertion.
-	err := cs.InsertConfig("", "")
-	return err
+	return nil
 }
 
 // LoadKeys loads public and private keys from the key storage.

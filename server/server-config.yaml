@@ -77,20 +77,17 @@ configurationStorage:
   region: # S3-related setting.
   bucket: # S3-related setting.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
-    type: local # Key storage type. Supported values are "file" and "s3".
-    # Key names.
-    # If type is file, must be a filepath (e.g, jwt/public.pem).
-    # If type is s3, must be a name of an object in the bucket (e.g, public.pem).
-    publicKey: jwt/public.pem
-    privateKey: jwt/private.pem
-    region: # S3-related setting.
+    type: local # Key storage type. Supported values are "local" and "s3".
+    folder: ./jwt # Folder for static files. Assumed to be root if ommitted.
+    bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
+    region: # Required if type is 's3'.
 
 staticFilesStorage:
   type: local # Supported values are "local", "s3", and "dynamodb".
-  serverConfigPath: ../../server/server-config.yaml  # Path to the file with server settings.
+  serverConfigPath: ./server-config.yaml  # Path to the file with server settings.
   # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
   # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
-  folder: ../../static # Folder for static files. All following paths are relative to this location. Assumed to be root if ommitted.
+  folder: ./static # Folder for static files. All following paths are relative to this location. Assumed to be root if ommitted.
   bucket: # Bucket which contains static files if type is "s3".
   region: # Required when type is "s3" or "dynamodb".
   endpoint: # DynamoDB-specific setting. Can be ommitted when region is set.

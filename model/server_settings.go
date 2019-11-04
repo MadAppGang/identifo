@@ -133,11 +133,10 @@ const (
 
 // KeyStorageSettings are settings for the key storage.
 type KeyStorageSettings struct {
-	Type       KeyStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	PrivateKey string         `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	PublicKey  string         `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Region     string         `yaml:"region,omitempty" json:"region,omitempty"`
-	Bucket     string         `yaml:"bucket,omitempty" json:"bucket,omitempty"`
+	Type   KeyStorageType `yaml:"type,omitempty" json:"type,omitempty"`
+	Folder string         `yaml:"folder,omitempty" json:"folder,omitempty"`
+	Region string         `yaml:"region,omitempty" json:"region,omitempty"`
+	Bucket string         `yaml:"bucket,omitempty" json:"bucket,omitempty"`
 }
 
 // KeyStorageType is a type of the key storage.

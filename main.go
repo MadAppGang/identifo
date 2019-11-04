@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"net/http"
@@ -129,7 +130,7 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 				log.Panicln("Cannot reload server configuration: ", err)
 			}
 
-			if err := httpSrv.Close(); err != nil {
+			if err := httpSrv.Shutdown(context.Background()); err != nil {
 				log.Panicln("Cannot shutdown server: ", err)
 			}
 
