@@ -70,7 +70,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
-		if isAnonymous && !app.AnonymousLoginAllowed() {
+		if isAnonymous && !app.AnonymousRegistrationAllowed() {
 			SetFlash(w, FlashErrorMessageKey, ErrorRegistrationForbidden.Error())
 			redirectToRegister()
 			return

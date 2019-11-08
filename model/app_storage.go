@@ -43,7 +43,7 @@ type AppData interface {
 	TFAStatus() TFAStatus
 	DebugTFACode() string
 	RegistrationForbidden() bool
-	AnonymousLoginAllowed() bool
+	AnonymousRegistrationAllowed() bool
 	AuthzWay() AuthorizationWay
 	AuthzModel() string
 	AuthzPolicy() string
