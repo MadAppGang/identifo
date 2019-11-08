@@ -17,6 +17,7 @@ const (
 	usernameKey    = "email"
 	passwordKey    = "password"
 	scopesKey      = "scopes"
+	isAnonymousKey = "anonymous"
 	callbackURLKey = "callbackUrl"
 	redirectURIKey = "redirectUri"
 )

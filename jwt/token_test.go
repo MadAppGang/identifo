@@ -255,7 +255,7 @@ func TestNewToken(t *testing.T) {
 	}
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
-	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, []string{}, 0, 0, 0, tokenPayload, true, model.TFAStatusDisabled, "", model.NoAuthz, "", "", []string{}, []string{}, "user")
+	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, []string{}, 0, 0, 0, tokenPayload, true, true, model.TFAStatusDisabled, "", model.NoAuthz, "", "", []string{}, []string{}, "user")
 	token, err := ts.NewAccessToken(user, scopes, &app, false)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)

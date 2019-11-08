@@ -27,6 +27,7 @@ type appData struct {
 	TokenLifespan         int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
+	AnonymousLoginAllowed bool                   `bson:"anonymous_login_allowed" json:"anonymous_login_allowed"`
 	TFAStatus             model.TFAStatus        `bson:"tfa_status" json:"tfa_status"`
 	DebugTFACode          string                 `bson:"debug_tfa_code,omitempty" json:"debug_tfa_code,omitempty"`
 	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
@@ -57,6 +58,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
+		AnonymousLoginAllowed: data.AnonymousLoginAllowed(),
 		TFAStatus:             data.TFAStatus(),
 		AuthorizationWay:      data.AuthzWay(),
 		AuthorizationModel:    data.AuthzModel(),
@@ -78,7 +80,7 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 
 // MakeAppData creates new MongoDB app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
-	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool, anonymousLoginAllowed bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 
 	if !bson.IsObjectIdHex(id) {
@@ -98,6 +100,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		AnonymousLoginAllowed: anonymousLoginAllowed,
 		TFAStatus:             tfaStatus,
 		DebugTFACode:          debugTFACode,
 		AuthorizationWay:      authzWay,
@@ -155,6 +158,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AnonymousLoginAllowed implements model.AppData interface.
+func (ad *AppData) AnonymousLoginAllowed() bool { return ad.appData.AnonymousLoginAllowed }
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }

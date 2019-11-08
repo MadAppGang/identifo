@@ -24,6 +24,7 @@ type appData struct {
 	TokenLifespan         int64                  `json:"token_lifespan,omitempty"`
 	TokenPayload          []string               `json:"token_payload,omitempty"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
+	AnonymousLoginAllowed bool                   `json:"anonymous_login_allowed"`
 	TFAStatus             model.TFAStatus        `json:"tfa_status"`
 	DebugTFACode          string                 `json:"debug_tfa_code,omitempty"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
@@ -51,12 +52,13 @@ func NewAppData(data model.AppData) AppData {
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
+		AnonymousLoginAllowed: data.AnonymousLoginAllowed(),
 	}}
 }
 
 // MakeAppData creates new in-memory app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
-	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool, anonymousLoginAllowed bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) AppData {
 
 	return AppData{appData: appData{
@@ -73,6 +75,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		AnonymousLoginAllowed: anonymousLoginAllowed,
 		TFAStatus:             tfaStatus,
 		DebugTFACode:          debugTFACode,
 		AuthorizationWay:      authzWay,
@@ -125,6 +128,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AnonymousLoginAllowed implements model.AppData interface.
+func (ad *AppData) AnonymousLoginAllowed() bool { return ad.appData.AnonymousLoginAllowed }
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }

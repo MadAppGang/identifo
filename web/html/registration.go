@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"path"
+	"strconv"
 	"strings"
 
 	"github.com/madappgang/identifo/model"
@@ -25,6 +26,17 @@ func (ar *Router) Register() http.HandlerFunc {
 			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
+		}
+
+		var isAnonymous bool
+		var err error
+		if isAnonymousStr := r.FormValue(isAnonymousKey); len(isAnonymousKey) > 0 {
+			isAnonymous, err = strconv.ParseBool(isAnonymousStr)
+			if err != nil {
+				ar.Logger.Printf("Error: Invalid anonymous parameter %s", isAnonymousStr)
+				http.Redirect(w, r, errorPath, http.StatusFound)
+				return
+			}
 		}
 
 		app := middleware.AppFromContext(r.Context())
@@ -58,6 +70,12 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
+		if isAnonymous && !app.AnonymousLoginAllowed() {
+			SetFlash(w, FlashErrorMessageKey, ErrorRegistrationForbidden.Error())
+			redirectToRegister()
+			return
+		}
+
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
@@ -80,7 +98,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole(), false)
+		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole(), isAnonymous)
 		if err != nil {
 			if err == model.ErrorUserExists {
 				SetFlash(w, FlashErrorMessageKey, err.Error())

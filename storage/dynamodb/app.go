@@ -30,6 +30,7 @@ type appData struct {
 	TFAStatus             model.TFAStatus        `json:"tfa_status"`
 	DebugTFACode          string                 `json:"debug_tfa_code,omitempty"`
 	RegistrationForbidden bool                   `json:"registration_forbidden"`
+	AnonymousLoginAllowed bool                   `json:"anonymous_login_allowed"`
 	AuthorizationWay      model.AuthorizationWay `json:"authorization_way,omitempty"`
 	AuthorizationModel    string                 `json:"authorization_model,omitempty"`
 	AuthorizationPolicy   string                 `json:"authorization_policy,omitempty"`
@@ -59,6 +60,7 @@ func NewAppData(data model.AppData) (AppData, error) {
 		TokenLifespan:         data.TokenLifespan(),
 		TokenPayload:          data.TokenPayload(),
 		RegistrationForbidden: data.RegistrationForbidden(),
+		AnonymousLoginAllowed: data.AnonymousLoginAllowed(),
 	}}, nil
 }
 
@@ -74,7 +76,7 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 
 // MakeAppData creates new DynamoDB app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
-	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool, anonymousLoginAllowed bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 	if _, err := xid.FromString(id); err != nil {
 		log.Println("Cannot create ID from the string representation:", err)
@@ -94,6 +96,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		TokenLifespan:         tokenLifespan,
 		TokenPayload:          tokenPayload,
 		RegistrationForbidden: registrationForbidden,
+		AnonymousLoginAllowed: anonymousLoginAllowed,
 		TFAStatus:             tfaStatus,
 		DebugTFACode:          debugTFACode,
 		AuthorizationWay:      authzWay,
@@ -157,6 +160,9 @@ func (ad *AppData) DebugTFACode() string { return ad.appData.DebugTFACode }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AnonymousLoginAllowed implements model.AppData interface.
+func (ad *AppData) AnonymousLoginAllowed() bool { return ad.appData.AnonymousLoginAllowed }
 
 // AuthzWay implements model.AppData interface.
 func (ad *AppData) AuthzWay() model.AuthorizationWay { return ad.appData.AuthorizationWay }
