@@ -13,29 +13,30 @@ type AppData struct {
 }
 
 type appData struct {
-	ID                    bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
-	Secret                string                 `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active                bool                   `bson:"active" json:"active"`
-	Name                  string                 `bson:"name,omitempty" json:"name,omitempty"`
-	Description           string                 `bson:"description,omitempty" json:"description,omitempty"`
-	Scopes                []string               `bson:"scopes,omitempty" json:"scopes,omitempty"`
-	Offline               bool                   `bson:"offline" json:"offline"`
-	Type                  model.AppType          `bson:"type,omitempty" json:"type,omitempty"`
-	RedirectURLs          []string               `bson:"redirect_urls,omitempty" json:"redirect_urls,omitempty"`
-	RefreshTokenLifespan  int64                  `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan   int64                  `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
-	TokenLifespan         int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
-	TokenPayload          []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
-	RegistrationForbidden bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
-	TFAStatus             model.TFAStatus        `bson:"tfa_status" json:"tfa_status"`
-	DebugTFACode          string                 `bson:"debug_tfa_code,omitempty" json:"debug_tfa_code,omitempty"`
-	AuthorizationWay      model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
-	AuthorizationModel    string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
-	AuthorizationPolicy   string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
-	RolesWhitelist        []string               `bson:"roles_whitelist,omitempty" json:"roles_whitelist,omitempty"`
-	RolesBlacklist        []string               `bson:"roles_blacklist,omitempty" json:"roles_blacklist,omitempty"`
-	NewUserDefaultRole    string                 `bson:"new_user_default_role,omitempty" json:"new_user_default_role,omitempty"`
-	AppleInfo             *model.AppleInfo       `bson:"apple_info,omitempty" json:"apple_info,omitempty"`
+	ID                           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	Secret                       string                 `bson:"secret,omitempty" json:"secret,omitempty"`
+	Active                       bool                   `bson:"active" json:"active"`
+	Name                         string                 `bson:"name,omitempty" json:"name,omitempty"`
+	Description                  string                 `bson:"description,omitempty" json:"description,omitempty"`
+	Scopes                       []string               `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	Offline                      bool                   `bson:"offline" json:"offline"`
+	Type                         model.AppType          `bson:"type,omitempty" json:"type,omitempty"`
+	RedirectURLs                 []string               `bson:"redirect_urls,omitempty" json:"redirect_urls,omitempty"`
+	RefreshTokenLifespan         int64                  `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan          int64                  `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`
+	TokenLifespan                int64                  `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`
+	TokenPayload                 []string               `bson:"token_payload,omitempty" json:"token_payload,omitempty"`
+	RegistrationForbidden        bool                   `bson:"registration_forbidden" json:"registration_forbidden"`
+	AnonymousRegistrationAllowed bool                   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
+	TFAStatus                    model.TFAStatus        `bson:"tfa_status" json:"tfa_status"`
+	DebugTFACode                 string                 `bson:"debug_tfa_code,omitempty" json:"debug_tfa_code,omitempty"`
+	AuthorizationWay             model.AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
+	AuthorizationModel           string                 `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
+	AuthorizationPolicy          string                 `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
+	RolesWhitelist               []string               `bson:"roles_whitelist,omitempty" json:"roles_whitelist,omitempty"`
+	RolesBlacklist               []string               `bson:"roles_blacklist,omitempty" json:"roles_blacklist,omitempty"`
+	NewUserDefaultRole           string                 `bson:"new_user_default_role,omitempty" json:"new_user_default_role,omitempty"`
+	AppleInfo                    *model.AppleInfo       `bson:"apple_info,omitempty" json:"apple_info,omitempty"`
 }
 
 // NewAppData instantiates MongoDB app data model from the general one.
@@ -44,26 +45,27 @@ func NewAppData(data model.AppData) (AppData, error) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                    bson.ObjectIdHex(data.ID()),
-		Secret:                data.Secret(),
-		Active:                data.Active(),
-		Name:                  data.Name(),
-		Description:           data.Description(),
-		Scopes:                data.Scopes(),
-		Offline:               data.Offline(),
-		RedirectURLs:          data.RedirectURLs(),
-		RefreshTokenLifespan:  data.RefreshTokenLifespan(),
-		InviteTokenLifespan:   data.InviteTokenLifespan(),
-		TokenLifespan:         data.TokenLifespan(),
-		TokenPayload:          data.TokenPayload(),
-		RegistrationForbidden: data.RegistrationForbidden(),
-		TFAStatus:             data.TFAStatus(),
-		AuthorizationWay:      data.AuthzWay(),
-		AuthorizationModel:    data.AuthzModel(),
-		AuthorizationPolicy:   data.AuthzPolicy(),
-		RolesWhitelist:        data.RolesWhitelist(),
-		RolesBlacklist:        data.RolesBlacklist(),
-		NewUserDefaultRole:    data.NewUserDefaultRole(),
+		ID:                           bson.ObjectIdHex(data.ID()),
+		Secret:                       data.Secret(),
+		Active:                       data.Active(),
+		Name:                         data.Name(),
+		Description:                  data.Description(),
+		Scopes:                       data.Scopes(),
+		Offline:                      data.Offline(),
+		RedirectURLs:                 data.RedirectURLs(),
+		RefreshTokenLifespan:         data.RefreshTokenLifespan(),
+		InviteTokenLifespan:          data.InviteTokenLifespan(),
+		TokenLifespan:                data.TokenLifespan(),
+		TokenPayload:                 data.TokenPayload(),
+		RegistrationForbidden:        data.RegistrationForbidden(),
+		AnonymousRegistrationAllowed: data.AnonymousRegistrationAllowed(),
+		TFAStatus:                    data.TFAStatus(),
+		AuthorizationWay:             data.AuthzWay(),
+		AuthorizationModel:           data.AuthzModel(),
+		AuthorizationPolicy:          data.AuthzPolicy(),
+		RolesWhitelist:               data.RolesWhitelist(),
+		RolesBlacklist:               data.RolesBlacklist(),
+		NewUserDefaultRole:           data.NewUserDefaultRole(),
 	}}, nil
 }
 
@@ -78,34 +80,35 @@ func AppDataFromJSON(d []byte) (AppData, error) {
 
 // MakeAppData creates new MongoDB app data instance.
 func MakeAppData(id, secret string, active bool, name, description string, scopes []string, offline bool, redirectURLs []string,
-	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool,
+	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool, anonymousRegistrationAllowed bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 
 	if !bson.IsObjectIdHex(id) {
 		return AppData{}, model.ErrorWrongDataFormat
 	}
 	return AppData{appData: appData{
-		ID:                    bson.ObjectIdHex(id),
-		Secret:                secret,
-		Active:                active,
-		Name:                  name,
-		Description:           description,
-		Scopes:                scopes,
-		Offline:               offline,
-		RedirectURLs:          redirectURLs,
-		RefreshTokenLifespan:  refreshTokenLifespan,
-		InviteTokenLifespan:   inviteTokenLifespan,
-		TokenLifespan:         tokenLifespan,
-		TokenPayload:          tokenPayload,
-		RegistrationForbidden: registrationForbidden,
-		TFAStatus:             tfaStatus,
-		DebugTFACode:          debugTFACode,
-		AuthorizationWay:      authzWay,
-		AuthorizationModel:    authzModel,
-		AuthorizationPolicy:   authzPolicy,
-		RolesWhitelist:        rolesWhitelist,
-		RolesBlacklist:        rolesBlacklist,
-		NewUserDefaultRole:    newUserDefaultRole,
+		ID:                           bson.ObjectIdHex(id),
+		Secret:                       secret,
+		Active:                       active,
+		Name:                         name,
+		Description:                  description,
+		Scopes:                       scopes,
+		Offline:                      offline,
+		RedirectURLs:                 redirectURLs,
+		RefreshTokenLifespan:         refreshTokenLifespan,
+		InviteTokenLifespan:          inviteTokenLifespan,
+		TokenLifespan:                tokenLifespan,
+		TokenPayload:                 tokenPayload,
+		RegistrationForbidden:        registrationForbidden,
+		AnonymousRegistrationAllowed: anonymousRegistrationAllowed,
+		TFAStatus:                    tfaStatus,
+		DebugTFACode:                 debugTFACode,
+		AuthorizationWay:             authzWay,
+		AuthorizationModel:           authzModel,
+		AuthorizationPolicy:          authzPolicy,
+		RolesWhitelist:               rolesWhitelist,
+		RolesBlacklist:               rolesBlacklist,
+		NewUserDefaultRole:           newUserDefaultRole,
 	}}, nil
 }
 
@@ -155,6 +158,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 
 // RegistrationForbidden implements model.AppData interface.
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
+
+// AnonymousRegistrationAllowed implements model.AppData interface.
+func (ad *AppData) AnonymousRegistrationAllowed() bool { return ad.appData.AnonymousRegistrationAllowed }
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }

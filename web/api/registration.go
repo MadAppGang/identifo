@@ -74,6 +74,11 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		if rd.Anonymous && !app.AnonymousRegistrationAllowed() {
+			ar.Error(w, ErrorAPIAppRegistrationForbidden, http.StatusForbidden, "Anonymous login forbidden in the app", "RegisterWithPassword.AnonymousRegistrationForbidden")
+			return
+		}
+
 		if err := rd.validate(); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RegisterWithPassword.validate")
 			return

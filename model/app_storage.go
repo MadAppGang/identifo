@@ -43,6 +43,7 @@ type AppData interface {
 	TFAStatus() TFAStatus
 	DebugTFACode() string
 	RegistrationForbidden() bool
+	AnonymousRegistrationAllowed() bool
 	AuthzWay() AuthorizationWay
 	AuthzModel() string
 	AuthzPolicy() string
@@ -61,8 +62,10 @@ const (
 	Web AppType = "web"
 	// Android is an Android app.
 	Android AppType = "android"
-	// IOS in an iOS app.
+	// IOS is an iOS app.
 	IOS AppType = "ios"
+	// Desktop is a desktop app.
+	Desktop AppType = "desktop"
 )
 
 // AuthorizationWay is a way of authorization supported by the application.
