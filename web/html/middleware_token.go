@@ -13,7 +13,7 @@ import (
 
 // ResetTokenMiddleware extracts reset token and validates it.
 func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
-	errorPath := path.Join(ar.PathPrefix, "/reset/error")
+	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.ResetTokenType)
 
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
