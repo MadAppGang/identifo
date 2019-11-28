@@ -58,6 +58,12 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
 				return
 			}
+
+			// Refetch user with new password hash.
+			if user, err = ar.userStorage.UserByNamePassword(user.Username(), d.NewPassword); err != nil {
+				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.RefetchUser")
+				return
+			}
 		}
 
 		// Change username if user specified new one.
