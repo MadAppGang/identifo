@@ -114,9 +114,13 @@ externalServices:
     sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
     region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
   smsService:   # SMS service settings.
-    type: mock # Supported values are: "twilio", "mock".
+    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
     accountSid: # Twilio-related setting.
     authToken: # Twilio-related setting.
     serviceSid: # Twilio-related setting.
     apiKey: # Nexmo-related setting.
     apiSecret: # Nexmo-related setting.
+    username: # RouteMobile-related setting.
+    password: # RouteMobile-related setting.
+    source: # RouteMobile-related setting.
+    region: # RouteMobile-related setting. Supported values are: uae.

@@ -15,6 +15,7 @@ import (
 	"github.com/madappgang/identifo/external_services/mail/ses"
 	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
 	"github.com/madappgang/identifo/external_services/sms/nexmo"
+	"github.com/madappgang/identifo/external_services/sms/routemobile"
 	"github.com/madappgang/identifo/external_services/sms/twilio"
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
@@ -271,6 +272,8 @@ func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error)
 		return twilio.NewSMSService(settings)
 	case model.SMSServiceNexmo:
 		return nexmo.NewSMSService(settings)
+	case model.SMSServiceRouteMobile:
+		return routemobile.NewSMSService(settings)
 	case model.SMSServiceMock:
 		return smsMock.NewSMSService()
 	}
