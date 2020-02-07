@@ -180,13 +180,18 @@ type EmailServiceSettings struct {
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {
 	Type SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-	// Twilio related config
+	// Twilio related config.
 	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
 	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
 	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
-	// Nexmo related config
+	// Nexmo related config.
 	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
 	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
+	// RouteMobile related config.
+	Username string `yaml:"username,omitempty" json:"username,omitempty"`
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	Source   string `yaml:"source,omitempty" json:"source,omitempty"`
+	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
 }
 
 // SMSServiceType - service for sending sms messages.
@@ -197,6 +202,8 @@ const (
 	SMSServiceTwilio SMSServiceType = "twilio"
 	// SMSServiceNexmo is a Nexmo SMS service.
 	SMSServiceNexmo SMSServiceType = "nexmo"
+	// SMSServiceRouteMobile is a RouteMobile SMS service.
+	SMSServiceRouteMobile SMSServiceType = "routemobile"
 	// SMSServiceMock is an SMS service mock.
 	SMSServiceMock SMSServiceType = "mock"
 )

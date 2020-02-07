@@ -271,6 +271,9 @@ func (ess *ExternalServicesSettings) Validate() error {
 	return nil
 }
 
+// RouteMobileRegionUAE is a regional UAE RouteMobileR platform.
+const RouteMobileRegionUAE = "uae"
+
 // Validate validates SMS service settings.
 func (sss *SMSServiceSettings) Validate() error {
 	subject := "SMSServiceSettings"
@@ -285,14 +288,22 @@ func (sss *SMSServiceSettings) Validate() error {
 	case SMSServiceMock:
 		return nil
 	case SMSServiceNexmo:
-		if len(sss.APIKey)*len(sss.APISecret) == 0 {
+		if len(sss.APIKey) == 0 || len(sss.APISecret) == 0 {
 			return fmt.Errorf("%s. Error creating Nexmo SMS service, missing at least one of the parameters:"+
 				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.APIKey, sss.APISecret)
 		}
 	case SMSServiceTwilio:
-		if len(sss.AccountSid)*len(sss.AuthToken)*len(sss.ServiceSid) == 0 {
+		if len(sss.AccountSid) == 0 || len(sss.AuthToken) == 0 || len(sss.ServiceSid) == 0 {
 			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
 				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.AccountSid, sss.AuthToken, sss.ServiceSid)
+		}
+	case SMSServiceRouteMobile:
+		if len(sss.Username) == 0 || len(sss.Password) == 0 || len(sss.Source) == 0 {
+			return fmt.Errorf("%s. Error creating RouteMobile SMS service, missing at least one of the parameters:"+
+				"\n username : %v\n password : %v\n", subject, sss.Username, sss.Password)
+		}
+		if sss.Region != RouteMobileRegionUAE {
+			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Region)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
