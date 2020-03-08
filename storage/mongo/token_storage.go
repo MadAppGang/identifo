@@ -1,23 +1,27 @@
 package mongo
 
 import (
+	"context"
+	"time"
+
 	"github.com/madappgang/identifo/model"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	// TokensCollection is a collection to store refresh tokens.
-	TokensCollection = "RefreshTokens"
-)
+const tokensCollectionName = "RefreshTokens"
 
 // NewTokenStorage creates a MongoDB token storage.
 func NewTokenStorage(db *DB) (model.TokenStorage, error) {
-	return &TokenStorage{db: db}, nil
+	coll := db.Database.Collection(tokensCollectionName)
+	return &TokenStorage{coll: coll, timeout: 30 * time.Second}, nil
 }
 
 // TokenStorage is a MongoDB token storage.
 type TokenStorage struct {
-	db *DB
+	coll    *mongo.Collection
+	timeout time.Duration
 }
 
 // SaveToken saves token in the database.
@@ -25,48 +29,44 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
 		return model.ErrorWrongDataFormat
 	}
-	s := ts.db.Session(TokensCollection)
-	defer s.Close()
 
-	var t = Token{Token: token, ID: bson.NewObjectId()}
-	err := s.C.Insert(t)
+	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
+	defer cancel()
+
+	var t = Token{Token: token, ID: primitive.NewObjectID()}
+	_, err := ts.coll.InsertOne(ctx, t)
 	return err
 }
 
 // HasToken returns true if the token is present in the storage.
 func (ts *TokenStorage) HasToken(token string) bool {
-	s := ts.db.Session(TokensCollection)
-	defer s.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
+	defer cancel()
 
 	var t Token
-	if err := s.C.Find(bson.M{"token": token}).One(&t); err != nil {
+	if err := ts.coll.FindOne(ctx, bson.M{"token": token}).Decode(&t); err != nil {
 		return false
 	}
 	if t.Token == token {
 		return true
 	}
-
 	return false
 }
 
 // DeleteToken removes token from the storage.
 func (ts *TokenStorage) DeleteToken(token string) error {
-	s := ts.db.Session(TokensCollection)
-	defer s.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
+	defer cancel()
 
-	if _, err := s.C.RemoveAll(bson.M{"token": token}); err != nil {
-		return err
-	}
-	return nil
+	_, err := ts.coll.DeleteMany(ctx, bson.M{"token": token})
+	return err
 }
 
-// Close closes database connection.
-func (ts *TokenStorage) Close() {
-	ts.db.Close()
-}
+// Close is a no-op.
+func (ts *TokenStorage) Close() {}
 
 // Token is struct to store tokens in database.
 type Token struct {
-	ID    bson.ObjectId `bson:"_id,omitempty"`
-	Token string        `bson:"token,omitempty"`
+	ID    primitive.ObjectID `bson:"_id,omitempty"` // TODO: Make use of jti claim.
+	Token string             `bson:"token,omitempty"`
 }

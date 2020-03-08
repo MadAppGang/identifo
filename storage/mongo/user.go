@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/madappgang/identifo/model"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // User is a data structure for MongoDB storage.
@@ -14,18 +14,18 @@ type User struct {
 
 // User data implementation.
 type userData struct {
-	ID              bson.ObjectId `bson:"_id,omitempty" json:"id,omitempty"`
-	Username        string        `bson:"username,omitempty" json:"username,omitempty"`
-	Email           string        `bson:"email,omitempty" json:"email,omitempty"`
-	Phone           string        `bson:"phone,omitempty" json:"phone,omitempty"`
-	Pswd            string        `bson:"pswd,omitempty" json:"pswd,omitempty"`
-	Active          bool          `bson:"active,omitempty" json:"active,omitempty"`
-	TFAInfo         model.TFAInfo `bson:"tfa_info" json:"tfa_info"`
-	FederatedIDs    []string      `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
-	NumOfLogins     int           `bson:"num_of_logins" json:"num_of_logins,omitempty"`
-	LatestLoginTime int64         `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
-	AccessRole      string        `bson:"access_role,omitempty" json:"access_role,omitempty"`
-	Anonymous       bool          `json:"anonymous,omitempty"`
+	ID              primitive.ObjectID `bson:"_id,omitempty" json:"id,omitempty"`
+	Username        string             `bson:"username,omitempty" json:"username,omitempty"`
+	Email           string             `bson:"email,omitempty" json:"email,omitempty"`
+	Phone           string             `bson:"phone,omitempty" json:"phone,omitempty"`
+	Pswd            string             `bson:"pswd,omitempty" json:"pswd,omitempty"`
+	Active          bool               `bson:"active,omitempty" json:"active,omitempty"`
+	TFAInfo         model.TFAInfo      `bson:"tfa_info" json:"tfa_info"`
+	FederatedIDs    []string           `bson:"federated_ids,omitempty" json:"federated_ids,omitempty"`
+	NumOfLogins     int                `bson:"num_of_logins" json:"num_of_logins,omitempty"`
+	LatestLoginTime int64              `bson:"latest_login_time,omitempty" json:"latest_login_time,omitempty"`
+	AccessRole      string             `bson:"access_role,omitempty" json:"access_role,omitempty"`
+	Anonymous       bool               `json:"anonymous,omitempty"`
 }
 
 // Sanitize removes sensitive data.

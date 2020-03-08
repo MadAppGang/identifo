@@ -59,13 +59,21 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
 	if _, err := os.Stat(ks.PublicKeyPath); err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("Public key file not found")
+			wd, wdErr := os.Getwd()
+			if wdErr != nil {
+				return nil, fmt.Errorf("Public key not found. Also, cannot get working directory: %s", wdErr)
+			}
+			return nil, fmt.Errorf("Public key file not found. Working directory: %s, key path: %s", wd, ks.PublicKeyPath)
 		}
 		return nil, fmt.Errorf("Error while checking public key existence. %s", err)
 	}
 	if _, err := os.Stat(ks.PrivateKeyPath); err != nil {
 		if os.IsNotExist(err) {
-			return nil, fmt.Errorf("Private key file not found")
+			wd, wdErr := os.Getwd()
+			if wdErr != nil {
+				return nil, fmt.Errorf("Private key not found. Also, cannot get working directory: %s", wdErr)
+			}
+			return nil, fmt.Errorf("Private key file not found. Working directory: %s, key path: %s", wd, ks.PrivateKeyPath)
 		}
 		return nil, fmt.Errorf("Error while checking private key existence. %s", err)
 	}

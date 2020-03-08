@@ -13,8 +13,8 @@ adminAccount:
 # endpoints and regions for DynamoDB etc.) are assumed to be the same across
 # all storages. If they are not the same, the latest option in this file will be applied.
 # For example, if there are two MongoDB-backed storages, appStorage and tokenStorage,
-# and endpoint for appStorage is localhost:27017, while tokenStorage's endpoint is localhost:27018,
-# server will connect both storages to localhost:27018.
+# and endpoint for appStorage is mongodb://localhost:27017, while tokenStorage's endpoint is mongodb://localhost:27018,
+# server will connect both storages to mongodb://localhost:27018.
 storage:
   appStorage:
     # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
@@ -22,7 +22,7 @@ storage:
     # Name of the database (MongoDB-specific)
     name: identifo
     # Endpoint of the database server (MongoDB and DynamoDB specific). For DynamoDB, can be inferred from the region automatically.
-    endpoint: localhost:27017
+    endpoint: mongodb://localhost:27017
     # AWS Region where the database is located in (DynamoDB-specific).
     # Full list of possible values: https://docs.aws.amazon.com/general/latest/gr/rande.html.
     region: us-east-2
@@ -31,25 +31,25 @@ storage:
   userStorage:
     type: boltdb
     name: identifo
-    endpoint: localhost:27017
+    endpoint: mongodb://localhost:27017
     region: us-east-2
     path: ./db.db
   tokenStorage:
     type: boltdb
     name: identifo
-    endpoint: localhost:27017
+    endpoint: mongodb://localhost:27017
     region: us-east-2
     path: ./db.db
   tokenBlacklist:
     type: boltdb 
     name: identifo
-    endpoint: localhost:27017
+    endpoint: mongodb://localhost:27017
     region: us-east-2
     path: ./db.db
   verificationCodeStorage:
     type: boltdb
     name: identifo
-    endpoint: localhost:27017
+    endpoint: mongodb://localhost:27017
     region: us-east-2
     path: ./db.db
 

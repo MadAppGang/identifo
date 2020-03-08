@@ -1,23 +1,27 @@
 package mongo
 
 import (
+	"context"
+	"time"
+
 	"github.com/madappgang/identifo/model"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
 )
 
-const (
-	// BlacklistedTokensCollection is a collection where blacklisted tokens are stored.
-	BlacklistedTokensCollection = "BlacklistedTokens"
-)
+const blacklistedTokensCollectionName = "BlacklistedTokens"
 
-// NewTokenBlacklist creates a MongoDB token storage.
+// NewTokenBlacklist creates new MongoDB-backed token blacklist.
 func NewTokenBlacklist(db *DB) (model.TokenBlacklist, error) {
-	return &TokenBlacklist{db: db}, nil
+	coll := db.Database.Collection(blacklistedTokensCollectionName)
+	return &TokenBlacklist{coll: coll, timeout: 30 * time.Second}, nil
 }
 
-// TokenBlacklist is a MongoDB token blacklist.
+// TokenBlacklist is a MongoDB-backed token blacklist.
 type TokenBlacklist struct {
-	db *DB
+	coll    *mongo.Collection
+	timeout time.Duration
 }
 
 // Add adds token to the blacklist.
@@ -25,21 +29,22 @@ func (tb *TokenBlacklist) Add(token string) error {
 	if len(token) == 0 {
 		return model.ErrorWrongDataFormat
 	}
-	s := tb.db.Session(BlacklistedTokensCollection)
-	defer s.Close()
 
-	var t = Token{Token: token, ID: bson.NewObjectId()}
-	err := s.C.Insert(t)
+	ctx, cancel := context.WithTimeout(context.Background(), tb.timeout)
+	defer cancel()
+
+	var t = Token{Token: token, ID: primitive.NewObjectID()}
+	_, err := tb.coll.InsertOne(ctx, t)
 	return err
 }
 
 // IsBlacklisted returns true if the token is present in the blacklist.
 func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
-	s := tb.db.Session(BlacklistedTokensCollection)
-	defer s.Close()
+	ctx, cancel := context.WithTimeout(context.Background(), tb.timeout)
+	defer cancel()
 
 	var t Token
-	if err := s.C.Find(bson.M{"token": token}).One(&t); err != nil {
+	if err := tb.coll.FindOne(ctx, bson.M{"token": token}).Decode(&t); err != nil {
 		return false
 	}
 	if t.Token == token {
@@ -48,7 +53,5 @@ func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
 	return false
 }
 
-// Close closes database connection.
-func (tb *TokenBlacklist) Close() {
-	tb.db.Close()
-}
+// Close is a no-op.
+func (tb *TokenBlacklist) Close() {}

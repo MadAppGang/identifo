@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 
 	"github.com/madappgang/identifo/model"
-	"gopkg.in/mgo.v2/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 // AppData is a MongoDb model that implements model.AppData.
@@ -13,7 +13,7 @@ type AppData struct {
 }
 
 type appData struct {
-	ID                           bson.ObjectId          `bson:"_id,omitempty" json:"id,omitempty"`
+	ID                           primitive.ObjectID     `bson:"_id,omitempty" json:"id,omitempty"` // TODO: use string?
 	Secret                       string                 `bson:"secret,omitempty" json:"secret,omitempty"`
 	Active                       bool                   `bson:"active" json:"active"`
 	Name                         string                 `bson:"name,omitempty" json:"name,omitempty"`
@@ -41,11 +41,12 @@ type appData struct {
 
 // NewAppData instantiates MongoDB app data model from the general one.
 func NewAppData(data model.AppData) (AppData, error) {
-	if !bson.IsObjectIdHex(data.ID()) {
-		return AppData{}, model.ErrorWrongDataFormat
+	hexID, err := primitive.ObjectIDFromHex(data.ID())
+	if err != nil {
+		return AppData{}, err
 	}
 	return AppData{appData: appData{
-		ID:                           bson.ObjectIdHex(data.ID()),
+		ID:                           hexID,
 		Secret:                       data.Secret(),
 		Active:                       data.Active(),
 		Name:                         data.Name(),
@@ -83,11 +84,12 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 	refreshTokenLifespan, inviteTokenLifespan, tokenLifespan int64, tokenPayload []string, registrationForbidden bool, anonymousRegistrationAllowed bool,
 	tfaStatus model.TFAStatus, debugTFACode string, authzWay model.AuthorizationWay, authzModel, authzPolicy string, rolesWhitelist, rolesBlacklist []string, newUserDefaultRole string) (AppData, error) {
 
-	if !bson.IsObjectIdHex(id) {
-		return AppData{}, model.ErrorWrongDataFormat
+	hexID, err := primitive.ObjectIDFromHex(id)
+	if err != nil {
+		return AppData{}, err
 	}
 	return AppData{appData: appData{
-		ID:                           bson.ObjectIdHex(id),
+		ID:                           hexID,
 		Secret:                       secret,
 		Active:                       active,
 		Name:                         name,
