@@ -16,27 +16,27 @@ require (
 	github.com/gogo/protobuf v1.2.1 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/schema v1.1.0 // indirect
+	github.com/kisielk/gotool v1.0.0 // indirect
 	github.com/leodido/go-urn v1.1.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/pallinder/go-randomdata v1.2.0
-	github.com/pkg/errors v0.8.1 // indirect
 	github.com/qiangmzsx/string-adapter v0.0.0-20180323073508-38f25303bb0c
 	github.com/rs/cors v1.6.0
 	github.com/rs/xid v1.2.1
+	github.com/satori/go.uuid v1.2.0
 	github.com/sfreiberg/gotwilio v0.0.0-20190708190155-499f54b30211
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
 	go.etcd.io/etcd v3.3.13+incompatible
+	go.mongodb.org/mongo-driver v1.3.0
 	golang.org/x/crypto v0.0.0-20190701094942-4def268fd1a4
 	golang.org/x/net v0.0.0-20190724013045-ca1201d0de80 // indirect
 	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
-	golang.org/x/text v0.3.2 // indirect
 	google.golang.org/appengine v1.4.0 // indirect
 	google.golang.org/genproto v0.0.0-20190716160619-c506a9f90610 // indirect
 	google.golang.org/grpc v1.22.0 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1
-	gopkg.in/mgo.v2 v2.0.0-20180705113604-9856a29383ce
 	gopkg.in/njern/gonexmo.v2 v2.0.0 // indirect
 	gopkg.in/yaml.v2 v2.2.2
 )
