@@ -1,6 +1,6 @@
 module github.com/madappgang/identifo
 
-go 1.12
+go 1.14
 
 require (
 	github.com/akrylysov/algnhsa v0.0.0-20190319020909-05b3d192e9a7
@@ -24,7 +24,7 @@ require (
 	github.com/qiangmzsx/string-adapter v0.0.0-20180323073508-38f25303bb0c
 	github.com/rs/cors v1.6.0
 	github.com/rs/xid v1.2.1
-	github.com/satori/go.uuid v1.2.0
+	github.com/satori/go.uuid v1.2.0 // indirect
 	github.com/sfreiberg/gotwilio v0.0.0-20190708190155-499f54b30211
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
