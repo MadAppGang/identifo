@@ -169,7 +169,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 // UserByNamePassword returns user by name and password.
 func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
-	strictPattern := "^" + name + "$"
+	strictPattern := "^" + strings.ReplaceAll(name, "+", "\\+") + "$"
 	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
