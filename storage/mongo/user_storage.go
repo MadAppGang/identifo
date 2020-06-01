@@ -108,7 +108,7 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	defer cancel()
 
 	var u userData
-	if err := us.coll.FindOne(ctx, bson.M{"federatedIDs": sid}).Decode(&u); err != nil {
+	if err := us.coll.FindOne(ctx, bson.M{"federated_ids": sid}).Decode(&u); err != nil {
 		return nil, model.ErrUserNotFound
 	}
 	//clear password hash
