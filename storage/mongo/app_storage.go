@@ -135,7 +135,7 @@ func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 		return nil, model.ErrorWrongDataFormat
 	}
 
-	if _, err := primitive.ObjectIDFromHex(app.ID()); err != nil {
+	if objID, err := primitive.ObjectIDFromHex(app.ID()); err != nil || objID == primitive.NilObjectID {
 		a.appData.ID = primitive.NewObjectID()
 	}
 

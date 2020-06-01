@@ -4,7 +4,7 @@ FROM golang:1.14.1 as builder
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
 COPY . ./
 RUN go mod download
-RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /app .
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /identifo .
 
 FROM alpine:latest
 RUN apk --no-cache add ca-certificates
