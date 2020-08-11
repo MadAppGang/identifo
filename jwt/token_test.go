@@ -239,7 +239,7 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Unable to init configuration storage. %v", err)
 	}
-	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmES256)
+	keys, err := configStorage.LoadKeys(ijwt.TokenSignatureAlgorithmAuto)
 	if err != nil {
 		t.Fatalf("Cannot load keys = %s", err)
 	}
