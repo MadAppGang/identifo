@@ -35,8 +35,8 @@ type ErrorHandler interface {
 	Error(rw http.ResponseWriter, errorType Error, status int, description string)
 }
 
-//Middleware returns middleware function you can use
-func Middleware(eh ErrorHandler, c validator.Config) Handler {
+//JWT returns middleware function you can use 
+func JWT(eh ErrorHandler, c validator.Config) Handler {
 
 	v := validator.NewValidatorWithConfig(c)
 	// Middleware middleware functions extracts token and validates it and store the parsed token in the context
