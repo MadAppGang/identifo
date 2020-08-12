@@ -2,6 +2,21 @@ package jwt
 
 import jwt "github.com/dgrijalva/jwt-go"
 
+const (
+	// OfflineTokenScope is a scope value to request refresh token.
+	OfflineTokenScope = "offline"
+	// RefrestTokenType is a refresh token type value.
+	RefrestTokenType = "refresh"
+	// InviteTokenType is an invite token type value.
+	InviteTokenType = "invite"
+	// AccessTokenType is an access token type value.
+	AccessTokenType = "access"
+	// ResetTokenType is a reset password token type value.
+	ResetTokenType = "reset"
+	// WebCookieTokenType is a web-cookie token type value.
+	WebCookieTokenType = "web-cookie"
+)
+
 // Token is an abstract application token.
 type Token interface {
 	Validate() error

@@ -6,6 +6,8 @@ import (
 	jwt "github.com/dgrijalva/jwt-go"
 )
 
+var supportedSignatureAlgorithms = []TokenSignatureAlgorithm{TokenSignatureAlgorithmES256, TokenSignatureAlgorithmRS256}
+
 // LoadPrivateKeyFromPEM loads private key from PEM file.
 func LoadPrivateKeyFromPEM(file string, alg TokenSignatureAlgorithm) (interface{}, error) {
 	prkb, err := ioutil.ReadFile(file)
@@ -32,6 +34,11 @@ func LoadPrivateKeyFromPEM(file string, alg TokenSignatureAlgorithm) (interface{
 
 // LoadPublicKeyFromPEM loads public key from PEM file.
 func LoadPublicKeyFromPEM(file string, alg TokenSignatureAlgorithm) (interface{}, error) {
+	if alg == TokenSignatureAlgorithmAuto {
+		k, _, e := LoadPublicKeyFromPEMAuto(file)
+		return k, e
+	}
+
 	pkb, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, err
@@ -53,8 +60,27 @@ func LoadPublicKeyFromPEM(file string, alg TokenSignatureAlgorithm) (interface{}
 	return publicKey, nil
 }
 
+//LoadPublicKeyFromPEMAuto loads keys from pem file with key algorithm auto detection
+func LoadPublicKeyFromPEMAuto(file string) (interface{}, TokenSignatureAlgorithm, error) {
+	var err error
+	var key interface{}
+	alg := TokenSignatureAlgorithmAuto
+	for _, a := range supportedSignatureAlgorithms {
+		if key, err = LoadPublicKeyFromPEM(file, a); err == nil {
+			alg = a
+			break
+		}
+	}
+	return key, alg, err
+}
+
 // LoadPublicKeyFromString loads public key from string.
 func LoadPublicKeyFromString(s string, alg TokenSignatureAlgorithm) (interface{}, error) {
+	if alg == TokenSignatureAlgorithmAuto {
+		k, _, e := LoadPublicKeyFromStringAuto(s)
+		return k, e
+	}
+
 	var publicKey interface{}
 	var err error
 
@@ -71,4 +97,18 @@ func LoadPublicKeyFromString(s string, alg TokenSignatureAlgorithm) (interface{}
 		return nil, err
 	}
 	return publicKey, nil
+}
+
+//LoadPublicKeyFromStringAuto loads keys from string with key algorithm auto detection
+func LoadPublicKeyFromStringAuto(s string) (interface{}, TokenSignatureAlgorithm, error) {
+	var err error
+	var key interface{}
+	alg := TokenSignatureAlgorithmAuto
+	for _, a := range supportedSignatureAlgorithms {
+		if key, err = LoadPublicKeyFromString(s, a); err == nil {
+			alg = a
+			break
+		}
+	}
+	return key, alg, err
 }

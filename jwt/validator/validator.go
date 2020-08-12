@@ -2,13 +2,16 @@ package validator
 
 import (
 	"errors"
+	"os"
 
-	ijwt "github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/jwt"
 )
 
 var (
 	// ErrTokenValidationNoExpiration is when the token does not have an expiration date.
 	ErrTokenValidationNoExpiration = errors.New("Token is invalid, no expire date")
+	// ErrTokenValidationExpired is when the token expiration date has passed
+	ErrTokenValidationExpired = errors.New("Token is invalid, token has expired")
 	// ErrTokenValidationNoIAT is when IAT verification fails.
 	ErrTokenValidationNoIAT = errors.New("Token is invalid, no issued at date")
 	// ErrTokenValidationInvalidIssuer is when the token has invalid issuer.
@@ -19,6 +22,8 @@ var (
 	ErrTokenValidationInvalidSubject = errors.New("Token is invalid, subject is invalid")
 	// ErrorTokenValidationTokenTypeMismatch is when the token has invalid type.
 	ErrorTokenValidationTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
+	//ErrorConfigurationMissingPublicKey is when public key is missing
+	ErrorConfigurationMissingPublicKey = errors.New("Missing public key to decode the token from string")
 )
 
 const (
@@ -32,7 +37,30 @@ const (
 
 // Validator is an abstract token validator.
 type Validator interface {
-	Validate(ijwt.Token) error
+	Validate(jwt.Token) error
+	ValidateString(string) (jwt.Token, error)
+}
+
+//Config is a struct to set all the required params for Validator
+type Config struct {
+	Audience  string
+	Issuer    string
+	UserID    string
+	TokenType string
+	PublicKey interface{}
+	//PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
+	PubKeyEnvName string
+	//PubKeyFileName file path with public key, could be empty if you want to use env variable.
+	PubKeyFileName string
+	//PubKeyURL URL for well-known JWKS
+	PubKeyURL string
+}
+
+//NewConfig creates and returns default config
+func NewConfig() Config {
+	return Config{
+		TokenType: jwt.AccessTokenType,
+	}
 }
 
 // NewValidator creates new JWT tokens validator.
@@ -49,18 +77,45 @@ func NewValidator(audience, issuer, userID, tokenType string) Validator {
 	}
 }
 
+// NewValidatorWithConfig creates new JWT tokens validator with public key from config file.
+// Arguments:
+// - appID - application ID which have made the request, should be in audience field of JWT token.
+// - issuer - this server name, should be the same as issuer of JWT token.
+// - userID - user who have made the request. If this field is empty, we do not validate it.
+// - config - public key to parse the token.
+func NewValidatorWithConfig(c Config) Validator {
+	var key interface{}
+	if len(c.PubKeyEnvName) > 0 {
+		pk := os.Getenv(c.PubKeyEnvName)
+		key, _, _ = jwt.LoadPublicKeyFromStringAuto(pk)
+	} else if len(c.PubKeyFileName) > 0 {
+		key, _, _ = jwt.LoadPublicKeyFromPEMAuto(c.PubKeyFileName)
+	}
+
+	return &validator{
+		audience:  c.Audience,
+		issuer:    c.Issuer,
+		userID:    c.UserID,
+		tokenType: c.TokenType,
+		publicKey: key,
+	}
+}
+
+//TODO: implement initializer with JWKS URL .well-known
+
 // validator is a JWT token validator.
 type validator struct {
 	audience  string
 	issuer    string
 	userID    string
 	tokenType string
+	publicKey interface{}
 }
 
 // Validate validates token.
-func (v *validator) Validate(t ijwt.Token) error {
+func (v *validator) Validate(t jwt.Token) error {
 	if t == nil {
-		return ijwt.ErrEmptyToken
+		return jwt.ErrEmptyToken
 	}
 	// We assume the signature and standart claims were validated on parse.
 	if err := t.Validate(); err != nil {
@@ -70,24 +125,28 @@ func (v *validator) Validate(t ijwt.Token) error {
 	// We have already validated time based claims "exp, iat, nbf".
 	// But, if any of the above claims are not in the token, it will still be considered a valid claim.
 	// That's why these two fields are required: "exp, iat".
-	token, ok := t.(*ijwt.JWToken)
+	token, ok := t.(*jwt.JWToken)
 	if !ok {
-		return ijwt.ErrTokenInvalid
+		return jwt.ErrTokenInvalid
 	}
 
 	// Ensure the signature algorithm attack is not passing through.
 	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
-		return ijwt.ErrTokenInvalid
+		return jwt.ErrTokenInvalid
 	}
 
-	claims, ok := token.JWT.Claims.(*ijwt.Claims)
+	claims, ok := token.JWT.Claims.(*jwt.Claims)
 	if !ok {
-		return ijwt.ErrTokenInvalid
+		return jwt.ErrTokenInvalid
 	}
 
-	now := ijwt.TimeFunc().Unix()
-	if !claims.VerifyExpiresAt(now, true) {
+	if claims.ExpiresAt == 0 {
 		return ErrTokenValidationNoExpiration
+	}
+
+	now := jwt.TimeFunc().Unix()
+	if !claims.VerifyExpiresAt(now, true) {
+		return ErrTokenValidationExpired
 	}
 
 	if !claims.VerifyIssuedAt(now, true) {
@@ -114,10 +173,13 @@ func (v *validator) Validate(t ijwt.Token) error {
 }
 
 // ValidateString validates string representation of the token.
-func (v *validator) ValidateString(t string, publicKey interface{}) error {
-	token, err := ijwt.ParseTokenWithPublicKey(t, publicKey)
-	if err != nil {
-		return err
+func (v *validator) ValidateString(t string) (jwt.Token, error) {
+	if v.publicKey == nil {
+		return nil, ErrorConfigurationMissingPublicKey
 	}
-	return v.Validate(token)
+	token, err := jwt.ParseTokenWithPublicKey(t, v.publicKey)
+	if err != nil {
+		return nil, err
+	}
+	return token, v.Validate(token)
 }
