@@ -8,7 +8,7 @@ import (
 )
 
 var (
-	// ErrTokenValidationNoExpiration is when the token does not have an expiration date ir .
+	// ErrTokenValidationNoExpiration is when the token does not have an expiration date.
 	ErrTokenValidationNoExpiration = errors.New("Token is invalid, no expire date")
 	// ErrTokenValidationExpired is when the token expiration date has passed
 	ErrTokenValidationExpired = errors.New("Token is invalid, token has expired")
