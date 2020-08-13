@@ -54,12 +54,18 @@ type Config struct {
 	PubKeyFileName string
 	//PubKeyURL URL for well-known JWKS
 	PubKeyURL string
+	//should we always check audience for the token. If yes and audience is empty the validation will fail.
+	IsAudienceRequired bool
+	//should we always check iss for the token. If yes and iss is empty the validation will fail.
+	IsIssuerRequired bool
 }
 
 //NewConfig creates and returns default config
 func NewConfig() Config {
 	return Config{
-		TokenType: jwt.AccessTokenType,
+		TokenType:          jwt.AccessTokenType,
+		IsAudienceRequired: true,
+		IsIssuerRequired:   true,
 	}
 }
 
@@ -74,6 +80,8 @@ func NewValidator(audience, issuer, userID, tokenType string) Validator {
 		issuer:    issuer,
 		userID:    userID,
 		tokenType: tokenType,
+		strictAud: true,
+		strictIss: true,
 	}
 }
 
@@ -97,6 +105,8 @@ func NewValidatorWithConfig(c Config) Validator {
 		issuer:    c.Issuer,
 		userID:    c.UserID,
 		tokenType: c.TokenType,
+		strictAud: c.IsAudienceRequired,
+		strictIss: c.IsIssuerRequired,
 		publicKey: key,
 	}
 }
@@ -110,6 +120,8 @@ type validator struct {
 	userID    string
 	tokenType string
 	publicKey interface{}
+	strictIss bool
+	strictAud bool
 }
 
 // Validate validates token.
