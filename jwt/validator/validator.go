@@ -165,11 +165,11 @@ func (v *validator) Validate(t jwt.Token) error {
 		return ErrTokenValidationNoIAT
 	}
 
-	if !claims.VerifyAudience(v.audience, true) {
+	if !claims.VerifyAudience(v.audience, v.strictAud) {
 		return ErrTokenValidationInvalidAudience
 	}
 
-	if !claims.VerifyIssuer(v.issuer, true) {
+	if !claims.VerifyIssuer(v.issuer, v.strictIss) {
 		return ErrTokenValidationInvalidIssuer
 	}
 
