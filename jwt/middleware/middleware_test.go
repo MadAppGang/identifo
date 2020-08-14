@@ -65,7 +65,7 @@ func TestMiddleware(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			meh := mockErrorHandler{t: t, e: ""}
-			handler := middleware.JWT(meh, tt.args.c)
+			handler, _ := middleware.JWT(meh, tt.args.c)
 			req, _ := http.NewRequest(http.MethodGet, "testServer.URL", nil)
 			req.Header.Add("Authorization", "Bearer "+tokenStringExample)
 			next := func(rw http.ResponseWriter, r *http.Request) {

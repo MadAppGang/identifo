@@ -91,13 +91,14 @@ func NewValidator(audience, issuer, userID, tokenType string) Validator {
 // - issuer - this server name, should be the same as issuer of JWT token.
 // - userID - user who have made the request. If this field is empty, we do not validate it.
 // - config - public key to parse the token.
-func NewValidatorWithConfig(c Config) Validator {
+func NewValidatorWithConfig(c Config) (Validator, error) {
 	var key interface{}
+	var err error = nil
 	if len(c.PubKeyEnvName) > 0 {
 		pk := os.Getenv(c.PubKeyEnvName)
-		key, _, _ = jwt.LoadPublicKeyFromStringAuto(pk)
+		key, _, err = jwt.LoadPublicKeyFromStringAuto(pk)
 	} else if len(c.PubKeyFileName) > 0 {
-		key, _, _ = jwt.LoadPublicKeyFromPEMAuto(c.PubKeyFileName)
+		key, _, err = jwt.LoadPublicKeyFromPEMAuto(c.PubKeyFileName)
 	}
 
 	return &validator{
@@ -108,7 +109,7 @@ func NewValidatorWithConfig(c Config) Validator {
 		strictAud: c.IsAudienceRequired,
 		strictIss: c.IsIssuerRequired,
 		publicKey: key,
-	}
+	}, err
 }
 
 //TODO: implement initializer with JWKS URL .well-known

@@ -35,10 +35,13 @@ type ErrorHandler interface {
 	Error(rw http.ResponseWriter, errorType Error, status int, description string)
 }
 
-//JWT returns middleware function you can use 
-func JWT(eh ErrorHandler, c validator.Config) Handler {
+//JWT returns middleware function you can use to handle JWT token auth
+func JWT(eh ErrorHandler, c validator.Config) (Handler, error) {
 
-	v := validator.NewValidatorWithConfig(c)
+	v, err := validator.NewValidatorWithConfig(c)
+	if err != nil {
+		return nil, err
+	}
 	// Middleware middleware functions extracts token and validates it and store the parsed token in the context
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		tokenBytes := jwt.ExtractTokenFromBearerHeader(r.Header.Get(AuthorizationHeaderKey))
@@ -57,7 +60,7 @@ func JWT(eh ErrorHandler, c validator.Config) Handler {
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
-	}
+	}, nil
 }
 
 // TokenFromContext returns token from request context.
