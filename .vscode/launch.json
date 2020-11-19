@@ -33,7 +33,7 @@
             "port": 2345,
             "host": "127.0.0.1",
             "program": "${workspaceFolder}/cmd/boltdb/main.go",
-            "cwd": "${workspaceFolder}/cmd/boltdb/",
+            "cwd": "${workspaceFolder}",
             "env": {
                 "SES_REGION": "us-east-1",
                 "SES_SENDER": "noreply@cco.link",
