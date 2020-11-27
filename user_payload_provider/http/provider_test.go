@@ -16,7 +16,7 @@ const (
 	userId  = "09876543d21"
 )
 
-func Test_provider_UserPayloadForApp(t *testing.T) {
+func Test_provider_TokenPayloadForApp(t *testing.T) {
 	//precalculated value from https://www.freeformatter.com/hmac-generator.html#ad-output
 	//using input: {"app_id":"12345","app_name":"I am the web app","user_id":"09876543d21"}
 	expectedDigest := "b9a6be00d9656fee55165749596a321a2c33abf795d61d5714c44715b81371a0"
@@ -31,7 +31,7 @@ func Test_provider_UserPayloadForApp(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	p, err := hu.NewUserPayloadProvider(secret, ts.URL)
+	p, err := hu.NewTokenPayloadProvider(secret, ts.URL)
 	if err != nil {
 		t.Errorf("unable to create provider with error %v", err)
 		t.FailNow()
@@ -42,7 +42,7 @@ func Test_provider_UserPayloadForApp(t *testing.T) {
 		t.FailNow()
 	}
 
-	payload, err := p.UserPayloadForApp(appId, appName, userId)
+	payload, err := p.TokenPayloadForApp(appId, appName, userId)
 	if err != nil {
 		t.Errorf("unable to get data payload with error %v", err)
 		t.FailNow()

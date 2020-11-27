@@ -52,6 +52,11 @@ type AppData interface {
 	NewUserDefaultRole() string
 	AppleInfo() *AppleInfo
 	SetSecret(secret string)
+
+	//Token payload related services
+	TokenPayloadService() TokenPayloadServiceType
+	TokenPayloadServicePluginSettings() TokenPayloadServicePluginSettings
+	TokenPayloadServiceHttpSettings() TokenPayloadServiceHttpSettings
 }
 
 // AppType is a type of application.
@@ -95,3 +100,26 @@ const (
 	// TFAStatusDisabled is when the app does not support TFA.
 	TFAStatusDisabled = "disabled"
 )
+
+// TokenPayloadServiceType service to allow fetch additional data to include to access token
+type TokenPayloadServiceType string
+
+const (
+	// TokenPayloadServiceNone no service is used
+	TokenPayloadServiceNone = "none"
+	// TokenPayloadServicePlugin user local identifo plugin with specific name to retreive token payload
+	TokenPayloadServicePlugin = "plugin"
+	// TokenPayloadServiceHttp use external service to get token paylad
+	TokenPayloadServiceHttp = "http"
+)
+
+// TokenPayloadServicePluginSettings settings for token payload service
+type TokenPayloadServicePluginSettings struct {
+	Name string `json:"name,omitempty" bson:"name,omitempty"`
+}
+
+// TokenPayloadServiceHttpSettings settings for token payload service
+type TokenPayloadServiceHttpSettings struct {
+	URL    string `json:"url,omitempty" bson:"url,omitempty"`
+	Secret string `json:"secret,omitempty" bson:"secret,omitempty"`
+}

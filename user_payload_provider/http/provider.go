@@ -15,7 +15,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-//NewUserPayloadProvider creates new HTTP webhood  provider
+//NewTokenPayloadProvider creates new HTTP webhood  provider
 //it basically to the call to 3rd party http service
 //to secure this interaction, the receiver should apply some actions to ensure
 //the authorized Identity service is doing the request
@@ -27,7 +27,7 @@ import (
 //Please verify signature on your side
 //
 //you  can also whitelist identifo's IP as an extra step
-func NewUserPayloadProvider(secret string, serviceURL string) (model.UserPayloadProvider, error) {
+func NewTokenPayloadProvider(secret string, serviceURL string) (model.TokenPayloadProvider, error) {
 	if len(secret) < 5 {
 		return nil, errors.New("http user payload provider init error, the secret is empty or short, it should be at least 5 chars long")
 	}
@@ -47,7 +47,7 @@ type provider struct {
 	url    string
 }
 
-func (p *provider) UserPayloadForApp(appId, appName, userId string) (map[string]interface{}, error) {
+func (p *provider) TokenPayloadForApp(appId, appName, userId string) (map[string]interface{}, error) {
 	body, _ := json.Marshal(map[string]string{
 		"app_id":   appId,
 		"app_name": appName,
@@ -63,6 +63,7 @@ func (p *provider) UserPayloadForApp(appId, appName, userId string) (map[string]
 		return nil, fmt.Errorf("creating http client fro http user payload provider: %v", err)
 	}
 	request.Header.Set("Digest", "SHA-256="+sha)
+	request.Header.Set("Content-type", "application/json")
 	resp, err := client.Do(request)
 	if err != nil {
 		return nil, fmt.Errorf("getting user payload: %v", err)

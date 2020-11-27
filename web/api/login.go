@@ -6,6 +6,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	thp "github.com/madappgang/identifo/user_payload_provider/http"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
@@ -101,7 +102,14 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		offline := contains(scopes, jwtService.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA)
+
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			return
+		}
+
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
 			return
@@ -145,10 +153,31 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	}
 }
 
+// getTokenPayloadForApp get additional token payload data
+func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map[string]interface{}, error) {
+	if app.TokenPayloadService() == model.TokenPayloadServiceHttp {
+		// check if we have service cached
+		ps, exists := ar.tokenPayloadServices[app.ID()]
+		if !exists {
+			var err error
+			ps, err = thp.NewTokenPayloadProvider(
+				app.TokenPayloadServiceHttpSettings().Secret,
+				app.TokenPayloadServiceHttpSettings().URL,
+			)
+			if err != nil {
+				return nil, err
+			}
+			ar.tokenPayloadServices[app.ID()] = ps
+		}
+		return ps.TokenPayloadForApp(app.ID(), app.Name(), user.ID())
+	}
+	return nil, nil
+}
+
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
-func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool) (accessTokenString, refreshTokenString string, err error) {
-	token, err := ar.tokenService.NewAccessToken(user, scopes, app, require2FA)
+func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool, tokenPayload map[string]interface{}) (accessTokenString, refreshTokenString string, err error) {
+	token, err := ar.tokenService.NewAccessToken(user, scopes, app, require2FA, tokenPayload)
 	if err != nil {
 		return
 	}

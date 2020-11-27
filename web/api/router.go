@@ -36,6 +36,7 @@ type Router struct {
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
+	tokenPayloadServices    map[string]model.TokenPayloadProvider
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -119,6 +120,8 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
+
+	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
 
 	if ar.cors != nil {
 		ar.middleware.Use(ar.cors)
