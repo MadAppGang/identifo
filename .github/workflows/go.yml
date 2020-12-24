@@ -29,5 +29,5 @@ jobs:
       run: go test -v ./...
 
     - name: Build
-      run: CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o /identifo .
+      run: CGO_ENABLED=0 GOOS=linux go build -a -installsuffix nocgo -o ./identifo .
 
