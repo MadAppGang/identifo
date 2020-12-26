@@ -1,4 +1,4 @@
-name: Build and test
+name: Publish to docker hub
 
 on:
   push:
