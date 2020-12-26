@@ -1,12 +1,12 @@
 name: Build and test
 
-# on:
-#   push:
-#     tags:
-#       - 'v*.*.*'
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*.*.*'
+# on:
+#   release:
+#     types: [published]
 
 jobs:
   build:
@@ -21,6 +21,22 @@ jobs:
       if: endsWith(github.ref, 'master') == false
       run: exit -1
 
-    
+
+    - name: Docker meta
+      id: docker_meta
+      uses: crazy-max/ghaction-docker-meta@v1
+      with:
+        images: madappgangd/identifo
+
+    - name: Push to Docker Hub
+      uses: docker/build-push-action@v1
+      with:
+        username: ${{ secrets.DOCKER_HUB_USER }}
+        password: ${{ secrets.DOCKER_HUB_PASSWORD }}
+        repository: madappgangd/identifo
+        context: .
+        tags: ${{ steps.docker_meta.outputs.tags }}
+        labels: ${{ steps.docker_meta.outputs.labels }}        
+
     
     
