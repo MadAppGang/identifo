@@ -21,14 +21,13 @@ jobs:
       if: endsWith(github.ref, 'master') == false
       run: exit -1
 
-
     - name: Docker meta
       id: docker_meta
       uses: crazy-max/ghaction-docker-meta@v1
       with:
         images: madappgangd/identifo
 
-    - name: Push to Docker Hub
+    - name: Build docker image and push to Docker Hub
       uses: docker/build-push-action@v1
       with:
         username: ${{ secrets.DOCKER_HUB_USER }}
