@@ -1,9 +1,6 @@
-name: Publish to docker hub
+name: Publish to docker hub manually
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
@@ -13,19 +10,7 @@ on:
         description: 'Include latest tag'
         required: false
         default: 'false'
-# on:
-#   release:
-#     types: [published]
-
 jobs:
-
-  testp:
-    name: test vars on that
-    runs-on: ubuntu-latest
-    steps:
-
-    - name: Check out code into the Go module directory
-      uses: actions/checkout@v2
 
   publish:
     name: Docker Hub publish
@@ -35,16 +20,27 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
-    - name: Exit if not on master branch
-      if: endsWith(github.ref, 'master') == false
-      run: exit -1
-
     - name: Docker meta
       id: docker_meta
       uses: crazy-max/ghaction-docker-meta@v1
       with:
         images: madappgangd/identifo
         tag-sha: true
+
+    - name: save app version
+      with:
+        version: ${{ github.event.inputs.version }}"
+      run: |
+        echo "Version: ${version}"
+        echo "version=${version}" >> $GITHUB_ENV
+
+    - name: compose list of tags
+      if: ${{ github.event.inputs.latest == 'true' }}
+      with:
+        version: ${{ github.event.inputs.version }}"
+      run: |
+        echo "Version: ${version}"
+        echo "version=${version},latest" >> $GITHUB_ENV
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -64,6 +60,5 @@ jobs:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
-        push: ${{ github.event_name != 'pull_request' }}
-        tags: ${{ steps.docker_meta.outputs.tags }}
+        tags: ${{ env.version }}
         labels: ${{ steps.docker_meta.outputs.labels }}    
