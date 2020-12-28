@@ -29,7 +29,7 @@ jobs:
 
     - name: save app version
       with:
-        version: ${{ github.event.inputs.version }}"
+        version: ${{ github.event.inputs.version }}
       run: |
         echo "Version: ${version}"
         echo "version=${version}" >> $GITHUB_ENV
@@ -37,7 +37,7 @@ jobs:
     - name: compose list of tags
       if: ${{ github.event.inputs.latest == 'true' }}
       with:
-        version: ${{ github.event.inputs.version }}"
+        version: ${{ github.event.inputs.version }}
       run: |
         echo "Version: ${version}"
         echo "version=${version},latest" >> $GITHUB_ENV
