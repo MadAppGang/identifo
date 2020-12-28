@@ -28,19 +28,18 @@ jobs:
         tag-sha: true
 
     - name: save app version
-      with:
-        version: ${{ github.event.inputs.version }}
       run: |
         echo "Version: ${version}"
         echo "version=${version}" >> $GITHUB_ENV
-
-    - name: compose list of tags
-      if: ${{ github.event.inputs.latest == 'true' }}
       with:
         version: ${{ github.event.inputs.version }}
+    - name: compose list of tags
       run: |
         echo "Version: ${version}"
         echo "version=${version},latest" >> $GITHUB_ENV
+      if: ${{ github.event.inputs.latest == 'true' }}
+      with:
+        version: ${{ github.event.inputs.version }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
