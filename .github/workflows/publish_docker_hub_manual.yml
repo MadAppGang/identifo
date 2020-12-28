@@ -28,12 +28,15 @@ jobs:
         tag-sha: true
 
     - name: save app version
+      run: ls -la
+
+    - name: save app version
       run: |
         echo "Version: ${version}"
         echo "version=${version}" >> $GITHUB_ENV
       with:
         version: ${{ github.event.inputs.version }}
-        
+
     - name: compose list of tags
       run: |
         echo "Version: ${version}"
