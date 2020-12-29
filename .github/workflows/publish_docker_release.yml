@@ -1,18 +1,11 @@
 name: Publish to docker hub manually
 
 on:
-  workflow_dispatch:
-    inputs:
-      version:
-        description: 'Version number in "v1.2.3" format'
-        required: true
-      latest:
-        description: 'Include latest tag'
-        required: false
-        default: 'false'
+  release:
+    types: [ published ]
+    
 jobs:
-
-  publish_manual:
+  publish_on_release:
     name: Docker Hub publish
     runs-on: ubuntu-latest
     steps:
@@ -26,29 +19,6 @@ jobs:
       with:
         images: madappgangd/identifo
         tag-sha: true
-
-    - name: test run etc
-      run: ls -la
-
-    - name: Dump GitHub context
-      env:
-        GITHUB_CONTEXT: ${{ toJson(github) }}
-      run: echo "$GITHUB_CONTEXT"
-
-    - name: save app version
-      run: |
-        echo "Version: ${version}"
-        echo "version=${version}" >> $GITHUB_ENV
-      with:
-        version: ${{ github.event.inputs.version }}
-
-    - name: compose list of tags
-      run: |
-        echo "Version: ${version}"
-        echo "version=${version},latest" >> $GITHUB_ENV
-      if: ${{ github.event.inputs.latest == 'true' }}
-      with:
-        version: ${{ github.event.inputs.version }}
 
     - name: Set up QEMU
       uses: docker/setup-qemu-action@v1
@@ -68,5 +38,5 @@ jobs:
         context: .
         file: ./Dockerfile
         platforms: linux/amd64,linux/arm64,linux/386
-        tags: ${{ env.version }}
+        tags: ${{ github.event.release.tag_name,'latest' }}
         labels: ${{ steps.docker_meta.outputs.labels }}    
