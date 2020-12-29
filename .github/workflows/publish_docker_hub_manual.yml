@@ -10,6 +10,7 @@ on:
         description: 'Include latest tag'
         required: false
         default: 'false'
+        
 jobs:
 
   publish_manual:
