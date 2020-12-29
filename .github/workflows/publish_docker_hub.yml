@@ -6,10 +6,6 @@ on:
       version:
         description: 'Version number in "v1.2.3" format'
         required: true
-      latest:
-        description: 'Include latest tag'
-        required: false
-        default: 'false'
   release:
     types: [published]
 
@@ -68,5 +64,8 @@ jobs:
         # tags: ${{ steps.docker_meta.outputs.tags }}
         labels: ${{ steps.docker_meta.outputs.labels }}    
         tags: | 
-          ${{ github.event.release.tag_name }}
           madappgangd/identifo:latest
+          madappgangd/identifo:${{ github.event.inputs.version ||  github.event.release.tag_name}}
+
+
+# ${{ github.event.release.tag_name }}
