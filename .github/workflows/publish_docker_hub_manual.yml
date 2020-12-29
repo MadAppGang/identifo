@@ -28,9 +28,6 @@ jobs:
         images: madappgangd/identifo
         tag-sha: true
 
-    - name: test run etc
-      run: ls -la
-
     - name: Dump GitHub context
       env:
         GITHUB_CONTEXT: ${{ toJson(github) }}

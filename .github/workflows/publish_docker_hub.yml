@@ -32,6 +32,11 @@ jobs:
     - name: Check out code into the Go module directory
       uses: actions/checkout@v2
 
+    - name: Dump GitHub context
+      env:
+        GITHUB_CONTEXT: ${{ toJson(github) }}
+      run: echo "$GITHUB_CONTEXT"
+
     - name: Exit if not on master branch
       if: endsWith(github.ref, 'master') == false
       run: exit -1
