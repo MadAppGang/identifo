@@ -25,9 +25,9 @@ jobs:
       run: echo "$GITHUB_CONTEXT"
     
 
-    - name: Exit if not on master branch
-      if: endsWith(github.ref, 'master') == false
-      run: exit -1
+    # - name: Exit if not on master branch
+    #   if: endsWith(github.ref, 'master') == false
+    #   run: exit -1
 
     - name: Docker meta
       id: docker_meta
