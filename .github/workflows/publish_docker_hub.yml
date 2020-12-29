@@ -37,10 +37,7 @@ jobs:
         tag-sha: true
 
     - name: Exit 
-      run: echo "${{ github.event.release.tag_name }}"
-
-    - name: Exit 
-      run: exit -1
+      run: echo "madappgangd/identifo:${{ github.event.inputs.version ||  github.event.release.tag_name}}"
 
     # - name: Set up QEMU
     #   uses: docker/setup-qemu-action@v1
