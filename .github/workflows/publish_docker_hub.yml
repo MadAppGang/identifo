@@ -28,6 +28,7 @@ jobs:
         GITHUB_CONTEXT: ${{ toJson(github) }}
       run: echo "$GITHUB_CONTEXT"
     
+
     - name: Exit if not on master branch
       if: endsWith(github.ref, 'master') == false
       run: exit -1
@@ -38,6 +39,12 @@ jobs:
       with:
         images: madappgangd/identifo
         tag-sha: true
+
+    - name: Exit 
+      run: echo "${{ github.event.release.tag_name }}"
+
+    - name: Exit 
+      run: exit -1
 
     # - name: Set up QEMU
     #   uses: docker/setup-qemu-action@v1
@@ -61,5 +68,5 @@ jobs:
         # tags: ${{ steps.docker_meta.outputs.tags }}
         labels: ${{ steps.docker_meta.outputs.labels }}    
         tags: | 
-          ${{ github.event.release.tag_name}}
+          ${{ github.event.release.tag_name }}
           madappgangd/identifo:latest
