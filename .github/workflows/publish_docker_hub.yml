@@ -1,9 +1,9 @@
 name: Publish to docker hub
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'
+#   push:
+#     tags:
+#       - 'v*.*.*'
   workflow_dispatch:
     inputs:
       version:
