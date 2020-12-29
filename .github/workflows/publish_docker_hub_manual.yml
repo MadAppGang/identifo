@@ -2,14 +2,26 @@ name: Publish to docker hub manually
 
 on:
   workflow_dispatch:
-    inputs:
+    input:
       version:
-        description: 'Version number in "v1.2.3" format'
+        description: 'Versoin number in V1.2.3 format'
         required: true
       latest:
-        description: 'Include latest tag'
+        descrition: 'Include latest tag'
         required: false
         default: 'false'
+  
+
+# on:
+#   workflow_dispatch:
+#     inputs:
+#       version:
+#         description: 'Version number in "v1.2.3" format'
+#         required: true
+#       latest:
+#         description: 'Include latest tag'
+#         required: false
+#         default: 'false'
         
 jobs:
 
