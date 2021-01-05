@@ -30,7 +30,7 @@ func (ar *Router) Register() http.HandlerFunc {
 
 		var isAnonymous bool
 		var err error
-		if isAnonymousStr := r.FormValue(isAnonymousKey); len(isAnonymousKey) > 0 {
+		if isAnonymousStr := r.FormValue(isAnonymousKey); len(isAnonymousStr) > 0 {
 			isAnonymous, err = strconv.ParseBool(isAnonymousStr)
 			if err != nil {
 				ar.Logger.Printf("Error: Invalid anonymous parameter %s", isAnonymousStr)
