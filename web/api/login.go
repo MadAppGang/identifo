@@ -6,6 +6,8 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/proto"
+	"github.com/madappgang/identifo/proto/extensions"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
@@ -20,10 +22,10 @@ const smsTFACode = "%v is your one-time password!"
 
 // AuthResponse is a response with successful auth data.
 type AuthResponse struct {
-	AccessToken    string     `json:"access_token,omitempty"`
-	RefreshToken   string     `json:"refresh_token,omitempty"`
-	User           model.User `json:"user,omitempty"`
-	NeedFurtherTFA bool       `json:"need_further_tfa,omitempty"`
+	AccessToken    string      `json:"access_token,omitempty"`
+	RefreshToken   string      `json:"refresh_token,omitempty"`
+	User           *proto.User `json:"user,omitempty"`
+	NeedFurtherTFA bool        `json:"need_further_tfa,omitempty"`
 }
 
 type loginData struct {
@@ -69,7 +71,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), ld.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.Id, ld.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
 			return
@@ -85,7 +87,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -95,7 +97,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		// Check if we should require user to authenticate with 2FA.
-		require2FA, err := ar.check2FA(w, app.TFAStatus(), user.TFAInfo())
+		require2FA, err := ar.check2FA(w, app.TFAStatus(), user.TfaInfo)
 		if err != nil {
 			return
 		}
@@ -107,7 +109,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		result := AuthResponse{
 			AccessToken:    accessToken,
 			RefreshToken:   refreshToken,
@@ -116,19 +118,19 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		if !require2FA {
-			ar.userStorage.UpdateLoginMetadata(user.ID())
+			ar.userStorage.UpdateLoginMetadata(user.Id)
 			ar.ServeJSON(w, http.StatusOK, result)
 			return
 		}
 
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret).Now()
+		totp := gotp.NewDefaultTOTP(user.TfaInfo.Secret).Now()
 
 		switch ar.tfaType {
 		case model.TFATypeSMS:
-			ar.sendTFACodeInSMS(w, totp, user.Phone())
+			ar.sendTFACodeInSMS(w, totp, user.Phone)
 			return
 		case model.TFATypeEmail:
-			ar.sendTFACodeOnEmail(w, totp, user.Email())
+			ar.sendTFACodeOnEmail(w, totp, user.Email)
 			return
 		default:
 			ar.ServeJSON(w, http.StatusOK, result)
@@ -147,7 +149,7 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
-func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool) (accessTokenString, refreshTokenString string, err error) {
+func (ar *Router) loginUser(user *proto.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool) (accessTokenString, refreshTokenString string, err error) {
 	token, err := ar.tokenService.NewAccessToken(user, scopes, app, require2FA)
 	if err != nil {
 		return
@@ -174,19 +176,19 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 
 // check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
 // and decides if we require two-factor authentication after all checks are successfully passed.
-func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, userTFAInfo model.TFAInfo) (bool, error) {
-	if appTFAStatus == model.TFAStatusMandatory && !userTFAInfo.IsEnabled {
+func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, userTFAInfo *proto.TFAInfo) (bool, error) {
+	if appTFAStatus == model.TFAStatusMandatory && (userTFAInfo == nil || !userTFAInfo.IsEnabled) {
 		ar.Error(w, ErrorAPIRequestPleaseEnableTFA, http.StatusBadRequest, errPleaseEnableTFA.Error(), "check2FA.mandatory")
 		return false, errPleaseEnableTFA
 	}
 
-	if appTFAStatus == model.TFAStatusDisabled && userTFAInfo.IsEnabled {
+	if appTFAStatus == model.TFAStatusDisabled && userTFAInfo != nil && userTFAInfo.IsEnabled {
 		ar.Error(w, ErrorAPIRequestPleaseDisableTFA, http.StatusBadRequest, errPleaseDisableTFA.Error(), "check2FA.appDisabled_userEnabled")
 		return false, errPleaseDisableTFA
 	}
 
 	// Request two-factor auth if user enabled it and app supports it.
-	if userTFAInfo.IsEnabled && appTFAStatus != model.TFAStatusDisabled {
+	if userTFAInfo != nil && userTFAInfo.IsEnabled && appTFAStatus != model.TFAStatusDisabled {
 		if userTFAInfo.Secret == "" {
 			// Then admin must have enabled TFA for this user manually.
 			// User must obtain TFA secret, i.e send EnableTFA request.

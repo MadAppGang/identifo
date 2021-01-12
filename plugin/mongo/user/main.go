@@ -1,14 +1,22 @@
 package mongo
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
+	"fmt"
 	"log"
+	"os"
 	"strings"
 	"time"
 
+	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/bsontype"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -16,10 +24,158 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+func main() {
+	conn := os.Getenv("DB_CONN")
+	if conn == "" {
+		panic("Empty DB_CONN")
+	}
+
+	dbName := os.Getenv("DB_NAME")
+	if dbName == "" {
+		panic("Empty DB_NAME")
+	}
+
+	db, err := NewDB(conn, dbName)
+	if err != nil {
+		panic(err)
+	}
+	defer db.Close()
+
+	us, err := NewUserStorage(db)
+	if err != nil {
+		panic(err)
+	}
+
+	plugin.Serve(&plugin.ServeConfig{
+		HandshakeConfig: shared.Handshake,
+		Plugins: map[string]plugin.Plugin{
+			"user_storage": &shared.UserStorageGRPCPlugin{
+				Impl: us,
+			},
+		},
+
+		// A non-nil value here enables gRPC serving for this plugin...
+		GRPCServer: plugin.DefaultGRPCServer,
+	})
+}
+
+// NewDB creates new database connection.
+func NewDB(conn string, dbName string) (*DB, error) {
+	client, err := mongo.NewClient(options.Client().ApplyURI(conn))
+	if err != nil {
+		return nil, err
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	if err = client.Connect(ctx); err != nil {
+		return nil, err
+	}
+	if err = client.Ping(ctx, nil); err != nil {
+		return nil, err
+	}
+	db := &DB{
+		Client:   client,
+		Database: client.Database(dbName),
+	}
+	return db, nil
+}
+
+// DB is database connection structure.
+type DB struct {
+	Database *mongo.Database
+	Client   *mongo.Client
+}
+
+// Close closes database connection.
+func (db *DB) Close() error {
+	return db.Client.Disconnect(context.TODO())
+}
+
+// EnsureCollectionIndices creates indices on a collection.
+func (db *DB) EnsureCollectionIndices(collectionName string, newIndices []mongo.IndexModel) error {
+	coll := db.Database.Collection(collectionName)
+
+	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
+	defer cancel()
+
+	for _, newIndex := range newIndices {
+		if _, err := coll.Indexes().CreateOne(ctx, newIndex); err != nil && strings.Contains(err.Error(), "already exists with different options") {
+			name, err := generateIndexName(newIndex)
+			if err != nil {
+				return err
+			}
+			if _, err = coll.Indexes().DropOne(ctx, name); err != nil {
+				return err
+			}
+			if _, err = coll.Indexes().CreateOne(ctx, newIndex); err != nil {
+				return err
+			}
+		}
+	}
+	return nil
+}
+
+func generateIndexName(index mongo.IndexModel) (string, error) {
+	if index.Options != nil && index.Options.Name != nil {
+		return *index.Options.Name, nil
+	}
+
+	name := bytes.NewBufferString("")
+	first := true
+
+	keys, ok := index.Keys.(bsonx.Doc)
+	if !ok {
+		return "", fmt.Errorf("Incorrect index keys type - expecting bsonx.Doc")
+	}
+	for _, elem := range keys {
+		if !first {
+			if _, err := name.WriteRune('_'); err != nil {
+				return "", err
+			}
+		}
+		if _, err := name.WriteString(elem.Key); err != nil {
+			return "", err
+		}
+		if _, err := name.WriteRune('_'); err != nil {
+			return "", err
+		}
+
+		var value string
+
+		switch elem.Value.Type() {
+		case bsontype.Int32:
+			value = fmt.Sprintf("%d", elem.Value.Int32())
+		case bsontype.Int64:
+			value = fmt.Sprintf("%d", elem.Value.Int64())
+		case bsontype.String:
+			value = elem.Value.StringValue()
+		default:
+			return "", fmt.Errorf("Incorrect index value type %s", elem.Value.Type())
+		}
+
+		if _, err := name.WriteString(value); err != nil {
+			return "", err
+		}
+
+		first = false
+	}
+	return name.String(), nil
+}
+
+func isErrNotFound(err error) bool {
+	return strings.Contains(err.Error(), "no documents in result")
+}
+
+func isErrDuplication(err error) bool {
+	return strings.Contains(err.Error(), "duplicate key")
+}
+
 const usersCollectionName = "Users"
 
 // NewUserStorage creates and inits MongoDB user storage.
-func NewUserStorage(db *DB) (model.UserStorage, error) {
+func NewUserStorage(db *DB) (shared.UserStorage, error) {
 	coll := db.Database.Collection(usersCollectionName)
 	us := &UserStorage{coll: coll, timeout: 30 * time.Second}
 
@@ -61,13 +217,8 @@ type UserStorage struct {
 	timeout time.Duration
 }
 
-// NewUser returns pointer to newly created user.
-func (us *UserStorage) NewUser() model.User {
-	return &User{}
-}
-
 // UserByID returns user by its ID.
-func (us *UserStorage) UserByID(id string) (model.User, error) {
+func (us *UserStorage) UserByID(id string) (*proto.User, error) {
 	hexID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return nil, err
@@ -76,15 +227,15 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, bson.M{"_id": hexID}).Decode(&u); err != nil {
 		return nil, err
 	}
-	return &User{userData: u}, nil
+	return &u, nil
 }
 
 // UserByEmail returns user by their email.
-func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+func (us *UserStorage) UserByEmail(email string) (*proto.User, error) {
 	if email == "" {
 		return nil, model.ErrorWrongDataFormat
 	}
@@ -93,27 +244,27 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, bson.M{"email": email}).Decode(&u); err != nil {
 		return nil, err
 	}
-	return &User{userData: u}, nil
+	return &u, nil
 }
 
 // UserByFederatedID returns user by federated ID.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
-	sid := string(provider) + ":" + id
+func (us *UserStorage) UserByFederatedID(provider proto.FederatedIdentityProvider, id string) (*proto.User, error) {
+	sid := provider.String() + ":" + id
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, bson.M{"federated_ids": sid}).Decode(&u); err != nil {
-		return nil, model.ErrUserNotFound
+		return nil, errors.New("User not found")
 	}
 	//clear password hash
-	u.Pswd = ""
-	return &User{userData: u}, nil
+	u.PasswordHash = ""
+	return &u, nil
 }
 
 // UserExists checks if user with provided name exists.
@@ -124,7 +275,7 @@ func (us *UserStorage) UserExists(name string) bool {
 	strictPattern := "^" + name + "$"
 	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
 
-	var u userData
+	u := proto.User{}
 	err := us.coll.FindOne(ctx, q).Decode(&u)
 	return err == nil
 }
@@ -155,75 +306,48 @@ func (us *UserStorage) Scopes() []string {
 }
 
 // UserByPhone fetches user by phone number.
-func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
+func (us *UserStorage) UserByPhone(phone string) (*proto.User, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, bson.M{"phone": phone}).Decode(&u); err != nil {
 		return nil, err
 	}
-	u.Pswd = ""
-	return &User{userData: u}, nil
+	u.PasswordHash = ""
+	return &u, nil
 }
 
 // UserByNamePassword returns user by name and password.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
+func (us *UserStorage) UserByNamePassword(name, password string) (*proto.User, error) {
 	strictPattern := "^" + strings.ReplaceAll(name, "+", "\\+") + "$"
 	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, q).Decode(&u); err != nil {
-		return nil, model.ErrUserNotFound
+		return nil, errors.New("User not found")
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
-		return nil, model.ErrUserNotFound
+	if bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)) != nil {
+		return nil, errors.New("User not found")
 	}
 	//clear password hash
-	u.Pswd = ""
-	return &User{userData: u}, nil
+	u.PasswordHash = ""
+	return &u, nil
 }
 
 // AddNewUser adds new user to the database.
-func (us *UserStorage) AddNewUser(usr model.User, password string) (model.User, error) {
-	usr.SetEmail(strings.ToLower(usr.Email()))
-	u, ok := usr.(*User)
-	if !ok {
-		return nil, model.ErrorWrongDataFormat
-	}
+func (us *UserStorage) AddNewUser(u *proto.User, password string) (*proto.User, error) {
+	u.Email = strings.ToLower(u.Email)
 
-	u.userData.ID = primitive.NewObjectID()
+	u.Id = primitive.NewObjectID().String()
 	if len(password) > 0 {
-		u.userData.Pswd = PasswordHash(password)
+		u.PasswordHash = PasswordHash(password)
 	}
-	u.userData.NumOfLogins = 0
-
-	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
-	defer cancel()
-
-	if _, err := us.coll.InsertOne(ctx, u.userData); err != nil {
-		if isErrDuplication(err) {
-			return nil, model.ErrorUserExists
-		}
-		return nil, err
-	}
-	return u, nil
-}
-
-// AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
-	u := userData{
-		ID:          primitive.NewObjectID(),
-		Username:    phone,
-		Active:      true,
-		Phone:       phone,
-		AccessRole:  role,
-		NumOfLogins: 0,
-	}
+	u.NumOfLogins = 0
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
@@ -234,72 +358,91 @@ func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
 		}
 		return nil, err
 	}
-	return &User{userData: u}, nil
+	return u, nil
+}
+
+// AddUserByPhone registers new user with phone number.
+func (us *UserStorage) AddUserByPhone(phone, role string) (*proto.User, error) {
+	u := proto.User{
+		Id:          primitive.NewObjectID().String(),
+		Username:    phone,
+		IsActive:    true,
+		Phone:       phone,
+		AccessRole:  role,
+		NumOfLogins: 0,
+	}
+
+	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
+	defer cancel()
+
+	if _, err := us.coll.InsertOne(ctx, &u); err != nil {
+		if isErrDuplication(err) {
+			return nil, model.ErrorUserExists
+		}
+		return nil, err
+	}
+	return &u, nil
 }
 
 // AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
-	u := userData{
-		ID:         primitive.NewObjectID(),
-		Active:     true,
-		Username:   username,
-		AccessRole: role,
-		Anonymous:  isAnonymous,
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (*proto.User, error) {
+	u := proto.User{
+		Id:          primitive.NewObjectID().String(),
+		IsActive:    true,
+		Username:    username,
+		AccessRole:  role,
+		IsAnonymous: isAnonymous,
 	}
-	if model.EmailRegexp.MatchString(u.Username) {
+	if shared.EmailRegexp.MatchString(u.Username) {
 		u.Email = u.Username
 	}
-	if model.PhoneRegexp.MatchString(u.Username) {
+	if shared.PhoneRegexp.MatchString(u.Username) {
 		u.Phone = u.Username
 	}
-	return us.AddNewUser(&User{userData: u}, password)
+	return us.AddNewUser(&u, password)
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider proto.FederatedIdentityProvider, federatedID, role string) (*proto.User, error) {
 	// If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
-		return nil, model.ErrorUserExists
+		return nil, errors.New("User exists")
 	}
 
-	sid := string(provider) + ":" + federatedID
-	u := userData{
-		ID:           primitive.NewObjectID(),
-		Active:       true,
+	sid := provider.String() + ":" + federatedID
+	u := proto.User{
+		Id:           primitive.NewObjectID().String(),
+		IsActive:     true,
 		Username:     sid,
 		AccessRole:   role,
-		FederatedIDs: []string{sid},
+		FederatedIds: []string{sid},
 	}
-	return us.AddNewUser(&User{userData: u}, "")
+	return us.AddNewUser(&u, "")
 }
 
 // UpdateUser updates user in MongoDB storage.
-func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+func (us *UserStorage) UpdateUser(userID string, newUser *proto.User) (*proto.User, error) {
 	hexID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		return nil, err
 	}
 
-	newUser.SetEmail(strings.ToLower(newUser.Email()))
-	res, ok := newUser.(*User)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
+	newUser.Email = strings.ToLower(newUser.Email)
 
 	// use ID from the request
-	res.userData.ID = hexID
+	newUser.Id = hexID.String()
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	update := bson.M{"$set": res.userData}
+	update := bson.M{"$set": newUser}
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-	var ud userData
-	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud); err != nil {
+	u := proto.User{}
+	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&u); err != nil {
 		return nil, err
 	}
-	return &User{userData: ud}, nil
+	return &u, nil
 }
 
 // ResetPassword sets new user's password.
@@ -315,8 +458,8 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var ud userData
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud)
+	u := proto.User{}
+	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&u)
 	return err
 }
 
@@ -333,8 +476,8 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	update := bson.M{"$set": bson.M{"username": username}}
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-	var ud userData
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud)
+	u := proto.User{}
+	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.String()}, update, opts).Decode(&u)
 	return err
 }
 
@@ -346,16 +489,16 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	var u userData
+	u := proto.User{}
 	if err := us.coll.FindOne(ctx, q).Decode(&u); err != nil {
 		return "", model.ErrorNotFound
 	}
 
-	user := &User{userData: u}
-	if !user.Active() {
-		return "", ErrorInactiveUser
+	user := proto.User{}
+	if !user.IsActive {
+		return "", errors.New("Inactive user")
 	}
-	return user.ID(), nil
+	return user.Id, nil
 }
 
 // DeleteUser deletes user by id.
@@ -374,7 +517,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]*proto.User, int, error) {
 	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: filterString, Options: "i"}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*us.timeout)
@@ -382,7 +525,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 
 	total, err := us.coll.CountDocuments(ctx, q)
 	if err != nil {
-		return []model.User{}, 0, err
+		return []*proto.User{}, 0, err
 	}
 
 	findOptions := options.Find()
@@ -392,31 +535,26 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 
 	curr, err := us.coll.Find(ctx, q, findOptions)
 	if err != nil {
-		return []model.User{}, 0, err
+		return nil, 0, err
 	}
 
-	usersData := []userData{}
-	if err = curr.All(ctx, &usersData); err != nil {
-		return []model.User{}, 0, err
-	}
-
-	users := make([]model.User, len(usersData))
-	for i, ud := range usersData {
-		users[i] = &User{userData: ud}
+	users := []*proto.User{}
+	if err = curr.All(ctx, &users); err != nil {
+		return nil, 0, err
 	}
 	return users, int(total), err
 }
 
 // ImportJSON imports data from JSON.
 func (us *UserStorage) ImportJSON(data []byte) error {
-	ud := []userData{}
+	ud := []*proto.User{}
 	if err := json.Unmarshal(data, &ud); err != nil {
 		return err
 	}
 	for _, u := range ud {
-		pswd := u.Pswd
-		u.Pswd = ""
-		if _, err := us.AddNewUser(&User{userData: u}, pswd); err != nil {
+		pswd := u.PasswordHash
+		u.PasswordHash = ""
+		if _, err := us.AddNewUser(u, pswd); err != nil {
 			return err
 		}
 	}
@@ -439,8 +577,8 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*us.timeout)
 	defer cancel()
 
-	var ud userData
-	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update).Decode(&ud); err != nil {
+	u := proto.User{}
+	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.String()}, update).Decode(&u); err != nil {
 		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
 }

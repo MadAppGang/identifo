@@ -9,6 +9,9 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
+	"github.com/madappgang/identifo/proto/extensions"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
 )
@@ -50,25 +53,25 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		if tfaInfo := user.TFAInfo(); tfaInfo.IsEnabled && tfaInfo.Secret != "" {
+		if tfaInfo := user.TfaInfo; tfaInfo.IsEnabled && tfaInfo.Secret != "" {
 			ar.Error(w, ErrorAPIRequestTFAAlreadyEnabled, http.StatusBadRequest, "TFA already enabled for this user", "EnableTFA.alreadyEnabled")
 			return
 		}
 
-		if ar.tfaType == model.TFATypeSMS && user.Phone() == "" {
+		if ar.tfaType == model.TFATypeSMS && user.Phone == "" {
 			ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "Please specify your phone number to be able to receive one-time passwords", "EnableTFA.setPhone")
 			return
 		}
-		if ar.tfaType == model.TFATypeEmail && user.Email() == "" {
+		if ar.tfaType == model.TFATypeEmail && user.Email == "" {
 			ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "Please specify your email address to be able to receive one-time passwords", "EnableTFA.setEmail")
 			return
 		}
 
-		tfa := model.TFAInfo{
+		tfa := proto.TFAInfo{
 			IsEnabled: true,
 			Secret:    gotp.RandomSecret(16),
 		}
-		user.SetTFAInfo(tfa)
+		user.TfaInfo = &tfa
 
 		if _, err := ar.userStorage.UpdateUser(userID, user); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
@@ -130,7 +133,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
+		totp := gotp.NewDefaultTOTP(user.TfaInfo.Secret)
 		dontNeedVerification := app.DebugTFACode() != "" && d.TFACode == app.DebugTFACode()
 
 		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
@@ -139,7 +142,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		// Issue new access, and, if requested, refresh token, and then invalidate the old one.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.Id, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
 			return
@@ -157,14 +160,14 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		result := &AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.Id)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
@@ -181,7 +184,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		if !model.EmailRegexp.MatchString(d.Email) {
+		if !shared.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestDisabledTFA.emailRegexp_MatchString")
 			return
 		}
@@ -257,7 +260,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		if !model.EmailRegexp.MatchString(d.Email) {
+		if !shared.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestTFAReset.emailRegexp_MatchString")
 			return
 		}

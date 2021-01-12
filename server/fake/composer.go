@@ -2,15 +2,16 @@ package fake
 
 import (
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/storage/mem"
 )
 
 // NewComposer creates new database composer with in-memory storage support.
-func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings, plugins shared.Plugins) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              mem.NewAppStorage,
-		newUserStorage:             mem.NewUserStorage,
+		userStorage:                plugins.UserStorage,
 		newTokenStorage:            mem.NewTokenStorage,
 		newTokenBlacklist:          mem.NewTokenBlacklist,
 		newVerificationCodeStorage: mem.NewVerificationCodeStorage,
@@ -22,7 +23,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 type DatabaseComposer struct {
 	settings                   model.ServerSettings
 	newAppStorage              func() (model.AppStorage, error)
-	newUserStorage             func() (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func() (model.TokenStorage, error)
 	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
@@ -31,18 +32,13 @@ type DatabaseComposer struct {
 // Compose composes all services with in-memory storage support.
 func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
-	model.UserStorage,
+	shared.UserStorage,
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
 	error,
 ) {
 	appStorage, err := dc.newAppStorage()
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	userStorage, err := dc.newUserStorage()
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -62,7 +58,7 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	return appStorage, dc.userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with in-memory storage support.
@@ -71,10 +67,6 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 
 	if settings.AppStorage.Type == model.DBTypeFake {
 		pc.newAppStorage = mem.NewAppStorage
-	}
-
-	if settings.UserStorage.Type == model.DBTypeFake {
-		pc.newUserStorage = mem.NewUserStorage
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeFake {
@@ -100,7 +92,7 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 // PartialDatabaseComposer composes only those services that support in-memory storage.
 type PartialDatabaseComposer struct {
 	newAppStorage              func() (model.AppStorage, error)
-	newUserStorage             func() (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func() (model.TokenStorage, error)
 	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
@@ -111,16 +103,6 @@ func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage
 	if pc.newAppStorage != nil {
 		return func() (model.AppStorage, error) {
 			return pc.newAppStorage()
-		}
-	}
-	return nil
-}
-
-// UserStorageComposer returns user storage composer.
-func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
-	if pc.newUserStorage != nil {
-		return func() (model.UserStorage, error) {
-			return pc.newUserStorage()
 		}
 	}
 	return nil

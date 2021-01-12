@@ -9,7 +9,8 @@ import (
 	"net/http"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto/extensions"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -89,7 +90,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
-		if err == model.ErrUserNotFound {
+		if err == shared.ErrUserNotFound {
 			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole())
 		}
 		if err != nil {
@@ -100,7 +101,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -109,7 +110,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.Id, authData.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "PhoneLogin.RequestScopes")
 			return
@@ -122,14 +123,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.Id)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
@@ -163,7 +164,7 @@ func (l *PhoneLogin) validateCodeAndPhone() error {
 }
 
 func (l *PhoneLogin) validatePhone() error {
-	if !model.PhoneRegexp.MatchString(l.PhoneNumber) {
+	if !shared.PhoneRegexp.MatchString(l.PhoneNumber) {
 		return errors.New("Phone number is not valid. ")
 	}
 	return nil

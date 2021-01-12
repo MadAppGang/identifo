@@ -3,15 +3,16 @@ package boltdb
 import (
 	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/storage/boltdb"
 )
 
 // NewComposer creates new database composer with BoltDB support.
-func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings, plugins shared.Plugins) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              boltdb.NewAppStorage,
-		newUserStorage:             boltdb.NewUserStorage,
+		userStorage:                plugins.UserStorage,
 		newTokenStorage:            boltdb.NewTokenStorage,
 		newTokenBlacklist:          boltdb.NewTokenBlacklist,
 		newVerificationCodeStorage: boltdb.NewVerificationCodeStorage,
@@ -23,7 +24,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 type DatabaseComposer struct {
 	settings                   model.ServerSettings
 	newAppStorage              func(*bolt.DB) (model.AppStorage, error)
-	newUserStorage             func(*bolt.DB) (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
@@ -32,7 +33,7 @@ type DatabaseComposer struct {
 // Compose composes all services with BoltDB support.
 func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
-	model.UserStorage,
+	shared.UserStorage,
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
@@ -45,11 +46,6 @@ func (dc *DatabaseComposer) Compose() (
 	}
 
 	appStorage, err := dc.newAppStorage(db)
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -68,24 +64,20 @@ func (dc *DatabaseComposer) Compose() (
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
-
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	return appStorage, dc.userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with BoltDB support.
-func NewPartialComposer(settings model.StorageSettings, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
+func NewPartialComposer(settings model.StorageSettings, plugins shared.Plugins, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
 	pc := &PartialDatabaseComposer{}
 	// We assume that all BoltDB-backed storages share the same filepath, so we can pick any of them.
 	var dbPath string
 
+	pc.userStorage = plugins.UserStorage
+
 	if settings.AppStorage.Type == model.DBTypeBoltDB {
 		pc.newAppStorage = boltdb.NewAppStorage
 		dbPath = settings.AppStorage.Path
-	}
-
-	if settings.UserStorage.Type == model.DBTypeBoltDB {
-		pc.newUserStorage = boltdb.NewUserStorage
-		dbPath = settings.UserStorage.Path
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeBoltDB {
@@ -121,7 +113,7 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 type PartialDatabaseComposer struct {
 	db                         *bolt.DB
 	newAppStorage              func(*bolt.DB) (model.AppStorage, error)
-	newUserStorage             func(*bolt.DB) (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
@@ -132,16 +124,6 @@ func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage
 	if pc.newAppStorage != nil {
 		return func() (model.AppStorage, error) {
 			return pc.newAppStorage(pc.db)
-		}
-	}
-	return nil
-}
-
-// UserStorageComposer returns user storage composer.
-func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
-	if pc.newUserStorage != nil {
-		return func() (model.UserStorage, error) {
-			return pc.newUserStorage(pc.db)
 		}
 	}
 	return nil

@@ -1,41 +1,37 @@
 package mem
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
 	"github.com/pallinder/go-randomdata"
 )
 
 // NewUserStorage creates and inits in-memory user storage.
 // Use it only for test purposes and in CI, all data is wiped on exit.
-func NewUserStorage() (model.UserStorage, error) {
+func NewUserStorage() (shared.UserStorage, error) {
 	return &UserStorage{}, nil
 }
 
 // UserStorage is an in-memory user storage .
 type UserStorage struct{}
 
-// NewUser returns pointer to newly created user.
-func (us *UserStorage) NewUser() model.User {
-	return &user{}
-}
-
 // UserByID returns randomly generated user.
-func (us *UserStorage) UserByID(id string) (model.User, error) {
+func (us *UserStorage) UserByID(id string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // UserByEmail returns randomly generated user.
-func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+func (us *UserStorage) UserByEmail(email string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // UserBySocialID returns randomly generated user.
-func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
+func (us *UserStorage) UserBySocialID(id string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // UserByPhone returns randomly generated user.
-func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
+func (us *UserStorage) UserByPhone(phone string) (*proto.User, error) {
 	return randUser(), nil
 }
 
@@ -66,32 +62,32 @@ func (us *UserStorage) Scopes() []string {
 }
 
 // UserByNamePassword returns randomly generated user.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
+func (us *UserStorage) UserByNamePassword(name, password string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // AddUserByNameAndPassword returns randomly generated user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
+func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // AddUserByPhone returns randomly generated user.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
+func (us *UserStorage) AddUserByPhone(phone, role string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // UserByFederatedID returns randomly generated user.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(provider proto.FederatedIdentityProvider, id string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // AddUserWithFederatedID returns randomly generated user.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id, role string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(provider proto.FederatedIdentityProvider, id, role string) (*proto.User, error) {
 	return randUser(), nil
 }
 
 // UpdateUser returns what it receives.
-func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User, error) {
+func (us *UserStorage) UpdateUser(userID string, newUser *proto.User) (*proto.User, error) {
 	return newUser, nil
 }
 
@@ -114,8 +110,8 @@ func (us *UserStorage) DeleteUser(id string) error {
 func (us *UserStorage) UpdateLoginMetadata(userID string) {}
 
 // FetchUsers returns randomly generated user enclosed in slice.
-func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
-	return []model.User{randUser()}, 1, nil
+func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]*proto.User, int, error) {
+	return []*proto.User{randUser()}, 1, nil
 }
 
 // ImportJSON imports data from JSON.
@@ -125,3 +121,13 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 
 // Close does nothing here.
 func (us *UserStorage) Close() {}
+
+func randUser() *proto.User {
+	return &proto.User{
+		Id:           randomdata.StringNumber(2, "-"),
+		Username:     randomdata.SillyName(),
+		Email:        randomdata.Email(),
+		PasswordHash: randomdata.StringNumber(2, "-"),
+		IsActive:     randomdata.Boolean(),
+	}
+}

@@ -57,8 +57,8 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		if _, err = ar.UserStorage.RequestScopes(user.ID(), scopes); err != nil {
-			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
+		if _, err = ar.UserStorage.RequestScopes(user.Id, scopes); err != nil {
+			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.Id)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			redirectToLogin()
 			return
@@ -67,7 +67,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -92,7 +92,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		ar.UserStorage.UpdateLoginMetadata(user.ID())
+		ar.UserStorage.UpdateLoginMetadata(user.Id)
 		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}

@@ -5,11 +5,17 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"os"
+	"os/exec"
+	"os/signal"
+	"syscall"
 
+	"github.com/hashicorp/go-plugin"
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
 	configWatcherEtcd "github.com/madappgang/identifo/configuration/watcher/etcd"
 	configWatcherGeneric "github.com/madappgang/identifo/configuration/watcher/generic"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/server/boltdb"
 	"github.com/madappgang/identifo/server/dynamodb"
@@ -24,25 +30,61 @@ const (
 )
 
 func main() {
-	forever := make(chan struct{}, 1)
+	// We're a host. Start by launching the plugin process.
+	client := plugin.NewClient(&plugin.ClientConfig{
+		HandshakeConfig:  shared.Handshake,
+		Plugins:          shared.PluginMap,
+		Cmd:              exec.Command("sh", "-c", server.ServerSettings.Storage.UserStorage.Path),
+		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+	})
+	defer client.Kill()
+
+	// Connect via gRPC
+	rpcClient, err := client.Client()
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		os.Exit(1)
+	}
+
+	// Request the plugin
+	raw, err := rpcClient.Dispense("user_storage")
+	if err != nil {
+		fmt.Println("Error:", err.Error())
+		os.Exit(1)
+	}
+
+	plugins := shared.Plugins{
+		UserStorage: raw.(shared.UserStorage),
+	}
 
 	configStorage, err := server.InitConfigurationStorage(server.ServerSettings.ConfigurationStorage, server.ServerSettings.StaticFilesStorage.ServerConfigPath)
 	if err != nil {
 		log.Fatal("Cannot init config storage:", err)
 	}
 
-	srv := initServer(configStorage)
+	srv := initServer(configStorage, plugins)
 	httpSrv := &http.Server{
 		Addr:    server.ServerSettings.GetPort(),
 		Handler: srv.Router(),
 	}
 
-	watcher := initWatcher(httpSrv, srv)
+	watcher := initWatcher(httpSrv, srv, plugins)
 	defer watcher.Stop()
 
 	go startHTTPServer(httpSrv)
 
-	<-forever
+	defer srv.Close()
+
+	interrupt := make(chan os.Signal, 1)
+	signal.Notify(interrupt, os.Interrupt, syscall.SIGTERM)
+
+	killSignal := <-interrupt
+	switch killSignal {
+	case os.Interrupt:
+		log.Println("Got SIGINT...")
+	case syscall.SIGTERM:
+		log.Println("Got SIGTERM...")
+	}
 }
 
 func startHTTPServer(httpSrv *http.Server) {
@@ -51,7 +93,7 @@ func startHTTPServer(httpSrv *http.Server) {
 	}
 }
 
-func initServer(configStorage model.ConfigurationStorage) model.Server {
+func initServer(configStorage model.ConfigurationStorage, plugins shared.Plugins) model.Server {
 	if err := configStorage.LoadServerSettings(&server.ServerSettings); err != nil {
 		log.Panicln("Cannot load server settings: ", err)
 	}
@@ -60,20 +102,19 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	var partialComposers []server.PartialDatabaseComposer
 
 	dbTypes[server.ServerSettings.Storage.AppStorage.Type] = true
-	dbTypes[server.ServerSettings.Storage.UserStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.TokenStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.TokenBlacklist.Type] = true
 	dbTypes[server.ServerSettings.Storage.VerificationCodeStorage.Type] = true
 
 	for dbType := range dbTypes {
-		pc, err := initPartialComposer(dbType, server.ServerSettings.Storage)
+		pc, err := initPartialComposer(dbType, server.ServerSettings.Storage, plugins)
 		if err != nil {
 			log.Panicf("Cannot init partial composer for db type %s: %s\n", dbType, err)
 		}
 		partialComposers = append(partialComposers, pc)
 	}
 
-	dbComposer, err := server.NewComposer(server.ServerSettings, partialComposers)
+	dbComposer, err := server.NewComposer(server.ServerSettings, partialComposers, plugins)
 	if err != nil {
 		log.Panicln("Cannot init database composer:", err)
 	}
@@ -92,11 +133,10 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 			log.Println("Error importing users:", err)
 		}
 	}
-
 	return srv
 }
 
-func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatcher {
+func initWatcher(httpSrv *http.Server, srv model.Server, plugins shared.Plugins) model.ConfigurationWatcher {
 	var cw model.ConfigurationWatcher
 	var err error
 
@@ -137,7 +177,7 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 			*httpSrv = http.Server{Addr: server.ServerSettings.GetPort()}
 
 			srv.Close()
-			srv = initServer(configStorage)
+			srv = initServer(configStorage, plugins)
 
 			httpSrv.Handler = srv.Router()
 
@@ -148,14 +188,14 @@ func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatc
 	return cw
 }
 
-func initPartialComposer(dbType model.DatabaseType, settings model.StorageSettings) (server.PartialDatabaseComposer, error) {
+func initPartialComposer(dbType model.DatabaseType, settings model.StorageSettings, plugins shared.Plugins) (server.PartialDatabaseComposer, error) {
 	switch dbType {
 	case model.DBTypeBoltDB:
-		return boltdb.NewPartialComposer(settings)
+		return boltdb.NewPartialComposer(settings, plugins)
 	case model.DBTypeMongoDB:
-		return mgo.NewPartialComposer(settings)
+		return mgo.NewPartialComposer(settings, plugins)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewPartialComposer(settings)
+		return dynamodb.NewPartialComposer(settings, plugins)
 	case model.DBTypeFake:
 		return fake.NewPartialComposer(settings)
 	}

@@ -112,6 +112,13 @@ func (dbs *DatabaseSettings) Validate() error {
 	return nil
 }
 
+func (ps *PluginSettings) Validate() error {
+	if ps.Path == "" {
+		return fmt.Errorf("Empty plugin path")
+	}
+	return nil
+}
+
 // Validate validates admin session storage settings.
 func (sss *SessionStorageSettings) Validate() error {
 	subject := "SessionStorageSettings"

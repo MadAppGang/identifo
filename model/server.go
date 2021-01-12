@@ -2,13 +2,15 @@ package model
 
 import (
 	"net/http"
+
+	"github.com/madappgang/identifo/plugin/shared"
 )
 
 // Server holds together all dependencies.
 type Server interface {
 	Router() Router
 	AppStorage() AppStorage
-	UserStorage() UserStorage
+	UserStorage() shared.UserStorage
 	ConfigurationStorage() ConfigurationStorage
 	ImportApps(filename string) error
 	ImportUsers(filename string) error

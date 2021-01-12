@@ -2,12 +2,13 @@ package fake
 
 import (
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/server"
 )
 
 // NewServer creates new in-memory backend service.
-func NewServer(settings model.ServerSettings, cors *model.CorsOptions, serverOptions ...func(*server.Server) error) (model.Server, error) {
-	dbComposer, err := NewComposer(settings)
+func NewServer(settings model.ServerSettings, plugins shared.Plugins, cors *model.CorsOptions, serverOptions ...func(*server.Server) error) (model.Server, error) {
+	dbComposer, err := NewComposer(settings, plugins)
 	if err != nil {
 		return nil, err
 	}

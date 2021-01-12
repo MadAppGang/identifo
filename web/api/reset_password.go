@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"path"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 )
 
 // RequestResetPassword requests password reset.
@@ -20,7 +20,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
-		if !model.EmailRegexp.MatchString(d.Email) {
+		if !shared.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestResetPassword.emailRegexp_MatchString")
 			return
 		}

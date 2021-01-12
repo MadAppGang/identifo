@@ -13,7 +13,7 @@
 # Output of the go coverage tool, specifically when used with LiteIDE
 *.out
 vendor
-db.db
+*.db
 debug
 
 static/apple/*
@@ -28,3 +28,5 @@ integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
 integrations/aws/identifo lambda/.env
 .devcontainer
+
+user_storage_plugin

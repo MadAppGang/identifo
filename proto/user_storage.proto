@@ -1,0 +1,184 @@
+syntax = "proto3";
+package proto;
+
+option go_package = "grpc-plugin/proto";
+
+/* User message */
+
+message User {
+    // @inject_tag: json:"id" bson:"_id"
+    string id   = 1;         
+    // @inject_tag: json:"username" bson:"username"  
+    string username       = 2;
+    // @inject_tag: json:"email" bson:"email" 
+    string email          =3;
+    // @inject_tag: json:"phone" bson:"phone" 
+    string phone           =4;
+    // @inject_tag: json:"password_hash" bson:"password_hash"
+    string password_hash            =5;
+    // @inject_tag: json:"is_active" bson:"is_active"
+    bool is_active          = 6;
+    // @inject_tag: json:"tfa_info" bson:"tfa_info"
+    TFAInfo         tfa_info = 7;
+    // @inject_tag: json:"federated_ids" bson:"federated_ids"
+    repeated string federated_ids    = 8;
+    // @inject_tag: json:"num_of_logins" bson:"num_of_logins"
+    uint32 num_of_logins = 9;
+    // @inject_tag: json:"latest_login_time" bson:"latest_login_time"
+    int64 latest_login_time = 10;
+    // @inject_tag: json:"access_role" bson:"access_role"
+    string access_role    = 11;
+    // @inject_tag: json:"is_anonymous" bson:"is_anonymous"
+	bool is_anonymous    = 12;
+}
+
+message TFAInfo {
+    // @inject_tag: json:"is_enabled" bson:"is_enabled"
+    bool is_enabled = 1;
+    // @inject_tag: json:"secret" bson:"secret"
+	string secret   = 2;
+}
+
+enum FederatedIdentityProvider {
+    UNKNOWN = 0;
+    FACEBOOK = 1;
+    GOOGLE = 2;
+    TWITTER = 3;
+    APPLE = 4;
+}
+
+
+/* Requests */
+
+message UserByPhoneRequest {
+    string phone = 1;
+}
+
+message UserByEmailRequest {
+    string email = 1;
+}
+
+message UserByIDRequest {
+    string id = 1;
+}
+
+message AddUserByPhoneRequest {
+    string phone = 1;
+    string role = 2;
+}
+
+message IDByNameRequest {
+    string name = 1;
+}
+
+message IDByNameResponse {
+    string id = 1;
+}
+
+message AttachDeviceTokenRequest {
+    string id = 1;
+    string token = 2;
+}
+
+message DetachDeviceTokenRequest {
+    string token = 1;
+}
+
+message UserByNamePasswordRequest {
+    string name = 1;
+    string password = 2;
+}
+
+message AddUserByNameAndPasswordRequest {
+    string name = 1;
+    string password = 2;
+    string role = 3;
+    bool is_anonymous = 4;
+}
+
+message UserExistsRequest {
+    string name = 1;
+}
+
+message UserExistsResponse {
+    bool does_exist = 1;
+}
+
+message UserByFederatedIDRequest {
+    FederatedIdentityProvider provider = 1;
+    string id = 2;
+}
+
+message AddUserWithFederatedIDRequest {
+    FederatedIdentityProvider provider = 1;
+    string id = 2;
+    string role = 3;
+}
+
+message UpdateUserRequest {
+    string user_id = 1;
+    User new_user = 2;
+}
+
+message ResetPasswordRequest {
+    string id = 1;
+    string password = 2;
+}
+
+message DeleteUserRequest {
+    string id = 1;
+}
+
+message FetchUsersRequest {
+    string search = 1;
+    uint32 skip = 2;
+    uint32 limit = 3;
+}
+
+message FetchUsersResponse {
+    repeated User users = 1;
+    uint32 total = 2;
+}
+
+message RequestScopesRequest {
+    string user_id = 1;
+    repeated string scopes = 2;
+}
+
+message ScopesResponse {
+    repeated string scopes = 1;
+}
+
+message ImportJSONRequest {
+    bytes data = 1;
+}
+
+message Empty {}
+
+message UpdateLoginMetadataRequest {
+    string user_id = 1;
+}
+
+service UserStorage {
+    rpc UserByPhone(UserByPhoneRequest) returns (User);
+    rpc AddUserByPhone(AddUserByPhoneRequest) returns (User);
+    rpc UserByID(UserByIDRequest) returns (User);
+    rpc UserByEmail(UserByEmailRequest) returns (User);
+    rpc IDByName(IDByNameRequest) returns (IDByNameResponse);
+    rpc AttachDeviceToken (AttachDeviceTokenRequest) returns (Empty);
+    rpc DetachDeviceToken (DetachDeviceTokenRequest) returns (Empty);
+    rpc UserByNamePassword (UserByNamePasswordRequest) returns (User);
+    rpc AddUserByNameAndPassword (AddUserByNameAndPasswordRequest) returns (User);
+    rpc UserExists (UserExistsRequest) returns (UserExistsResponse);
+    rpc UserByFederatedID (UserByFederatedIDRequest) returns (User);
+    rpc AddUserWithFederatedID (AddUserWithFederatedIDRequest) returns (User);
+    rpc UpdateUser(UpdateUserRequest) returns (User);
+    rpc ResetPassword (ResetPasswordRequest) returns (Empty);
+    rpc DeleteUser(DeleteUserRequest) returns (Empty);
+    rpc FetchUsers(FetchUsersRequest) returns (FetchUsersResponse);
+    rpc RequestScopes(RequestScopesRequest) returns (ScopesResponse);
+    rpc Scopes(Empty) returns (ScopesResponse);
+    rpc ImportJSON(ImportJSONRequest) returns (Empty);
+    rpc UpdateLoginMetadata (UpdateLoginMetadataRequest) returns (Empty);
+    rpc Close(Empty) returns (Empty);
+}
