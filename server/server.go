@@ -20,6 +20,7 @@ import (
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
@@ -142,7 +143,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 type Server struct {
 	MainRouter              *web.Router
 	appStorage              model.AppStorage
-	userStorage             model.UserStorage
+	userStorage             shared.UserStorage
 	configurationStorage    model.ConfigurationStorage
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
@@ -165,7 +166,7 @@ func (s *Server) AppStorage() model.AppStorage {
 }
 
 // UserStorage returns server's user storage.
-func (s *Server) UserStorage() model.UserStorage {
+func (s *Server) UserStorage() shared.UserStorage {
 	return s.userStorage
 }
 
@@ -217,7 +218,7 @@ func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serve
 	return nil, fmt.Errorf("Configuration storage of type '%s' is not supported", settings.Type)
 }
 
-func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {
+func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage shared.UserStorage) (jwtService.TokenService, error) {
 	tokenServiceAlg, ok := ijwt.StrToTokenSignAlg[generalSettings.Algorithm]
 	if !ok {
 		return nil, fmt.Errorf("Unknown token service algorithm %s", generalSettings.Algorithm)

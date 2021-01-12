@@ -2,6 +2,7 @@ package dynamodb
 
 import (
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/storage/dynamodb"
 )
 
@@ -10,7 +11,6 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              dynamodb.NewAppStorage,
-		newUserStorage:             dynamodb.NewUserStorage,
 		newTokenStorage:            dynamodb.NewTokenStorage,
 		newTokenBlacklist:          dynamodb.NewTokenBlacklist,
 		newVerificationCodeStorage: dynamodb.NewVerificationCodeStorage,
@@ -22,7 +22,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 type DatabaseComposer struct {
 	settings                   model.ServerSettings
 	newAppStorage              func(*dynamodb.DB) (model.AppStorage, error)
-	newUserStorage             func(*dynamodb.DB) (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func(*dynamodb.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*dynamodb.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*dynamodb.DB) (model.VerificationCodeStorage, error)
@@ -31,7 +31,7 @@ type DatabaseComposer struct {
 // Compose composes all services with DynamoDB support.
 func (dc *DatabaseComposer) Compose() (
 	model.AppStorage,
-	model.UserStorage,
+	shared.UserStorage,
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
@@ -44,11 +44,6 @@ func (dc *DatabaseComposer) Compose() (
 	}
 
 	appStorage, err := dc.newAppStorage(db)
-	if err != nil {
-		return nil, nil, nil, nil, nil, err
-	}
-
-	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
 		return nil, nil, nil, nil, nil, err
 	}
@@ -68,25 +63,21 @@ func (dc *DatabaseComposer) Compose() (
 		return nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	return appStorage, dc.userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with DynamoDB support.
-func NewPartialComposer(settings model.StorageSettings, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
+func NewPartialComposer(settings model.StorageSettings, plugin shared.Plugins, options ...func(*PartialDatabaseComposer) error) (*PartialDatabaseComposer, error) {
 	pc := &PartialDatabaseComposer{}
 	// We assume that all DynamoDB-backed storages share the same endpoint and region, so we can pick any of them.
 	var dbEndpoint, dbRegion string
+
+	pc.userStorage = plugin.UserStorage
 
 	if settings.AppStorage.Type == model.DBTypeDynamoDB {
 		pc.newAppStorage = dynamodb.NewAppStorage
 		dbEndpoint = settings.AppStorage.Endpoint
 		dbRegion = settings.AppStorage.Region
-	}
-
-	if settings.UserStorage.Type == model.DBTypeDynamoDB {
-		pc.newUserStorage = dynamodb.NewUserStorage
-		dbEndpoint = settings.UserStorage.Endpoint
-		dbRegion = settings.UserStorage.Region
 	}
 
 	if settings.TokenStorage.Type == model.DBTypeDynamoDB {
@@ -125,7 +116,7 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 type PartialDatabaseComposer struct {
 	db                         *dynamodb.DB
 	newAppStorage              func(*dynamodb.DB) (model.AppStorage, error)
-	newUserStorage             func(*dynamodb.DB) (model.UserStorage, error)
+	userStorage                shared.UserStorage
 	newTokenStorage            func(*dynamodb.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*dynamodb.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*dynamodb.DB) (model.VerificationCodeStorage, error)
@@ -136,16 +127,6 @@ func (pc *PartialDatabaseComposer) AppStorageComposer() func() (model.AppStorage
 	if pc.newAppStorage != nil {
 		return func() (model.AppStorage, error) {
 			return pc.newAppStorage(pc.db)
-		}
-	}
-	return nil
-}
-
-// UserStorageComposer returns user storage composer.
-func (pc *PartialDatabaseComposer) UserStorageComposer() func() (model.UserStorage, error) {
-	if pc.newUserStorage != nil {
-		return func() (model.UserStorage, error) {
-			return pc.newUserStorage(pc.db)
 		}
 	}
 	return nil

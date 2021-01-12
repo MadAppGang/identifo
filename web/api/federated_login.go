@@ -7,6 +7,9 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
+	"github.com/madappgang/identifo/proto/extensions"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -62,11 +65,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		var federatedID string
 		var err error
 
-		fid := model.FederatedIdentityProvider(strings.ToUpper(d.FederatedIDProvider))
+		fidName := strings.ToUpper(d.FederatedIDProvider)
+		fidInt32 := proto.FederatedIdentityProvider_value[fidName]
+		fid := proto.FederatedIdentityProvider(fidInt32)
+
 		switch fid {
-		case model.FacebookIDProvider:
+		case proto.FederatedIdentityProvider_FACEBOOK:
 			federatedID, err = ar.FacebookUserID(d.AccessToken)
-		case model.AppleIDProvider:
+		case proto.FederatedIdentityProvider_APPLE:
 			if app.AppleInfo() == nil {
 				ar.logger.Println("Empty apple info")
 				ar.Error(w, ErrorAPIAppFederatedProviderEmptyAppleInfo, http.StatusBadRequest, "App does not have Apple info.", "FederatedLogin.switch_providers_apple")
@@ -86,13 +92,13 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
 		// Check error not found, create new user.
-		if err == model.ErrUserNotFound && d.RegisterIfNew {
+		if err == shared.ErrUserNotFound && d.RegisterIfNew {
 			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole())
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
 			}
-		} else if err == model.ErrUserNotFound && !d.RegisterIfNew {
+		} else if err == shared.ErrUserNotFound && !d.RegisterIfNew {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusNotFound, err.Error(), "FederatedLogin.UserByFederatedID.NotRegisterNew")
 			return
 		} else if err != nil {
@@ -103,7 +109,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -113,7 +119,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Request permissions for the user.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.Id, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "FederatedLogin.RequestScopes")
 			return
@@ -146,14 +152,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			}
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		result := AuthResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.Id)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 

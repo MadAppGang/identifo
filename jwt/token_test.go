@@ -18,10 +18,8 @@ const (
 )
 
 func TestNewTokenService(t *testing.T) {
-	us, err := mem.NewUserStorage()
-	if err != nil {
-		t.Fatalf("Unable to create user storage %v", err)
-	}
+	us := mem.NewUserStorage()
+
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
 		t.Fatalf("Unable to create token storage %v", err)
@@ -95,10 +93,8 @@ func TestNewTokenService(t *testing.T) {
 }
 
 func TestParseString(t *testing.T) {
-	us, err := mem.NewUserStorage()
-	if err != nil {
-		t.Fatalf("Unable to create user storage %v", err)
-	}
+	us := mem.NewUserStorage()
+
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
 		t.Fatalf("Unable to create token storage %v", err)
@@ -151,10 +147,8 @@ func TestParseString(t *testing.T) {
 }
 
 func TestTokenToString(t *testing.T) {
-	us, err := mem.NewUserStorage()
-	if err != nil {
-		t.Errorf("Unable to create user storage %v", err)
-	}
+	us := mem.NewUserStorage()
+
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
 		t.Errorf("Unable to create token storage %v", err)
@@ -218,10 +212,8 @@ func TestTokenToString(t *testing.T) {
 }
 
 func TestNewToken(t *testing.T) {
-	us, err := mem.NewUserStorage()
-	if err != nil {
-		t.Errorf("Unable to create user storage %v", err)
-	}
+	us := mem.NewUserStorage()
+
 	tstor, err := mem.NewTokenStorage()
 	if err != nil {
 		t.Errorf("Unable to create token storage %v", err)
@@ -247,10 +239,10 @@ func TestNewToken(t *testing.T) {
 	if err != nil {
 		t.Errorf("Unable to create service %v", err)
 	}
-	ustg, _ := mem.NewUserStorage()
+	ustg := mem.NewUserStorage()
 	user, _ := ustg.UserByNamePassword("username", "password")
 	//generate random user until we get active user
-	for !user.Active() {
+	for !user.IsActive {
 		user, _ = ustg.UserByNamePassword("username", "password")
 	}
 	scopes := []string{"scope1", "scope2"}
@@ -279,8 +271,8 @@ func TestNewToken(t *testing.T) {
 	if claims2.Issuer != testIssuer {
 		t.Errorf("Issuer = %+v, want %+v", claims2.Issuer, testIssuer)
 	}
-	if claims2.Subject != user.ID() {
-		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID())
+	if claims2.Subject != user.Id {
+		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.Id)
 	}
 	if claims2.Audience != app.ID() {
 		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID())

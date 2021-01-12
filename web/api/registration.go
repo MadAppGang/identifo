@@ -6,6 +6,8 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/proto"
+	"github.com/madappgang/identifo/proto/extensions"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -38,9 +40,9 @@ func (rd *registrationData) validate() error {
 // RegisterWithPassword registers new user with password.
 func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 	type registrationResponse struct {
-		AccessToken  string     `json:"access_token,omitempty"`
-		RefreshToken string     `json:"refresh_token,omitempty"`
-		User         model.User `json:"user,omitempty"`
+		AccessToken  string      `json:"access_token,omitempty"`
+		RefreshToken string      `json:"refresh_token,omitempty"`
+		User         *proto.User `json:"user,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -102,7 +104,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.Id, rd.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "RegisterWithPassword.RequestScopes")
 			return
@@ -135,7 +137,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			}
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		result := registrationResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,

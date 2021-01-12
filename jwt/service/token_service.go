@@ -3,6 +3,7 @@ package service
 import (
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/proto"
 )
 
 const (
@@ -22,12 +23,12 @@ const (
 
 // TokenService is an abstract token manager.
 type TokenService interface {
-	NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool) (ijwt.Token, error)
-	NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
+	NewAccessToken(u *proto.User, scopes []string, app model.AppData, requireTFA bool) (ijwt.Token, error)
+	NewRefreshToken(u *proto.User, scopes []string, app model.AppData) (ijwt.Token, error)
 	RefreshAccessToken(token ijwt.Token) (ijwt.Token, error)
 	NewInviteToken() (ijwt.Token, error)
 	NewResetToken(userID string) (ijwt.Token, error)
-	NewWebCookieToken(u model.User) (ijwt.Token, error)
+	NewWebCookieToken(u *proto.User) (ijwt.Token, error)
 	Parse(string) (ijwt.Token, error)
 	String(ijwt.Token) (string, error)
 	Issuer() string

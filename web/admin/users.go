@@ -6,6 +6,9 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
+	"github.com/madappgang/identifo/proto/extensions"
 )
 
 const (
@@ -37,7 +40,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByID(userID)
 		if err != nil {
-			if err == model.ErrUserNotFound {
+			if err == shared.ErrUserNotFound {
 				ar.Error(w, err, http.StatusNotFound, "")
 			} else {
 				ar.Error(w, err, http.StatusInternalServerError, "")
@@ -45,7 +48,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -63,16 +66,16 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 		users, total, err := ar.userStorage.FetchUsers(filterStr, skip, limit)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
 			return
 		}
 		for _, user := range users {
-			user.Sanitize()
+			extensions.SanitizeUser(user)
 		}
 
 		searchResponse := struct {
-			Users []model.User `json:"users"`
-			Total int          `json:"total"`
+			Users []*proto.User `json:"users"`
+			Total int           `json:"total"`
 		}{
 			Users: users,
 			Total: total,
@@ -106,7 +109,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -116,7 +119,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
 
-		u := ar.userStorage.NewUser()
+		u := new(proto.User)
 		if ar.mustParseJSON(w, r, u) != nil {
 			return
 		}
@@ -129,7 +132,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		ar.logger.Printf("User %s updated", userID)
 
-		user.Sanitize()
+		extensions.SanitizeUser(user)
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

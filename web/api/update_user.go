@@ -6,6 +6,8 @@ import (
 	"strings"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
+	"github.com/madappgang/identifo/proto"
 )
 
 // UpdateUser allows to change user login and password.
@@ -47,20 +49,20 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Update password.
 		if d.updatePassword {
 			// Check old password.
-			if _, err := ar.userStorage.UserByNamePassword(user.Username(), d.OldPassword); err != nil {
+			if _, err := ar.userStorage.UserByNamePassword(user.Username, d.OldPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
 			}
 
 			// Save new password.
-			err = ar.userStorage.ResetPassword(user.ID(), d.NewPassword)
+			err = ar.userStorage.ResetPassword(user.Id, d.NewPassword)
 			if err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
 				return
 			}
 
 			// Refetch user with new password hash.
-			if user, err = ar.userStorage.UserByNamePassword(user.Username(), d.NewPassword); err != nil {
+			if user, err = ar.userStorage.UserByNamePassword(user.Username, d.NewPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.RefetchUser")
 				return
 			}
@@ -68,12 +70,12 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// Change username if user specified new one.
 		if d.updateUsername {
-			user.SetUsername(d.NewUsername)
-			user.Deanonimize()
+			user.Username = d.NewUsername
+			user.IsAnonymous = false
 		}
 
 		if d.updateEmail {
-			user.SetEmail(d.NewEmail)
+			user.Email = d.NewEmail
 		}
 
 		if d.updateUsername || d.updateEmail {
@@ -117,11 +119,11 @@ type updateData struct {
 	updateUsername bool
 }
 
-func (d *updateData) validate(user model.User) error {
-	if d.NewUsername != "" && user.Username() != d.NewUsername {
+func (d *updateData) validate(user *proto.User) error {
+	if d.NewUsername != "" && user.Username != d.NewUsername {
 		d.updateUsername = true
 	}
-	if d.NewEmail != "" && user.Email() != d.NewEmail {
+	if d.NewEmail != "" && user.Email != d.NewEmail {
 		d.updateEmail = true
 	}
 	if d.NewPassword != "" && d.NewPassword != d.OldPassword {
@@ -138,7 +140,7 @@ func (d *updateData) validate(user model.User) error {
 		}
 	}
 
-	if d.updateEmail && !model.EmailRegexp.MatchString(d.NewEmail) {
+	if d.updateEmail && !shared.EmailRegexp.MatchString(d.NewEmail) {
 		return errors.New("Email is not valid. ")
 	}
 	return nil

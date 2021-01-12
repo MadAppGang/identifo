@@ -34,7 +34,7 @@ type AdminAccountSettings struct {
 // StorageSettings holds together storage settings for different services.
 type StorageSettings struct {
 	AppStorage              DatabaseSettings `yaml:"appStorage,omitempty" json:"app_storage,omitempty"`
-	UserStorage             DatabaseSettings `yaml:"userStorage,omitempty" json:"user_storage,omitempty"`
+	UserStorage             PluginSettings   `yaml:"userStorage,omitempty" json:"user_storage,omitempty"`
 	TokenStorage            DatabaseSettings `yaml:"tokenStorage,omitempty" json:"token_storage,omitempty"`
 	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist,omitempty" json:"token_blacklist,omitempty"`
 	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage,omitempty" json:"verification_code_storage,omitempty"`
@@ -47,6 +47,10 @@ type DatabaseSettings struct {
 	Endpoint string       `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 	Region   string       `yaml:"region,omitempty" json:"region,omitempty"`
 	Path     string       `yaml:"path,omitempty" json:"path,omitempty"`
+}
+
+type PluginSettings struct {
+	Path string `yaml:"plugin_path,omitempty" json:"plugin_path,omitempty"`
 }
 
 // DatabaseType is a type of database.

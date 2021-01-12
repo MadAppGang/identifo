@@ -9,6 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
@@ -22,7 +23,7 @@ type Router struct {
 	sessionService       model.SessionService
 	sessionStorage       model.SessionStorage
 	appStorage           model.AppStorage
-	userStorage          model.UserStorage
+	userStorage          shared.UserStorage
 	configurationStorage model.ConfigurationStorage
 	staticFilesStorage   model.StaticFilesStorage
 	ServerConfigPath     string
@@ -92,7 +93,7 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us shared.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:           negroni.Classic(),
 		router:               mux.NewRouter(),

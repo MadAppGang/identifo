@@ -6,6 +6,7 @@ import (
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
@@ -16,7 +17,7 @@ import (
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
 	AppStorage              model.AppStorage
-	UserStorage             model.UserStorage
+	UserStorage             shared.UserStorage
 	TokenStorage            model.TokenStorage
 	TokenBlacklist          model.TokenBlacklist
 	VerificationCodeStorage model.VerificationCodeStorage

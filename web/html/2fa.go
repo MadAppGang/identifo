@@ -7,6 +7,7 @@ import (
 
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/proto"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
 )
@@ -38,11 +39,11 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 			return
 		}
 
-		tfa := model.TFAInfo{
+		tfa := proto.TFAInfo{
 			IsEnabled: false,
 			Secret:    "",
 		}
-		user.SetTFAInfo(tfa)
+		user.TfaInfo = &tfa
 
 		if _, err := ar.UserStorage.UpdateUser(token.UserID(), user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
@@ -128,7 +129,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			return
 		}
 
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
+		totp := gotp.NewDefaultTOTP(user.TfaInfo.Secret)
 		dontNeedVerification := app.DebugTFACode() != "" && tfaCode == app.DebugTFACode()
 
 		if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
@@ -180,13 +181,13 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			return
 		}
 
-		tfa := model.TFAInfo{
+		tfa := proto.TFAInfo{
 			IsEnabled: true,
 			Secret:    gotp.RandomSecret(16),
 		}
-		user.SetTFAInfo(tfa)
+		user.TfaInfo = &tfa
 
-		if _, err := ar.UserStorage.UpdateUser(user.ID(), user); err != nil {
+		if _, err := ar.UserStorage.UpdateUser(user.Id, user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return

@@ -112,7 +112,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
+		scopes, err = ar.UserStorage.RequestScopes(user.Id, scopes)
 		if err != nil {
 			ar.Logger.Printf("Error: requesting scopes %v.", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
