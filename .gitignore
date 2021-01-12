@@ -28,5 +28,3 @@ integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
 integrations/aws/identifo lambda/.env
 .devcontainer
-
-user_storage_plugin
