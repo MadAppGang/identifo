@@ -7,11 +7,11 @@ import (
 )
 
 // NewComposer creates new database composer with in-memory storage support.
-func NewComposer(settings model.ServerSettings, plugins shared.Plugins) (*DatabaseComposer, error) {
+func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 	c := DatabaseComposer{
 		settings:                   settings,
 		newAppStorage:              mem.NewAppStorage,
-		userStorage:                plugins.UserStorage,
+		userStorage:                mem.NewUserStorage(),
 		newTokenStorage:            mem.NewTokenStorage,
 		newTokenBlacklist:          mem.NewTokenBlacklist,
 		newVerificationCodeStorage: mem.NewVerificationCodeStorage,

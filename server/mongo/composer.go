@@ -1,4 +1,4 @@
-package mgo
+package mongo
 
 import (
 	"github.com/madappgang/identifo/model"

@@ -8,8 +8,8 @@ import (
 
 // NewUserStorage creates and inits in-memory user storage.
 // Use it only for test purposes and in CI, all data is wiped on exit.
-func NewUserStorage() (shared.UserStorage, error) {
-	return &UserStorage{}, nil
+func NewUserStorage() shared.UserStorage {
+	return &UserStorage{}
 }
 
 // UserStorage is an in-memory user storage .

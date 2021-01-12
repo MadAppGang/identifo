@@ -11,7 +11,7 @@ import (
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/plugin/shared"
 	"github.com/madappgang/identifo/server"
-	"github.com/madappgang/identifo/server/boltdb"
+	"github.com/madappgang/identifo/server/mongo"
 )
 
 const (
@@ -21,13 +21,13 @@ const (
 )
 
 func initServer(plugins shared.Plugins) model.Server {
-	srv, err := boltdb.NewServer(server.ServerSettings, nil, plugins)
+	srv, err := mongo.NewServer(server.ServerSettings, plugins, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
-		log.Println("Error getting app by ID:", err)
+		log.Println("Error getting app storage:", err)
 		if err = srv.ImportApps(appsImportPath); err != nil {
 			log.Println("Error importing apps:", err)
 		}
@@ -39,8 +39,6 @@ func initServer(plugins shared.Plugins) model.Server {
 }
 
 func main() {
-	log.SetFlags(log.LstdFlags | log.Lshortfile)
-
 	// We're a host. Start by launching the plugin process.
 	client := plugin.NewClient(&plugin.ClientConfig{
 		HandshakeConfig:  shared.Handshake,
@@ -71,6 +69,6 @@ func main() {
 	s := initServer(plugins)
 	defer s.Close()
 
-	log.Println("Demo Identifo server started")
+	log.Println("MongoDB server started")
 	log.Fatal(http.ListenAndServe(server.ServerSettings.GetPort(), s.Router()))
 }

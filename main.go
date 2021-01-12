@@ -20,7 +20,7 @@ import (
 	"github.com/madappgang/identifo/server/boltdb"
 	"github.com/madappgang/identifo/server/dynamodb"
 	"github.com/madappgang/identifo/server/fake"
-	"github.com/madappgang/identifo/server/mgo"
+	"github.com/madappgang/identifo/server/mongo"
 )
 
 const (
@@ -193,7 +193,7 @@ func initPartialComposer(dbType model.DatabaseType, settings model.StorageSettin
 	case model.DBTypeBoltDB:
 		return boltdb.NewPartialComposer(settings, plugins)
 	case model.DBTypeMongoDB:
-		return mgo.NewPartialComposer(settings, plugins)
+		return mongo.NewPartialComposer(settings, plugins)
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewPartialComposer(settings, plugins)
 	case model.DBTypeFake:
