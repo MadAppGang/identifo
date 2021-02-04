@@ -9,7 +9,7 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server/utils/origin_checker"
+	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
@@ -18,7 +18,7 @@ import (
 type Router struct {
 	middleware           *negroni.Negroni
 	cors                 *cors.Cors
-	originChecker        *origin_checker.OriginChecker
+	originChecker        *originchecker.OriginChecker
 	logger               *log.Logger
 	router               *mux.Router
 	sessionService       model.SessionService
@@ -51,12 +51,12 @@ func HostOption(host string) func(*Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions, originChecker *origin_checker.OriginChecker) func(*Router) error {
+func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
 		if originChecker != nil {
 			r.originChecker = originChecker
 		} else {
-			r.originChecker = origin_checker.NewOriginChecker()
+			r.originChecker = originchecker.NewOriginChecker()
 		}
 
 		if corsOptions != nil && corsOptions.Admin != nil {

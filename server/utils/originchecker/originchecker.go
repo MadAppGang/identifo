@@ -1,4 +1,4 @@
-package origin_checker
+package originchecker
 
 import (
 	"fmt"
@@ -18,6 +18,7 @@ type OriginChecker struct {
 	checks []func(r *http.Request, origin string) bool
 }
 
+// NewOriginChecker creates new instance of an OriginChecker.
 func NewOriginChecker() *OriginChecker {
 	originChecker := &OriginChecker{
 		checks: make([]func(r *http.Request, origin string) bool, 1),
