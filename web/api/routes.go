@@ -66,7 +66,7 @@ func (ar *Router) initRoutes() {
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
-	ar.router.PathPrefix("/.well-known").Handler(negroni.New(
+	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(
 		ar.DumpRequest(),
 		negroni.Wrap(oidc),
 	))
