@@ -20,6 +20,7 @@ import (
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/server/utils/origin_checker"
 	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
 	mem "github.com/madappgang/identifo/sessions/mem"
 	redis "github.com/madappgang/identifo/sessions/redis"
@@ -92,6 +93,17 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		hostName = settings.General.Host
 	}
 
+	originChecker := origin_checker.NewOriginChecker()
+
+	apps, _, err := appStorage.FetchApps("", 0, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	for _, a := range apps {
+		originChecker.AddRawURLs(a.RedirectURLs())
+	}
+
 	routerSettings := web.RouterSetting{
 		AppStorage:              appStorage,
 		UserStorage:             userStorage,
@@ -108,19 +120,19 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
-			html.CorsOption(cors),
+			html.CorsOption(cors, originChecker),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.CorsOption(cors),
+			api.CorsOption(cors, originChecker),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
 			admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
-			admin.CorsOption(cors),
+			admin.CorsOption(cors, originChecker),
 		},
 	}
 

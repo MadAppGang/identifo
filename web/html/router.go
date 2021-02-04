@@ -10,6 +10,7 @@ import (
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/server/utils/origin_checker"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
@@ -57,9 +58,12 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+func CorsOption(corsOptions *model.CorsOptions, originChecker *origin_checker.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
 		if corsOptions != nil && corsOptions.HTML != nil {
+			if originChecker != nil {
+				corsOptions.HTML.AllowOriginRequestFunc = originChecker.With(corsOptions.HTML.AllowOriginRequestFunc).CheckOrigin
+			}
 			r.cors = cors.New(*corsOptions.HTML)
 		}
 		return nil
