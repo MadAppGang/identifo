@@ -7,13 +7,11 @@ import (
 	"sync"
 )
 
-// origins is global for the origin_checker package to be used across all instances of an OriginChecker
-var origins = make(map[string]struct{})
-
 // OriginChecker holds user's AllowOriginRequestFunc and checks dynamically
 // added CORS origins from an all app's redirect urls.
 type OriginChecker struct {
 	sync.RWMutex
+	origins map[string]struct{}
 	// checks is a slice of AllowOriginRequestFuncs
 	checks []func(r *http.Request, origin string) bool
 }
@@ -21,7 +19,8 @@ type OriginChecker struct {
 // NewOriginChecker creates new instance of an OriginChecker.
 func NewOriginChecker() *OriginChecker {
 	originChecker := &OriginChecker{
-		checks: make([]func(r *http.Request, origin string) bool, 1),
+		origins: make(map[string]struct{}),
+		checks:  make([]func(r *http.Request, origin string) bool, 1),
 	}
 
 	// function that grabs origins from the global origins map
@@ -37,7 +36,7 @@ func (os *OriginChecker) IsPresent(origin string) bool {
 	os.RLock()
 	defer os.RUnlock()
 
-	_, ok := origins[origin]
+	_, ok := os.origins[origin]
 	return ok
 }
 
@@ -46,7 +45,7 @@ func (os *OriginChecker) Add(origin string) {
 	os.Lock()
 	defer os.Unlock()
 
-	origins[origin] = struct{}{}
+	os.origins[origin] = struct{}{}
 }
 
 // AddRawURLs parses and adds urls to the list of allowed origins.
@@ -57,7 +56,7 @@ func (os *OriginChecker) AddRawURLs(urls []string) {
 	for _, u := range urls {
 		parsed, err := url.Parse(u)
 		if err == nil {
-			origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = struct{}{}
+			os.origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = struct{}{}
 		}
 	}
 }
@@ -67,7 +66,7 @@ func (os *OriginChecker) Delete(origin string) {
 	os.Lock()
 	defer os.Unlock()
 
-	delete(origins, origin)
+	delete(os.origins, origin)
 }
 
 // DeleteAll removes all origins from the global origin map.
@@ -75,16 +74,12 @@ func (os *OriginChecker) DeleteAll() {
 	os.Lock()
 	defer os.Unlock()
 
-	origins = make(map[string]struct{})
+	os.origins = make(map[string]struct{})
 }
 
 // With adds AllowOriginRequestFunc to list of checks.
 func (os *OriginChecker) With(f func(r *http.Request, origin string) bool) *OriginChecker {
-	if f != nil {
-		newChecker := NewOriginChecker()
-		newChecker.checks = append(newChecker.checks, f)
-		return newChecker
-	}
+	os.checks = append(os.checks, f)
 	return os
 }
 

@@ -115,7 +115,9 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 			return
 		}
 
-		go ar.updateAllowedOrigins()
+		if err = ar.updateAllowedOrigins(); err != nil {
+			ar.logger.Printf("Error occurred during updating allowed origins for App %s, error: %v", appID, err)
+		}
 
 		ar.logger.Printf("App %s updated", appID)
 
@@ -147,18 +149,18 @@ func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
 	return base64.StdEncoding.EncodeToString(secret), nil
 }
 
-func (ar *Router) updateAllowedOrigins() {
+func (ar *Router) updateAllowedOrigins() error {
 	ar.originChecker.DeleteAll()
 
 	apps, _, err := ar.appStorage.FetchApps("", 0, 0)
 	if err != nil {
-		ar.logger.Println("error occurred during fetching apps:", err.Error())
-		return
+		return fmt.Errorf("error occurred during fetching apps: %s\n", err.Error())
 	}
 
 	for _, a := range apps {
 		ar.originChecker.AddRawURLs(a.RedirectURLs())
 	}
+	return nil
 }
 
 func isBase64(s string) bool {

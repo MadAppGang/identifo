@@ -120,7 +120,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
-			html.CorsOption(cors, originChecker),
+			html.CorsOption(cors),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),

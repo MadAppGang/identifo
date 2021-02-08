@@ -60,7 +60,6 @@ func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.Ori
 		}
 
 		if corsOptions != nil && corsOptions.Admin != nil {
-			corsOptions.Admin.AllowOriginRequestFunc = r.originChecker.With(corsOptions.Admin.AllowOriginRequestFunc).CheckOrigin
 			r.cors = cors.New(*corsOptions.Admin)
 		}
 		return nil
