@@ -203,8 +203,15 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// Get user by userID.
-		if u := ub.Get(userID); u == nil {
+		u := ub.Get(userID)
+		if u == nil {
 			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = UserFromJSON(u)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
@@ -386,17 +393,30 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	}
 
 	err := us.db.Update(func(tx *bolt.Tx) error {
+		ub := tx.Bucket([]byte(UserBucket))
+		oldBytes := ub.Get([]byte(userID))
+
+		if len(oldBytes) != 0 {
+			oldUser, err := UserFromJSON(oldBytes)
+			if err != nil {
+				return err
+			}
+			if res.Pswd == "" {
+				res.Pswd = oldUser.Pswd
+			}
+		}
+
 		data, err := res.Marshal()
 		if err != nil {
 			return err
 		}
 
-		ub := tx.Bucket([]byte(UserBucket))
-		if err := ub.Delete([]byte(userID)); err != nil {
+		if err = ub.Put([]byte(res.ID()), data); err != nil {
 			return err
 		}
 
-		return ub.Put([]byte(res.ID()), data)
+		ubnp := tx.Bucket([]byte(UserByNameAndPassword))
+		return ubnp.Put([]byte(res.Username()), []byte(res.ID()))
 	})
 	if err != nil {
 		return nil, err
@@ -482,7 +502,9 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 		var userIDs [][]byte
 
 		if iterErr := ubnp.ForEach(func(k, v []byte) error {
-			if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
+			if filterString == "" {
+				userIDs = append(userIDs, v)
+			} else if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
 				userIDs = append(userIDs, v)
 			}
 			return nil
