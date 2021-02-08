@@ -203,8 +203,15 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// Get user by userID.
-		if u := ub.Get(userID); u == nil {
+		u := ub.Get(userID)
+		if u == nil {
 			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = UserFromJSON(u)
+		if err != nil {
+			return err
 		}
 		return nil
 	})
@@ -482,7 +489,9 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 		var userIDs [][]byte
 
 		if iterErr := ubnp.ForEach(func(k, v []byte) error {
-			if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
+			if filterString == "" {
+				userIDs = append(userIDs, v)
+			} else if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
 				userIDs = append(userIDs, v)
 			}
 			return nil

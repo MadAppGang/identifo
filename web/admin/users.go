@@ -14,10 +14,11 @@ const (
 )
 
 type registrationData struct {
-	Username   string   `json:"username,omitempty"`
-	Password   string   `json:"password,omitempty"`
-	AccessRole string   `json:"access_role,omitempty"`
-	Scope      []string `json:"scope,omitempty"`
+	Username   string        `json:"username,omitempty"`
+	Password   string        `json:"password,omitempty"`
+	AccessRole string        `json:"access_role,omitempty"`
+	Scope      []string      `json:"scope,omitempty"`
+	TFAInfo    model.TFAInfo `json:"tfa_info,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -103,6 +104,14 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole, false)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
+			return
+		}
+
+		user.SetTFAInfo(rd.TFAInfo)
+
+		user, err = ar.userStorage.UpdateUser(user.ID(), user)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "Setting TFA data")
 			return
 		}
 
