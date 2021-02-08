@@ -15,6 +15,7 @@
 vendor
 db.db
 debug
+*__debug_bin
 
 static/apple/*
 static/admin_panel/build
