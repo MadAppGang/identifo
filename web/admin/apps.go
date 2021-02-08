@@ -154,7 +154,7 @@ func (ar *Router) updateAllowedOrigins() error {
 
 	apps, _, err := ar.appStorage.FetchApps("", 0, 0)
 	if err != nil {
-		return fmt.Errorf("error occurred during fetching apps: %s\n", err.Error())
+		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
 	}
 
 	for _, a := range apps {
