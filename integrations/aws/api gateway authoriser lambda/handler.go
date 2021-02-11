@@ -56,7 +56,12 @@ func Handler(ctx context.Context, event events.APIGatewayCustomAuthorizerRequest
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Invalid public key: " + err.Error())
 	}
 
-	v := jwtValidator.NewValidator(appID, jwtIssuer, "", "access")
+	v := jwtValidator.NewValidator(
+		[]string{appID},
+		[]string{jwtIssuer},
+		[]string{},
+		[]string{"access"},
+	)
 	tokenV, err := jwt.ParseTokenWithPublicKey(string(tstr), publicKey)
 	if err != nil {
 		return events.APIGatewayCustomAuthorizerResponse{}, errors.New("Error parsing token: " + err.Error())

@@ -27,26 +27,26 @@ func TestMiddleware(t *testing.T) {
 	successConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         testIssuer,
+		TokenType:      []string{middleware.TokenTypeAccess, middleware.TokenTypeRefresh},
+		Audience:       []string{tokenAud, "ddddd"},
+		Issuer:         []string{testIssuer, "dsfsd"},
 	}
 
 	wrongIssuerConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         "I am wrong issuer",
+		TokenType:      []string{middleware.TokenTypeAccess},
+		Audience:       []string{tokenAud},
+		Issuer:         []string{"I am wrong issuer"},
 	}
 
 	specificUserIssuerConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         testIssuer,
-		UserID:         "user1",
+		TokenType:      []string{middleware.TokenTypeAccess},
+		Audience:       []string{tokenAud},
+		Issuer:         []string{testIssuer},
+		UserID:         []string{"user1"},
 	}
 
 	type args struct {
