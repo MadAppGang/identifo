@@ -38,7 +38,12 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		}
 		tokenString := string(tokenBytes)
 
-		v := jwtValidator.NewValidator(app.ID(), ar.tokenService.Issuer(), "", tokenType)
+		v := jwtValidator.NewValidator(
+			[]string{app.ID()},
+			[]string{ar.tokenService.Issuer()},
+			[]string{},
+			[]string{tokenType},
+		)
 		token, err := ar.tokenService.Parse(tokenString)
 		if err != nil {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")
