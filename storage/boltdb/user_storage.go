@@ -404,6 +404,9 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 			if res.Pswd == "" {
 				res.Pswd = oldUser.Pswd
 			}
+			if res.userData.TFAInfo.Secret == "" {
+				res.userData.TFAInfo.Secret = oldUser.userData.TFAInfo.Secret
+			}
 		}
 
 		data, err := res.Marshal()
