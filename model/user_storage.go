@@ -63,5 +63,5 @@ type User interface {
 // TFAInfo encapsulates two-factor authentication user info.
 type TFAInfo struct {
 	IsEnabled bool   `bson:"is_enabled" json:"is_enabled"`
-	Secret    string `bson:"secret" json:"-"`
+	Secret    string `bson:"secret" json:"secret,omitempty"`
 }

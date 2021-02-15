@@ -26,8 +26,8 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		if tfaStatus := app.TFAStatus(); tfaStatus != model.TFAStatusOptional {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, fmt.Sprintf("App TFA status is '%s', not 'optional'", tfaStatus), "EnableTFA.TFAStatus")
+		if tfaStatus := app.TFAStatus(); tfaStatus == model.TFAStatusDisabled {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "TFA is not supported by this app", "EnableTFA.TFAStatus")
 			return
 		}
 
