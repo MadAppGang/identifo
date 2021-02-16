@@ -1,6 +1,10 @@
 package jwt
 
-import jwt "github.com/dgrijalva/jwt-go"
+import (
+	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
+)
 
 const (
 	// OfflineTokenScope is a scope value to request refresh token.
@@ -17,8 +21,21 @@ const (
 	WebCookieTokenType = "web-cookie"
 )
 
+// StandardTokenClaims structured version of Claims Section, as referenced at
+// https://tools.ietf.org/html/rfc7519#section-4.1
+type StandardTokenClaims interface {
+	Audience() string
+	ExpiresAt() time.Time
+	ID() string
+	IssuedAt() time.Time
+	Issuer() string
+	NotBefore() time.Time
+	Subject() string
+}
+
 // Token is an abstract application token.
 type Token interface {
+	StandardTokenClaims
 	Validate() error
 	UserID() string
 	Type() string
@@ -80,6 +97,69 @@ func (t *JWToken) Type() string {
 		return ""
 	}
 	return claims.Type
+}
+
+//Audience standard token claim
+func (t *JWToken) Audience() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Audience
+}
+
+//ExpiresAt standard token claim
+func (t *JWToken) ExpiresAt() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.ExpiresAt, 0)
+}
+
+//ID standard token claim
+func (t *JWToken) ID() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Id
+}
+
+//IssuedAt standard token claim
+func (t *JWToken) IssuedAt() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.IssuedAt, 0)
+}
+
+//Issuer standard token claim
+func (t *JWToken) Issuer() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Issuer
+}
+
+//NotBefore standard token claim
+func (t *JWToken) NotBefore() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.NotBefore, 0)
+}
+
+//Subject standard token claim
+func (t *JWToken) Subject() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Subject
 }
 
 // Claims is an extended claims structure.
