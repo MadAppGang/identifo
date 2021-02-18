@@ -130,9 +130,22 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
+		existing, err := ar.userStorage.UserByID(userID)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		if u.TFAInfo().IsEnabled == existing.TFAInfo().IsEnabled {
+			u.SetTFAInfo(model.TFAInfo{
+				IsEnabled: existing.TFAInfo().IsEnabled,
+				Secret:    existing.TFAInfo().Secret,
+			})
+		}
+
 		user, err := ar.userStorage.UpdateUser(userID, u)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
 
