@@ -107,15 +107,16 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
 		result := AuthResponse{
 			AccessToken:    accessToken,
 			RefreshToken:   refreshToken,
-			User:           user,
 			NeedFurtherTFA: require2FA,
 		}
 
 		if !require2FA {
+			user.Sanitize()
+			result.User = user
+
 			ar.userStorage.UpdateLoginMetadata(user.ID())
 			ar.ServeJSON(w, http.StatusOK, result)
 			return
@@ -123,16 +124,16 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret).Now()
 
+		user.Sanitize()
+		result.User = user
+
 		switch ar.tfaType {
 		case model.TFATypeSMS:
 			ar.sendTFACodeInSMS(w, user.Phone(), totp)
-			return
 		case model.TFATypeEmail:
 			ar.sendTFACodeOnEmail(w, user.Email(), totp)
-			return
-		default:
-			ar.ServeJSON(w, http.StatusOK, result)
 		}
+		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
 
@@ -209,7 +210,6 @@ func (ar *Router) sendTFACodeInSMS(w http.ResponseWriter, phone, totp string) {
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendSMS")
 		return
 	}
-	ar.ServeJSON(w, http.StatusOK, nil)
 }
 
 func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, email, totp string) {
@@ -223,5 +223,4 @@ func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, email, totp string) 
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendTFAEmail")
 		return
 	}
-	ar.ServeJSON(w, http.StatusOK, nil)
 }
