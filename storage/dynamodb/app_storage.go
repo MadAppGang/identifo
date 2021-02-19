@@ -217,9 +217,15 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 	return updatedApp, err
 }
 
+const maxAppsLimit = 20
+
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination. Search is case-senstive for now.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
+	if limit == 0 || limit > maxAppsLimit {
+		limit = maxAppsLimit
+	}
+
 	scanInput := &dynamodb.ScanInput{
 		TableName: aws.String(appsTableName),
 		Limit:     aws.Int64(int64(limit)),
