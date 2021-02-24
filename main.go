@@ -17,12 +17,6 @@ import (
 	"github.com/madappgang/identifo/server/mgo"
 )
 
-const (
-	testAppID       = "59fd884d8f6b180001f5b4e2"
-	appsImportPath  = "cmd/import/apps.json"
-	usersImportPath = "cmd/import/users.json"
-)
-
 func main() {
 	forever := make(chan struct{}, 1)
 
@@ -81,16 +75,6 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorage, nil)
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
-	}
-
-	if _, err = srv.AppStorage().AppByID(testAppID); err != nil {
-		log.Println("Error getting app by ID:", err)
-		if err = srv.ImportApps(appsImportPath); err != nil {
-			log.Println("Error importing apps:", err)
-		}
-		if err = srv.ImportUsers(usersImportPath); err != nil {
-			log.Println("Error importing users:", err)
-		}
 	}
 
 	return srv

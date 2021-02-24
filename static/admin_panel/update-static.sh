@@ -3,9 +3,9 @@
 
 # Fetch and build source code.
 wget https://github.com/MadAppGang/identifo-admin/archive/master.zip
-tar xvf master.zip
+unzip master.zip
 cd identifo-admin-master
-export API_URL=http://localhost:8081/admin && export BASE_URL=/adminpanel/ && export ASSETS_PATH=/adminpanel/ # Needed for build.
+export BASE_URL=/adminpanel/ && export ASSETS_PATH=/adminpanel/ # Needed for build.
 npm i
 npm run build
 

@@ -1,0 +1,21 @@
+# Binaries for programs and plugins
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.env
+*.DS_Store
+identifo
+
+# Test binary, build with `go test -c`
+*.test
+
+static/apple/*
+static/admin_panel/identifo-admin-master
+static/admin_panel/*.zip
+
+.github
+.vscode
+.idea
+docs
