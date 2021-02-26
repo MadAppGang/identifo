@@ -5,6 +5,7 @@
 wget https://github.com/MadAppGang/identifo-admin/archive/master.zip
 unzip master.zip
 cd identifo-admin-master
+rm .env
 export BASE_URL=/adminpanel/ && export ASSETS_PATH=/adminpanel/ # Needed for build.
 npm i
 npm run build
