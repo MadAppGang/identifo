@@ -134,6 +134,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 			admin.ServerSettingsOption(&settings),
 			admin.CorsOption(cors, originChecker),
 		},
+		LoggerSettings: ServerSettings.Logger,
 	}
 
 	r, err := web.NewRouter(routerSettings)

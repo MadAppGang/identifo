@@ -16,6 +16,7 @@ type ServerSettings struct {
 	StaticFilesStorage   StaticFilesStorageSettings   `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
 	ExternalServices     ExternalServicesSettings     `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
 	Login                LoginSettings                `yaml:"login,omitempty" json:"login,omitempty"`
+	Logger               LoggerSettings               `yaml:"logger,omitempty" json:"logger,omitempty"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -245,4 +246,9 @@ func (ss *ServerSettings) GetPort() string {
 		panic(err)
 	}
 	return strings.Join([]string{":", port}, "")
+}
+
+
+type LoggerSettings struct {
+	DumpRequest  bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
 }

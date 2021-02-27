@@ -37,6 +37,7 @@ type Router struct {
 	Host                    string
 	SupportedLoginWays      model.LoginWith
 	WebRouterPrefix         string
+	LoggerSettings          model.LoggerSettings
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -97,7 +98,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),
@@ -111,6 +112,7 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		smsService:              smsServ,
 		emailService:            emailServ,
 		Authorizer:              authorizer,
+		LoggerSettings: 		 loggerSettings,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

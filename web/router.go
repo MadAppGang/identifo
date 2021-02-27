@@ -32,6 +32,7 @@ type RouterSetting struct {
 	APIRouterSettings       []func(*api.Router) error
 	WebRouterSettings       []func(*html.Router) error
 	AdminRouterSettings     []func(*admin.Router) error
+	LoggerSettings          model.LoggerSettings
 }
 
 // NewRouter creates and inits root http router.
@@ -52,6 +53,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		settings.SMSService,
 		settings.EmailService,
 		authorizer,
+		settings.LoggerSettings,
 		settings.APIRouterSettings...,
 	)
 	if err != nil {
