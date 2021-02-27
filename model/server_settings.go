@@ -248,7 +248,6 @@ func (ss *ServerSettings) GetPort() string {
 	return strings.Join([]string{":", port}, "")
 }
 
-
 type LoggerSettings struct {
 	DumpRequest  bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
 }
