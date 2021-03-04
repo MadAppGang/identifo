@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
@@ -19,6 +18,8 @@ const (
 	TokenTypeAccess = "access"
 	// TokenTypeRefresh is a refresh token type.
 	TokenTypeRefresh = "refresh"
+	// TokenTypeTFAPreauth is an 2fa preauth token type.
+	TokenTypeTFAPreauth = "2fa-preauth"
 )
 
 // Token middleware extracts token and validates it.
@@ -57,13 +58,6 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		if blacklisted := ar.tokenBlacklist.IsBlacklisted(tokenString); blacklisted {
 			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsBlacklisted")
 			return
-		}
-
-		if strings.Trim(r.RequestURI, "/ ") != "auth/tfa/finalize" {
-			if payload := token.Payload(); payload != nil && payload["tfa_authorized"] == "false" {
-				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsTFAuthorized")
-				return
-			}
 		}
 
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)

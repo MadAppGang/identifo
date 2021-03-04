@@ -37,8 +37,6 @@ var (
 const (
 	// PayloadName is a JWT token payload "name".
 	PayloadName = "name"
-	// PayloadTFAuthorized is a JWT token payload "tfa_authorized".
-	PayloadTFAuthorized = "tfa_authorized"
 )
 
 // NewJWTokenService returns new JWT token service.
@@ -116,7 +114,7 @@ func (ts *JWTokenService) PublicKey() interface{} {
 func (ts *JWTokenService) KeyID() string {
 	if der, err := x509.MarshalPKIXPublicKey(ts.publicKey); err == nil {
 		s := sha1.Sum(der)
-		return base64.RawURLEncoding.EncodeToString(s[:]) //slice from [20]byte
+		return base64.RawURLEncoding.EncodeToString(s[:]) // slice from [20]byte
 	}
 	return ""
 }
@@ -174,8 +172,10 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
+
+	tokenType := AccessTokenType
 	if requireTFA {
-		payload[PayloadTFAuthorized] = "false"
+		tokenType = TFAPreauthTokenType
 	}
 
 	now := ijwt.TimeFunc().Unix()
@@ -188,7 +188,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	claims := ijwt.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
-		Type:    AccessTokenType,
+		Type:    tokenType,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -219,7 +219,6 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
 	if !app.Active() || !app.Offline() {
 		return nil, ErrInvalidApp
-
 	}
 	// no offline request
 	if !contains(scopes, OfflineScope) {

@@ -18,6 +18,8 @@ const (
 	ResetTokenType = "reset"
 	// WebCookieTokenType is a web-cookie token type value.
 	WebCookieTokenType = "web-cookie"
+	// TFAPreauthTokenType is two factor authentication preauthorized token.
+	TFAPreauthTokenType = "2fa-preauth"
 )
 
 // TokenService is an abstract token manager.
