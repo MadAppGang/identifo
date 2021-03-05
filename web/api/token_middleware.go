@@ -3,6 +3,7 @@ package api
 import (
 	"context"
 	"net/http"
+	"strings"
 
 	"github.com/madappgang/identifo/jwt"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
@@ -14,16 +15,10 @@ import (
 const (
 	// TokenHeaderKey is a header name for Bearer token.
 	TokenHeaderKey = "Authorization"
-	// TokenTypeAccess is an access token type.
-	TokenTypeAccess = "access"
-	// TokenTypeRefresh is a refresh token type.
-	TokenTypeRefresh = "refresh"
-	// TokenTypeTFAPreauth is an 2fa preauth token type.
-	TokenTypeTFAPreauth = "2fa-preauth"
 )
 
 // Token middleware extracts token and validates it.
-func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
+func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
@@ -60,11 +55,33 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
+		if len(scopes) > 0 {
+			ts := strings.Split(token.Scopes(), " ")
+			if len(intersect(ts, scopes)) == 0 {
+				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.ScopeIsNotAllowed")
+				return
+			}
+		}
+
 		ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
 		ctx = context.WithValue(ctx, model.TokenRawContextKey, tokenBytes)
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
+}
+
+// simple intersection of two slices, with complexity: O(n^2)
+// there is better algorithms around, this one is simple and scopes are usually 1-3 items in it
+func intersect(a, b []string) []string {
+	res := make([]string, 0)
+
+	for _, e := range a {
+		if contains(b, e) {
+			res = append(res, e)
+		}
+	}
+
+	return res
 }
 
 // tokenFromContext returns token from request context.

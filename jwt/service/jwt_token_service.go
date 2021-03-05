@@ -173,9 +173,9 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		payload[PayloadName] = u.Username()
 	}
 
-	tokenType := AccessTokenType
+	tokenType := model.TokenTypeAccess
 	if requireTFA {
-		tokenType = TFAPreauthTokenType
+		scopes = []string{model.TokenTFAPreauthScope}
 	}
 
 	now := ijwt.TimeFunc().Unix()
@@ -243,7 +243,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 	claims := ijwt.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
-		Type:    RefrestTokenType,
+		Type:    model.TokenTypeRefresh,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -333,7 +333,7 @@ func (ts *JWTokenService) NewInviteToken() (ijwt.Token, error) {
 
 	claims := ijwt.Claims{
 		Payload: payload,
-		Type:    InviteTokenType,
+		Type:    model.TokenTypeInvite,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
@@ -367,7 +367,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := ijwt.Claims{
-		Type: ResetTokenType,
+		Type: model.TokenTypeReset,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -404,7 +404,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := ijwt.Claims{
-		Type: WebCookieTokenType,
+		Type: model.TokenTypeWebCookie,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,

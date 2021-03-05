@@ -8,18 +8,6 @@ import (
 const (
 	// OfflineScope is a scope value to request refresh token.
 	OfflineScope = "offline"
-	// RefrestTokenType is a refresh token type value.
-	RefrestTokenType = "refresh"
-	// InviteTokenType is an invite token type value.
-	InviteTokenType = "invite"
-	// AccessTokenType is an access token type value.
-	AccessTokenType = "access"
-	// ResetTokenType is a reset password token type value.
-	ResetTokenType = "reset"
-	// WebCookieTokenType is a web-cookie token type value.
-	WebCookieTokenType = "web-cookie"
-	// TFAPreauthTokenType is two factor authentication preauthorized token.
-	TFAPreauthTokenType = "2fa-preauth"
 )
 
 // TokenService is an abstract token manager.

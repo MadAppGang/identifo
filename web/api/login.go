@@ -27,7 +27,6 @@ const (
 type AuthResponse struct {
 	AccessToken  string     `json:"access_token,omitempty" bson:"access_token,omitempty"`
 	RefreshToken string     `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
-	TFAToken     string     `json:"tfa_token,omitempty" bson:"tfa_token,omitempty"`
 	User         model.User `json:"user,omitempty" bson:"user,omitempty"`
 }
 
@@ -112,16 +111,9 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		tfaToken := ""
-		if require2FA {
-			tfaToken = accessToken
-			accessToken = ""
-		}
-
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
-			TFAToken:     tfaToken,
 		}
 
 		if require2FA {

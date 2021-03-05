@@ -16,8 +16,7 @@
             "cwd": "${workspaceFolder}/cmd/dynamodb",
             "env": {
                 "SES_REGION": "us-east-1",
-                "SES_SENDER": "noreply@cco.link",
-                "AWS_PROFILE": "cc",
+                "SES_SENDER": "noreply@google.com",
                 "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
                 "IDENTIFO_ADMIN_PASSWORD": "password",
             },
@@ -36,7 +35,7 @@
             "cwd": "${workspaceFolder}/cmd/boltdb/",
             "env": {
                 "SES_REGION": "us-east-1",
-                "SES_SENDER": "noreply@cco.link",
+                "SES_SENDER": "noreply@google.com",
                 "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
                 "IDENTIFO_ADMIN_PASSWORD": "password",
             },
@@ -55,7 +54,7 @@
             "cwd": "${workspaceFolder}/cmd/demo/",
             "env": {
                 "SES_REGION": "us-east-1",
-                "SES_SENDER": "noreply@cco.link",
+                "SES_SENDER": "noreply@google.com",
                 "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
                 "IDENTIFO_ADMIN_PASSWORD": "password",
             },
