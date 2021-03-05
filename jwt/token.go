@@ -148,7 +148,7 @@ func (t *JWToken) Subject() string {
 	return claims.Subject
 }
 
-// Subject standard token claim
+// Scopes standard token claim
 func (t *JWToken) Scopes() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
