@@ -1,6 +1,8 @@
 package mem
 
 import (
+	"time"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/pallinder/go-randomdata"
 )
@@ -25,6 +27,8 @@ type user struct {
 func (u *user) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.TFAInfo.Secret = ""
+	u.userData.TFAInfo.HOTPCounter = 0
+	u.userData.TFAInfo.HOTPExpiredAt = time.Time{}
 }
 
 // ID implements model.User interface.

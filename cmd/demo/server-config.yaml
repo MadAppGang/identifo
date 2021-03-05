@@ -51,7 +51,7 @@ login:
     phone: true
     username: true
     federated: true
-  tfaType: app
+  tfaType: email
 
 externalServices: 
   emailService:

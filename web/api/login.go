@@ -1,8 +1,10 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
+	"time"
 
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
@@ -16,14 +18,17 @@ var (
 	errPleaseDisableTFA = fmt.Errorf("Please disable two-factor authentication to be able to use this app")
 )
 
-const smsTFACode = "%v is your one-time password!"
+const (
+	smsTFACode        = "%v is your one-time password!"
+	HOTPLifespanHours = 12 // One time code expiration in hours, default value is 30 secs for TOTP and 12 hours for HOTP
+)
 
 // AuthResponse is a response with successful auth data.
 type AuthResponse struct {
-	AccessToken    string     `json:"access_token,omitempty"`
-	RefreshToken   string     `json:"refresh_token,omitempty"`
-	User           model.User `json:"user,omitempty"`
-	NeedFurtherTFA bool       `json:"need_further_tfa,omitempty"`
+	AccessToken  string     `json:"access_token,omitempty" bson:"access_token,omitempty"`
+	RefreshToken string     `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
+	TFAToken     string     `json:"tfa_token,omitempty" bson:"tfa_token,omitempty"`
+	User         model.User `json:"user,omitempty" bson:"user,omitempty"`
 }
 
 type loginData struct {
@@ -107,34 +112,56 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
+		tfaToken := ""
+		if require2FA {
+			tfaToken = accessToken
+			accessToken = ""
+		}
+
 		result := AuthResponse{
-			AccessToken:    accessToken,
-			RefreshToken:   refreshToken,
-			NeedFurtherTFA: require2FA,
+			AccessToken:  accessToken,
+			RefreshToken: refreshToken,
+			TFAToken:     tfaToken,
 		}
 
-		if !require2FA {
-			user.Sanitize()
-			result.User = user
-
+		if require2FA {
+			if err := ar.sendOTPCode(user); err != nil {
+				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+				return
+			}
+		} else {
 			ar.userStorage.UpdateLoginMetadata(user.ID())
-			ar.ServeJSON(w, http.StatusOK, result)
-			return
 		}
-
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret).Now()
 
 		user.Sanitize()
 		result.User = user
-
-		switch ar.tfaType {
-		case model.TFATypeSMS:
-			ar.sendTFACodeInSMS(w, user.Phone(), totp)
-		case model.TFATypeEmail:
-			ar.sendTFACodeOnEmail(w, user.Email(), totp)
-		}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
+}
+
+func (ar *Router) sendOTPCode(user model.User) error {
+	// we don't need to send any code for FTA Type App, it uses TOTP and generated on client side with the app
+	if ar.tfaType != model.TFATypeApp {
+
+		// increment hotp code seed
+		otp := gotp.NewDefaultHOTP(user.TFAInfo().Secret).At(user.TFAInfo().HOTPCounter + 1)
+		tfa := user.TFAInfo()
+		tfa.HOTPCounter += 1
+		tfa.HOTPExpiredAt = time.Now().Add(time.Hour * HOTPLifespanHours)
+		user.SetTFAInfo(tfa)
+		if _, err := ar.userStorage.UpdateUser(user.ID(), user); err != nil {
+			return err
+		}
+		switch ar.tfaType {
+		case model.TFATypeSMS:
+			return ar.sendTFACodeInSMS(user.Phone(), otp)
+		case model.TFATypeEmail:
+			return ar.sendTFACodeOnEmail(user.Email(), otp)
+		}
+
+	}
+
+	return nil
 }
 
 // IsLoggedIn is for checking whether user is logged in or not.
@@ -199,28 +226,24 @@ func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, 
 	return false, nil
 }
 
-func (ar *Router) sendTFACodeInSMS(w http.ResponseWriter, phone, totp string) {
+func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
 	if phone == "" {
-		ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "", "tfaInSMS.empty_phone")
-		return
+		return errors.New("unable to send SMS OTP, user has no phone number")
 	}
 
-	if err := ar.smsService.SendSMS(phone, fmt.Sprintf(smsTFACode, totp)); err != nil {
-		err = fmt.Errorf("Unable to send sms. %s", err)
-		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendSMS")
-		return
+	if err := ar.smsService.SendSMS(phone, fmt.Sprintf(smsTFACode, otp)); err != nil {
+		return fmt.Errorf("Unable to send sms. %s", err)
 	}
+	return nil
 }
 
-func (ar *Router) sendTFACodeOnEmail(w http.ResponseWriter, email, totp string) {
+func (ar *Router) sendTFACodeOnEmail(email, otp string) error {
 	if email == "" {
-		ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "", "tfaInSMS.empty_email")
-		return
+		return errors.New("unable to send email OTP, user has no email")
 	}
 
-	if err := ar.emailService.SendTFAEmail("One-time password", email, totp); err != nil {
-		err = fmt.Errorf("Unable to send email. %s", err)
-		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "tfaInSMS.SendTFAEmail")
-		return
+	if err := ar.emailService.SendTFAEmail("One-time password", email, otp); err != nil {
+		return fmt.Errorf("Unable to send email with OTP with error: %s", err)
 	}
+	return nil
 }
