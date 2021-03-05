@@ -20,7 +20,7 @@ var (
 
 const (
 	smsTFACode        = "%v is your one-time password!"
-	HOTPLifespanHours = 12 // One time code expiration in hours, default value is 30 secs for TOTP and 12 hours for HOTP
+	hotpLifespanHours = 12 // One time code expiration in hours, default value is 30 secs for TOTP and 12 hours for HOTP
 )
 
 // AuthResponse is a response with successful auth data.
@@ -146,8 +146,8 @@ func (ar *Router) sendOTPCode(user model.User) error {
 		// increment hotp code seed
 		otp := gotp.NewDefaultHOTP(user.TFAInfo().Secret).At(user.TFAInfo().HOTPCounter + 1)
 		tfa := user.TFAInfo()
-		tfa.HOTPCounter += 1
-		tfa.HOTPExpiredAt = time.Now().Add(time.Hour * HOTPLifespanHours)
+		tfa.HOTPCounter++
+		tfa.HOTPExpiredAt = time.Now().Add(time.Hour * hotpLifespanHours)
 		user.SetTFAInfo(tfa)
 		if _, err := ar.userStorage.UpdateUser(user.ID(), user); err != nil {
 			return err
