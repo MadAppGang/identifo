@@ -3,6 +3,7 @@ package model
 import (
 	"errors"
 	"regexp"
+	"time"
 )
 
 // ErrUserNotFound is when user not found.
@@ -62,6 +63,8 @@ type User interface {
 
 // TFAInfo encapsulates two-factor authentication user info.
 type TFAInfo struct {
-	IsEnabled bool   `bson:"is_enabled" json:"is_enabled"`
-	Secret    string `bson:"secret" json:"secret,omitempty"`
+	IsEnabled     bool      `bson:"is_enabled,omitempty" json:"is_enabled,omitempty"`
+	HOTPCounter   int       `json:"hotp_counter,omitempty" bson:"hotp_counter,omitempty"`
+	HOTPExpiredAt time.Time `json:"hotp_expired_at,omitempty" bson:"hotp_expired_at,omitempty"`
+	Secret        string    `bson:"secret,omitempty" json:"secret,omitempty"`
 }

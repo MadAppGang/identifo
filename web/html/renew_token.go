@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 )
@@ -21,7 +20,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 		[]string{"identifo"},
 		[]string{ar.TokenService.Issuer()},
 		[]string{},
-		[]string{jwtService.WebCookieTokenType},
+		[]string{model.TokenTypeWebCookie},
 	)
 
 	return func(w http.ResponseWriter, r *http.Request) {

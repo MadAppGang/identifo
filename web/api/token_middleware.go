@@ -15,14 +15,10 @@ import (
 const (
 	// TokenHeaderKey is a header name for Bearer token.
 	TokenHeaderKey = "Authorization"
-	// TokenTypeAccess is an access token type.
-	TokenTypeAccess = "access"
-	// TokenTypeRefresh is a refresh token type.
-	TokenTypeRefresh = "refresh"
 )
 
 // Token middleware extracts token and validates it.
-func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
+func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
@@ -59,9 +55,10 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 			return
 		}
 
-		if strings.Trim(r.RequestURI, "/ ") != "auth/tfa/finalize" {
-			if payload := token.Payload(); payload != nil && payload["tfa_authorized"] == "false" {
-				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsTFAuthorized")
+		if len(scopes) > 0 {
+			ts := strings.Split(token.Scopes(), " ")
+			if len(intersect(ts, scopes)) == 0 {
+				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.ScopeIsNotAllowed")
 				return
 			}
 		}
@@ -71,6 +68,20 @@ func (ar *Router) Token(tokenType string) negroni.HandlerFunc {
 		r = r.WithContext(ctx)
 		next.ServeHTTP(rw, r)
 	}
+}
+
+// simple intersection of two slices, with complexity: O(n^2)
+// there is better algorithms around, this one is simple and scopes are usually 1-3 items in it
+func intersect(a, b []string) []string {
+	res := make([]string, 0)
+
+	for _, e := range a {
+		if contains(b, e) {
+			res = append(res, e)
+		}
+	}
+
+	return res
 }
 
 // tokenFromContext returns token from request context.

@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/madappgang/identifo/model"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -32,6 +33,8 @@ type userData struct {
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.TFAInfo.Secret = ""
+	u.userData.TFAInfo.HOTPCounter = 0
+	u.userData.TFAInfo.HOTPExpiredAt = time.Time{}
 }
 
 // UserFromJSON deserializes user from JSON.

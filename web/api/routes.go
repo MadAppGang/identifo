@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
 
@@ -30,34 +31,34 @@ func (ar *Router) initRoutes() {
 	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
 
 	auth.Path(`/{token:token/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeRefresh),
+		ar.Token(model.TokenTypeRefresh, nil),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
 	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
 
 	auth.Path(`/{tfa/enable:tfa/enable/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
 	auth.Path(`/{tfa/disable:tfa/disable/?}`).Handler(negroni.New(
 		negroni.Wrap(ar.RequestDisabledTFA()),
 	)).Methods("PUT")
-	auth.Path(`/{tfa/finalize:tfa/finalize/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+	auth.Path(`/{tfa/login:tfa/login/?}`).Handler(negroni.New(
+		ar.Token(model.TokenTypeAccess, []string{model.TokenTFAPreauthScope}),
 		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
 	auth.Path(`/{tfa/reset:tfa/reset/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestTFAReset()),
 	)).Methods("PUT")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(meRouter),
 	))
 	meRouter.Path("").HandlerFunc(ar.IsLoggedIn()).Methods("GET")

@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"encoding/json"
+	"time"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -35,6 +36,8 @@ func (u User) Marshal() ([]byte, error) {
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.TFAInfo.Secret = ""
+	u.userData.TFAInfo.HOTPCounter = 0
+	u.userData.TFAInfo.HOTPExpiredAt = time.Time{}
 }
 
 // ID implements model.User interface.

@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"path"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
@@ -18,7 +17,7 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 		[]string{"identifo"},
 		[]string{ar.TokenService.Issuer()},
 		[]string{},
-		[]string{jwtService.ResetTokenType},
+		[]string{model.TokenTypeReset},
 	)
 
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {

@@ -16,8 +16,7 @@
             "cwd": "${workspaceFolder}/cmd/dynamodb",
             "env": {
                 "SES_REGION": "us-east-1",
-                "SES_SENDER": "noreply@cco.link",
-                "AWS_PROFILE": "cc",
+                "SES_SENDER": "noreply@google.com",
                 "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
                 "IDENTIFO_ADMIN_PASSWORD": "password",
             },
@@ -36,7 +35,26 @@
             "cwd": "${workspaceFolder}/cmd/boltdb/",
             "env": {
                 "SES_REGION": "us-east-1",
-                "SES_SENDER": "noreply@cco.link",
+                "SES_SENDER": "noreply@google.com",
+                "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+                "IDENTIFO_ADMIN_PASSWORD": "password",
+            },
+            "args": [],
+            "showLog": true
+        },
+        {
+            "name": "Demo",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/cmd/demo/main.go",
+            "cwd": "${workspaceFolder}/cmd/demo/",
+            "env": {
+                "SES_REGION": "us-east-1",
+                "SES_SENDER": "noreply@google.com",
                 "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
                 "IDENTIFO_ADMIN_PASSWORD": "password",
             },

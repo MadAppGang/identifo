@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 	ErrTokenValidationInvalidSubject = errors.New("Token is invalid, subject is invalid")
 	// ErrorTokenValidationTokenTypeMismatch is when the token has invalid type.
 	ErrorTokenValidationTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
-	//ErrorConfigurationMissingPublicKey is when public key is missing
+	// ErrorConfigurationMissingPublicKey is when public key is missing
 	ErrorConfigurationMissingPublicKey = errors.New("Missing public key to decode the token from string")
 )
 
@@ -41,29 +42,29 @@ type Validator interface {
 	ValidateString(string) (jwt.Token, error)
 }
 
-//Config is a struct to set all the required params for Validator
+// Config is a struct to set all the required params for Validator
 type Config struct {
 	Audience  []string
 	Issuer    []string
 	UserID    []string
 	TokenType []string
 	PublicKey interface{}
-	//PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
+	// PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
 	PubKeyEnvName string
-	//PubKeyFileName file path with public key, could be empty if you want to use env variable.
+	// PubKeyFileName file path with public key, could be empty if you want to use env variable.
 	PubKeyFileName string
-	//PubKeyURL URL for well-known JWKS
+	// PubKeyURL URL for well-known JWKS
 	PubKeyURL string
-	//should we always check audience for the token. If yes and audience is empty the validation will fail.
+	// should we always check audience for the token. If yes and audience is empty the validation will fail.
 	IsAudienceRequired bool
-	//should we always check iss for the token. If yes and iss is empty the validation will fail.
+	// should we always check iss for the token. If yes and iss is empty the validation will fail.
 	IsIssuerRequired bool
 }
 
-//NewConfig creates and returns default config
+// NewConfig creates and returns default config
 func NewConfig() Config {
 	return Config{
-		TokenType:          []string{jwt.AccessTokenType},
+		TokenType:          []string{model.TokenTypeAccess},
 		IsAudienceRequired: true,
 		IsIssuerRequired:   true,
 	}
@@ -113,7 +114,7 @@ func NewValidatorWithConfig(c Config) (Validator, error) {
 	}, err
 }
 
-//TODO: implement initializer with JWKS URL .well-known
+// TODO: implement initializer with JWKS URL .well-known
 
 // validator is a JWT token validator.
 type validator struct {
@@ -168,12 +169,12 @@ func (v *validator) Validate(t jwt.Token) error {
 		return ErrTokenValidationNoIAT
 	}
 
-	//Validate Issuers
+	// Validate Issuers
 	if len(v.issuer) > 0 {
 		valid := false
 		for _, i := range v.issuer {
 			if claims.VerifyIssuer(i, v.strictIss) {
-				valid = true //at least one issues is valid, token is valid
+				valid = true // at least one issues is valid, token is valid
 				break
 			}
 		}
@@ -182,12 +183,12 @@ func (v *validator) Validate(t jwt.Token) error {
 		}
 	}
 
-	//Validate Audience
+	// Validate Audience
 	if len(v.audience) > 0 {
 		valid := false
 		for _, i := range v.audience {
 			if claims.VerifyAudience(i, v.strictAud) {
-				valid = true //at least one audience is valid, token is valid
+				valid = true // at least one audience is valid, token is valid
 				break
 			}
 		}
@@ -196,7 +197,7 @@ func (v *validator) Validate(t jwt.Token) error {
 		}
 	}
 
-	//Validate Users
+	// Validate Users
 	if len(v.userID) > 0 {
 		valid := false
 		for _, i := range v.userID {
@@ -209,7 +210,7 @@ func (v *validator) Validate(t jwt.Token) error {
 		}
 	}
 
-	//Validate token type
+	// Validate token type
 	if len(v.tokenType) > 0 {
 		valid := false
 		for _, i := range v.tokenType {

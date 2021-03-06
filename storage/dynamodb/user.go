@@ -3,6 +3,7 @@ package dynamodb
 import (
 	"encoding/json"
 	"log"
+	"time"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -50,6 +51,8 @@ type federatedUserID struct {
 func (u *User) Sanitize() {
 	u.userData.Pswd = ""
 	u.userData.TFAInfo.Secret = ""
+	u.userData.TFAInfo.HOTPCounter = 0
+	u.userData.TFAInfo.HOTPExpiredAt = time.Time{}
 }
 
 // UserFromJSON deserializes user data from JSON.

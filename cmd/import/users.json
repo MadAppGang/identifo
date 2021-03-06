@@ -3,11 +3,15 @@
         "id": "123456",
         "username":"user@madappgang.com",
         "active": false,
+        "email":"test@madappgang.com",
+        "phone":"+61450111111",
         "pswd":"SecretM123"
     },
     {
         "id": "abcdef",
         "username":"test@madappgang.com",
+        "email":"test@madappgang.com",
+        "phone":"+61450111111",
         "active":true,
         "pswd":"SecretM123"
     }
