@@ -186,11 +186,11 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
 		result = totp.Verify(otp, int(time.Now().Unix()))
 	} else {
-		hotp := gotp.NewDefaultHOTP(user.TFAInfo().Secret)
-		result = hotp.Verify(otp, user.TFAInfo().HOTPCounter)
 		if user.TFAInfo().HOTPExpiredAt.Before(time.Now()) {
 			return false, errors.New("OTP token expired, please get the new one and try again")
 		}
+		hotp := gotp.NewDefaultHOTP(user.TFAInfo().Secret)
+		result = hotp.Verify(otp, user.TFAInfo().HOTPCounter)
 	}
 	return result, nil
 }
