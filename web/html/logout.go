@@ -30,6 +30,18 @@ func (ar *Router) Logout() http.HandlerFunc {
 			return
 		}
 
+		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
+		if !contains(app.RedirectURLs(), callbackURL) {
+			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
+		if callbackURL != "" {
+			http.Redirect(w, r, callbackURL, http.StatusFound)
+			return
+		}
+
 		r.URL.Path = path.Join(ar.PathPrefix, "/login")
 		http.Redirect(w, r, r.URL.String(), http.StatusFound)
 	}
