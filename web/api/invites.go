@@ -26,7 +26,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.tokenService.NewInviteToken()
+		inviteToken, err := ar.tokenService.NewInviteToken(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return
