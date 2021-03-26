@@ -214,7 +214,6 @@ func TestTokenToString(t *testing.T) {
 	if !reflect.DeepEqual(claims1, claims2) {
 		t.Errorf("Claims = %+v, want %+v", claims1, claims2)
 	}
-
 }
 
 func TestNewToken(t *testing.T) {
@@ -249,14 +248,14 @@ func TestNewToken(t *testing.T) {
 	}
 	ustg, _ := mem.NewUserStorage()
 	user, _ := ustg.UserByNamePassword("username", "password")
-	//generate random user until we get active user
+	// generate random user until we get active user
 	for !user.Active() {
 		user, _ = ustg.UserByNamePassword("username", "password")
 	}
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
 	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, []string{}, 0, 0, 0, tokenPayload, true, true, model.TFAStatusDisabled, "", model.NoAuthz, "", "", []string{}, []string{}, "user")
-	token, err := ts.NewAccessToken(user, scopes, &app, false)
+	token, err := ts.NewAccessToken(user, scopes, &app, false, nil)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
 	}
