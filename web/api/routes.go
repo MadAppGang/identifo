@@ -13,7 +13,15 @@ func (ar *Router) initRoutes() {
 	}
 
 	// All requests to the API router should contain appID.
-	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
+	handlers := make([]negroni.Handler, 0)
+
+	if ar.LoggerSettings.DumpRequest {
+		handlers = append(handlers, ar.DumpRequest())
+	}
+
+	handlers = append(handlers, ar.AppID())
+
+	apiMiddlewares := ar.middleware.With(handlers...)
 
 	ar.router.HandleFunc(`/{ping:ping/?}`, ar.HandlePing()).Methods("GET")
 
@@ -67,10 +75,15 @@ func (ar *Router) initRoutes() {
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
-	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(
-		ar.DumpRequest(),
-		negroni.Wrap(oidc),
-	))
+	wellKnownHandlers := make([]negroni.Handler, 0)
+
+	if ar.LoggerSettings.DumpRequest {
+		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
+	}
+
+	wellKnownHandlers = append(wellKnownHandlers, negroni.Wrap(oidc))
+
+	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(wellKnownHandlers...))
 
 	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
 	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")
