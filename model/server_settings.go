@@ -54,14 +54,10 @@ type DatabaseSettings struct {
 type DatabaseType string
 
 const (
-	// DBTypeBoltDB is for BoltDB.
-	DBTypeBoltDB DatabaseType = "boltdb"
-	// DBTypeMongoDB is for MongoDB.
-	DBTypeMongoDB DatabaseType = "mongodb"
-	// DBTypeDynamoDB is for DynamoDB.
-	DBTypeDynamoDB DatabaseType = "dynamodb"
-	// DBTypeFake is for in-memory storage.
-	DBTypeFake DatabaseType = "fake"
+	DBTypeBoltDB   DatabaseType = "boltdb"   // DBTypeBoltDB is for BoltDB.
+	DBTypeMongoDB  DatabaseType = "mongodb"  // DBTypeMongoDB is for MongoDB.
+	DBTypeDynamoDB DatabaseType = "dynamodb" // DBTypeDynamoDB is for DynamoDB.
+	DBTypeFake     DatabaseType = "fake"     // DBTypeFake is for in-memory storage.
 )
 
 // StaticFilesStorageSettings are settings for static files storage.
@@ -181,13 +177,16 @@ type EmailServiceSettings struct {
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {
 	Type SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
+
 	// Twilio related config.
 	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
 	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
 	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
+
 	// Nexmo related config.
 	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
 	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
+
 	// RouteMobile related config.
 	Username string `yaml:"username,omitempty" json:"username,omitempty"`
 	Password string `yaml:"password,omitempty" json:"password,omitempty"`
@@ -199,14 +198,10 @@ type SMSServiceSettings struct {
 type SMSServiceType string
 
 const (
-	// SMSServiceTwilio is a Twillo SMS service.
-	SMSServiceTwilio SMSServiceType = "twilio"
-	// SMSServiceNexmo is a Nexmo SMS service.
-	SMSServiceNexmo SMSServiceType = "nexmo"
-	// SMSServiceRouteMobile is a RouteMobile SMS service.
-	SMSServiceRouteMobile SMSServiceType = "routemobile"
-	// SMSServiceMock is an SMS service mock.
-	SMSServiceMock SMSServiceType = "mock"
+	SMSServiceTwilio      SMSServiceType = "twilio"      // SMSServiceTwilio is a Twilio SMS service.
+	SMSServiceNexmo       SMSServiceType = "nexmo"       // SMSServiceNexmo is a Nexmo SMS service.
+	SMSServiceRouteMobile SMSServiceType = "routemobile" // SMSServiceRouteMobile is a RouteMobile SMS service.
+	SMSServiceMock        SMSServiceType = "mock"        // SMSServiceMock is an SMS service mock.
 )
 
 // LoginSettings are settings of login.
@@ -226,12 +221,9 @@ type LoginWith struct {
 type TFAType string
 
 const (
-	// TFATypeApp is an app (like Google Authenticator).
-	TFATypeApp TFAType = "app"
-	// TFATypeSMS is an SMS.
-	TFATypeSMS TFAType = "sms"
-	// TFATypeEmail is an email.
-	TFATypeEmail TFAType = "email"
+	TFATypeApp   TFAType = "app"   // TFATypeApp is an app (like Google Authenticator).
+	TFATypeSMS   TFAType = "sms"   // TFATypeSMS is an SMS.
+	TFATypeEmail TFAType = "email" // TFATypeEmail is an email.
 )
 
 // GetPort returns port on which host listens to incoming connections.
@@ -249,5 +241,5 @@ func (ss *ServerSettings) GetPort() string {
 }
 
 type LoggerSettings struct {
-	DumpRequest  bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
+	DumpRequest bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
 }

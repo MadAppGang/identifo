@@ -36,14 +36,9 @@ type AppStorage struct {
 	db *bolt.DB
 }
 
-// NewAppData returns pointer to newly created app data.
-func (as *AppStorage) NewAppData() model.AppData {
-	return &AppData{appData: appData{}}
-}
-
 // AppByID returns app from memory by ID.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	res := new(AppData)
+	res := model.AppData{}
 	if err := as.db.View(func(tx *bolt.Tx) error {
 		ab := tx.Bucket([]byte(AppBucket))
 		app := ab.Get([]byte(id))
@@ -52,10 +47,10 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		}
 
 		var err error
-		res, err = AppDataFromJSON(app)
+		res, err = model.AppDataFromJSON(app)
 		return err
 	}); err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 	return res, nil
 }
@@ -63,16 +58,16 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 // ActiveAppByID returns app by id only if it's active.
 func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	if appID == "" {
-		return nil, ErrorEmptyAppID
+		return model.AppData{}, ErrorEmptyAppID
 	}
 
 	app, err := as.AppByID(appID)
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	if !app.Active() {
-		return nil, ErrorInactiveApp
+	if !app.Active {
+		return model.AppData{}, ErrorInactiveApp
 	}
 
 	return app, nil
@@ -80,60 +75,36 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 
 // CreateApp creates new app in BoltDB.
 func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
-	res, ok := app.(*AppData)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
+	if len(app.ID) == 0 {
+		app.ID = xid.New().String()
 	}
-	result, err := as.addNewApp(res)
-	return result, err
-}
-
-// addNewApp adds new app to memory storage.
-func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
-	res, ok := app.(*AppData)
-	if !ok || res == nil {
-		return nil, ErrorWrongDataFormat
-	}
-	// generate new ID if it's not set
-	if len(res.ID()) == 0 {
-		res.appData.ID = xid.New().String()
-	}
-	return res, as.db.Update(func(tx *bolt.Tx) error {
-		data, err := res.Marshal()
+	return app, as.db.Update(func(tx *bolt.Tx) error {
+		data, err := json.Marshal(app)
 		if err != nil {
 			return err
 		}
 
 		ab := tx.Bucket([]byte(AppBucket))
-
-		return ab.Put([]byte(res.ID()), data)
+		return ab.Put([]byte(app.ID), data)
 	})
 }
 
 // DisableApp disables app in the storage.
 func (as *AppStorage) DisableApp(app model.AppData) error {
-	res, ok := app.(*AppData)
-	if !ok || res == nil {
-		return ErrorWrongDataFormat
-	}
-	res.appData.Active = false
-	_, err := as.addNewApp(res)
+	app.Active = false
+	_, err := as.CreateApp(app)
 	return err
 }
 
 // UpdateApp updates app in the storage.
 func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
-	res, ok := newApp.(*AppData)
-	if !ok || newApp == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
 	// use ID from the request if it's not set
-	if len(res.ID()) == 0 {
-		res.appData.ID = appID
+	if len(newApp.ID) == 0 {
+		newApp.ID = appID
 	}
 
 	err := as.db.Update(func(tx *bolt.Tx) error {
-		data, err := res.Marshal()
+		data, err := json.Marshal(newApp)
 		if err != nil {
 			return err
 		}
@@ -143,15 +114,14 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 			return err
 		}
 
-		return ab.Put([]byte(res.ID()), data)
+		return ab.Put([]byte(newApp.ID), data)
 	})
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	updatedApp, err := as.AppByID(res.ID())
+	updatedApp, err := as.AppByID(newApp.ID)
 	return updatedApp, err
-
 }
 
 // FetchApps fetches apps which name satisfies provided filterString.
@@ -170,7 +140,7 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 				if skip > -1 || (limit != 0 && len(apps) == limit) {
 					return nil
 				}
-				app, err := AppDataFromJSON(v)
+				app, err := model.AppDataFromJSON(v)
 				if err != nil {
 					return err
 				}
@@ -182,7 +152,6 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		}
 		return nil
 	})
-
 	if err != nil {
 		return []model.AppData{}, 0, err
 	}
@@ -203,7 +172,7 @@ func (as *AppStorage) TestDatabaseConnection() error {
 	err := as.db.View(func(tx *bolt.Tx) error {
 		ab := tx.Bucket([]byte(AppBucket))
 		return ab.ForEach(func(k, v []byte) error {
-			_, err := AppDataFromJSON(v)
+			_, err := model.AppDataFromJSON(v)
 			return err
 		})
 	})
@@ -212,13 +181,13 @@ func (as *AppStorage) TestDatabaseConnection() error {
 
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
-	apd := []appData{}
+	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
 		log.Println(err)
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.addNewApp(&AppData{appData: a}); err != nil {
+		if _, err := as.CreateApp(a); err != nil {
 			return err
 		}
 	}

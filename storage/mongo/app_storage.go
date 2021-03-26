@@ -27,41 +27,36 @@ type AppStorage struct {
 	timeout time.Duration
 }
 
-// NewAppData returns pointer to newly created app data.
-func (as *AppStorage) NewAppData() model.AppData {
-	return &AppData{appData: appData{}}
-}
-
 // AppByID returns app from MongoDB by ID.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	hexID, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
-	var ad appData
+	var ad model.AppData
 	if err := as.coll.FindOne(ctx, bson.M{"_id": hexID}).Decode(&ad); err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
-	return &AppData{appData: ad}, nil
+	return ad, nil
 }
 
 // ActiveAppByID returns app by id only if it's active.
 func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	if appID == "" {
-		return nil, ErrorEmptyAppID
+		return model.AppData{}, ErrorEmptyAppID
 	}
 
 	app, err := as.AppByID(appID)
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	if !app.Active() {
-		return nil, ErrorInactiveApp
+	if !app.Active {
+		return model.AppData{}, ErrorInactiveApp
 	}
 
 	return app, nil
@@ -90,14 +85,14 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		return []model.AppData{}, 0, err
 	}
 
-	var appsData []appData
+	var appsData []model.AppData
 	if err = curr.All(ctx, &appsData); err != nil {
 		return []model.AppData{}, 0, err
 	}
 
 	apps := make([]model.AppData, len(appsData))
 	for i := 0; i < len(appsData); i++ {
-		apps[i] = &AppData{appData: appsData[i]}
+		apps[i] = appsData[i]
 	}
 	return apps, int(total), nil
 }
@@ -120,37 +115,22 @@ func (as *AppStorage) DeleteApp(id string) error {
 
 // CreateApp creates new app in MongoDB.
 func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
-	res, ok := app.(*AppData)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
-	result, err := as.addNewApp(res)
-	return result, err
-}
-
-// addNewApp adds new app to MongoDB storage.
-func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
-	a, ok := app.(*AppData)
-	if !ok || a == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
-
-	if objID, err := primitive.ObjectIDFromHex(app.ID()); err != nil || objID == primitive.NilObjectID {
-		a.appData.ID = primitive.NewObjectID()
+	if objID, err := primitive.ObjectIDFromHex(app.ID); err != nil || objID == primitive.NilObjectID {
+		app.ID = primitive.NewObjectID().Hex()
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
-	if _, err := as.coll.InsertOne(ctx, a.appData); err != nil {
-		return nil, err
+	if _, err := as.coll.InsertOne(ctx, app); err != nil {
+		return model.AppData{}, err
 	}
 	return app, nil
 }
 
 // DisableApp disables app in MongoDB storage.
 func (as *AppStorage) DisableApp(app model.AppData) error {
-	hexID, err := primitive.ObjectIDFromHex(app.ID())
+	hexID, err := primitive.ObjectIDFromHex(app.ID)
 	if err != nil {
 		return err
 	}
@@ -161,43 +141,38 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	update := bson.M{"$set": bson.M{"active": false}}
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-	var ad appData
+	var ad model.AppData
 	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ad); err != nil {
 		return err
 	}
-	//maybe return updated data?
+	// maybe return updated data?
 	return nil
 }
 
 // UpdateApp updates app in MongoDB storage.
 func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
-	res, ok := newApp.(*AppData)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
-
 	hexID, err := primitive.ObjectIDFromHex(appID)
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
 	// use ID from the request if it's not set
-	if len(res.ID()) == 0 {
-		res.appData.ID = hexID
+	if len(newApp.ID) == 0 {
+		newApp.ID = appID
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
-	update := bson.M{"$set": res.appData}
+	update := bson.M{"$set": newApp}
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
-	var ad appData
+	var ad model.AppData
 	if err = as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ad); err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	return &AppData{appData: ad}, nil
+	return ad, nil
 }
 
 // TestDatabaseConnection checks if we can access applications collection.
@@ -214,13 +189,13 @@ func (as *AppStorage) TestDatabaseConnection() error {
 
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
-	apd := []appData{}
+	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
 		log.Println(err)
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.addNewApp(&AppData{appData: a}); err != nil {
+		if _, err := as.CreateApp(a); err != nil {
 			return err
 		}
 	}
