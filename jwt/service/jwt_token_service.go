@@ -159,7 +159,7 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 }
 
 // NewAccessToken creates new access token for user.
-func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool) (ijwt.Token, error) {
+func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (ijwt.Token, error) {
 	if !app.Active() {
 		return nil, ErrInvalidApp
 	}
@@ -168,7 +168,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		return nil, ErrInvalidUser
 	}
 
-	payload := make(map[string]string)
+	payload := make(map[string]interface{})
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
@@ -176,6 +176,11 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	tokenType := model.TokenTypeAccess
 	if requireTFA {
 		scopes = []string{model.TokenTFAPreauthScope}
+	}
+	if len(tokenPayload) > 0 {
+		for k, v := range tokenPayload {
+			payload[k] = v
+		}
 	}
 
 	now := ijwt.TimeFunc().Unix()
@@ -229,7 +234,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		return nil, ErrInvalidUser
 	}
 
-	payload := make(map[string]string)
+	payload := make(map[string]interface{})
 	if contains(app.TokenPayload(), PayloadName) {
 		payload[PayloadName] = u.Username()
 	}
@@ -306,7 +311,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 		return nil, ErrInvalidUser
 	}
 
-	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app, false)
+	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app, false, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -324,7 +329,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 
 // NewInviteToken creates new invite token.
 func (ts *JWTokenService) NewInviteToken(email string) (ijwt.Token, error) {
-	payload := make(map[string]string)
+    payload := make(map[string]interface{})
 	// add payload data here
 	if email != "" {
 		payload["email"] = email

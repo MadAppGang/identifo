@@ -10,49 +10,55 @@ type AppData struct {
 }
 
 type appData struct {
-	ID                           string                 `json:"id,omitempty"`
-	Secret                       string                 `json:"secret,omitempty"`
-	Active                       bool                   `json:"active"`
-	Name                         string                 `json:"name,omitempty"`
-	Description                  string                 `json:"description,omitempty"`
-	Scopes                       []string               `json:"scopes,omitempty"`
-	Offline                      bool                   `json:"offline"`
-	Type                         model.AppType          `json:"type,omitempty"`
-	RedirectURLs                 []string               `json:"redirect_urls,omitempty"`
-	RefreshTokenLifespan         int64                  `json:"refresh_token_lifespan,omitempty"`
-	InviteTokenLifespan          int64                  `json:"invite_token_lifespan,omitempty"`
-	TokenLifespan                int64                  `json:"token_lifespan,omitempty"`
-	TokenPayload                 []string               `json:"token_payload,omitempty"`
-	RegistrationForbidden        bool                   `json:"registration_forbidden"`
-	AnonymousRegistrationAllowed bool                   `json:"anonymous_registration_allowed"`
-	TFAStatus                    model.TFAStatus        `json:"tfa_status"`
-	DebugTFACode                 string                 `json:"debug_tfa_code,omitempty"`
-	AuthorizationWay             model.AuthorizationWay `json:"authorization_way,omitempty"`
-	AuthorizationModel           string                 `json:"authorization_model,omitempty"`
-	AuthorizationPolicy          string                 `json:"authorization_policy,omitempty"`
-	RolesWhitelist               []string               `json:"roles_whitelist,omitempty"`
-	RolesBlacklist               []string               `json:"roles_blacklist,omitempty"`
-	NewUserDefaultRole           string                 `json:"new_user_default_role,omitempty"`
-	AppleInfo                    *model.AppleInfo       `json:"apple_info,omitempty"`
+	ID                                string                                  `json:"id,omitempty"`
+	Secret                            string                                  `json:"secret,omitempty"`
+	Active                            bool                                    `json:"active"`
+	Name                              string                                  `json:"name,omitempty"`
+	Description                       string                                  `json:"description,omitempty"`
+	Scopes                            []string                                `json:"scopes,omitempty"`
+	Offline                           bool                                    `json:"offline"`
+	Type                              model.AppType                           `json:"type,omitempty"`
+	RedirectURLs                      []string                                `json:"redirect_urls,omitempty"`
+	RefreshTokenLifespan              int64                                   `json:"refresh_token_lifespan,omitempty"`
+	InviteTokenLifespan               int64                                   `json:"invite_token_lifespan,omitempty"`
+	TokenLifespan                     int64                                   `json:"token_lifespan,omitempty"`
+	TokenPayload                      []string                                `json:"token_payload,omitempty"`
+	RegistrationForbidden             bool                                    `json:"registration_forbidden"`
+	AnonymousRegistrationAllowed      bool                                    `json:"anonymous_registration_allowed"`
+	TFAStatus                         model.TFAStatus                         `json:"tfa_status"`
+	DebugTFACode                      string                                  `json:"debug_tfa_code,omitempty"`
+	AuthorizationWay                  model.AuthorizationWay                  `json:"authorization_way,omitempty"`
+	AuthorizationModel                string                                  `json:"authorization_model,omitempty"`
+	AuthorizationPolicy               string                                  `json:"authorization_policy,omitempty"`
+	RolesWhitelist                    []string                                `json:"roles_whitelist,omitempty"`
+	RolesBlacklist                    []string                                `json:"roles_blacklist,omitempty"`
+	NewUserDefaultRole                string                                  `json:"new_user_default_role,omitempty"`
+	AppleInfo                         *model.AppleInfo                        `json:"apple_info,omitempty"`
+	TokenPayloadService               model.TokenPayloadServiceType           `json:"token_payload_service"`
+	TokenPayloadServicePluginSettings model.TokenPayloadServicePluginSettings `json:"token_payload_service_plugin_settings,omitempty"`
+	TokenPayloadServiceHttpSettings   model.TokenPayloadServiceHttpSettings   `json:"token_payload_service_http_settings,omitempty"`
 }
 
 // NewAppData instantiates app data in-memory model from the general one.
 func NewAppData(data model.AppData) AppData {
 	return AppData{appData: appData{
-		ID:                           data.ID(),
-		Secret:                       data.Secret(),
-		Active:                       data.Active(),
-		Name:                         data.Name(),
-		Description:                  data.Description(),
-		Scopes:                       data.Scopes(),
-		Offline:                      data.Offline(),
-		RedirectURLs:                 data.RedirectURLs(),
-		RefreshTokenLifespan:         data.RefreshTokenLifespan(),
-		InviteTokenLifespan:          data.InviteTokenLifespan(),
-		TokenLifespan:                data.TokenLifespan(),
-		TokenPayload:                 data.TokenPayload(),
-		RegistrationForbidden:        data.RegistrationForbidden(),
-		AnonymousRegistrationAllowed: data.AnonymousRegistrationAllowed(),
+		ID:                                data.ID(),
+		Secret:                            data.Secret(),
+		Active:                            data.Active(),
+		Name:                              data.Name(),
+		Description:                       data.Description(),
+		Scopes:                            data.Scopes(),
+		Offline:                           data.Offline(),
+		RedirectURLs:                      data.RedirectURLs(),
+		RefreshTokenLifespan:              data.RefreshTokenLifespan(),
+		InviteTokenLifespan:               data.InviteTokenLifespan(),
+		TokenLifespan:                     data.TokenLifespan(),
+		TokenPayload:                      data.TokenPayload(),
+		RegistrationForbidden:             data.RegistrationForbidden(),
+		AnonymousRegistrationAllowed:      data.AnonymousRegistrationAllowed(),
+		TokenPayloadService:               data.TokenPayloadService(),
+		TokenPayloadServicePluginSettings: data.TokenPayloadServicePluginSettings(),
+		TokenPayloadServiceHttpSettings:   data.TokenPayloadServiceHttpSettings(),
 	}}
 }
 
@@ -84,6 +90,7 @@ func MakeAppData(id, secret string, active bool, name, description string, scope
 		RolesWhitelist:               rolesWhitelist,
 		RolesBlacklist:               rolesBlacklist,
 		NewUserDefaultRole:           newUserDefaultRole,
+		TokenPayloadService:          model.TokenPayloadServiceNone,
 	}}
 }
 
@@ -130,7 +137,9 @@ func (ad *AppData) TokenPayload() []string { return ad.appData.TokenPayload }
 func (ad *AppData) RegistrationForbidden() bool { return ad.appData.RegistrationForbidden }
 
 // AnonymousRegistrationAllowed implements model.AppData interface.
-func (ad *AppData) AnonymousRegistrationAllowed() bool { return ad.appData.AnonymousRegistrationAllowed }
+func (ad *AppData) AnonymousRegistrationAllowed() bool {
+	return ad.appData.AnonymousRegistrationAllowed
+}
 
 // TFAStatus implements model.AppData interface.
 func (ad *AppData) TFAStatus() model.TFAStatus { return ad.appData.TFAStatus }
@@ -159,6 +168,18 @@ func (ad *AppData) NewUserDefaultRole() string { return ad.appData.NewUserDefaul
 // AppleInfo implements model.AppData interface.
 func (ad *AppData) AppleInfo() *model.AppleInfo { return ad.appData.AppleInfo }
 
+func (ad *AppData) TokenPayloadService() model.TokenPayloadServiceType {
+	return ad.appData.TokenPayloadService
+}
+
+func (ad *AppData) TokenPayloadServicePluginSettings() model.TokenPayloadServicePluginSettings {
+	return ad.appData.TokenPayloadServicePluginSettings
+}
+
+func (ad *AppData) TokenPayloadServiceHttpSettings() model.TokenPayloadServiceHttpSettings {
+	return ad.appData.TokenPayloadServiceHttpSettings
+}
+
 // SetSecret implements model.AppData interface.
 func (ad *AppData) SetSecret(secret string) {
 	if ad == nil {
@@ -180,4 +201,7 @@ func (ad *AppData) Sanitize() {
 	ad.appData.AuthorizationWay = ""
 	ad.appData.AuthorizationModel = ""
 	ad.appData.AuthorizationPolicy = ""
+	ad.appData.TokenPayloadServiceHttpSettings = model.TokenPayloadServiceHttpSettings{}
+	ad.appData.TokenPayloadServicePluginSettings = model.TokenPayloadServicePluginSettings{}
+
 }

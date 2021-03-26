@@ -115,8 +115,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			return
+		}
+
 		offline := contains(scopes, jwtService.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "PhoneLogin.loginUser")
 			return
