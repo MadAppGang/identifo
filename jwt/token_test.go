@@ -284,7 +284,7 @@ func TestNewToken(t *testing.T) {
 		NewUserDefaultRole:           "",
 		AppleInfo:                    nil,
 	}
-	token, err := ts.NewAccessToken(user, scopes, app, false)
+	token, err := ts.NewAccessToken(user, scopes, app, false, nil)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
 	}

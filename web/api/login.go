@@ -175,21 +175,21 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 
 // getTokenPayloadForApp get additional token payload data
 func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map[string]interface{}, error) {
-	if app.TokenPayloadService() == model.TokenPayloadServiceHttp {
+	if app.TokenPayloadService == model.TokenPayloadServiceHttp {
 		// check if we have service cached
-		ps, exists := ar.tokenPayloadServices[app.ID()]
+		ps, exists := ar.tokenPayloadServices[app.ID]
 		if !exists {
 			var err error
 			ps, err = thp.NewTokenPayloadProvider(
-				app.TokenPayloadServiceHttpSettings().Secret,
-				app.TokenPayloadServiceHttpSettings().URL,
+				app.TokenPayloadServiceHttpSettings.Secret,
+				app.TokenPayloadServiceHttpSettings.URL,
 			)
 			if err != nil {
 				return nil, err
 			}
-			ar.tokenPayloadServices[app.ID()] = ps
+			ar.tokenPayloadServices[app.ID] = ps
 		}
-		return ps.TokenPayloadForApp(app.ID(), app.Name(), user.ID())
+		return ps.TokenPayloadForApp(app.ID, app.Name, user.ID)
 	}
 	return nil, nil
 }
