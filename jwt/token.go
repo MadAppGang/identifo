@@ -25,7 +25,7 @@ type Token interface {
 	UserID() string
 	Type() string
 	Scopes() string
-	Payload() map[string]string
+	Payload() map[string]interface{}
 }
 
 // NewTokenWithClaims generates new JWT token with claims and keyID.
@@ -68,10 +68,10 @@ func (t *JWToken) UserID() string {
 }
 
 // Payload returns token payload.
-func (t *JWToken) Payload() map[string]string {
+func (t *JWToken) Payload() map[string]interface{} {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
-		return make(map[string]string)
+		return make(map[string]interface{})
 	}
 	return claims.Payload
 }
@@ -159,10 +159,10 @@ func (t *JWToken) Scopes() string {
 
 // Claims is an extended claims structure.
 type Claims struct {
-	Payload map[string]string `json:"payload,omitempty"`
-	Scopes  string            `json:"scopes,omitempty"`
-	Type    string            `json:"type,omitempty"`
-	KeyID   string            `json:"kid,omitempty"` // optional keyID
+	Payload map[string]interface{} `json:"payload,omitempty"`
+	Scopes  string                 `json:"scopes,omitempty"`
+	Type    string                 `json:"type,omitempty"`
+	KeyID   string                 `json:"kid,omitempty"` // optional keyID
 	jwt.StandardClaims
 }
 

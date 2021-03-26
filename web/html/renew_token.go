@@ -103,7 +103,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false)
+		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false, nil)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate("server error", "", redirectURI)

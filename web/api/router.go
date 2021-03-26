@@ -36,7 +36,8 @@ type Router struct {
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
-	WebRouterPrefix         string
+    WebRouterPrefix         string
+    tokenPayloadServices    map[string]model.TokenPayloadProvider
 	LoggerSettings          model.LoggerSettings
 }
 
@@ -125,6 +126,8 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 	if logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
+
+	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
 
 	if ar.cors != nil {
 		ar.middleware.Use(ar.cors)
