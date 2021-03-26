@@ -50,8 +50,8 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
-		for _, app := range apps {
-			app.Sanitize()
+		for i, app := range apps {
+			apps[i] = app.Sanitized()
 		}
 
 		searchResponse := struct {
@@ -68,7 +68,7 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 // CreateApp adds new app to the database.
 func (ar *Router) CreateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ad := ar.appStorage.NewAppData()
+		ad := model.AppData{}
 		if ar.mustParseJSON(w, r, ad) != nil {
 			return
 		}
@@ -77,7 +77,7 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 		if err != nil {
 			return
 		}
-		ad.SetSecret(appSecret)
+		ad.Secret = appSecret
 
 		app, err := ar.appStorage.CreateApp(ad)
 		if err != nil {
@@ -93,17 +93,17 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appID := getRouteVar("id", r)
 
-		ad := ar.appStorage.NewAppData()
+		ad := model.AppData{}
 		if ar.mustParseJSON(w, r, ad) != nil {
 			return
 		}
 
-		if lenSecret := len(ad.Secret()); lenSecret < 24 || lenSecret > 48 {
+		if lenSecret := len(ad.Secret); lenSecret < 24 || lenSecret > 48 {
 			err := fmt.Errorf("Incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
 			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
-		if !isBase64(ad.Secret()) {
+		if !isBase64(ad.Secret) {
 			err := fmt.Errorf("Expecting appsecret to be base64 encoded")
 			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
@@ -158,7 +158,7 @@ func (ar *Router) updateAllowedOrigins() error {
 	}
 
 	for _, a := range apps {
-		ar.originChecker.AddRawURLs(a.RedirectURLs())
+		ar.originChecker.AddRawURLs(a.RedirectURLs)
 	}
 	return nil
 }

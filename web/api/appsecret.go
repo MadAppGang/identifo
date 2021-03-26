@@ -28,7 +28,7 @@ const (
 func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "SignatureHandler.AppFromContext")
 			return
@@ -63,7 +63,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			body = b
 		}
 
-		if err := validateBodySignature(body, reqMAC, []byte(app.Secret())); err != nil {
+		if err := validateBodySignature(body, reqMAC, []byte(app.Secret)); err != nil {
 			ar.logger.Printf("Error validating request signature: %v\n", err)
 			ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.validateBodySignature")
 			return

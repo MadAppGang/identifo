@@ -38,11 +38,10 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 			return
 		}
 
-		tfa := model.TFAInfo{
+		user.TFAInfo = model.TFAInfo{
 			IsEnabled: false,
 			Secret:    "",
 		}
-		user.SetTFAInfo(tfa)
 
 		if _, err := ar.UserStorage.UpdateUser(token.UserID(), user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
@@ -114,8 +113,8 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.Logger.Println("Error getting app from context")
+		if len(app.ID) == 0 {
+			ar.Logger.Println("error getting app from context")
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
@@ -128,8 +127,8 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			return
 		}
 
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
-		dontNeedVerification := app.DebugTFACode() != "" && tfaCode == app.DebugTFACode()
+		totp := gotp.NewDefaultTOTP(user.TFAInfo.Secret)
+		dontNeedVerification := app.DebugTFACode != "" && tfaCode == app.DebugTFACode
 
 		if verified := totp.Verify(tfaCode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
 			SetFlash(w, FlashErrorMessageKey, "Invalid TFA code")
@@ -180,13 +179,12 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			return
 		}
 
-		tfa := model.TFAInfo{
+		user.TFAInfo = model.TFAInfo{
 			IsEnabled: true,
 			Secret:    gotp.RandomSecret(16),
 		}
-		user.SetTFAInfo(tfa)
 
-		if _, err := ar.UserStorage.UpdateUser(user.ID(), user); err != nil {
+		if _, err := ar.UserStorage.UpdateUser(user.ID, user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
@@ -196,7 +194,7 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			"Error":     errorMessage,
 			"Token":     token,
 			"Prefix":    ar.PathPrefix,
-			"TFASecret": tfa.Secret,
+			"TFASecret": user.TFAInfo.Secret,
 		}
 
 		if err = tmpl.Execute(w, data); err != nil {

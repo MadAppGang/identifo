@@ -28,11 +28,11 @@ type FederatedLoginData struct {
 // If register_if_new presents - function creates new user without username/password,
 // there is a dedicated endpoint to link username/password to federated account.
 func (ar *Router) FederatedLogin() http.HandlerFunc {
-	var federatedProviders = map[string]bool{
+	federatedProviders := map[string]bool{
 		strings.ToLower(string(model.FacebookIDProvider)): true,
 		strings.ToLower(string(model.AppleIDProvider)):    true,
-		strings.ToLower(string(model.GoogleIDProvider)):   false, //TODO: add later
-		strings.ToLower(string(model.TwitterIDProvider)):  false, //TODO: add later
+		strings.ToLower(string(model.GoogleIDProvider)):   false, // TODO: add later
+		strings.ToLower(string(model.TwitterIDProvider)):  false, // TODO: add later
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -53,7 +53,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not specified.", "FederatedLogin.AppFromContext")
 			return
@@ -67,12 +67,12 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		case model.FacebookIDProvider:
 			federatedID, err = ar.FacebookUserID(d.AccessToken)
 		case model.AppleIDProvider:
-			if app.AppleInfo() == nil {
+			if app.AppleInfo == nil {
 				ar.logger.Println("Empty apple info")
 				ar.Error(w, ErrorAPIAppFederatedProviderEmptyAppleInfo, http.StatusBadRequest, "App does not have Apple info.", "FederatedLogin.switch_providers_apple")
 				return
 			}
-			federatedID, err = ar.AppleUserID(d.AuthorizationCode, app.AppleInfo())
+			federatedID, err = ar.AppleUserID(d.AuthorizationCode, app.AppleInfo)
 		default:
 			ar.Error(w, ErrorAPIAppFederatedProviderNotSupported, http.StatusBadRequest, fmt.Sprintf("UnsupportedProvider: %v", fid), "FederatedLogin.switch_providers_default")
 			return
@@ -87,7 +87,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
 		// Check error not found, create new user.
 		if err == model.ErrUserNotFound && d.RegisterIfNew {
-			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole())
+			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole)
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
@@ -103,7 +103,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -113,7 +113,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Request permissions for the user.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "FederatedLogin.RequestScopes")
 			return
@@ -132,7 +132,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		refreshString := ""
-		//requesting offline access ?
+		// requesting offline access ?
 		if contains(scopes, jwtService.OfflineScope) {
 			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
@@ -146,15 +146,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			}
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		result := AuthResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
-
 }

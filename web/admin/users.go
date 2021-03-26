@@ -46,7 +46,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -67,8 +67,8 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
-		for _, user := range users {
-			user.Sanitize()
+		for i, user := range users {
+			users[i] = user.Sanitized()
 		}
 
 		searchResponse := struct {
@@ -107,15 +107,15 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user.SetTFAInfo(rd.TFAInfo)
+		user.TFAInfo = rd.TFAInfo
 
-		user, err = ar.userStorage.UpdateUser(user.ID(), user)
+		user, err = ar.userStorage.UpdateUser(user.ID, user)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "Setting TFA data")
 			return
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }
@@ -125,7 +125,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
 
-		u := ar.userStorage.NewUser()
+		u := model.User{}
 		if ar.mustParseJSON(w, r, u) != nil {
 			return
 		}
@@ -136,11 +136,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		if u.TFAInfo().IsEnabled == existing.TFAInfo().IsEnabled {
-			u.SetTFAInfo(model.TFAInfo{
-				IsEnabled: existing.TFAInfo().IsEnabled,
-				Secret:    existing.TFAInfo().Secret,
-			})
+		if u.TFAInfo.IsEnabled == existing.TFAInfo.IsEnabled {
+			u.TFAInfo = existing.TFAInfo
 		}
 
 		user, err := ar.userStorage.UpdateUser(userID, u)
@@ -151,7 +148,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		ar.logger.Printf("User %s updated", userID)
 
-		user.Sanitize()
+		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

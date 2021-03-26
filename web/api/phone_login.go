@@ -71,13 +71,13 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
 			return
 		}
 
-		needVerification := app.DebugTFACode() == "" || authData.Code != app.DebugTFACode()
+		needVerification := app.DebugTFACode == "" || authData.Code != app.DebugTFACode
 		if needVerification { // check verification code
 			if exists, err := ar.verificationCodeStorage.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
@@ -90,7 +90,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
-			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole())
+			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole)
 		}
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
@@ -100,7 +100,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -109,7 +109,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), authData.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID, authData.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "PhoneLogin.RequestScopes")
 			return
@@ -122,14 +122,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		result := AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

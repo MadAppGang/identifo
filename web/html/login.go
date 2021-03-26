@@ -35,7 +35,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		redirectToLogin := func() {
 			q := r.URL.Query()
-			q.Set(FormKeyAppID, app.ID())
+			q.Set(FormKeyAppID, app.ID)
 			q.Set(scopesKey, scopesJSON)
 			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
@@ -44,20 +44,20 @@ func (ar *Router) Login() http.HandlerFunc {
 		}
 
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
-			ar.Logger.Printf("Error: Invalid scopes %v", scopesJSON)
+			ar.Logger.Printf("invalid scopes %v", scopesJSON)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
 		user, err := ar.UserStorage.UserByNamePassword(username, password)
 		if err != nil {
-			SetFlash(w, FlashErrorMessageKey, "Invalid Username or Password")
+			SetFlash(w, FlashErrorMessageKey, "invalid Username or Password")
 			redirectToLogin()
 			return
 		}
 
-		if _, err = ar.UserStorage.RequestScopes(user.ID(), scopes); err != nil {
-			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, user.ID())
+		if _, err = ar.UserStorage.RequestScopes(user.ID, scopes); err != nil {
+			ar.Logger.Printf("invalid scopes %v for userID: %v", scopes, user.ID)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			redirectToLogin()
 			return
@@ -66,7 +66,7 @@ func (ar *Router) Login() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -79,19 +79,19 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		token, err := ar.TokenService.NewWebCookieToken(user)
 		if err != nil {
-			ar.Logger.Printf("Error creating auth token %v", err)
+			ar.Logger.Printf("error creating auth token %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
 		tokenString, err := ar.TokenService.String(token)
 		if err != nil {
-			ar.Logger.Printf("Error stringifying token: %v", err)
+			ar.Logger.Printf("error making a call to stringify the token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		ar.UserStorage.UpdateLoginMetadata(user.ID())
+		ar.UserStorage.UpdateLoginMetadata(user.ID)
 		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}
@@ -113,7 +113,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Logger.Printf("Error: App not found.")
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
@@ -128,8 +128,8 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		}
 
 		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
-		if !contains(app.RedirectURLs(), callbackURL) {
-			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
+		if !contains(app.RedirectURLs, callbackURL) {
+			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
@@ -146,7 +146,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 				"Prefix":      ar.PathPrefix,
 				"Scopes":      scopesJSON,
 				"CallbackURL": callbackURL,
-				"AppId":       app.ID(),
+				"AppId":       app.ID,
 			}
 
 			if err = tmpl.Execute(w, data); err != nil {

@@ -22,12 +22,12 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
 			return
 		}
 
-		if tfaStatus := app.TFAStatus(); tfaStatus == model.TFAStatusDisabled {
+		if tfaStatus := app.TFAStatus; tfaStatus == model.TFAStatusDisabled {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "TFA is not supported by this app", "EnableTFA.TFAStatus")
 			return
 		}
@@ -51,25 +51,24 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		if tfaInfo := user.TFAInfo(); tfaInfo.IsEnabled && tfaInfo.Secret != "" {
+		if tfaInfo := user.TFAInfo; tfaInfo.IsEnabled && tfaInfo.Secret != "" {
 			ar.Error(w, ErrorAPIRequestTFAAlreadyEnabled, http.StatusBadRequest, "TFA already enabled for this user", "EnableTFA.alreadyEnabled")
 			return
 		}
 
-		if ar.tfaType == model.TFATypeSMS && user.Phone() == "" {
+		if ar.tfaType == model.TFATypeSMS && user.Phone == "" {
 			ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "Please specify your phone number to be able to receive one-time passwords", "EnableTFA.setPhone")
 			return
 		}
-		if ar.tfaType == model.TFATypeEmail && user.Email() == "" {
+		if ar.tfaType == model.TFATypeEmail && user.Email == "" {
 			ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "Please specify your email address to be able to receive one-time passwords", "EnableTFA.setEmail")
 			return
 		}
 
-		tfa := model.TFAInfo{
+		user.TFAInfo = model.TFAInfo{
 			IsEnabled: true,
 			Secret:    gotp.RandomSecret(16),
 		}
-		user.SetTFAInfo(tfa)
 
 		if _, err := ar.userStorage.UpdateUser(userID, user); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
@@ -83,7 +82,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			// to enter those secret to the authentication app
 			// then use the TOTP from the app to validate the code
 			// after the TOTP is validate - the TFA is counted as enabled
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: tfa.Secret})
+			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: user.TFAInfo.Secret})
 			return
 		case model.TFATypeSMS, model.TFATypeEmail:
 			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: ""})
@@ -131,7 +130,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "FinalizeTFA.AppFromContext")
 			return
 		}
@@ -142,7 +141,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		dontNeedVerification := app.DebugTFACode() != "" && d.TFACode == app.DebugTFACode()
+		dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
 
 		if !(otpVerified || dontNeedVerification) {
 			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.OTP_Invalid")
@@ -150,7 +149,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		// Issue new access, and, if requested, refresh token, and then invalidate the old one.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.RequestScopes")
 			return
@@ -168,14 +167,14 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		result := &AuthResponse{
 			AccessToken:  accessToken,
 			RefreshToken: refreshToken,
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID())
+		ar.userStorage.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
@@ -183,14 +182,14 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 	result := false
 	if ar.tfaType == model.TFATypeApp {
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
+		totp := gotp.NewDefaultTOTP(user.TFAInfo.Secret)
 		result = totp.Verify(otp, int(time.Now().Unix()))
 	} else {
-		if user.TFAInfo().HOTPExpiredAt.Before(time.Now()) {
+		if user.TFAInfo.HOTPExpiredAt.Before(time.Now()) {
 			return false, errors.New("OTP token expired, please get the new one and try again")
 		}
-		hotp := gotp.NewDefaultHOTP(user.TFAInfo().Secret)
-		result = hotp.Verify(otp, user.TFAInfo().HOTPCounter)
+		hotp := gotp.NewDefaultHOTP(user.TFAInfo.Secret)
+		result = hotp.Verify(otp, user.TFAInfo.HOTPCounter)
 	}
 	return result, nil
 }
@@ -218,12 +217,12 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
 			return
 		}
 
-		if app.TFAStatus() == model.TFAStatusMandatory {
+		if app.TFAStatus == model.TFAStatusMandatory {
 			ar.Error(w, ErrorAPIRequestMandatoryTFA, http.StatusForbidden, "Two-factor authentication is mandatory for this app", "RequestDisabledTFA.TFAStatusMandatory")
 			return
 		}
@@ -300,12 +299,12 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
 			return
 		}
 
-		if app.TFAStatus() == model.TFAStatusDisabled {
+		if app.TFAStatus == model.TFAStatusDisabled {
 			ar.Error(w, ErrorAPIRequestDisabledTFA, http.StatusForbidden, "Two-factor authentication is disabled for this app", "RequestTFAReset.TFAStatusDisabled")
 			return
 		}
