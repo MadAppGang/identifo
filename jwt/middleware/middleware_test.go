@@ -10,7 +10,7 @@ import (
 )
 
 const (
-	keyPath            = "../public.pem"
+	keyPath            = "../test_artifacts/public.pem"
 	testIssuer         = "identifo.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAiLCJleHAiOjI1OTcxNDY4OTIsImF1ZCI6InRlc3RfYXVkIiwiaXNzIjoiaWRlbnRpZm8ubWFkYXBwZ2FuZy5jb20iLCJ0eXBlIjoiYWNjZXNzIn0.BqdHOYtBPG9f7lZwPsV3OLNjd2y_vsSZlGCFbJOv2njaJ1poLBmw9VxthKU-L7Sr0X-E_yYldIGxV6ePryJuCg"
 	tokenAud           = "test_aud"
@@ -27,26 +27,26 @@ func TestMiddleware(t *testing.T) {
 	successConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         testIssuer,
+		TokenType:      []string{middleware.TokenTypeAccess, middleware.TokenTypeRefresh},
+		Audience:       []string{tokenAud, "ddddd"},
+		Issuer:         []string{testIssuer, "dsfsd"},
 	}
 
 	wrongIssuerConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         "I am wrong issuer",
+		TokenType:      []string{middleware.TokenTypeAccess},
+		Audience:       []string{tokenAud},
+		Issuer:         []string{"I am wrong issuer"},
 	}
 
 	specificUserIssuerConfig := validator.Config{
 		PubKeyEnvName:  "PK",
 		PubKeyFileName: keyPath,
-		TokenType:      middleware.TokenTypeAccess,
-		Audience:       tokenAud,
-		Issuer:         testIssuer,
-		UserID:         "user1",
+		TokenType:      []string{middleware.TokenTypeAccess},
+		Audience:       []string{tokenAud},
+		Issuer:         []string{testIssuer},
+		UserID:         []string{"user1"},
 	}
 
 	type args struct {

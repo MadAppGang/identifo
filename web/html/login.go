@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
@@ -105,7 +104,12 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		ar.Logger.Fatalln("Cannot parse Login template.", err)
 	}
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
-	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.WebCookieTokenType)
+	tokenValidator := jwtValidator.NewValidator(
+		[]string{"identifo"},
+		[]string{ar.TokenService.Issuer()},
+		[]string{},
+		[]string{model.TokenTypeWebCookie},
+	)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())

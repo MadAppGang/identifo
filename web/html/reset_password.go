@@ -3,9 +3,12 @@ package html
 import (
 	"net/http"
 	"path"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 )
+
+const redirectURLParam = "redirectUrl"
 
 // ResetPassword handles password reset form submission (POST request).
 func (ar *Router) ResetPassword() http.HandlerFunc {
@@ -29,6 +32,12 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		if err = ar.UserStorage.ResetPassword(token.UserID(), password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
+			return
+		}
+
+		redirectURL := strings.TrimSpace(r.URL.Query().Get(redirectURLParam))
+		if redirectURL != "" {
+			http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 			return
 		}
 

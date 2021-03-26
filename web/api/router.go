@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
@@ -35,8 +36,9 @@ type Router struct {
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
-	WebRouterPrefix         string
-	tokenPayloadServices    map[string]model.TokenPayloadProvider
+    WebRouterPrefix         string
+    tokenPayloadServices    map[string]model.TokenPayloadProvider
+	LoggerSettings          model.LoggerSettings
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -60,9 +62,12 @@ func HostOption(host string) func(*Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
 		if corsOptions != nil && corsOptions.API != nil {
+			if originChecker != nil {
+				corsOptions.API.AllowOriginRequestFunc = originChecker.With(corsOptions.API.AllowOriginRequestFunc).CheckOrigin
+			}
 			r.cors = cors.New(*corsOptions.API)
 		}
 		return nil
@@ -94,7 +99,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),
@@ -108,6 +113,7 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		smsService:              smsServ,
 		emailService:            emailServ,
 		Authorizer:              authorizer,
+		LoggerSettings: 		 loggerSettings,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

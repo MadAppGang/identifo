@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"path"
 	"regexp"
+	"strings"
 )
 
 const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
@@ -86,6 +87,12 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Error sending email")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
+			return
+		}
+
+		redirectURL := strings.TrimSpace(r.URL.Query().Get(redirectURLParam))
+		if redirectURL != "" {
+			http.Redirect(w, r, redirectURL, http.StatusMovedPermanently)
 			return
 		}
 

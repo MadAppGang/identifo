@@ -1,28 +1,31 @@
 package jwt
 
-import jwt "github.com/dgrijalva/jwt-go"
+import (
+	"time"
 
-const (
-	// OfflineTokenScope is a scope value to request refresh token.
-	OfflineTokenScope = "offline"
-	// RefrestTokenType is a refresh token type value.
-	RefrestTokenType = "refresh"
-	// InviteTokenType is an invite token type value.
-	InviteTokenType = "invite"
-	// AccessTokenType is an access token type value.
-	AccessTokenType = "access"
-	// ResetTokenType is a reset password token type value.
-	ResetTokenType = "reset"
-	// WebCookieTokenType is a web-cookie token type value.
-	WebCookieTokenType = "web-cookie"
+	jwt "github.com/dgrijalva/jwt-go"
 )
+
+// StandardTokenClaims structured version of Claims Section, as referenced at
+// https://tools.ietf.org/html/rfc7519#section-4.1
+type StandardTokenClaims interface {
+	Audience() string
+	ExpiresAt() time.Time
+	ID() string
+	IssuedAt() time.Time
+	Issuer() string
+	NotBefore() time.Time
+	Subject() string
+}
 
 // Token is an abstract application token.
 type Token interface {
+	StandardTokenClaims
 	Validate() error
 	UserID() string
 	Type() string
-	Payload() map[string]interface{}
+	Scopes() string
+    Payload() map[string]intereface{}
 }
 
 // NewTokenWithClaims generates new JWT token with claims and keyID.
@@ -80,6 +83,78 @@ func (t *JWToken) Type() string {
 		return ""
 	}
 	return claims.Type
+}
+
+// Audience standard token claim
+func (t *JWToken) Audience() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Audience
+}
+
+// ExpiresAt standard token claim
+func (t *JWToken) ExpiresAt() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.ExpiresAt, 0)
+}
+
+// ID standard token claim
+func (t *JWToken) ID() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Id
+}
+
+// IssuedAt standard token claim
+func (t *JWToken) IssuedAt() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.IssuedAt, 0)
+}
+
+// Issuer standard token claim
+func (t *JWToken) Issuer() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Issuer
+}
+
+// NotBefore standard token claim
+func (t *JWToken) NotBefore() time.Time {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return time.Time{}
+	}
+	return time.Unix(claims.NotBefore, 0)
+}
+
+// Subject standard token claim
+func (t *JWToken) Subject() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Subject
+}
+
+// Scopes standard token claim
+func (t *JWToken) Scopes() string {
+	claims, ok := t.JWT.Claims.(*Claims)
+	if !ok {
+		return ""
+	}
+	return claims.Scopes
 }
 
 // Claims is an extended claims structure.

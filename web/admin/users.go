@@ -14,10 +14,11 @@ const (
 )
 
 type registrationData struct {
-	Username   string   `json:"username,omitempty"`
-	Password   string   `json:"password,omitempty"`
-	AccessRole string   `json:"access_role,omitempty"`
-	Scope      []string `json:"scope,omitempty"`
+	Username   string        `json:"username,omitempty"`
+	Password   string        `json:"password,omitempty"`
+	AccessRole string        `json:"access_role,omitempty"`
+	Scope      []string      `json:"scope,omitempty"`
+	TFAInfo    model.TFAInfo `json:"tfa_info,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -106,6 +107,14 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
+		user.SetTFAInfo(rd.TFAInfo)
+
+		user, err = ar.userStorage.UpdateUser(user.ID(), user)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "Setting TFA data")
+			return
+		}
+
 		user.Sanitize()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
@@ -121,9 +130,22 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
+		existing, err := ar.userStorage.UserByID(userID)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		if u.TFAInfo().IsEnabled == existing.TFAInfo().IsEnabled {
+			u.SetTFAInfo(model.TFAInfo{
+				IsEnabled: existing.TFAInfo().IsEnabled,
+				Secret:    existing.TFAInfo().Secret,
+			})
+		}
+
 		user, err := ar.userStorage.UpdateUser(userID, u)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
 

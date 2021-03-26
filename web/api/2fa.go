@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -26,8 +27,8 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		if tfaStatus := app.TFAStatus(); tfaStatus != model.TFAStatusOptional {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, fmt.Sprintf("App TFA status is '%s', not 'optional'", tfaStatus), "EnableTFA.TFAStatus")
+		if tfaStatus := app.TFAStatus(); tfaStatus == model.TFAStatusDisabled {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "TFA is not supported by this app", "EnableTFA.TFAStatus")
 			return
 		}
 
@@ -77,10 +78,15 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 
 		switch ar.tfaType {
 		case model.TFATypeApp:
+			// TODO: we need validation flow for TOTP codes
+			// user sees the secret as QR code, then they should use the app
+			// to enter those secret to the authentication app
+			// then use the TOTP from the app to validate the code
+			// after the TOTP is validate - the TFA is counted as enabled
 			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: tfa.Secret})
 			return
 		case model.TFATypeSMS, model.TFATypeEmail:
-			ar.ServeJSON(w, http.StatusOK, nil)
+			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: ""})
 			return
 		}
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
@@ -126,22 +132,27 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if app == nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "FinalizeTFA.AppFromContext")
 			return
 		}
 
-		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
+		otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
+		if err != nil {
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.OTP_Invalid")
+			return
+		}
+
 		dontNeedVerification := app.DebugTFACode() != "" && d.TFACode == app.DebugTFACode()
 
-		if verified := totp.Verify(d.TFACode, int(time.Now().Unix())); !(verified || dontNeedVerification) {
-			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.TOTP_Invalid")
+		if !(otpVerified || dontNeedVerification) {
+			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.OTP_Invalid")
 			return
 		}
 
 		// Issue new access, and, if requested, refresh token, and then invalidate the old one.
 		scopes, err := ar.userStorage.RequestScopes(user.ID(), d.Scopes)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
+			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.RequestScopes")
 			return
 		}
 
@@ -154,7 +165,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		offline := contains(scopes, jwtService.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, d.Scopes, app, offline, false, tokenPayload)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FinalizeTFA.loginUser")
 			return
 		}
 
@@ -173,6 +184,21 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		ar.userStorage.UpdateLoginMetadata(user.ID())
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
+}
+
+func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
+	result := false
+	if ar.tfaType == model.TFATypeApp {
+		totp := gotp.NewDefaultTOTP(user.TFAInfo().Secret)
+		result = totp.Verify(otp, int(time.Now().Unix()))
+	} else {
+		if user.TFAInfo().HOTPExpiredAt.Before(time.Now()) {
+			return false, errors.New("OTP token expired, please get the new one and try again")
+		}
+		hotp := gotp.NewDefaultHOTP(user.TFAInfo().Secret)
+		result = hotp.Verify(otp, user.TFAInfo().HOTPCounter)
+	}
+	return result, nil
 }
 
 // RequestDisabledTFA requests link for disabling TFA.

@@ -89,6 +89,11 @@ Negroni uses this middlewares:
 [Logrus support](https://github.com/meatballhat/negroni-logrus)
 [OAuth2 support](https://github.com/goincremental/negroni-oauth2)
 
+## Getting started
+First generate token with `./jwt/generate_token.sh `
+Start Identifo in docker with `docker-compose up`
+Open http://localhost:8081/adminpanel/ and use default credentials `admin@admin.com` `password` to login
+
 ## Useful information
 
 [Understanding sessions](https://blog.questionable.services/article/map-string-interface/)

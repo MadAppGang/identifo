@@ -12,7 +12,7 @@ import (
 )
 
 const (
-	keyPath            = "./"
+	keyPath            = "./test_artifacts/"
 	testIssuer         = "identifo.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAifQ.Sqmh_44nXg3Lxs9jr9YCDZVNJN459Br4ODnZIt3EY72opwy5hzYL_l_hua4PJCM0WmYNLB-nKC80TS84LO5muw"
 )
@@ -35,6 +35,7 @@ func TestNewTokenService(t *testing.T) {
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
 			Type: model.KeyStorageTypeLocal,
+			Folder: keyPath,
 		},
 	})
 	if err != nil {
@@ -111,6 +112,7 @@ func TestParseString(t *testing.T) {
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
 			Type: model.KeyStorageTypeLocal,
+			Folder: keyPath,
 		},
 	})
 	if err != nil {
@@ -167,6 +169,7 @@ func TestTokenToString(t *testing.T) {
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
 			Type: model.KeyStorageTypeLocal,
+			Folder: keyPath,
 		},
 	})
 	if err != nil {
@@ -233,6 +236,7 @@ func TestNewToken(t *testing.T) {
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
 			Type: model.KeyStorageTypeLocal,
+			Folder: keyPath,
 		},
 	})
 	if err != nil {

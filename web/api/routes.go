@@ -2,6 +2,7 @@ package api
 
 import (
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/model"
 	"github.com/urfave/negroni"
 )
 
@@ -12,7 +13,15 @@ func (ar *Router) initRoutes() {
 	}
 
 	// All requests to the API router should contain appID.
-	apiMiddlewares := ar.middleware.With(ar.DumpRequest(), ar.AppID())
+	handlers := make([]negroni.Handler, 0)
+
+	if ar.LoggerSettings.DumpRequest {
+		handlers = append(handlers, ar.DumpRequest())
+	}
+
+	handlers = append(handlers, ar.AppID())
+
+	apiMiddlewares := ar.middleware.With(handlers...)
 
 	ar.router.HandleFunc(`/{ping:ping/?}`, ar.HandlePing()).Methods("GET")
 
@@ -30,34 +39,34 @@ func (ar *Router) initRoutes() {
 	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
 
 	auth.Path(`/{token:token/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeRefresh),
+		ar.Token(model.TokenTypeRefresh, nil),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
 	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
 
 	auth.Path(`/{tfa/enable:tfa/enable/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
 	auth.Path(`/{tfa/disable:tfa/disable/?}`).Handler(negroni.New(
 		negroni.Wrap(ar.RequestDisabledTFA()),
 	)).Methods("PUT")
-	auth.Path(`/{tfa/finalize:tfa/finalize/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+	auth.Path(`/{tfa/login:tfa/login/?}`).Handler(negroni.New(
+		ar.Token(model.TokenTypeAccess, []string{model.TokenTFAPreauthScope}),
 		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
 	auth.Path(`/{tfa/reset:tfa/reset/?}`).Handler(negroni.New(
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestTFAReset()),
 	)).Methods("PUT")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
 		ar.SignatureHandler(),
-		ar.Token(TokenTypeAccess),
+		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(meRouter),
 	))
 	meRouter.Path("").HandlerFunc(ar.IsLoggedIn()).Methods("GET")
@@ -66,10 +75,15 @@ func (ar *Router) initRoutes() {
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
-	ar.router.PathPrefix("/.well-known").Handler(negroni.New(
-		ar.DumpRequest(),
-		negroni.Wrap(oidc),
-	))
+	wellKnownHandlers := make([]negroni.Handler, 0)
+
+	if ar.LoggerSettings.DumpRequest {
+		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
+	}
+
+	wellKnownHandlers = append(wellKnownHandlers, negroni.Wrap(oidc))
+
+	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(wellKnownHandlers...))
 
 	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
 	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")

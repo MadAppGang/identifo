@@ -107,10 +107,12 @@ const (
 	ErrorAPIRequestMandatoryTFA = "error.api.request.2fa.mandatory"
 	// ErrorAPIRequestDisabledTFA means that app does not support TFA.
 	ErrorAPIRequestDisabledTFA = "error.api.request.2fa.disabled"
-	// ErrorAPIRequestPleaseSetPhoneForTFA means that user must set up their phone number to be able to receive TOTPs in SMS.
+	// ErrorAPIRequestPleaseSetPhoneForTFA means that user must set up their phone number to be able to receive OTPs in SMS.
 	ErrorAPIRequestPleaseSetPhoneForTFA = "error.api.request.2fa.set_phone"
-	// ErrorAPIRequestPleaseSetEmailForTFA means that user must set up their email address to be able to receive TOTPs on the email.
+	// ErrorAPIRequestPleaseSetEmailForTFA means that user must set up their email address to be able to receive OTPs on the email.
 	ErrorAPIRequestPleaseSetEmailForTFA = "error.api.request.2fa.set_email"
+	// ErrorAPIRequestUnableToSendOTP means that there is error sending the otp code while login to user
+	ErrorAPIRequestUnableToSendOTP = "error.api.request.2fa.unable to send OTP code to email or sms"
 
 	// ErrorAPIAppInactive means that the reqesting app is inactive.
 	ErrorAPIAppInactive = "error.api.app.inactive"

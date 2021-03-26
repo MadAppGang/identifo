@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 )
@@ -17,7 +16,12 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse WebMessage template.", err)
 	}
-	tokenValidator := jwtValidator.NewValidator("identifo", ar.TokenService.Issuer(), "", jwtService.WebCookieTokenType)
+	tokenValidator := jwtValidator.NewValidator(
+		[]string{"identifo"},
+		[]string{ar.TokenService.Issuer()},
+		[]string{},
+		[]string{model.TokenTypeWebCookie},
+	)
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		serveTemplate := func(errorMessage, AccessToken, redirectURI string) {

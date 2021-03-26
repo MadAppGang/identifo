@@ -20,6 +20,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		username := r.FormValue(usernameKey)
 		password := r.FormValue(passwordKey)
 		scopesJSON := r.FormValue(scopesKey)
+		callbackURL := r.FormValue(callbackURLKey)
 		scopes := []string{}
 
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
@@ -30,7 +31,7 @@ func (ar *Router) Register() http.HandlerFunc {
 
 		var isAnonymous bool
 		var err error
-		if isAnonymousStr := r.FormValue(isAnonymousKey); len(isAnonymousKey) > 0 {
+		if isAnonymousStr := r.FormValue(isAnonymousKey); len(isAnonymousStr) > 0 {
 			isAnonymous, err = strconv.ParseBool(isAnonymousStr)
 			if err != nil {
 				ar.Logger.Printf("Error: Invalid anonymous parameter %s", isAnonymousStr)
@@ -48,6 +49,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			q := r.URL.Query()
 			q.Set(FormKeyAppID, app.ID())
 			q.Set(scopesKey, scopesJSON)
+			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
 
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusFound)
@@ -59,6 +61,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			q := r.URL.Query()
 			q.Set(FormKeyAppID, app.ID())
 			q.Set(scopesKey, scopesJSON)
+			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
 
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusFound)
@@ -170,10 +173,11 @@ func (ar *Router) RegistrationHandler() http.HandlerFunc {
 		}
 
 		data := map[string]interface{}{
-			"Error":  errorMessage,
-			"Prefix": ar.PathPrefix,
-			"Scopes": scopesJSON,
-			"AppId":  app.ID(),
+			"Error":       errorMessage,
+			"Prefix":      ar.PathPrefix,
+			"Scopes":      scopesJSON,
+			"CallbackUrl": strings.TrimSpace(r.URL.Query().Get(callbackURLKey)),
+			"AppId":       app.ID(),
 		}
 
 		if err = tmpl.Execute(w, data); err != nil {

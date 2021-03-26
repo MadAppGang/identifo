@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 )
 
 var (
@@ -22,7 +23,7 @@ var (
 	ErrTokenValidationInvalidSubject = errors.New("Token is invalid, subject is invalid")
 	// ErrorTokenValidationTokenTypeMismatch is when the token has invalid type.
 	ErrorTokenValidationTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
-	//ErrorConfigurationMissingPublicKey is when public key is missing
+	// ErrorConfigurationMissingPublicKey is when public key is missing
 	ErrorConfigurationMissingPublicKey = errors.New("Missing public key to decode the token from string")
 )
 
@@ -41,29 +42,29 @@ type Validator interface {
 	ValidateString(string) (jwt.Token, error)
 }
 
-//Config is a struct to set all the required params for Validator
+// Config is a struct to set all the required params for Validator
 type Config struct {
-	Audience  string
-	Issuer    string
-	UserID    string
-	TokenType string
+	Audience  []string
+	Issuer    []string
+	UserID    []string
+	TokenType []string
 	PublicKey interface{}
-	//PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
+	// PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
 	PubKeyEnvName string
-	//PubKeyFileName file path with public key, could be empty if you want to use env variable.
+	// PubKeyFileName file path with public key, could be empty if you want to use env variable.
 	PubKeyFileName string
-	//PubKeyURL URL for well-known JWKS
+	// PubKeyURL URL for well-known JWKS
 	PubKeyURL string
-	//should we always check audience for the token. If yes and audience is empty the validation will fail.
+	// should we always check audience for the token. If yes and audience is empty the validation will fail.
 	IsAudienceRequired bool
-	//should we always check iss for the token. If yes and iss is empty the validation will fail.
+	// should we always check iss for the token. If yes and iss is empty the validation will fail.
 	IsIssuerRequired bool
 }
 
-//NewConfig creates and returns default config
+// NewConfig creates and returns default config
 func NewConfig() Config {
 	return Config{
-		TokenType:          jwt.AccessTokenType,
+		TokenType:          []string{model.TokenTypeAccess},
 		IsAudienceRequired: true,
 		IsIssuerRequired:   true,
 	}
@@ -74,14 +75,15 @@ func NewConfig() Config {
 // - appID - application ID which have made the request, should be in audience field of JWT token.
 // - issuer - this server name, should be the same as issuer of JWT token.
 // - userID - user who have made the request. If this field is empty, we do not validate it.
-func NewValidator(audience, issuer, userID, tokenType string) Validator {
+func NewValidator(audience, issuer, userID, tokenType []string) Validator {
 	return &validator{
-		audience:  audience,
-		issuer:    issuer,
-		userID:    userID,
-		tokenType: tokenType,
-		strictAud: true,
-		strictIss: true,
+		audience:   audience,
+		issuer:     issuer,
+		userID:     userID,
+		tokenType:  tokenType,
+		strictAud:  true,
+		strictIss:  true,
+		strictUser: false,
 	}
 }
 
@@ -112,17 +114,18 @@ func NewValidatorWithConfig(c Config) (Validator, error) {
 	}, err
 }
 
-//TODO: implement initializer with JWKS URL .well-known
+// TODO: implement initializer with JWKS URL .well-known
 
 // validator is a JWT token validator.
 type validator struct {
-	audience  string
-	issuer    string
-	userID    string
-	tokenType string
-	publicKey interface{}
-	strictIss bool
-	strictAud bool
+	audience   []string
+	issuer     []string
+	userID     []string
+	tokenType  []string
+	publicKey  interface{}
+	strictIss  bool
+	strictAud  bool
+	strictUser bool
 }
 
 // Validate validates token.
@@ -166,20 +169,59 @@ func (v *validator) Validate(t jwt.Token) error {
 		return ErrTokenValidationNoIAT
 	}
 
-	if !claims.VerifyAudience(v.audience, v.strictAud) {
-		return ErrTokenValidationInvalidAudience
+	// Validate Issuers
+	if len(v.issuer) > 0 {
+		valid := false
+		for _, i := range v.issuer {
+			if claims.VerifyIssuer(i, v.strictIss) {
+				valid = true // at least one issues is valid, token is valid
+				break
+			}
+		}
+		if !valid {
+			return ErrTokenValidationInvalidIssuer
+		}
 	}
 
-	if !claims.VerifyIssuer(v.issuer, v.strictIss) {
-		return ErrTokenValidationInvalidIssuer
+	// Validate Audience
+	if len(v.audience) > 0 {
+		valid := false
+		for _, i := range v.audience {
+			if claims.VerifyAudience(i, v.strictAud) {
+				valid = true // at least one audience is valid, token is valid
+				break
+			}
+		}
+		if !valid {
+			return ErrTokenValidationInvalidAudience
+		}
 	}
 
-	if (len(v.userID) > 0) && (claims.Subject != v.userID) {
-		return ErrTokenValidationInvalidSubject
+	// Validate Users
+	if len(v.userID) > 0 {
+		valid := false
+		for _, i := range v.userID {
+			if (len(i) > 0) && (claims.Subject == i) {
+				valid = true
+			}
+		}
+		if !valid {
+			return ErrTokenValidationInvalidSubject
+		}
 	}
 
-	if token.Type() != v.tokenType {
-		return ErrorTokenValidationTokenTypeMismatch
+	// Validate token type
+	if len(v.tokenType) > 0 {
+		valid := false
+		for _, i := range v.tokenType {
+			if token.Type() == i {
+				valid = true
+				break
+			}
+		}
+		if !valid {
+			return ErrorTokenValidationTokenTypeMismatch
+		}
 	}
 
 	return nil

@@ -281,6 +281,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	}
 
 	newUser.SetEmail(strings.ToLower(newUser.Email()))
+
 	res, ok := newUser.(*User)
 	if !ok || res == nil {
 		return nil, model.ErrorWrongDataFormat

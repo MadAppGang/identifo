@@ -15,9 +15,9 @@
 vendor
 db.db
 debug
+*__debug_bin
 
 static/apple/*
-static/admin_panel/build
 static/admin_panel/identifo-admin-master
 static/admin_panel/master.zip
 integrations/aws/identifo lambda/Identifo
@@ -28,3 +28,5 @@ integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
 integrations/aws/identifo lambda/.env
 .devcontainer
+
+.idea
