@@ -1,6 +1,7 @@
 #!/bin/bash
 # This script pulls latest version of the Identifo user panel and then builds it.
 
+cd "$(dirname "$0")"
 # Fetch and build source code.
 wget https://github.com/MadAppGang/identifo-admin/archive/master.zip
 unzip master.zip

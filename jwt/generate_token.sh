@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd "$(dirname "$0")"
 #list all supported curves
 #openssl ecparam -list_curves
 
