@@ -25,7 +25,7 @@ type Token interface {
 	UserID() string
 	Type() string
 	Scopes() string
-    Payload() map[string]intereface{}
+	Payload() map[string]interface{}
 }
 
 // NewTokenWithClaims generates new JWT token with claims and keyID.
