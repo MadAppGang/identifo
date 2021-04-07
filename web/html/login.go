@@ -6,6 +6,7 @@ import (
 	"path"
 	"strings"
 
+	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
@@ -207,7 +208,31 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			return
 		}
 
-		redirectURL := callbackURL + "#" + tokenString
+		refreshString := ""
+
+		// If requesting offline access then generate and set refreshString
+		if contains(scopes, jwtService.OfflineScope) {
+			refresh, err := ar.TokenService.NewRefreshToken(user, scopes, app)
+			if err != nil {
+				ar.Logger.Printf("Error creating refresh token: %v", err)
+				serveTemplate()
+				return
+			}
+			refreshString, err = ar.TokenService.String(refresh)
+			if err != nil {
+				ar.Logger.Printf("Error stringifying refresh token: %v", err)
+				serveTemplate()
+				return
+			}
+
+		}
+
+		redirectURL := callbackURL + "?token=" + tokenString
+
+		if refreshString != "" {
+			redirectURL = redirectURL + "&refresh_token=" + refreshString
+		}
+
 		http.Redirect(w, r, redirectURL, http.StatusFound)
 	}
 }
