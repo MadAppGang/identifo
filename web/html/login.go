@@ -20,6 +20,7 @@ const (
 	isAnonymousKey = "anonymous"
 	callbackURLKey = "callbackUrl"
 	redirectURIKey = "redirectUri"
+	inviteTokenKey = "inviteToken"
 )
 
 // Login logs user in with email and password.

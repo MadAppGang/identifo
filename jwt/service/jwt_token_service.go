@@ -328,11 +328,14 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 }
 
 // NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken(email string) (ijwt.Token, error) {
-    payload := make(map[string]interface{})
+func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error) {
+	payload := make(map[string]interface{})
 	// add payload data here
 	if email != "" {
 		payload["email"] = email
+	}
+	if role != "" {
+		payload["role"] = role
 	}
 
 	now := ijwt.TimeFunc().Unix()
