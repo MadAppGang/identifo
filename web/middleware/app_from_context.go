@@ -11,7 +11,7 @@ func AppFromContext(ctx context.Context) model.AppData {
 	value := ctx.Value(model.AppDataContextKey)
 
 	if value == nil {
-		return nil
+		return model.AppData{}
 	}
 
 	return value.(model.AppData)

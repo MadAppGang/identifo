@@ -42,13 +42,13 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if app.ID == "" {
 			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
 		}
 
 		redirectToRegister := func() {
 			q := r.URL.Query()
-			q.Set(FormKeyAppID, app.ID())
+			q.Set(FormKeyAppID, app.ID)
 			q.Set(scopesKey, scopesJSON)
 			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
@@ -60,7 +60,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			r.URL.Path = "login"
 
 			q := r.URL.Query()
-			q.Set(FormKeyAppID, app.ID())
+			q.Set(FormKeyAppID, app.ID)
 			q.Set(scopesKey, scopesJSON)
 			q.Set(callbackURLKey, callbackURL)
 			r.URL.RawQuery = q.Encode()
@@ -68,19 +68,19 @@ func (ar *Router) Register() http.HandlerFunc {
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusFound)
 		}
 
-		if app.RegistrationForbidden() {
+		if app.RegistrationForbidden {
 			SetFlash(w, FlashErrorMessageKey, ErrorRegistrationForbidden.Error())
 			redirectToRegister()
 			return
 		}
 
-		if isAnonymous && !app.AnonymousRegistrationAllowed() {
+		if isAnonymous && !app.AnonymousRegistrationAllowed {
 			SetFlash(w, FlashErrorMessageKey, ErrorRegistrationForbidden.Error())
 			redirectToRegister()
 			return
 		}
 
-		userRole := app.NewUserDefaultRole()
+		userRole := app.NewUserDefaultRole
 		if inviteToken != "" {
 			parsedInviteToken, err := ar.TokenService.Parse(inviteToken)
 			if err != nil {
@@ -125,29 +125,29 @@ func (ar *Router) Register() http.HandlerFunc {
 				return
 			}
 
-			ar.Logger.Printf("Error: creating user by name and password %v.", err)
+			ar.Logger.Printf("error creating user by name and password %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
 		// Do login flow.
-		scopes, err = ar.UserStorage.RequestScopes(user.ID(), scopes)
+		scopes, err = ar.UserStorage.RequestScopes(user.ID, scopes)
 		if err != nil {
-			ar.Logger.Printf("Error: requesting scopes %v.", err)
+			ar.Logger.Printf("error requesting scopes %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
 		token, err := ar.TokenService.NewWebCookieToken(user)
 		if err != nil {
-			ar.Logger.Printf("Error creating auth token %v", err)
+			ar.Logger.Printf("error creating auth token %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
 		tokenString, err := ar.TokenService.String(token)
 		if err != nil {
-			ar.Logger.Printf("Error stringifying token: %v", err)
+			ar.Logger.Printf("error while making a call token stringify: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
@@ -161,13 +161,13 @@ func (ar *Router) Register() http.HandlerFunc {
 func (ar *Router) RegistrationHandler() http.HandlerFunc {
 	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.Registration)
 	if err != nil {
-		ar.Logger.Fatalln("Cannot parse Registration template.", err)
+		ar.Logger.Fatalln("cannot parse registration template", err)
 	}
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
 		}
 
@@ -195,7 +195,7 @@ func (ar *Router) RegistrationHandler() http.HandlerFunc {
 			"Prefix":      ar.PathPrefix,
 			"Scopes":      scopesJSON,
 			"CallbackUrl": strings.TrimSpace(r.URL.Query().Get(callbackURLKey)),
-			"AppId":       app.ID(),
+			"AppId":       app.ID,
 			"InviteToken": inviteToken,
 		}
 

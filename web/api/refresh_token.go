@@ -27,7 +27,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App ID is absent in header params", "RefreshTokens.AppFromContext")
 			return

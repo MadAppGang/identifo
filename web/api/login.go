@@ -74,14 +74,14 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), ld.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID, ld.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
 			return
@@ -90,7 +90,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    user.AccessRole(),
+			UserRole:    user.AccessRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -100,7 +100,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		// Check if we should require user to authenticate with 2FA.
-		require2FA, err := ar.check2FA(w, app.TFAStatus(), user.TFAInfo())
+		require2FA, err := ar.check2FA(w, app.TFAStatus, user.TFAInfo)
 		if err != nil {
 			return
 		}
@@ -130,10 +130,10 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 				return
 			}
 		} else {
-			ar.userStorage.UpdateLoginMetadata(user.ID())
+			ar.userStorage.UpdateLoginMetadata(user.ID)
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		result.User = user
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
@@ -144,19 +144,19 @@ func (ar *Router) sendOTPCode(user model.User) error {
 	if ar.tfaType != model.TFATypeApp {
 
 		// increment hotp code seed
-		otp := gotp.NewDefaultHOTP(user.TFAInfo().Secret).At(user.TFAInfo().HOTPCounter + 1)
-		tfa := user.TFAInfo()
+		otp := gotp.NewDefaultHOTP(user.TFAInfo.Secret).At(user.TFAInfo.HOTPCounter + 1)
+		tfa := user.TFAInfo
 		tfa.HOTPCounter++
 		tfa.HOTPExpiredAt = time.Now().Add(time.Hour * hotpLifespanHours)
-		user.SetTFAInfo(tfa)
-		if _, err := ar.userStorage.UpdateUser(user.ID(), user); err != nil {
+		user.TFAInfo = tfa
+		if _, err := ar.userStorage.UpdateUser(user.ID, user); err != nil {
 			return err
 		}
 		switch ar.tfaType {
 		case model.TFATypeSMS:
-			return ar.sendTFACodeInSMS(user.Phone(), otp)
+			return ar.sendTFACodeInSMS(user.Phone, otp)
 		case model.TFATypeEmail:
-			return ar.sendTFACodeOnEmail(user.Email(), otp)
+			return ar.sendTFACodeOnEmail(user.Email, otp)
 		}
 
 	}
@@ -175,21 +175,21 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 
 // getTokenPayloadForApp get additional token payload data
 func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map[string]interface{}, error) {
-	if app.TokenPayloadService() == model.TokenPayloadServiceHttp {
+	if app.TokenPayloadService == model.TokenPayloadServiceHttp {
 		// check if we have service cached
-		ps, exists := ar.tokenPayloadServices[app.ID()]
+		ps, exists := ar.tokenPayloadServices[app.ID]
 		if !exists {
 			var err error
 			ps, err = thp.NewTokenPayloadProvider(
-				app.TokenPayloadServiceHttpSettings().Secret,
-				app.TokenPayloadServiceHttpSettings().URL,
+				app.TokenPayloadServiceHttpSettings.Secret,
+				app.TokenPayloadServiceHttpSettings.URL,
 			)
 			if err != nil {
 				return nil, err
 			}
-			ar.tokenPayloadServices[app.ID()] = ps
+			ar.tokenPayloadServices[app.ID] = ps
 		}
-		return ps.TokenPayloadForApp(app.ID(), app.Name(), user.ID())
+		return ps.TokenPayloadForApp(app.ID, app.Name, user.ID)
 	}
 	return nil, nil
 }

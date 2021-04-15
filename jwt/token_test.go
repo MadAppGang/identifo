@@ -34,7 +34,7 @@ func TestNewTokenService(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type: model.KeyStorageTypeLocal,
+			Type:   model.KeyStorageTypeLocal,
 			Folder: keyPath,
 		},
 	})
@@ -111,7 +111,7 @@ func TestParseString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type: model.KeyStorageTypeLocal,
+			Type:   model.KeyStorageTypeLocal,
 			Folder: keyPath,
 		},
 	})
@@ -168,7 +168,7 @@ func TestTokenToString(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type: model.KeyStorageTypeLocal,
+			Type:   model.KeyStorageTypeLocal,
 			Folder: keyPath,
 		},
 	})
@@ -235,7 +235,7 @@ func TestNewToken(t *testing.T) {
 	configStorage, err := configStorageFile.NewConfigurationStorage(model.ConfigurationStorageSettings{
 		Type: model.ConfigurationStorageTypeFile,
 		KeyStorage: model.KeyStorageSettings{
-			Type: model.KeyStorageTypeLocal,
+			Type:   model.KeyStorageTypeLocal,
 			Folder: keyPath,
 		},
 	})
@@ -253,13 +253,38 @@ func TestNewToken(t *testing.T) {
 	ustg, _ := mem.NewUserStorage()
 	user, _ := ustg.UserByNamePassword("username", "password")
 	// generate random user until we get active user
-	for !user.Active() {
+	for !user.Active {
 		user, _ = ustg.UserByNamePassword("username", "password")
 	}
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
-	app := mem.MakeAppData("123456", "1", true, "testName", "testDescriprion", scopes, true, []string{}, 0, 0, 0, tokenPayload, true, true, model.TFAStatusDisabled, "", model.NoAuthz, "", "", []string{}, []string{}, "user")
-	token, err := ts.NewAccessToken(user, scopes, &app, false, nil)
+	app := model.AppData{
+		ID:                           "123456",
+		Secret:                       "1",
+		Active:                       true,
+		Name:                         "testName",
+		Description:                  "testDescriprion",
+		Scopes:                       scopes,
+		Offline:                      true,
+		Type:                         model.Web,
+		RedirectURLs:                 []string{},
+		TokenLifespan:                0,
+		InviteTokenLifespan:          0,
+		RefreshTokenLifespan:         0,
+		TokenPayload:                 tokenPayload,
+		TFAStatus:                    model.TFAStatusDisabled,
+		DebugTFACode:                 "",
+		RegistrationForbidden:        false,
+		AnonymousRegistrationAllowed: true,
+		AuthzWay:                     model.NoAuthz,
+		AuthzModel:                   "",
+		AuthzPolicy:                  "",
+		RolesWhitelist:               []string{},
+		RolesBlacklist:               []string{},
+		NewUserDefaultRole:           "",
+		AppleInfo:                    nil,
+	}
+	token, err := ts.NewAccessToken(user, scopes, app, false, nil)
 	if err != nil {
 		t.Errorf("Unable to create token %v", err)
 	}
@@ -282,10 +307,10 @@ func TestNewToken(t *testing.T) {
 	if claims2.Issuer != testIssuer {
 		t.Errorf("Issuer = %+v, want %+v", claims2.Issuer, testIssuer)
 	}
-	if claims2.Subject != user.ID() {
-		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID())
+	if claims2.Subject != user.ID {
+		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID)
 	}
-	if claims2.Audience != app.ID() {
-		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID())
+	if claims2.Audience != app.ID {
+		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID)
 	}
 }

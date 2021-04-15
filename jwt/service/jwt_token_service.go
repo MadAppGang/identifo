@@ -160,17 +160,17 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 
 // NewAccessToken creates new access token for user.
 func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (ijwt.Token, error) {
-	if !app.Active() {
+	if !app.Active {
 		return nil, ErrInvalidApp
 	}
 
-	if !u.Active() {
+	if !u.Active {
 		return nil, ErrInvalidUser
 	}
 
 	payload := make(map[string]interface{})
-	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Username()
+	if contains(app.TokenPayload, PayloadName) {
+		payload[PayloadName] = u.Username
 	}
 
 	tokenType := model.TokenTypeAccess
@@ -185,7 +185,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 
 	now := ijwt.TimeFunc().Unix()
 
-	lifespan := app.TokenLifespan()
+	lifespan := app.TokenLifespan
 	if lifespan == 0 {
 		lifespan = TokenLifespan
 	}
@@ -197,8 +197,8 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   u.ID(),
-			Audience:  app.ID(),
+			Subject:   u.ID,
+			Audience:  app.ID,
 			IssuedAt:  now,
 		},
 	}
@@ -222,7 +222,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 
 // NewRefreshToken creates new refresh token.
 func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
-	if !app.Active() || !app.Offline() {
+	if !app.Active || !app.Offline {
 		return nil, ErrInvalidApp
 	}
 	// no offline request
@@ -230,17 +230,17 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		return nil, ErrInvalidOfflineScope
 	}
 
-	if !u.Active() {
+	if !u.Active {
 		return nil, ErrInvalidUser
 	}
 
 	payload := make(map[string]interface{})
-	if contains(app.TokenPayload(), PayloadName) {
-		payload[PayloadName] = u.Username()
+	if contains(app.TokenPayload, PayloadName) {
+		payload[PayloadName] = u.Username
 	}
 	now := ijwt.TimeFunc().Unix()
 
-	lifespan := app.RefreshTokenLifespan()
+	lifespan := app.RefreshTokenLifespan
 	if lifespan == 0 {
 		lifespan = RefreshTokenLifespan
 	}
@@ -252,8 +252,8 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   u.ID(),
-			Audience:  app.ID(),
+			Subject:   u.ID,
+			Audience:  app.ID,
 			IssuedAt:  now,
 		},
 	}
@@ -302,12 +302,12 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 	}
 
 	app, err := ts.appStorage.AppByID(claims.Audience)
-	if err != nil || app == nil || !app.Offline() {
+	if err != nil || !app.Offline {
 		return nil, ErrInvalidApp
 	}
 
 	user, err := ts.userStorage.UserByID(claims.Subject)
-	if err != nil || user == nil || !user.Active() {
+	if err != nil || !user.Active {
 		return nil, ErrInvalidUser
 	}
 
@@ -408,7 +408,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
 
 // NewWebCookieToken creates new web cookie token.
 func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
-	if !u.Active() {
+	if !u.Active {
 		return nil, ErrInvalidUser
 	}
 	now := ijwt.TimeFunc().Unix()
@@ -419,7 +419,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   u.ID(),
+			Subject:   u.ID,
 			Audience:  "identifo",
 			IssuedAt:  now,
 		},

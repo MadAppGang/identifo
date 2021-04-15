@@ -17,8 +17,8 @@ func (ar *Router) Logout() http.HandlerFunc {
 		deleteCookie(w, CookieKeyWebCookieToken)
 
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.Error(w, nil, http.StatusInternalServerError, "Couldn't get app from context")
+		if len(app.ID) == 0 {
+			ar.Error(w, nil, http.StatusInternalServerError, "couldn't get app from context")
 			return
 		}
 
@@ -31,8 +31,8 @@ func (ar *Router) Logout() http.HandlerFunc {
 		}
 
 		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
-		if !contains(app.RedirectURLs(), callbackURL) {
-			ar.Logger.Printf("Unauthorized redirect url %v for app %v", callbackURL, app.ID())
+		if !contains(app.RedirectURLs, callbackURL) {
+			ar.Logger.Printf("unauthorized redirect url %v for app %v", callbackURL, app.ID)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}

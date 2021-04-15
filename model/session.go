@@ -45,7 +45,7 @@ func (sd SessionDuration) MarshalYAML() (interface{}, error) {
 	return int(sd.Duration / time.Second), nil
 }
 
-// UnmarshalYAML implements yaml.Unmarshaller.
+// UnmarshalYAML implements yaml Unmarshaller.
 func (sd *SessionDuration) UnmarshalYAML(unmarshal func(interface{}) error) error {
 	if sd == nil {
 		return nil

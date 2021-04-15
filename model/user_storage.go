@@ -1,9 +1,13 @@
 package model
 
 import (
+	"encoding/json"
 	"errors"
+	"log"
 	"regexp"
 	"time"
+
+	"golang.org/x/crypto/bcrypt"
 )
 
 // ErrUserNotFound is when user not found.
@@ -34,7 +38,6 @@ type UserStorage interface {
 	ResetPassword(id, password string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, int, error)
-	NewUser() User
 
 	RequestScopes(userID string, scopes []string) ([]string, error)
 	Scopes() []string
@@ -45,26 +48,56 @@ type UserStorage interface {
 
 // User is an abstract representation of the user in auth layer.
 // Everything can be User, we do not depend on any particular implementation.
-type User interface {
-	ID() string
-	Username() string
-	SetUsername(string)
-	Email() string
-	SetEmail(string)
-	Phone() string
-	TFAInfo() TFAInfo
-	SetTFAInfo(TFAInfo)
-	PasswordHash() string
-	Active() bool
-	AccessRole() string
-	Sanitize()
-	Deanonimize()
+type User struct {
+	ID              string   `json:"id,omitempty" bson:"_id,omitempty"`
+	Username        string   `json:"username,omitempty" bson:"username,omitempty"`
+	Email           string   `json:"email,omitempty" bson:"email,omitempty"`
+	Phone           string   `json:"phone,omitempty" bson:"phone,omitempty"`
+	Pswd            string   `json:"pswd,omitempty" bson:"pswd,omitempty"`
+	Active          bool     `json:"active,omitempty" bson:"active,omitempty"`
+	TFAInfo         TFAInfo  `json:"tfa_info,omitempty" bson:"tfa_info,omitempty"`
+	NumOfLogins     int      `json:"num_of_logins,omitempty" bson:"num_of_logins,omitempty"`
+	LatestLoginTime int64    `json:"latest_login_time,omitempty" bson:"latest_login_time,omitempty"`
+	AccessRole      string   `json:"access_role,omitempty" bson:"access_role,omitempty"`
+	Anonymous       bool     `json:"anonymous,omitempty" bson:"anonymous,omitempty"`
+	FederatedIDs    []string `json:"federated_ids,omitempty" bson:"federated_i_ds,omitempty"`
+}
+
+// Sanitized returns data structure without sensitive information
+func (u User) Sanitized() User {
+	u.Pswd = ""
+	u.TFAInfo.Secret = ""
+	u.TFAInfo.HOTPCounter = 0
+	u.TFAInfo.HOTPExpiredAt = time.Time{}
+	return u
+}
+
+// Deanonimized returns model with all fields set for deanonimized user
+func (u User) Deanonimized() User {
+	u.Anonymous = false
+	return u
 }
 
 // TFAInfo encapsulates two-factor authentication user info.
 type TFAInfo struct {
-	IsEnabled     bool      `bson:"is_enabled,omitempty" json:"is_enabled,omitempty"`
+	IsEnabled     bool      `json:"is_enabled,omitempty" bson:"is_enabled,omitempty"`
 	HOTPCounter   int       `json:"hotp_counter,omitempty" bson:"hotp_counter,omitempty"`
 	HOTPExpiredAt time.Time `json:"hotp_expired_at,omitempty" bson:"hotp_expired_at,omitempty"`
-	Secret        string    `bson:"secret,omitempty" json:"secret,omitempty"`
+	Secret        string    `json:"secret,omitempty" bson:"secret,omitempty"`
+}
+
+// UserFromJSON deserialize user data from JSON.
+func UserFromJSON(d []byte) (User, error) {
+	var user User
+	if err := json.Unmarshal(d, &user); err != nil {
+		log.Println("Error while unmarshal user:", err)
+		return User{}, err
+	}
+	return user, nil
+}
+
+// PasswordHash creates hash with salt for password.
+func PasswordHash(pwd string) string {
+	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
+	return string(hash)
 }
