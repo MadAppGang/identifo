@@ -80,7 +80,7 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
-		userRole := app.NewUserDefaultRole()
+		userRole := app.NewUserDefaultRole
 		if inviteToken != "" {
 			parsedInviteToken, err := ar.TokenService.Parse(inviteToken)
 			if err != nil {
@@ -195,7 +195,7 @@ func (ar *Router) RegistrationHandler() http.HandlerFunc {
 			"Prefix":      ar.PathPrefix,
 			"Scopes":      scopesJSON,
 			"CallbackUrl": strings.TrimSpace(r.URL.Query().Get(callbackURLKey)),
-			"AppId":       app.ID(),
+			"AppId":       app.ID,
 			"InviteToken": inviteToken,
 		}
 
