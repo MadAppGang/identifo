@@ -1,7 +1,12 @@
 {
     "cSpell.words": [
         "boltdb",
+        "bson",
         "dynamodb",
-        "identifo"
+        "hotp",
+        "identifo",
+        "mongodb",
+        "nexmo",
+        "twilio"
     ]
 }

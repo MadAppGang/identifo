@@ -1,18 +1,14 @@
 package boltdb
 
-//Error - domain level error type
+// Error - domain level error type
 type Error string
 
-//Error - implementation of std.Error protocol
+// Error - implementation of std.Error protocol
 func (e Error) Error() string { return string(e) }
 
 const (
-	// ErrorWrongDataFormat is for corrupted request data.
-	ErrorWrongDataFormat = Error("wrong data format")
-	// ErrorInactiveUser means that user is inactive.
-	ErrorInactiveUser = Error("User is inactive")
-	// ErrorEmptyAppID means appID params is empty
-	ErrorEmptyAppID = Error("Empty appID param")
-	// ErrorInactiveApp means app is inactive
-	ErrorInactiveApp = Error("App is inactive")
+	ErrorWrongDataFormat = Error("wrong data format") // ErrorWrongDataFormat is for corrupted request data.
+	ErrorInactiveUser    = Error("user is inactive")  // ErrorInactiveUser means that user is inactive.
+	ErrorEmptyAppID      = Error("empty appID param") // ErrorEmptyAppID means appID params is empty
+	ErrorInactiveApp     = Error("app is inactive")   // ErrorInactiveApp means app is inactive
 )

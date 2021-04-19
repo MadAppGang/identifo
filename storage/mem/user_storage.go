@@ -14,11 +14,6 @@ func NewUserStorage() (model.UserStorage, error) {
 // UserStorage is an in-memory user storage .
 type UserStorage struct{}
 
-// NewUser returns pointer to newly created user.
-func (us *UserStorage) NewUser() model.User {
-	return &user{}
-}
-
 // UserByID returns randomly generated user.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	return randUser(), nil
@@ -125,3 +120,13 @@ func (us *UserStorage) ImportJSON(data []byte) error {
 
 // Close does nothing here.
 func (us *UserStorage) Close() {}
+
+func randUser() model.User {
+	return model.User{
+		ID:       randomdata.StringNumber(2, "-"),
+		Username: randomdata.SillyName(),
+		Email:    randomdata.Email(),
+		Pswd:     randomdata.StringNumber(2, "-"),
+		Active:   randomdata.Boolean(),
+	}
+}
