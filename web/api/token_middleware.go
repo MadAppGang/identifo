@@ -21,7 +21,7 @@ const (
 func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
+		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "Token.AppFromContext")
 			return
@@ -35,7 +35,7 @@ func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 		tokenString := string(tokenBytes)
 
 		v := jwtValidator.NewValidator(
-			[]string{app.ID()},
+			[]string{app.ID},
 			[]string{ar.tokenService.Issuer()},
 			[]string{},
 			[]string{tokenType},

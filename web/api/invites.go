@@ -39,8 +39,8 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes()), " ", ",", -1)
-		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s", app.ID(), scopes, inviteTokenString))
+		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes), " ", ",", -1)
+		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s", app.ID, scopes, inviteTokenString))
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {

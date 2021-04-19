@@ -101,7 +101,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 
 	for _, a := range apps {
-		originChecker.AddRawURLs(a.RedirectURLs())
+		originChecker.AddRawURLs(a.RedirectURLs)
 	}
 
 	routerSettings := web.RouterSetting{

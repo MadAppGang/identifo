@@ -47,20 +47,20 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Update password.
 		if d.updatePassword {
 			// Check old password.
-			if _, err := ar.userStorage.UserByNamePassword(user.Username(), d.OldPassword); err != nil {
+			if _, err := ar.userStorage.UserByNamePassword(user.Username, d.OldPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
 			}
 
 			// Save new password.
-			err = ar.userStorage.ResetPassword(user.ID(), d.NewPassword)
+			err = ar.userStorage.ResetPassword(user.ID, d.NewPassword)
 			if err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
 				return
 			}
 
 			// Refetch user with new password hash.
-			if user, err = ar.userStorage.UserByNamePassword(user.Username(), d.NewPassword); err != nil {
+			if user, err = ar.userStorage.UserByNamePassword(user.Username, d.NewPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.RefetchUser")
 				return
 			}
@@ -68,17 +68,17 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// Change username if user specified new one.
 		if d.updateUsername {
-			user.SetUsername(d.NewUsername)
-			user.Deanonimize()
+			user.Username = d.NewUsername
+			user = user.Deanonimized()
 		}
 
 		if d.updateEmail {
-			user.SetEmail(d.NewEmail)
+			user.Email = d.NewEmail
 		}
 
 		if d.updateUsername || d.updateEmail {
 			if _, err = ar.userStorage.UpdateUser(userID, user); err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to update username or email. Error:"+err.Error(), "UpdateUser.UpdateUser")
+				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "unable to update username or email. Error: "+err.Error(), " UpdateUser.UpdateUser ")
 				return
 			}
 		}
@@ -118,10 +118,10 @@ type updateData struct {
 }
 
 func (d *updateData) validate(user model.User) error {
-	if d.NewUsername != "" && user.Username() != d.NewUsername {
+	if d.NewUsername != "" && user.Username != d.NewUsername {
 		d.updateUsername = true
 	}
-	if d.NewEmail != "" && user.Email() != d.NewEmail {
+	if d.NewEmail != "" && user.Email != d.NewEmail {
 		d.updateEmail = true
 	}
 	if d.NewPassword != "" && d.NewPassword != d.OldPassword {

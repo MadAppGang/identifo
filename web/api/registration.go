@@ -45,13 +45,13 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		app := middleware.AppFromContext(r.Context())
-		if app == nil {
-			ar.logger.Println("Error getting App")
+		if len(app.ID) == 0 {
+			ar.logger.Println("error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RegisterWithPassword.AppFromContext")
 			return
 		}
 
-		if app.RegistrationForbidden() {
+		if app.RegistrationForbidden {
 			ar.Error(w, ErrorAPIAppRegistrationForbidden, http.StatusForbidden, "Registration is forbidden in app.", "RegisterWithPassword.RegistrationForbidden")
 			return
 		}
@@ -59,7 +59,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		// Check if it makes sense to create new user.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    app.NewUserDefaultRole(),
+			UserRole:    app.NewUserDefaultRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -74,7 +74,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		if rd.Anonymous && !app.AnonymousRegistrationAllowed() {
+		if rd.Anonymous && !app.AnonymousRegistrationAllowed {
 			ar.Error(w, ErrorAPIAppRegistrationForbidden, http.StatusForbidden, "Anonymous login forbidden in the app", "RegisterWithPassword.AnonymousRegistrationForbidden")
 			return
 		}
@@ -91,7 +91,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole(), rd.Anonymous)
+		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
 			return
@@ -102,7 +102,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err := ar.userStorage.RequestScopes(user.ID(), rd.Scopes)
+		scopes, err := ar.userStorage.RequestScopes(user.ID, rd.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "RegisterWithPassword.RequestScopes")
 			return
@@ -141,7 +141,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			}
 		}
 
-		user.Sanitize()
+		user = user.Sanitized()
 		result := registrationResponse{
 			AccessToken:  tokenString,
 			RefreshToken: refreshString,

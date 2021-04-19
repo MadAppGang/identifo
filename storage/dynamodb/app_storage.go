@@ -25,11 +25,6 @@ type AppStorage struct {
 	db *DB
 }
 
-// NewAppData returns pointer to newly created app data.
-func (as *AppStorage) NewAppData() model.AppData {
-	return &AppData{appData: appData{}}
-}
-
 // ensureTable ensures that app table exists in database.
 func (as *AppStorage) ensureTable() error {
 	exists, err := as.db.IsTableExists(appsTableName)
@@ -65,7 +60,7 @@ func (as *AppStorage) ensureTable() error {
 // AppByID returns app from DynamoDB by ID. IDs are generated with https://github.com/rs/xid.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	if len(id) == 0 {
-		return nil, model.ErrorWrongDataFormat
+		return model.AppData{}, model.ErrorWrongDataFormat
 	}
 
 	result, err := as.db.C.GetItem(&dynamodb.GetItemInput{
@@ -78,34 +73,34 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	})
 	if err != nil {
 		log.Println("Error getting application:", err)
-		return nil, ErrorInternalError
+		return model.AppData{}, ErrorInternalError
 	}
 
 	if result.Item == nil {
-		return nil, model.ErrorNotFound
+		return model.AppData{}, model.ErrorNotFound
 	}
 
-	appdata := appData{}
+	appdata := model.AppData{}
 	if err = dynamodbattribute.UnmarshalMap(result.Item, &appdata); err != nil {
 		log.Println("Error unmarshalling app data:", err)
-		return nil, ErrorInternalError
+		return model.AppData{}, ErrorInternalError
 	}
-	return &AppData{appData: appdata}, nil
+	return appdata, nil
 }
 
 // ActiveAppByID returns app by id only if it's active.
 func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	if appID == "" {
-		return nil, ErrorEmptyAppID
+		return model.AppData{}, ErrorEmptyAppID
 	}
 
 	app, err := as.AppByID(appID)
 	if err != nil {
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	if !app.Active() {
-		return nil, ErrorInactiveApp
+	if !app.Active {
+		return model.AppData{}, ErrorInactiveApp
 	}
 
 	return app, nil
@@ -113,29 +108,15 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 
 // CreateApp creates new app in DynamoDB.
 func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
-	res, ok := app.(*AppData)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
-	result, err := as.addNewApp(res)
-	return result, err
-}
-
-// addNewApp adds new app to DynamoDB storage.
-func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
-	a, ok := app.(*AppData)
-	if !ok || a == nil {
-		return nil, model.ErrorWrongDataFormat
-	}
 	// generate new ID if it's not set
-	if len(a.ID()) == 0 {
-		a.appData.ID = xid.New().String()
+	if len(app.ID) == 0 {
+		app.ID = xid.New().String()
 	}
 
-	av, err := dynamodbattribute.MarshalMap(a)
+	av, err := dynamodbattribute.MarshalMap(app)
 	if err != nil {
-		log.Println("Error marshalling app:", err)
-		return nil, ErrorInternalError
+		log.Println("error marshalling app: ", err)
+		return model.AppData{}, ErrorInternalError
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -144,16 +125,16 @@ func (as *AppStorage) addNewApp(app model.AppData) (model.AppData, error) {
 	}
 
 	if _, err = as.db.C.PutItem(input); err != nil {
-		log.Println("Error putting app to storage:", err)
-		return nil, ErrorInternalError
+		log.Println("error putting app to storage: ", err)
+		return model.AppData{}, ErrorInternalError
 	}
-	return a, nil
+	return app, nil
 }
 
 // DisableApp disables app in DynamoDB storage.
 func (as *AppStorage) DisableApp(app model.AppData) error {
-	if _, err := xid.FromString(app.ID()); err != nil {
-		log.Println("Incorrect AppID: ", app.ID())
+	if _, err := xid.FromString(app.ID); err != nil {
+		log.Println("incorrect AppID: ", app.ID)
 		return model.ErrorWrongDataFormat
 	}
 	input := &dynamodb.UpdateItemInput{
@@ -165,23 +146,12 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 		TableName: aws.String(appsTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {
-				S: aws.String(app.ID()),
+				S: aws.String(app.ID),
 			},
 		},
 		ReturnValues:     aws.String("UPDATED_NEW"),
 		UpdateExpression: aws.String("set active = :a"),
 	}
-
-	// Old approach was to delete the record for deactivated app, leave it here for a while.
-	// input := &dynamodb.DeleteItemInput{
-	// 	Key: map[string]*dynamodb.AttributeValue{
-	// 		"id": {
-	// 			S: aws.String(app.ID()),
-	// 		},
-	// 	},
-	// 	TableName: aws.String(AppsTable),
-	// }
-	// _, err = as.db.C.DeleteItem(input)
 
 	if _, err := as.db.C.UpdateItem(input); err != nil {
 		log.Println("Error updating app:", err)
@@ -191,36 +161,31 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 }
 
 // UpdateApp updates app in DynamoDB storage.
-func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
+func (as *AppStorage) UpdateApp(appID string, app model.AppData) (model.AppData, error) {
 	if _, err := xid.FromString(appID); err != nil {
-		log.Println("Incorrect appID: ", appID)
-		return nil, model.ErrorWrongDataFormat
-	}
-
-	res, ok := newApp.(*AppData)
-	if !ok || res == nil {
-		return nil, model.ErrorWrongDataFormat
+		log.Println("incorrect appID: ", appID)
+		return model.AppData{}, model.ErrorWrongDataFormat
 	}
 
 	// use ID from the request if it's not set
-	if len(newApp.ID()) == 0 {
-		res.appData.ID = appID
+	if len(app.ID) == 0 {
+		app.ID = appID
 	}
 
-	oldAppData := &AppData{appData: appData{ID: appID}}
+	oldAppData := model.AppData{ID: appID}
 	if err := as.DisableApp(oldAppData); err != nil {
 		log.Println("Error disabling old app:", err)
-		return nil, err
+		return model.AppData{}, err
 	}
 
-	updatedApp, err := as.addNewApp(res)
+	updatedApp, err := as.CreateApp(app)
 	return updatedApp, err
 }
 
 const maxAppsLimit = 20
 
 // FetchApps fetches apps which name satisfies provided filterString.
-// Supports pagination. Search is case-senstive for now.
+// Supports pagination. Search is case-sensitive for now.
 func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
 	if limit == 0 || limit > maxAppsLimit {
 		limit = maxAppsLimit
@@ -252,12 +217,12 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		if i < skip {
 			continue // TODO: use internal pagination mechanism
 		}
-		appData := appData{}
+		appData := model.AppData{}
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &appData); err != nil {
-			log.Println("Error unmarshalling app:", err)
+			log.Println("error while unmarshal app: ", err)
 			return []model.AppData{}, 0, ErrorInternalError
 		}
-		apps[i] = &AppData{appData: appData}
+		apps[i] = appData
 	}
 	return apps, len(result.Items), nil
 }
@@ -285,13 +250,13 @@ func (as *AppStorage) TestDatabaseConnection() error {
 
 // ImportJSON imports data from JSON.
 func (as *AppStorage) ImportJSON(data []byte) error {
-	apd := []appData{}
+	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println("Error unmarshalling app data:", err)
+		log.Println("error while unmarshal app data: ", err)
 		return err
 	}
 	for _, a := range apd {
-		if _, err := as.addNewApp(&AppData{appData: a}); err != nil {
+		if _, err := as.CreateApp(a); err != nil {
 			return err
 		}
 	}

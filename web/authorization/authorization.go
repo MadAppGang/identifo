@@ -35,7 +35,7 @@ func (az *Authorizer) Authorize(azi AuthzInfo) error {
 	if az == nil {
 		return nil
 	}
-	switch azi.App.AuthzWay() {
+	switch azi.App.AuthzWay {
 	case model.NoAuthz, "":
 		return nil
 	case model.RolesWhitelist:
@@ -51,7 +51,7 @@ func (az *Authorizer) Authorize(azi AuthzInfo) error {
 }
 
 func (az *Authorizer) authorizeWhitelist(azi AuthzInfo) error {
-	whitelist := azi.App.RolesWhitelist()
+	whitelist := azi.App.RolesWhitelist
 	if whitelist == nil {
 		err := fmt.Errorf("Access denied")
 		return err
@@ -70,7 +70,7 @@ func (az *Authorizer) authorizeWhitelist(azi AuthzInfo) error {
 }
 
 func (az *Authorizer) authorizeBlacklist(azi AuthzInfo) error {
-	blacklist := azi.App.RolesBlacklist()
+	blacklist := azi.App.RolesBlacklist
 	if blacklist == nil {
 		return nil
 	}
@@ -113,7 +113,7 @@ p, anonymous, /auth/register, POST`
 func (az *Authorizer) authorizeInternal(azi AuthzInfo) error {
 	authorizer, err := az.initInternalAuthorizer(azi.App)
 	if err != nil {
-		err = fmt.Errorf("Cannot init internal authorizer for app %s: %s", azi.App.ID(), err)
+		err = fmt.Errorf("Cannot init internal authorizer for app %s: %s", azi.App.ID, err)
 		return err
 	}
 
@@ -132,20 +132,20 @@ func (az *Authorizer) authorizeInternal(azi AuthzInfo) error {
 }
 
 func (az *Authorizer) initInternalAuthorizer(app model.AppData) (*casbin.Enforcer, error) {
-	authorizer, ok := az.internalAuthorizers[app.ID()]
+	authorizer, ok := az.internalAuthorizers[app.ID]
 	if ok {
 		return authorizer, nil
 	}
 
 	// If authorizer has not been initialized already, try initializing it.
-	modelStr, policyStr := app.AuthzModel(), app.AuthzPolicy()
+	modelStr, policyStr := app.AuthzModel, app.AuthzPolicy
 	if len(modelStr) == 0 || len(policyStr) == 0 {
-		return nil, fmt.Errorf("Either authz model or policy is empty for app %s, or both", app.ID())
+		return nil, fmt.Errorf("Either authz model or policy is empty for app %s, or both", app.ID)
 	}
 	strAdapter := strCasbin.NewAdapter(policyStr)
 
 	authorizer = casbin.NewEnforcer(casbin.NewModel(modelStr), strAdapter)
-	az.internalAuthorizers[app.ID()] = authorizer
+	az.internalAuthorizers[app.ID] = authorizer
 	authorizer.EnableLog(true)
 
 	return authorizer, nil
