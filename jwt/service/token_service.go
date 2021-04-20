@@ -15,7 +15,7 @@ type TokenService interface {
 	NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (ijwt.Token, error)
 	NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error)
 	RefreshAccessToken(token ijwt.Token) (ijwt.Token, error)
-	NewInviteToken(email string) (ijwt.Token, error)
+	NewInviteToken(email, role string) (ijwt.Token, error)
 	NewResetToken(userID string) (ijwt.Token, error)
 	NewWebCookieToken(u model.User) (ijwt.Token, error)
 	Parse(string) (ijwt.Token, error)

@@ -11,11 +11,12 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
-// RequestInviteLink requests invite link. Invite link will be returned in response even if email is not specified.
+// RequestInviteLink requests invite link. Invite link will be returned in response even if email or access_role is not specified.
 func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := struct {
 			Email string `json:"email"`
+			Role  string `json:"access_role"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
@@ -26,7 +27,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.tokenService.NewInviteToken(d.Email)
+		inviteToken, err := ar.tokenService.NewInviteToken(d.Email, d.Role)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return

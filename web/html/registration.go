@@ -21,6 +21,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		password := r.FormValue(passwordKey)
 		scopesJSON := r.FormValue(scopesKey)
 		callbackURL := r.FormValue(callbackURLKey)
+		inviteToken := r.FormValue(inviteTokenKey)
 		scopes := []string{}
 
 		if err := json.Unmarshal([]byte(scopesJSON), &scopes); err != nil {
@@ -79,10 +80,25 @@ func (ar *Router) Register() http.HandlerFunc {
 			return
 		}
 
+		userRole := app.NewUserDefaultRole
+		if inviteToken != "" {
+			parsedInviteToken, err := ar.TokenService.Parse(inviteToken)
+			if err != nil {
+				ar.Logger.Printf("Error: Invalid invite token %s", inviteToken)
+				http.Redirect(w, r, errorPath, http.StatusFound)
+				return
+			}
+
+			role, ok := parsedInviteToken.Payload()["role"].(string)
+			if ok {
+				userRole = role
+			}
+		}
+
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
-			UserRole:    app.NewUserDefaultRole,
+			UserRole:    userRole,
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
@@ -101,7 +117,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, app.NewUserDefaultRole, isAnonymous)
+		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, userRole, isAnonymous)
 		if err != nil {
 			if err == model.ErrorUserExists {
 				SetFlash(w, FlashErrorMessageKey, err.Error())
@@ -165,6 +181,8 @@ func (ar *Router) RegistrationHandler() http.HandlerFunc {
 			}
 		}
 
+		inviteToken := strings.TrimSpace(r.URL.Query().Get("token"))
+
 		errorMessage, err := GetFlash(w, r, FlashErrorMessageKey)
 		if err != nil {
 			ar.Logger.Printf("Error: getting flash message %v", err)
@@ -178,6 +196,7 @@ func (ar *Router) RegistrationHandler() http.HandlerFunc {
 			"Scopes":      scopesJSON,
 			"CallbackUrl": strings.TrimSpace(r.URL.Query().Get(callbackURLKey)),
 			"AppId":       app.ID,
+			"InviteToken": inviteToken,
 		}
 
 		if err = tmpl.Execute(w, data); err != nil {
