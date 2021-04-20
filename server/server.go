@@ -46,7 +46,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		}
 	}
 
-	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, err := db.Compose()
+	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, err := db.Compose()
 	if err != nil {
 		return nil, err
 	}
@@ -111,6 +111,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		VerificationCodeStorage: verificationCodeStorage,
 		TokenService:            tokenService,
 		TokenBlacklist:          tokenBlacklist,
+		InviteStorage:           inviteStorage,
 		SessionService:          sessionService,
 		SessionStorage:          sessionStorage,
 		ConfigurationStorage:    configurationStorage,

@@ -12,6 +12,7 @@ type DatabaseComposer interface {
 		model.TokenStorage,
 		model.TokenBlacklist,
 		model.VerificationCodeStorage,
+		model.InviteStorage,
 		error,
 	)
 }
@@ -23,6 +24,7 @@ type PartialDatabaseComposer interface {
 	TokenStorageComposer() func() (model.TokenStorage, error)
 	TokenBlacklistComposer() func() (model.TokenBlacklist, error)
 	VerificationCodeStorageComposer() func() (model.VerificationCodeStorage, error)
+	InviteStorageComposer() func() (model.InviteStorage, error)
 }
 
 // Composer is a service composer which is agnostic to particular database implementations.
@@ -33,6 +35,7 @@ type Composer struct {
 	newTokenStorage            func() (model.TokenStorage, error)
 	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
+	newInviteStorage           func() (model.InviteStorage, error)
 }
 
 // Compose composes all services.
@@ -42,34 +45,40 @@ func (c *Composer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
+	model.InviteStorage,
 	error,
 ) {
 	appStorage, err := c.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := c.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := c.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := c.newTokenBlacklist()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := c.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	inviteStorage, err := c.newInviteStorage()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, nil
 }
 
 // NewComposer returns new database composer based on passed server settings.
@@ -91,6 +100,9 @@ func NewComposer(settings model.ServerSettings, partialComposers []PartialDataba
 		}
 		if pc.VerificationCodeStorageComposer() != nil {
 			c.newVerificationCodeStorage = pc.VerificationCodeStorageComposer()
+		}
+		if pc.InviteStorageComposer() != nil {
+			c.newInviteStorage = pc.InviteStorageComposer()
 		}
 	}
 
