@@ -41,7 +41,7 @@ storage:
     region: us-east-2
     path: ./db.db
   tokenBlacklist:
-    type: boltdb 
+    type: boltdb
     name: identifo
     endpoint: mongodb://localhost:27017
     region: us-east-2
@@ -52,9 +52,15 @@ storage:
     endpoint: mongodb://localhost:27017
     region: us-east-2
     path: ./db.db
+  inviteStorage:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
 
 # Storage for admin sessions.
-sessionStorage: 
+sessionStorage:
   type: memory # Supported values are "memory", "redis", and "dynamodb".
   # Admin session duration in seconds.
   # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
@@ -105,7 +111,7 @@ login:   # Supported login ways.
   # Supported values are: "app" (like Google Authenticator), "sms", "email".
   tfaType: app
 
-externalServices: 
+externalServices:
   emailService:  # Email service settings.
     type: mock # Supported values are "mailgun", "aws ses", and "mock".
     domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.

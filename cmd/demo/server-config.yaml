@@ -23,6 +23,9 @@ storage:
   verificationCodeStorage:
     type: boltdb
     path: ./db.db
+  inviteStorage:
+    type: boltdb
+    path: ./db.db
 
 sessionStorage:
   type: memory
@@ -53,13 +56,13 @@ login:
     federated: true
   tfaType: email
 
-externalServices: 
+externalServices:
   emailService:
     type: mock
     domain:
     privateKey:
     publicKey:
     sender:
-    region: 
+    region:
   smsService:
     type: mock

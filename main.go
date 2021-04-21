@@ -58,6 +58,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	dbTypes[server.ServerSettings.Storage.TokenStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.TokenBlacklist.Type] = true
 	dbTypes[server.ServerSettings.Storage.VerificationCodeStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.InviteStorage.Type] = true
 
 	for dbType := range dbTypes {
 		pc, err := initPartialComposer(dbType, server.ServerSettings.Storage)
