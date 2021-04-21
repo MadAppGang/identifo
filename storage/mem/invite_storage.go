@@ -99,3 +99,10 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 	is.storage[invite.ID] = invite
 	return nil
 }
+
+// Close clears storage.
+func (is *InviteStorage) Close() {
+	for k := range is.storage {
+		delete(is.storage, k)
+	}
+}

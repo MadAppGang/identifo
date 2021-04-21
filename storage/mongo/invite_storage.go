@@ -145,3 +145,6 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 	_, err = is.coll.UpdateOne(ctx, filter, update)
 	return err
 }
+
+// Close is a no-op.
+func (is *InviteStorage) Close() {}

@@ -3,6 +3,7 @@ package boltdb
 import (
 	"encoding/json"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/boltdb/bolt"
@@ -208,4 +209,11 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 		}
 		return nil
 	})
+}
+
+// Close closes underlying database.
+func (is *InviteStorage) Close() {
+	if err := is.db.Close(); err != nil {
+		log.Printf("Error closing invite storage: %s\n", err)
+	}
 }
