@@ -62,14 +62,16 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	)
 
 	for _, invite := range is.storage {
-		if !withInvalid && invite.Valid {
-			total++
-			skip--
-			if skip > -1 || (limit != 0 && len(invites) == limit) {
-				break
-			}
-			invites = append(invites, invite)
+		if withInvalid == false && invite.Valid == false {
+			continue
 		}
+
+		total++
+		skip--
+		if skip > -1 || (limit != 0 && len(invites) == limit) {
+			break
+		}
+		invites = append(invites, invite)
 	}
 
 	return invites, total, nil
