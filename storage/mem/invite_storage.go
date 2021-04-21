@@ -6,7 +6,7 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-// TokenStorage is an in-memory invite storage.
+// InviteStorage is an in-memory invite storage.
 // Please do not use it in production, it has no disk swap or persistent cache support.
 type InviteStorage struct {
 	storage map[string]model.Invite
