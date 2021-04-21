@@ -191,6 +191,7 @@ func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (mod
 	return nil
 }
 
+// InviteStorageComposer returns invite storage composer.
 func (pc *PartialDatabaseComposer) InviteStorageComposer() func() (model.InviteStorage, error) {
 	if pc.newInviteStorage != nil {
 		return func() (model.InviteStorage, error) {

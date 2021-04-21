@@ -103,10 +103,7 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 		ib := tx.Bucket([]byte(InviteBucket))
 
 		res := ib.Get([]byte(id))
-		if err := json.Unmarshal(res, &invite); err != nil {
-			return err
-		}
-		return nil
+		return json.Unmarshal(res, &invite)
 	})
 	if err != nil {
 		return model.Invite{}, err
@@ -126,7 +123,7 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	err := is.db.View(func(tx *bolt.Tx) error {
 		ib := tx.Bucket([]byte(InviteBucket))
 
-		if iterErr := ib.ForEach(func(k, v []byte) error {
+		return ib.ForEach(func(k, v []byte) error {
 			var invite model.Invite
 			if err := json.Unmarshal(v, &invite); err != nil {
 				return err
@@ -141,10 +138,7 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 				invites = append(invites, invite)
 			}
 			return nil
-		}); iterErr != nil {
-			return iterErr
-		}
-		return nil
+		})
 	})
 	if err != nil {
 		return []model.Invite{}, 0, err
@@ -202,11 +196,7 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 					return err
 				}
 
-				if err := ib.Put(k, data); err != nil {
-					return err
-				}
-
-				return nil
+				return ib.Put(k, data)
 			}
 
 			return nil

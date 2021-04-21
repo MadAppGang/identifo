@@ -19,6 +19,7 @@ type Invite struct {
 	ExpiresAt time.Time `json:"expiresAt" bson:"expiresAt"`
 }
 
+// Validate validates the Invite model.
 func (i Invite) Validate() error {
 	if i.Email == "" {
 		return errors.New("email cannot be empty")
