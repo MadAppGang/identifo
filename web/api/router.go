@@ -36,8 +36,8 @@ type Router struct {
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
-    WebRouterPrefix         string
-    tokenPayloadServices    map[string]model.TokenPayloadProvider
+	WebRouterPrefix         string
+	tokenPayloadServices    map[string]model.TokenPayloadProvider
 	LoggerSettings          model.LoggerSettings
 }
 
@@ -113,7 +113,7 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		smsService:              smsServ,
 		emailService:            emailServ,
 		Authorizer:              authorizer,
-		LoggerSettings: 		 loggerSettings,
+		LoggerSettings:          loggerSettings,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

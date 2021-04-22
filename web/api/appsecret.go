@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
 )
@@ -34,14 +35,6 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			return
 		}
 
-		// Read request signature from header and decode it.
-		reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
-		if reqMAC == nil {
-			ar.logger.Println("Error extracting signature")
-			ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, "", "SignatureHandler.extractSignature")
-			return
-		}
-
 		var body []byte
 		t := r.Header.Get(TimestampHeaderKey)
 
@@ -63,10 +56,20 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			body = b
 		}
 
-		if err := validateBodySignature(body, reqMAC, []byte(app.Secret)); err != nil {
-			ar.logger.Printf("Error validating request signature: %v\n", err)
-			ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.validateBodySignature")
-			return
+		if app.Type != model.Web {
+			// Read request signature from header and decode it.
+			reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
+			if reqMAC == nil {
+				ar.logger.Println("Error extracting signature")
+				ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, "", "SignatureHandler.extractSignature")
+				return
+
+			}
+			if err := validateBodySignature(body, reqMAC, []byte(app.Secret)); err != nil {
+				ar.logger.Printf("Error validating request signature: %v\n", err)
+				ar.Error(rw, ErrorAPIRequestSignatureInvalid, http.StatusBadRequest, err.Error(), "SignatureHandler.validateBodySignature")
+				return
+			}
 		}
 
 		if r.Method != "GET" && r.Body != http.NoBody {

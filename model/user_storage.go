@@ -5,6 +5,7 @@ import (
 	"errors"
 	"log"
 	"regexp"
+	"strings"
 	"time"
 
 	"golang.org/x/crypto/bcrypt"
@@ -63,12 +64,33 @@ type User struct {
 	FederatedIDs    []string `json:"federated_ids,omitempty" bson:"federated_i_ds,omitempty"`
 }
 
+func maskLeft(s string, hideFraction int) string {
+	rs := []rune(s)
+	for i := 0; i < len(rs)-len(rs)/hideFraction; i++ {
+		rs[i] = '*'
+	}
+	return string(rs)
+}
+
 // Sanitized returns data structure without sensitive information
 func (u User) Sanitized() User {
 	u.Pswd = ""
 	u.TFAInfo.Secret = ""
 	u.TFAInfo.HOTPCounter = 0
 	u.TFAInfo.HOTPExpiredAt = time.Time{}
+	return u
+}
+
+func (u User) SanitizedTFA() User {
+	u.Sanitized()
+	if len(u.Email) > 0 {
+		emailParts := strings.Split(u.Email, "@")
+		u.Email = maskLeft(emailParts[0], 2) + "@" + maskLeft(emailParts[1], 2)
+	}
+
+	if len(u.Phone) > 0 {
+		u.Phone = maskLeft(u.Phone, 3)
+	}
 	return u
 }
 

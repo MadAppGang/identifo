@@ -17,7 +17,8 @@ import (
 // EnableTFA enables two-factor authentication for the user.
 func (ar *Router) EnableTFA() http.HandlerFunc {
 	type tfaSecret struct {
-		TFASecret string `json:"tfa_secret"`
+		TFASecret   string `json:"tfa_secret"`
+		AccessToken string `json:"access_token"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
