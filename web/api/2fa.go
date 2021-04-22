@@ -86,7 +86,24 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: user.TFAInfo.Secret})
 			return
 		case model.TFATypeSMS, model.TFATypeEmail:
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: ""})
+			if err := ar.sendOTPCode(user); err != nil {
+				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "EnableTFA.sendOTP")
+				return
+			}
+
+			tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+				return
+			}
+
+			accessToken, _, err := ar.loginUser(user, []string{}, app, false, true, tokenPayload)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+				return
+			}
+
+			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: "", AccessToken: accessToken})
 			return
 		}
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
