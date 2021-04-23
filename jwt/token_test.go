@@ -310,7 +310,7 @@ func TestNewToken(t *testing.T) {
 	if claims2.Subject != user.ID {
 		t.Errorf("Subject = %+v, want %+v", claims2.Subject, user.ID)
 	}
-	if claims2.Audience != app.ID {
+	if claims2.Audience[0] != app.ID {
 		t.Errorf("Audience = %+v, want %+v", claims2.Audience, app.ID)
 	}
 }

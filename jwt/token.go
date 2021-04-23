@@ -3,13 +3,13 @@ package jwt
 import (
 	"time"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/form3tech-oss/jwt-go"
 )
 
 // StandardTokenClaims structured version of Claims Section, as referenced at
 // https://tools.ietf.org/html/rfc7519#section-4.1
 type StandardTokenClaims interface {
-	Audience() string
+	Audience() []string
 	ExpiresAt() time.Time
 	ID() string
 	IssuedAt() time.Time
@@ -86,10 +86,10 @@ func (t *JWToken) Type() string {
 }
 
 // Audience standard token claim
-func (t *JWToken) Audience() string {
+func (t *JWToken) Audience() []string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
-		return ""
+		return []string{}
 	}
 	return claims.Audience
 }
@@ -167,4 +167,4 @@ type Claims struct {
 }
 
 // Full example of how to use JWT tokens:
-// https://github.com/dgrijalva/jwt-go/blob/master/cmd/jwt/app.go
+// https://github.com/form3tech-oss/jwt-go/blob/master/cmd/jwt/app.go

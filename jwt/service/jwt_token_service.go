@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/form3tech-oss/jwt-go"
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
@@ -198,7 +198,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  app.ID,
+			Audience:  []string{app.ID},
 			IssuedAt:  now,
 		},
 	}
@@ -253,7 +253,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  app.ID,
+			Audience:  []string{app.ID},
 			IssuedAt:  now,
 		},
 	}
@@ -301,7 +301,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 		return nil, ijwt.ErrTokenInvalid
 	}
 
-	app, err := ts.appStorage.AppByID(claims.Audience)
+	app, err := ts.appStorage.AppByID(claims.Audience[0])
 	if err != nil || !app.Offline {
 		return nil, ErrInvalidApp
 	}
@@ -349,7 +349,7 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error)
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
 			// Subject:   u.ID(),
-			Audience: "identifo",
+			Audience: []string{"identifo"},
 			IssuedAt: now,
 		},
 	}
@@ -383,7 +383,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   userID,
-			Audience:  "identifo",
+			Audience:  []string{"identifo"},
 			IssuedAt:  now,
 		},
 	}
@@ -420,7 +420,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  "identifo",
+			Audience:  []string{"identifo"},
 			IssuedAt:  now,
 		},
 	}
