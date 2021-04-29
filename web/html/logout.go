@@ -3,6 +3,7 @@ package html
 import (
 	"encoding/json"
 	"net/http"
+	"net/url"
 	"path"
 	"strings"
 
@@ -32,17 +33,31 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		callbackURL := strings.TrimSpace(r.URL.Query().Get(callbackURLKey))
 		if !contains(app.RedirectURLs, callbackURL) {
-			ar.Logger.Printf("unauthorized redirect url %v for app %v", callbackURL, app.ID)
+			ar.Logger.Printf("Unauthorized callback url %v for app %v", callbackURL, app.ID)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		if callbackURL != "" {
+		redirectURI := strings.TrimSpace(r.URL.Query().Get(redirectURIKey))
+		if redirectURI == "" {
 			http.Redirect(w, r, callbackURL, http.StatusFound)
 			return
 		}
 
-		r.URL.Path = path.Join(ar.PathPrefix, "/login")
-		http.Redirect(w, r, r.URL.String(), http.StatusFound)
+		redirectURIParsed, err := url.Parse(redirectURI)
+		if err != nil {
+			ar.Logger.Printf("cannot parse redirect url %v", redirectURI)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
+		if redirectURIParsed.Host != r.Host {
+			ar.Logger.Printf("provided redirect url host %v is not allowed", redirectURIParsed.Host)
+			http.Redirect(w, r, errorPath, http.StatusFound)
+			return
+		}
+
+		redirectURIParsed.Query().Add(callbackURLKey, callbackURL)
+		http.Redirect(w, r, redirectURIParsed.String(), http.StatusFound)
 	}
 }
