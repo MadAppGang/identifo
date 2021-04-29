@@ -61,7 +61,7 @@ func (ar *Router) GetInviteByID() http.HandlerFunc {
 	}
 }
 
-// InvalidateInviteByID sets the 'valid' field of the model.Invite to false.
+// ArchiveInviteByID sets the 'valid' field of the model.Invite to false.
 func (ar *Router) ArchiveInviteByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
