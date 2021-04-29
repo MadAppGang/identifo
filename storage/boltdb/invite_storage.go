@@ -45,7 +45,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 			ID:        xid.New().String(),
 			AppID:     appID,
 			Token:     inviteToken,
-			Valid:     true,
+			Archived:  true,
 			Email:     email,
 			Role:      role,
 			CreatedBy: createdBy,
@@ -79,7 +79,7 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 				return err
 			}
 
-			if res.Email == email && res.Valid == true && res.ExpiresAt.After(time.Now()) {
+			if res.Email == email && res.Archived == false && res.ExpiresAt.After(time.Now()) {
 				invite = res
 				return nil
 			}
@@ -115,7 +115,7 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 
 // GetAll returns all active invites by default.
 // To get an invalid invites need to set withInvalid argument to true.
-func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invite, int, error) {
+func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Invite, int, error) {
 	var (
 		invites []model.Invite
 		total   int
@@ -130,7 +130,7 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 				return err
 			}
 
-			if withInvalid == false && invite.Valid == false {
+			if withArchived == false && invite.Archived == true {
 				return nil
 			}
 
@@ -149,8 +149,8 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	return invites, total, nil
 }
 
-// InvalidateAllByEmail invalidates all invites by email.
-func (is *InviteStorage) InvalidateAllByEmail(email string) error {
+// ArchiveAllByEmail invalidates all invites by email.
+func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	return is.db.Update(func(tx *bolt.Tx) error {
 		ib := tx.Bucket([]byte(InviteBucket))
 
@@ -161,7 +161,7 @@ func (is *InviteStorage) InvalidateAllByEmail(email string) error {
 			}
 
 			if invite.Email == email {
-				invite.Valid = false
+				invite.Archived = true
 
 				data, err := json.Marshal(invite)
 				if err != nil {
@@ -181,8 +181,8 @@ func (is *InviteStorage) InvalidateAllByEmail(email string) error {
 	})
 }
 
-// InvalidateByID invalidates specific invite by its ID.
-func (is *InviteStorage) InvalidateByID(id string) error {
+// ArchiveByID invalidates specific invite by its ID.
+func (is *InviteStorage) ArchiveByID(id string) error {
 	return is.db.Update(func(tx *bolt.Tx) error {
 		ib := tx.Bucket([]byte(InviteBucket))
 
@@ -193,7 +193,7 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 			}
 
 			if invite.ID == id {
-				invite.Valid = false
+				invite.Archived = true
 				data, err := json.Marshal(invite)
 				if err != nil {
 					return err

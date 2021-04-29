@@ -90,7 +90,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 		ID:        xid.New().String(),
 		AppID:     appID,
 		Token:     inviteToken,
-		Valid:     true,
+		Archived:  true,
 		Email:     email,
 		Role:      role,
 		CreatedBy: createdBy,
@@ -144,7 +144,7 @@ func (is *InviteStorage) inviteIdxByEmail(email string) (*inviteIndexByEmailData
 	return inviteData, nil
 }
 
-// GetByEmail returns valid and not expired invite by email.
+// GetByEmail returns not archived and not expired invite by email.
 func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	inviteIdx, err := is.inviteIdxByEmail(email)
 	if err != nil {
@@ -193,8 +193,8 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 }
 
 // GetAll returns all active invites by default.
-// To get an invalid invites need to set withInvalid argument to true.
-func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invite, int, error) {
+// To get an archived invites need to set withArchived argument to true.
+func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Invite, int, error) {
 	if limit == 0 || limit > maxInvitesLimit {
 		limit = maxInvitesLimit
 	}
@@ -204,13 +204,13 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 		Limit:     aws.Int64(int64(limit)),
 	}
 
-	if withInvalid == false {
-		scanInput.FilterExpression = aws.String("#valid = :valid")
+	if withArchived == false {
+		scanInput.FilterExpression = aws.String("#archived = :archived")
 		scanInput.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
-			":valid": {BOOL: aws.Bool(true)},
+			":archived": {BOOL: aws.Bool(false)},
 		}
 		scanInput.ExpressionAttributeNames = map[string]*string{
-			"#valid": aws.String("valid"),
+			"#archived": aws.String("archived"),
 		}
 	}
 
@@ -235,8 +235,8 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	return invites, len(result.Items), nil
 }
 
-// InvalidateAllByEmail invalidates all invites by email.
-func (is *InviteStorage) InvalidateAllByEmail(email string) error {
+// ArchiveAllByEmail archived all invites by email.
+func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	scanInput := &dynamodb.ScanInput{
 		TableName:        aws.String(invitesTableName),
 		FilterExpression: aws.String("#email = :email"),
@@ -259,15 +259,15 @@ func (is *InviteStorage) InvalidateAllByEmail(email string) error {
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &invite); err != nil {
 			log.Println("error while unmarshal invite: ", err)
 		}
-		if err := is.InvalidateByID(invite.ID); err != nil {
-			log.Printf("error while invalidateByID: %v", err)
+		if err := is.ArchiveByID(invite.ID); err != nil {
+			log.Printf("error while ArchiveByID: %v", err)
 		}
 	}
 	return nil
 }
 
-// InvalidateByID invalidates specific invite by its ID.
-func (is *InviteStorage) InvalidateByID(id string) error {
+// ArchiveByID archived specific invite by its ID.
+func (is *InviteStorage) ArchiveByID(id string) error {
 	if _, err := xid.FromString(id); err != nil {
 		log.Println("incorrect invite id: ", id)
 		return model.ErrorWrongDataFormat
@@ -275,7 +275,7 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 	input := &dynamodb.UpdateItemInput{
 		ExpressionAttributeValues: map[string]*dynamodb.AttributeValue{
 			":v": {
-				BOOL: aws.Bool(false),
+				BOOL: aws.Bool(true),
 			},
 		},
 		TableName: aws.String(invitesTableName),
@@ -285,11 +285,11 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 			},
 		},
 		ReturnValues:     aws.String("UPDATED_NEW"),
-		UpdateExpression: aws.String("set valid = :v"),
+		UpdateExpression: aws.String("set archived = :v"),
 	}
 
 	if _, err := is.db.C.UpdateItem(input); err != nil {
-		log.Printf("Error invalidating %s invite: %v\n", id, err)
+		log.Printf("Error archiving %s invite: %v\n", id, err)
 		return ErrorInternalError
 	}
 	return nil

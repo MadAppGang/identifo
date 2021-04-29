@@ -8,14 +8,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
-)
-
-const (
-	defaultInviteSkip  = 0
-	defaultInviteLimit = 20
 )
 
 // RequestInviteLink requests invite link. Invite link will be returned in response even if email or access_role is not specified.
@@ -40,7 +34,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		if err := ar.inviteStorage.InvalidateAllByEmail(d.Email); err != nil {
+		if err := ar.inviteStorage.ArchiveAllByEmail(d.Email); err != nil {
 			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_InvalidateAllByEmail")
 			return
 		}
@@ -92,68 +86,5 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 		result := map[string]string{"link": u.String()}
 		ar.ServeJSON(w, http.StatusOK, result)
-	}
-}
-
-// GetAllInvites returns all invites, active by default. If the withValid param provided and it's true,
-// the method returns all invites including expired and invalid.
-func (ar *Router) GetAllInvites() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		withValid, err := ar.parseWithValidParam(r)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "GetAllInvites.parseWithValidParam")
-			return
-		}
-
-		skip, limit, err := ar.parseSkipAndLimit(r, defaultInviteSkip, defaultInviteLimit, 0)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "GetAllInvites.parseSkipAndLimit")
-			return
-		}
-
-		invites, total, err := ar.inviteStorage.GetAll(withValid, skip, limit)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "GetAllInvites.parseSkipAndLimit")
-			return
-		}
-
-		searchResponse := struct {
-			Invites []model.Invite `json:"invites"`
-			Total   int            `json:"total"`
-		}{
-			Invites: invites,
-			Total:   total,
-		}
-
-		ar.ServeJSON(w, http.StatusOK, searchResponse)
-	}
-}
-
-// GetInviteByID returns specific invite by its id.
-func (ar *Router) GetInviteByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := mux.Vars(r)["id"]
-
-		invite, err := ar.inviteStorage.GetByID(id)
-		if err != nil {
-			ar.Error(w, ErrorAPIInviteNotFound, http.StatusInternalServerError, err.Error(), "GetInviteByID.GetByID")
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, invite)
-	}
-}
-
-// InvalidateInviteByID sets the 'valid' field of the model.Invite to false.
-func (ar *Router) InvalidateInviteByID() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		id := mux.Vars(r)["id"]
-
-		if err := ar.inviteStorage.InvalidateByID(id); err != nil {
-			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, err.Error(), "InvalidateInviteByID.InvalidateByID")
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }

@@ -16,7 +16,6 @@ var messages = map[MessageID]string{
 	ErrorAPIUsernameTaken:                      "Username is taken. Try to choose another one",
 	ErrorAPIEmailTaken:                         "Email is taken. Try to choose another one",
 	ErrorAPIInviteTokenServerError:             "Unable to create invite token. Try again or contact support team",
-	ErrorAPIInviteNotFound:                     "Specified invite not found.",
 	ErrorAPIInviteUnableToInvalidate:           "Unable to invalidate invite. Try again or contact support team",
 	ErrorAPIInviteUnableToSave:                 "Unable to save invite. Try again or contact support team",
 	ErrorAPIInviteUnableToGet:                  "Unable to get invites. Try again or contact support team",
@@ -73,8 +72,6 @@ const (
 	ErrorAPIEmailTaken = "error.api.email.taken"
 	// ErrorAPIInviteTokenServerError is for invite token creation issues.
 	ErrorAPIInviteTokenServerError = "error.api.invite_token.server_error"
-	// ErrorAPIInviteNotFound is when invite not found.
-	ErrorAPIInviteNotFound = "error.api.invite.not_found"
 	// ErrorAPIInviteUnableToInvalidate is when invite cannot be invalidated.
 	ErrorAPIInviteUnableToInvalidate = "error.api.invite.unable_to_invalidate"
 	// ErrorAPIInviteUnableToSave is when invite cannot be saved.

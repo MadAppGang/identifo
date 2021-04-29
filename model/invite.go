@@ -11,7 +11,7 @@ type Invite struct {
 	ID        string    `json:"id" bson:"_id"`
 	AppID     string    `json:"appId" bson:"appId"`
 	Token     string    `json:"token" bson:"token"`
-	Valid     bool      `json:"valid" bson:"valid"`
+	Archived  bool      `json:"archived" bson:"archived"`
 	Email     string    `json:"email" bson:"email"`
 	Role      string    `json:"role" bson:"role"`
 	CreatedBy string    `json:"createdBy" bson:"createdBy"`

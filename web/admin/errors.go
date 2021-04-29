@@ -17,4 +17,10 @@ const (
 	ErrorIncorrectLogin = Error("Incorrect login information")
 	// ErrorNotAuthorized is for non-authorized access intents.
 	ErrorNotAuthorized = Error("Not authorized")
+	// ErrorAPIRequestBodyParamsInvalid means that request params are corrupted.
+	ErrorAPIRequestBodyParamsInvalid = Error("Input data does not pass validation. Please specify valid params")
+	// ErrorAPIInviteNotFound is when invite not found.
+	ErrorAPIInviteNotFound = Error("Specified invite not found.")
+	// ErrorAPIInviteUnableToInvalidate is when invite cannot be invalidated.
+	ErrorAPIInviteUnableToInvalidate = Error("Unable to invalidate invite. Try again or contact support team")
 )

@@ -88,6 +88,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 			settings.UserStorage,
 			settings.ConfigurationStorage,
 			settings.StaticFilesStorage,
+			settings.InviteStorage,
 			settings.AdminRouterSettings...,
 		)
 		if err != nil {

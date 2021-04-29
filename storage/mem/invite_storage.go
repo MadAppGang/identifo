@@ -24,7 +24,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 		ID:        xid.New().String(),
 		AppID:     appID,
 		Token:     inviteToken,
-		Valid:     true,
+		Archived:  true,
 		Email:     email,
 		Role:      role,
 		CreatedBy: createdBy,
@@ -37,7 +37,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 // GetByEmail returns valid and not expired invite by email.
 func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	for _, invite := range is.storage {
-		if invite.Email == email && invite.Valid == true && invite.ExpiresAt.After(time.Now()) {
+		if invite.Email == email && invite.Archived == false && invite.ExpiresAt.After(time.Now()) {
 			return invite, nil
 		}
 	}
@@ -55,14 +55,14 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 
 // GetAll returns all active invites by default.
 // To get an invalid invites need to set withInvalid argument to true.
-func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invite, int, error) {
+func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Invite, int, error) {
 	var (
 		invites []model.Invite
 		total   int
 	)
 
 	for _, invite := range is.storage {
-		if withInvalid == false && invite.Valid == false {
+		if withArchived == false && invite.Archived == true {
 			continue
 		}
 
@@ -77,25 +77,25 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	return invites, total, nil
 }
 
-// InvalidateAllByEmail invalidates all invites by email.
-func (is *InviteStorage) InvalidateAllByEmail(email string) error {
+// ArchiveAllByEmail invalidates all invites by email.
+func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	for _, invite := range is.storage {
 		if invite.Email == email {
-			invite.Valid = false
+			invite.Archived = true
 			is.storage[invite.ID] = invite
 		}
 	}
 	return nil
 }
 
-// InvalidateByID invalidates specific invite by its ID.
-func (is *InviteStorage) InvalidateByID(id string) error {
+// ArchiveByID invalidates specific invite by its ID.
+func (is *InviteStorage) ArchiveByID(id string) error {
 	invite, ok := is.storage[id]
 	if !ok {
 		return model.ErrorNotFound
 	}
 
-	invite.Valid = false
+	invite.Archived = true
 	is.storage[invite.ID] = invite
 	return nil
 }

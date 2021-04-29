@@ -39,7 +39,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 		ID:        primitive.NewObjectID().String(),
 		AppID:     appID,
 		Token:     inviteToken,
-		Valid:     true,
+		Archived:  true,
 		Email:     email,
 		Role:      role,
 		CreatedBy: createdBy,
@@ -62,7 +62,7 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 
 	filter := bson.M{
 		"email":     email,
-		"valid":     true,
+		"archived":  false,
 		"expiresAt": bson.M{"$qt": time.Now()},
 	}
 
@@ -95,13 +95,13 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 
 // GetAll returns all active invites by default.
 // To get an invalid invites need to set withInvalid argument to true.
-func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invite, int, error) {
+func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Invite, int, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), is.timeout)
 	defer cancel()
 
 	filter := bson.M{}
-	if !withInvalid {
-		filter["valid"] = true
+	if withArchived == false {
+		filter["archived"] = false
 	}
 
 	opts := options.Find().SetSkip(int64(skip)).SetLimit(int64(limit))
@@ -117,20 +117,20 @@ func (is *InviteStorage) GetAll(withInvalid bool, skip, limit int) ([]model.Invi
 	return invites, len(invites), nil
 }
 
-// InvalidateAllByEmail invalidates all invites by email.
-func (is *InviteStorage) InvalidateAllByEmail(email string) error {
+// ArchiveAllByEmail invalidates all invites by email.
+func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), is.timeout)
 	defer cancel()
 
 	filter := bson.M{"email": email}
-	update := bson.M{"valid": false}
+	update := bson.M{"archived": true}
 
 	_, err := is.coll.UpdateMany(ctx, filter, update)
 	return err
 }
 
-// InvalidateByID invalidates specific invite by its ID.
-func (is *InviteStorage) InvalidateByID(id string) error {
+// ArchiveByID invalidates specific invite by its ID.
+func (is *InviteStorage) ArchiveByID(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), is.timeout)
 	defer cancel()
 
@@ -140,7 +140,7 @@ func (is *InviteStorage) InvalidateByID(id string) error {
 	}
 
 	filter := bson.M{"_id": hexID}
-	update := bson.M{"valid": false}
+	update := bson.M{"archived": true}
 
 	_, err = is.coll.UpdateOne(ctx, filter, update)
 	return err

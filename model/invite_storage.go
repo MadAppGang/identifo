@@ -9,7 +9,7 @@ type InviteStorage interface {
 	Save(email, inviteToken, role, appID, createdBy string, expiresAt time.Time) error
 	GetByEmail(email string) (Invite, error)
 	GetByID(id string) (Invite, error)
-	GetAll(withInvalid bool, skip, limit int) ([]Invite, int, error)
-	InvalidateAllByEmail(email string) error
-	InvalidateByID(id string) error
+	GetAll(withArchived bool, skip, limit int) ([]Invite, int, error)
+	ArchiveAllByEmail(email string) error
+	ArchiveByID(id string) error
 }

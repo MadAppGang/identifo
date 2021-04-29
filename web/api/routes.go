@@ -46,18 +46,6 @@ func (ar *Router) initRoutes() {
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
-	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.GetAllInvites()),
-	)).Methods("GET")
-	auth.Path(`/invite/{id:[a-zA-Z0-9]+}`).Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.GetInviteByID()),
-	)).Methods("GET")
-	auth.Path(`/invite/{id:[a-zA-Z0-9]+}`).Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.InvalidateInviteByID()),
-	)).Methods("DELETE")
 
 	auth.Path(`/{tfa/enable:tfa/enable/?}`).Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, nil),
