@@ -44,6 +44,14 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 		}
 
+		// Check that phone is not taken.
+		if d.updatePhone {
+			if _, err := ar.userStorage.UserByPhone(d.NewPhone); err == nil {
+				ar.Error(w, ErrorAPIEmailTaken, http.StatusBadRequest, "", "UpdateUser.updatePhone && UserByPhone")
+				return
+			}
+		}
+
 		// Update password.
 		if d.updatePassword {
 			// Check old password.
@@ -76,7 +84,11 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			user.Email = d.NewEmail
 		}
 
-		if d.updateUsername || d.updateEmail {
+		if d.updatePhone {
+			user.Phone = d.NewPhone
+		}
+
+		if d.updateUsername || d.updateEmail || d.updatePhone {
 			if _, err = ar.userStorage.UpdateUser(userID, user); err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "unable to update username or email. Error: "+err.Error(), " UpdateUser.UpdateUser ")
 				return
@@ -90,6 +102,9 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		}
 		if d.updateEmail {
 			updatedFields = append(updatedFields, "email")
+		}
+		if d.updatePhone {
+			updatedFields = append(updatedFields, "phone")
 		}
 		if d.updatePassword {
 			updatedFields = append(updatedFields, "password")
@@ -109,11 +124,13 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 type updateData struct {
 	NewEmail       string `json:"new_email"`
+	NewPhone       string `json:"new_phone,omitempty"`
 	NewUsername    string `json:"new_username,omitempty"`
 	NewPassword    string `json:"new_password,omitempty"`
 	OldPassword    string `json:"old_password,omitempty"`
 	updatePassword bool
 	updateEmail    bool
+	updatePhone    bool
 	updateUsername bool
 }
 
@@ -123,6 +140,9 @@ func (d *updateData) validate(user model.User) error {
 	}
 	if d.NewEmail != "" && user.Email != d.NewEmail {
 		d.updateEmail = true
+	}
+	if d.NewPhone != "" && user.Phone != d.NewPhone {
+		d.updatePhone = true
 	}
 	if d.NewPassword != "" && d.NewPassword != d.OldPassword {
 		d.updatePassword = true

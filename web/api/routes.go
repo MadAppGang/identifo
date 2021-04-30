@@ -38,6 +38,8 @@ func (ar *Router) initRoutes() {
 	auth.Path(`/{register:register/?}`).HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
 	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
 
+	auth.Path(`/{app_settings:app_settings/?}`).HandlerFunc(ar.GetAppSettings()).Methods("GET")
+
 	auth.Path(`/{token:token/?}`).Handler(negroni.New(
 		ar.Token(model.TokenTypeRefresh, nil),
 		negroni.Wrap(ar.RefreshTokens()),
@@ -69,7 +71,7 @@ func (ar *Router) initRoutes() {
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(meRouter),
 	))
-	meRouter.Path("").HandlerFunc(ar.IsLoggedIn()).Methods("GET")
+	meRouter.Path("").HandlerFunc(ar.GetUser()).Methods("GET")
 	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	meRouter.Path(`/{logout:logout/?}`).HandlerFunc(ar.Logout()).Methods("POST")
 
