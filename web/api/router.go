@@ -25,6 +25,7 @@ type Router struct {
 	userStorage             model.UserStorage
 	tokenStorage            model.TokenStorage
 	tokenBlacklist          model.TokenBlacklist
+	inviteStorage           model.InviteStorage
 	verificationCodeStorage model.VerificationCodeStorage
 	staticFilesStorage      model.StaticFilesStorage
 	tfaType                 model.TFAType
@@ -36,8 +37,8 @@ type Router struct {
 	Authorizer              *authorization.Authorizer
 	Host                    string
 	SupportedLoginWays      model.LoginWith
-    WebRouterPrefix         string
-    tokenPayloadServices    map[string]model.TokenPayloadProvider
+	WebRouterPrefix         string
+	tokenPayloadServices    map[string]model.TokenPayloadProvider
 	LoggerSettings          model.LoggerSettings
 }
 
@@ -99,7 +100,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, is model.InviteStorage, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),
@@ -107,13 +108,14 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts
 		userStorage:             us,
 		tokenStorage:            ts,
 		tokenBlacklist:          tb,
+		inviteStorage:           is,
 		verificationCodeStorage: vcs,
 		staticFilesStorage:      sfs,
 		tokenService:            tServ,
 		smsService:              smsServ,
 		emailService:            emailServ,
 		Authorizer:              authorizer,
-		LoggerSettings: 		 loggerSettings,
+		LoggerSettings:          loggerSettings,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

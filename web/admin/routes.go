@@ -1,6 +1,8 @@
 package admin
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
@@ -98,6 +100,20 @@ func (ar *Router) initRoutes() {
 
 	settings.Path("/services").HandlerFunc(ar.FetchExternalServicesSettings()).Methods("GET")
 	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
+
+	ar.router.Path(`/{invites:invites/?}`).Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.FetchInvites()),
+	)).Methods("GET")
+
+	invites := mux.NewRouter().PathPrefix("/invites").Subrouter()
+	ar.router.PathPrefix("/invites").Handler(negroni.New(
+		ar.Session(),
+		negroni.Wrap(invites),
+	))
+
+	invites.Path("{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetInviteByID()).Methods(http.MethodGet)
+	invites.Path("{id:[a-zA-Z0-9]+}").HandlerFunc(ar.ArchiveInviteByID()).Methods(http.MethodDelete)
 
 	static := mux.NewRouter().PathPrefix("/static").Subrouter()
 	ar.router.PathPrefix("/static").Handler(negroni.New(

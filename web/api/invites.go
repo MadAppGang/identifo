@@ -1,6 +1,7 @@
 package api
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
@@ -24,6 +25,17 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestInviteLink.emailRegexp_MatchString")
+			return
+		}
+
+		_, err := ar.inviteStorage.GetByEmail(d.Email)
+		if err != nil && !errors.Is(err, model.ErrorNotFound) {
+			ar.Error(w, ErrorAPIInviteUnableToGet, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_GetByEmail")
+			return
+		}
+
+		if err := ar.inviteStorage.ArchiveAllByEmail(d.Email); err != nil {
+			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_InvalidateAllByEmail")
 			return
 		}
 
@@ -58,6 +70,14 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 
 		// Send email only if it's specified.
 		if d.Email != "" {
+			token := tokenFromContext(r.Context())
+
+			err = ar.inviteStorage.Save(d.Email, inviteTokenString, d.Role, app.ID, token.UserID(), inviteToken.ExpiresAt())
+			if err != nil {
+				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")
+				return
+			}
+
 			err = ar.emailService.SendInviteEmail("Invitation", d.Email, u.String())
 			if err != nil {
 				ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, err.Error(), "RequestInviteLink.SendInviteEmail")

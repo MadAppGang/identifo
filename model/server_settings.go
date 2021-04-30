@@ -39,6 +39,7 @@ type StorageSettings struct {
 	TokenStorage            DatabaseSettings `yaml:"tokenStorage,omitempty" json:"token_storage,omitempty"`
 	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist,omitempty" json:"token_blacklist,omitempty"`
 	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage,omitempty" json:"verification_code_storage,omitempty"`
+	InviteStorage           DatabaseSettings `yaml:"inviteStorage,omitempty" json:"invite_storage,omitempty"`
 }
 
 // DatabaseSettings holds together all settings applicable to a particular database.
