@@ -69,7 +69,7 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 func (ar *Router) CreateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ad := model.AppData{}
-		if ar.mustParseJSON(w, r, ad) != nil {
+		if ar.mustParseJSON(w, r, &ad) != nil {
 			return
 		}
 
@@ -94,7 +94,7 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 		appID := getRouteVar("id", r)
 
 		ad := model.AppData{}
-		if ar.mustParseJSON(w, r, ad) != nil {
+		if ar.mustParseJSON(w, r, &ad) != nil {
 			return
 		}
 
