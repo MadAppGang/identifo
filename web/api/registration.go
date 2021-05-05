@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
@@ -20,11 +19,11 @@ type registrationData struct {
 func (rd *registrationData) validate() error {
 	usernameLen := len(rd.Username)
 	if usernameLen < 6 || usernameLen > 50 {
-		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
+		return fmt.Errorf("incorrect username length %d, expected a number between 6 and 50", usernameLen)
 	}
 	pswdLen := len(rd.Password)
 	if pswdLen < 6 || pswdLen > 50 {
-		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
+		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 50", pswdLen)
 	}
 	return nil
 }
@@ -102,52 +101,12 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err := ar.userStorage.RequestScopes(user.ID, rd.Scopes)
+		authResult, err := ar.loginFlow(app, user, rd.Scopes)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "RegisterWithPassword.RequestScopes")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.LoginFlowError")
 			return
 		}
 
-		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
-			return
-		}
-
-		token, err := ar.tokenService.NewAccessToken(user, scopes, app, false, tokenPayload)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusForbidden, err.Error(), "RegisterWithPassword.tokenService_NewToken")
-			return
-		}
-
-		tokenString, err := ar.tokenService.String(token)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
-			return
-		}
-
-		refreshString := ""
-		// Requesting offline access?
-		if contains(scopes, jwtService.OfflineScope) {
-			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
-			if err != nil {
-				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_NewRefreshToken")
-				return
-			}
-			refreshString, err = ar.tokenService.String(refresh)
-			if err != nil {
-				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.tokenService_String")
-				return
-			}
-		}
-
-		user = user.Sanitized()
-		result := registrationResponse{
-			AccessToken:  tokenString,
-			RefreshToken: refreshString,
-			User:         user,
-		}
-
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, http.StatusOK, authResult)
 	}
 }
