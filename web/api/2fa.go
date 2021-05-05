@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/base64"
 	"errors"
 	"fmt"
 	"net/http"
@@ -11,13 +12,16 @@ import (
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
+	qrcode "github.com/skip2/go-qrcode"
 	"github.com/xlzd/gotp"
 )
 
 // EnableTFA enables two-factor authentication for the user.
 func (ar *Router) EnableTFA() http.HandlerFunc {
 	type tfaSecret struct {
-		TFASecret string `json:"tfa_secret"`
+		AccessToken     string `json:"access_token,omitempty"`
+		ProvisioningURI string `json:"provisioning_uri,omitempty"`
+		ProvisioningQR  string `json:"provisioning_qr,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -75,17 +79,39 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+			return
+		}
+
+		accessToken, _, err := ar.loginUser(user, []string{}, app, false, true, tokenPayload)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+			return
+		}
+
 		switch ar.tfaType {
 		case model.TFATypeApp:
-			// TODO: we need validation flow for TOTP codes
-			// user sees the secret as QR code, then they should use the app
-			// to enter those secret to the authentication app
-			// then use the TOTP from the app to validate the code
-			// after the TOTP is validate - the TFA is counted as enabled
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: user.TFAInfo.Secret})
+			uri := gotp.NewDefaultTOTP(user.TFAInfo.Secret).ProvisioningUri(user.Username, app.Name)
+
+			var png []byte
+			png, err := qrcode.Encode(uri, qrcode.Medium, 256)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.QRgenerate")
+				return
+			}
+			encoded := base64.StdEncoding.EncodeToString(png)
+
+			ar.ServeJSON(w, http.StatusOK, &tfaSecret{ProvisioningURI: uri, ProvisioningQR: encoded, AccessToken: accessToken})
 			return
 		case model.TFATypeSMS, model.TFATypeEmail:
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{TFASecret: ""})
+			if err := ar.sendOTPCode(user); err != nil {
+				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "EnableTFA.sendOTP")
+				return
+			}
+
+			ar.ServeJSON(w, http.StatusOK, &tfaSecret{AccessToken: accessToken})
 			return
 		}
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")

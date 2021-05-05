@@ -15,6 +15,7 @@ import (
 	"github.com/madappgang/identifo/server/dynamodb"
 	"github.com/madappgang/identifo/server/fake"
 	"github.com/madappgang/identifo/server/mgo"
+	"github.com/rs/cors"
 )
 
 func main() {
@@ -58,6 +59,7 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	dbTypes[server.ServerSettings.Storage.TokenStorage.Type] = true
 	dbTypes[server.ServerSettings.Storage.TokenBlacklist.Type] = true
 	dbTypes[server.ServerSettings.Storage.VerificationCodeStorage.Type] = true
+	dbTypes[server.ServerSettings.Storage.InviteStorage.Type] = true
 
 	for dbType := range dbTypes {
 		pc, err := initPartialComposer(dbType, server.ServerSettings.Storage)
@@ -72,7 +74,9 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 		log.Panicln("Cannot init database composer:", err)
 	}
 
-	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorage, nil)
+	srv, err := server.NewServer(server.ServerSettings, dbComposer, configStorage, &model.CorsOptions{
+		API: &cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}},
+	})
 	if err != nil {
 		log.Panicln("Cannot init server:", err)
 	}

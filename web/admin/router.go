@@ -27,6 +27,7 @@ type Router struct {
 	userStorage          model.UserStorage
 	configurationStorage model.ConfigurationStorage
 	staticFilesStorage   model.StaticFilesStorage
+	inviteStorage        model.InviteStorage
 	ServerConfigPath     string
 	ServerSettings       *model.ServerSettings
 	newSettings          *model.ServerSettings
@@ -100,7 +101,7 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, is model.InviteStorage, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:           negroni.Classic(),
 		router:               mux.NewRouter(),
@@ -110,6 +111,7 @@ func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.Sessi
 		userStorage:          us,
 		configurationStorage: cs,
 		staticFilesStorage:   sfs,
+		inviteStorage:        is,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

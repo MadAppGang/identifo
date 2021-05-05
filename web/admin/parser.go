@@ -12,9 +12,9 @@ import (
 
 const (
 	// errInvalidSkip occurs when 'skip' URL variable cannot be converted to integer.
-	errInvalidSkip = "Skip value %s cannot be converted to integer"
+	errInvalidSkip = "skip value %s cannot be converted to integer"
 	// errInvalidLimit occurs when 'limit' URL variable cannot be converted to integer.
-	errInvalidLimit = "Limit value %s cannot be converted to integer"
+	errInvalidLimit = "limit value %s cannot be converted to integer"
 )
 
 // mustParseJSON parses request body json data to the `out` interface and then validates it.
@@ -77,4 +77,15 @@ func (ar *Router) parseSkipAndLimit(r *http.Request, defaultSkip, defaultLimit, 
 // getRouteVar returns the route variable with specified name for the provided request.
 func getRouteVar(name string, r *http.Request) string {
 	return mux.Vars(r)[name]
+}
+
+// parseWithArchivedParam parses withValid param.
+// If it's empty returns false.
+func (ar *Router) parseWithArchivedParam(r *http.Request) (bool, error) {
+	withArchivedStr := r.URL.Query().Get("withArchived")
+	if withArchivedStr == "" {
+		return false, nil
+	}
+
+	return strconv.ParseBool(withArchivedStr)
 }

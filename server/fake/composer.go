@@ -14,6 +14,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 		newTokenStorage:            mem.NewTokenStorage,
 		newTokenBlacklist:          mem.NewTokenBlacklist,
 		newVerificationCodeStorage: mem.NewVerificationCodeStorage,
+		newInviteStorage:           mem.NewInviteStorage,
 	}
 	return &c, nil
 }
@@ -26,6 +27,7 @@ type DatabaseComposer struct {
 	newTokenStorage            func() (model.TokenStorage, error)
 	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
+	newInviteStorage           func() (model.InviteStorage, error)
 }
 
 // Compose composes all services with in-memory storage support.
@@ -35,34 +37,40 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
+	model.InviteStorage,
 	error,
 ) {
 	appStorage, err := dc.newAppStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := dc.newTokenBlacklist()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage()
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	inviteStorage, err := dc.newInviteStorage()
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with in-memory storage support.
@@ -89,6 +97,10 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 		pc.newVerificationCodeStorage = mem.NewVerificationCodeStorage
 	}
 
+	if settings.InviteStorage.Type == model.DBTypeFake {
+		pc.newInviteStorage = mem.NewInviteStorage
+	}
+
 	for _, option := range options {
 		if err := option(pc); err != nil {
 			return nil, err
@@ -104,6 +116,7 @@ type PartialDatabaseComposer struct {
 	newTokenStorage            func() (model.TokenStorage, error)
 	newTokenBlacklist          func() (model.TokenBlacklist, error)
 	newVerificationCodeStorage func() (model.VerificationCodeStorage, error)
+	newInviteStorage           func() (model.InviteStorage, error)
 }
 
 // AppStorageComposer returns app storage composer.
@@ -151,6 +164,16 @@ func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (mod
 	if pc.newVerificationCodeStorage != nil {
 		return func() (model.VerificationCodeStorage, error) {
 			return pc.newVerificationCodeStorage()
+		}
+	}
+	return nil
+}
+
+// InviteStorageComposer returns invite storage composer.
+func (pc *PartialDatabaseComposer) InviteStorageComposer() func() (model.InviteStorage, error) {
+	if pc.newInviteStorage != nil {
+		return func() (model.InviteStorage, error) {
+			return pc.newInviteStorage()
 		}
 	}
 	return nil

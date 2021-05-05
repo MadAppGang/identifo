@@ -14,6 +14,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 		newTokenStorage:            dynamodb.NewTokenStorage,
 		newTokenBlacklist:          dynamodb.NewTokenBlacklist,
 		newVerificationCodeStorage: dynamodb.NewVerificationCodeStorage,
+		newInviteStorage:           dynamodb.NewInviteStorage,
 	}
 	return &c, nil
 }
@@ -26,6 +27,7 @@ type DatabaseComposer struct {
 	newTokenStorage            func(*dynamodb.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*dynamodb.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*dynamodb.DB) (model.VerificationCodeStorage, error)
+	newInviteStorage           func(db *dynamodb.DB) (model.InviteStorage, error)
 }
 
 // Compose composes all services with DynamoDB support.
@@ -35,40 +37,46 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
+	model.InviteStorage,
 	error,
 ) {
 	// We assume that all DynamoDB-backed storages share the same endpoint and region, so we can pick any of them.
 	db, err := dynamodb.NewDB(dc.settings.Storage.AppStorage.Endpoint, dc.settings.Storage.AppStorage.Region)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := dc.newTokenBlacklist(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	inviteStorage, err := dc.newInviteStorage(db)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with DynamoDB support.
@@ -107,6 +115,12 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 		dbRegion = settings.VerificationCodeStorage.Region
 	}
 
+	if settings.InviteStorage.Type == model.DBTypeDynamoDB {
+		pc.newVerificationCodeStorage = dynamodb.NewVerificationCodeStorage
+		dbEndpoint = settings.InviteStorage.Endpoint
+		dbRegion = settings.InviteStorage.Region
+	}
+
 	db, err := dynamodb.NewDB(dbEndpoint, dbRegion)
 	if err != nil {
 		return nil, err
@@ -129,6 +143,7 @@ type PartialDatabaseComposer struct {
 	newTokenStorage            func(*dynamodb.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*dynamodb.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*dynamodb.DB) (model.VerificationCodeStorage, error)
+	newInviteStorage           func(db *dynamodb.DB) (model.InviteStorage, error)
 }
 
 // AppStorageComposer returns app storage composer.
@@ -176,6 +191,16 @@ func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (mod
 	if pc.newVerificationCodeStorage != nil {
 		return func() (model.VerificationCodeStorage, error) {
 			return pc.newVerificationCodeStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// InviteStorageComposer returns invite storage composer.
+func (pc *PartialDatabaseComposer) InviteStorageComposer() func() (model.InviteStorage, error) {
+	if pc.newInviteStorage != nil {
+		return func() (model.InviteStorage, error) {
+			return pc.newInviteStorage(pc.db)
 		}
 	}
 	return nil

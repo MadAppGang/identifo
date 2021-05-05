@@ -15,6 +15,7 @@ func NewComposer(settings model.ServerSettings) (*DatabaseComposer, error) {
 		newTokenStorage:            boltdb.NewTokenStorage,
 		newTokenBlacklist:          boltdb.NewTokenBlacklist,
 		newVerificationCodeStorage: boltdb.NewVerificationCodeStorage,
+		newInviteStorage:           boltdb.NewInviteStorage,
 	}
 	return &c, nil
 }
@@ -27,6 +28,7 @@ type DatabaseComposer struct {
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
+	newInviteStorage           func(db *bolt.DB) (model.InviteStorage, error)
 }
 
 // Compose composes all services with BoltDB support.
@@ -36,40 +38,46 @@ func (dc *DatabaseComposer) Compose() (
 	model.TokenStorage,
 	model.TokenBlacklist,
 	model.VerificationCodeStorage,
+	model.InviteStorage,
 	error,
 ) {
 	// We assume that all BoltDB-backed storages share the same filepath, so we can pick any of them.
 	db, err := boltdb.InitDB(dc.settings.Storage.AppStorage.Path)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	appStorage, err := dc.newAppStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	userStorage, err := dc.newUserStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenStorage, err := dc.newTokenStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	tokenBlacklist, err := dc.newTokenBlacklist(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
 	verificationCodeStorage, err := dc.newVerificationCodeStorage(db)
 	if err != nil {
-		return nil, nil, nil, nil, nil, err
+		return nil, nil, nil, nil, nil, nil, err
 	}
 
-	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, nil
+	inviteStorage, err := dc.newInviteStorage(db)
+	if err != nil {
+		return nil, nil, nil, nil, nil, nil, err
+	}
+
+	return appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, nil
 }
 
 // NewPartialComposer returns new partial composer with BoltDB support.
@@ -103,6 +111,11 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 		dbPath = settings.VerificationCodeStorage.Path
 	}
 
+	if settings.InviteStorage.Type == model.DBTypeBoltDB {
+		pc.newInviteStorage = boltdb.NewInviteStorage
+		dbPath = settings.InviteStorage.Path
+	}
+
 	db, err := boltdb.InitDB(dbPath)
 	if err != nil {
 		return nil, err
@@ -125,6 +138,7 @@ type PartialDatabaseComposer struct {
 	newTokenStorage            func(*bolt.DB) (model.TokenStorage, error)
 	newTokenBlacklist          func(*bolt.DB) (model.TokenBlacklist, error)
 	newVerificationCodeStorage func(*bolt.DB) (model.VerificationCodeStorage, error)
+	newInviteStorage           func(db *bolt.DB) (model.InviteStorage, error)
 }
 
 // AppStorageComposer returns app storage composer.
@@ -172,6 +186,16 @@ func (pc *PartialDatabaseComposer) VerificationCodeStorageComposer() func() (mod
 	if pc.newVerificationCodeStorage != nil {
 		return func() (model.VerificationCodeStorage, error) {
 			return pc.newVerificationCodeStorage(pc.db)
+		}
+	}
+	return nil
+}
+
+// InviteStorageComposer returns invite storage composer.
+func (pc *PartialDatabaseComposer) InviteStorageComposer() func() (model.InviteStorage, error) {
+	if pc.newInviteStorage != nil {
+		return func() (model.InviteStorage, error) {
+			return pc.newInviteStorage(pc.db)
 		}
 	}
 	return nil

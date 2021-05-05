@@ -32,6 +32,7 @@ require (
 	github.com/rs/cors v1.6.0
 	github.com/rs/xid v1.2.1
 	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
+	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
 	go.etcd.io/etcd v3.3.25+incompatible
