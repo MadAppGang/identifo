@@ -126,7 +126,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		userID := getRouteVar("id", r)
 
 		u := model.User{}
-		if ar.mustParseJSON(w, r, u) != nil {
+		if ar.mustParseJSON(w, r, &u) != nil {
 			return
 		}
 
