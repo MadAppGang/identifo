@@ -15,10 +15,10 @@ import (
 )
 
 var (
-	errPleaseEnableTFA   = fmt.Errorf("Please enable two-factor authentication to be able to use this app")
-	errPleaseSetPhoneTFA = fmt.Errorf("Please set phone for two-factor authentication to be able to use this app")
-	errPleaseSetEmailTFA = fmt.Errorf("Please set email for two-factor authentication to be able to use this app")
-	errPleaseDisableTFA  = fmt.Errorf("Please disable two-factor authentication to be able to use this app")
+	errPleaseEnableTFA   = fmt.Errorf("please enable two-factor authentication to be able to use this app")
+	errPleaseSetPhoneTFA = fmt.Errorf("please set phone for two-factor authentication to be able to use this app")
+	errPleaseSetEmailTFA = fmt.Errorf("please set email for two-factor authentication to be able to use this app")
+	errPleaseDisableTFA  = fmt.Errorf("please disable two-factor authentication to be able to use this app")
 )
 
 const (
@@ -45,11 +45,11 @@ type loginData struct {
 func (ld *loginData) validate() error {
 	usernameLen := len(ld.Username)
 	if usernameLen < 6 || usernameLen > 130 {
-		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 130", usernameLen)
+		return fmt.Errorf("incorrect username length %d, expected a number between 6 and 130", usernameLen)
 	}
 	pswdLen := len(ld.Password)
 	if pswdLen < 6 || pswdLen > 130 {
-		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 130", pswdLen)
+		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 130", pswdLen)
 	}
 	return nil
 }
@@ -78,12 +78,6 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID, ld.Scopes)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "LoginWithPassword.RequestScopes")
-			return
-		}
-
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
@@ -103,45 +97,13 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		// Check if we should require user to authenticate with 2FA.
-		require2FA, enabled2FA, err := ar.check2FA(w, app.TFAStatus, ar.tfaType, user)
-		if !require2FA && enabled2FA && err != nil {
-			return
-		}
-
-		offline := contains(scopes, jwtService.OfflineScope)
-
-		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		authResult, err := ar.loginFlow(app, user, ld.Scopes)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "LoginWithPassword.LoginFlowError")
 			return
 		}
 
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA, tokenPayload)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
-			return
-		}
-
-		result := AuthResponse{
-			AccessToken:  accessToken,
-			RefreshToken: refreshToken,
-			Require2FA:   require2FA,
-			Enabled2FA:   enabled2FA,
-		}
-
-		if require2FA && enabled2FA {
-			if err := ar.sendOTPCode(user); err != nil {
-				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
-				return
-			}
-		} else {
-			ar.userStorage.UpdateLoginMetadata(user.ID)
-		}
-
-		user = user.Sanitized()
-		result.User = user
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, http.StatusOK, authResult)
 	}
 }
 
@@ -179,6 +141,7 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	}
 }
 
+// GetUser return current user info with sanitized tfa
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := tokenFromContext(r.Context()).UserID()
@@ -242,14 +205,12 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 
 // check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
 // and decides if we require two-factor authentication after all checks are successfully passed.
-func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, serverTFAType model.TFAType, user model.User) (bool, bool, error) {
+func (ar *Router) check2FA(appTFAStatus model.TFAStatus, serverTFAType model.TFAType, user model.User) (bool, bool, error) {
 	if appTFAStatus == model.TFAStatusMandatory && !user.TFAInfo.IsEnabled {
-		// ar.Error(w, ErrorAPIRequestPleaseEnableTFA, http.StatusBadRequest, errPleaseEnableTFA.Error(), "check2FA.mandatory")
 		return true, false, errPleaseEnableTFA
 	}
 
 	if appTFAStatus == model.TFAStatusDisabled && user.TFAInfo.IsEnabled {
-		ar.Error(w, ErrorAPIRequestPleaseDisableTFA, http.StatusBadRequest, errPleaseDisableTFA.Error(), "check2FA.appDisabled_userEnabled")
 		return false, true, errPleaseDisableTFA
 	}
 
@@ -266,7 +227,6 @@ func (ar *Router) check2FA(w http.ResponseWriter, appTFAStatus model.TFAStatus, 
 		if user.TFAInfo.Secret == "" {
 			// Then admin must have enabled TFA for this user manually.
 			// User must obtain TFA secret, i.e send EnableTFA request.
-			// ar.Error(w, ErrorAPIRequestPleaseEnableTFA, http.StatusConflict, errPleaseEnableTFA.Error(), "check2FA.pleaseEnable")
 			return true, false, errPleaseEnableTFA
 		}
 		return true, true, nil
@@ -280,7 +240,7 @@ func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
 	}
 
 	if err := ar.smsService.SendSMS(phone, fmt.Sprintf(smsTFACode, otp)); err != nil {
-		return fmt.Errorf("Unable to send sms. %s", err)
+		return fmt.Errorf("unable to send sms. %s", err)
 	}
 	return nil
 }
@@ -291,7 +251,52 @@ func (ar *Router) sendTFACodeOnEmail(email, otp string) error {
 	}
 
 	if err := ar.emailService.SendTFAEmail("One-time password", email, otp); err != nil {
-		return fmt.Errorf("Unable to send email with OTP with error: %s", err)
+		return fmt.Errorf("unable to send email with OTP with error: %s", err)
 	}
 	return nil
+}
+
+func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string) (AuthResponse, error) {
+	// Do login flow.
+	scopes, err := ar.userStorage.RequestScopes(user.ID, scopes)
+	if err != nil {
+		return AuthResponse{}, err
+	}
+
+	// Check if we should require user to authenticate with 2FA.
+	require2FA, enabled2FA, err := ar.check2FA(app.TFAStatus, ar.tfaType, user)
+	if !require2FA && enabled2FA && err != nil {
+		return AuthResponse{}, err
+	}
+
+	offline := contains(scopes, jwtService.OfflineScope)
+
+	tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+	if err != nil {
+		return AuthResponse{}, err
+	}
+
+	accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA, tokenPayload)
+	if err != nil {
+		return AuthResponse{}, err
+	}
+
+	result := AuthResponse{
+		AccessToken:  accessToken,
+		RefreshToken: refreshToken,
+		Require2FA:   require2FA,
+		Enabled2FA:   enabled2FA,
+	}
+
+	if require2FA && enabled2FA {
+		if err := ar.sendOTPCode(user); err != nil {
+			return AuthResponse{}, err
+		}
+	} else {
+		ar.userStorage.UpdateLoginMetadata(user.ID)
+	}
+
+	user = user.Sanitized()
+	result.User = user
+	return result, nil
 }

@@ -81,6 +81,7 @@ func (u User) Sanitized() User {
 	return u
 }
 
+// SanitizedTFA returns data structure with masked sensitive data
 func (u User) SanitizedTFA() User {
 	u.Sanitized()
 	if len(u.Email) > 0 {
