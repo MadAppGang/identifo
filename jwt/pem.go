@@ -3,7 +3,7 @@ package jwt
 import (
 	"io/ioutil"
 
-	jwt "github.com/dgrijalva/jwt-go"
+	jwt "github.com/form3tech-oss/jwt-go"
 )
 
 var supportedSignatureAlgorithms = []TokenSignatureAlgorithm{TokenSignatureAlgorithmES256, TokenSignatureAlgorithmRS256}
