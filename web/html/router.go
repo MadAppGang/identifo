@@ -17,21 +17,22 @@ import (
 
 // Router handles incoming http connections.
 type Router struct {
-	Middleware         *negroni.Negroni
-	Logger             *log.Logger
-	Router             *mux.Router
-	AppStorage         model.AppStorage
-	UserStorage        model.UserStorage
-	TokenStorage       model.TokenStorage
-	TokenBlacklist     model.TokenBlacklist
-	TokenService       jwtService.TokenService
-	SMSService         model.SMSService
-	EmailService       model.EmailService
-	staticFilesStorage model.StaticFilesStorage
-	Authorizer         *authorization.Authorizer
-	PathPrefix         string
-	Host               string
-	cors               *cors.Cors
+	Middleware                 *negroni.Negroni
+	Logger                     *log.Logger
+	Router                     *mux.Router
+	AppStorage                 model.AppStorage
+	UserStorage                model.UserStorage
+	TokenStorage               model.TokenStorage
+	TokenBlacklist             model.TokenBlacklist
+	TokenService               jwtService.TokenService
+	SMSService                 model.SMSService
+	EmailService               model.EmailService
+	staticFilesStorage         model.StaticFilesStorage
+	staticFilesStorageSettings *model.StaticFilesStorageSettings
+	Authorizer                 *authorization.Authorizer
+	PathPrefix                 string
+	Host                       string
+	cors                       *cors.Cors
 }
 
 func defaultOptions() []func(*Router) error {
@@ -139,4 +140,12 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Reroute to our internal implementation.
 	ar.Router.ServeHTTP(w, r)
+}
+
+// ServerSettingsOption sets path to configuration file with server settings.
+func StaticFilesStorageSettings(settings *model.StaticFilesStorageSettings) func(*Router) error {
+	return func(r *Router) error {
+		r.staticFilesStorageSettings = settings
+		return nil
+	}
 }

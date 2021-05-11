@@ -121,6 +121,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		EmailService:            ms,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
+			html.StaticFilesStorageSettings(&settings.StaticFilesStorage),
 			html.CorsOption(cors),
 		},
 		APIRouterSettings: []func(*api.Router) error{

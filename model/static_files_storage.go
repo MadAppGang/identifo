@@ -16,6 +16,7 @@ type StaticFilesStorage interface {
 	GetAppleFile(name string) ([]byte, error)
 	AssetHandlers() *AssetHandlers
 	AdminPanelHandlers() *AdminPanelHandlers
+	WebHandlers() *WebHandlers
 	Close()
 }
 
@@ -34,10 +35,15 @@ type AdminPanelHandlers struct {
 	BuildHandler      http.Handler
 }
 
+type WebHandlers struct {
+	AppHandler http.Handler
+}
+
 // These paths describe directories with static files.
 // They are relative to the folder specified in the configuration file.
 const (
 	AdminPanelBuildPath = "./admin_panel/build"
+	WebBuildPath        = "./web/build"
 	PagesPath           = "./html"
 	EmailTemplatesPath  = "./email_templates"
 	AppleFilesPath      = "./apple"

@@ -11,6 +11,14 @@ func (ar *Router) initRoutes() {
 		panic("Empty HTML router")
 	}
 
+	// If serve new web static files than just set web handlers and return
+	if ar.staticFilesStorageSettings.ServeNewWeb {
+		appHandler := ar.staticFilesStorage.WebHandlers()
+		ar.Router.PathPrefix(`/`).Handler(appHandler.AppHandler).Methods("GET")
+
+		return
+	}
+
 	ar.Router.Path(`/password/{reset:reset/?}`).Handler(negroni.New(
 		ar.ResetTokenMiddleware(),
 		negroni.WrapFunc(ar.ResetPassword()),
