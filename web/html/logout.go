@@ -2,6 +2,7 @@ package html
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"net/url"
 	"path"
@@ -57,7 +58,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 			return
 		}
 
-		redirectURIParsed.Query().Add(callbackURLKey, callbackURL)
-		http.Redirect(w, r, redirectURIParsed.String(), http.StatusFound)
+		redirectURI = fmt.Sprintf("%s?callbackUrl=%s", redirectURI, callbackURL)
+		http.Redirect(w, r, redirectURI, http.StatusFound)
 	}
 }
