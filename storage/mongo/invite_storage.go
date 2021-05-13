@@ -63,7 +63,7 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	filter := bson.M{
 		"email":     email,
 		"archived":  false,
-		"expiresAt": bson.M{"$qt": time.Now()},
+		"expiresAt": bson.M{"$gt": time.Now()},
 	}
 
 	var invite model.Invite
