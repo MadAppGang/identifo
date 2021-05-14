@@ -16,8 +16,9 @@ import (
 func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := struct {
-			Email string `json:"email"`
-			Role  string `json:"access_role"`
+			Email       string `json:"email"`
+			Role        string `json:"access_role"`
+			CallbackURL string `json:"callback_url"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
@@ -53,7 +54,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes), " ", ",", -1)
-		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s", app.ID, scopes, inviteTokenString))
+		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s&callbackUrl=%s", app.ID, scopes, inviteTokenString, d.CallbackURL))
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {

@@ -342,7 +342,7 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error)
 
 	lifespan := InviteTokenLifespan
 
-	claims := ijwt.Claims{
+	claims := &ijwt.Claims{
 		Payload: payload,
 		Type:    model.TokenTypeInvite,
 		StandardClaims: jwt.StandardClaims{
