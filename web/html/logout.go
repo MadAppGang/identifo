@@ -57,7 +57,10 @@ func (ar *Router) Logout() http.HandlerFunc {
 			return
 		}
 
-		redirectURIParsed.Query().Add(callbackURLKey, callbackURL)
+		query := redirectURIParsed.Query()
+		query.Set(callbackURLKey, callbackURL)
+		redirectURIParsed.RawQuery = query.Encode()	
+		
 		http.Redirect(w, r, redirectURIParsed.String(), http.StatusFound)
 	}
 }
