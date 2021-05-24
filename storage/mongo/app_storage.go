@@ -38,7 +38,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	defer cancel()
 
 	var ad model.AppData
-	if err := as.coll.FindOne(ctx, bson.M{"_id": hexID}).Decode(&ad); err != nil {
+	if err := as.coll.FindOne(ctx, bson.M{"_id": hexID.Hex()}).Decode(&ad); err != nil {
 		return model.AppData{}, err
 	}
 	return ad, nil
@@ -107,7 +107,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
-	if _, err := as.coll.DeleteOne(ctx, bson.M{"_id": hexID}); err != nil {
+	if _, err := as.coll.DeleteOne(ctx, bson.M{"_id": hexID.Hex()}); err != nil {
 		return err
 	}
 	return nil
@@ -142,7 +142,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ad model.AppData
-	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ad); err != nil {
+	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ad); err != nil {
 		return err
 	}
 	// maybe return updated data?
@@ -168,7 +168,7 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ad model.AppData
-	if err = as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ad); err != nil {
+	if err = as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ad); err != nil {
 		return model.AppData{}, err
 	}
 

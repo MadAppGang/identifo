@@ -33,7 +33,7 @@ func (tb *TokenBlacklist) Add(token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), tb.timeout)
 	defer cancel()
 
-	var t = Token{Token: token, ID: primitive.NewObjectID()}
+	var t = Token{Token: token, ID: primitive.NewObjectID().Hex()}
 	_, err := tb.coll.InsertOne(ctx, t)
 	return err
 }
