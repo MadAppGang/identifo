@@ -4,8 +4,11 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
+	"net/url"
 	"os"
+	"strings"
 
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
@@ -34,16 +37,13 @@ import (
 )
 
 // ServerSettings are server settings.
-var ServerSettings model.ServerSettings
+// var ServerSettings model.ServerSettings
 
 // NewServer creates backend service.
 func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, cors *model.CorsOptions, options ...func(*Server) error) (model.Server, error) {
 	var err error
 	if configurationStorage == nil {
-		configurationStorage, err = InitConfigurationStorage(settings.ConfigurationStorage, settings.StaticFilesStorage.ServerConfigPath)
-		if err != nil {
-			return nil, err
-		}
+		return nil, err
 	}
 
 	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, err := db.Compose()
@@ -69,6 +69,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		verificationCodeStorage: verificationCodeStorage,
 		configurationStorage:    configurationStorage,
 		staticFilesStorage:      staticFilesStorage,
+		settings:                settings,
 	}
 
 	sessionStorage, err := initSessionStorage(settings.SessionStorage)
@@ -135,7 +136,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 			admin.ServerSettingsOption(&settings),
 			admin.CorsOption(cors, originChecker),
 		},
-		LoggerSettings: ServerSettings.Logger,
+		LoggerSettings: settings.Logger,
 	}
 
 	r, err := web.NewRouter(routerSettings)
@@ -162,11 +163,16 @@ type Server struct {
 	tokenBlacklist          model.TokenBlacklist
 	staticFilesStorage      model.StaticFilesStorage
 	verificationCodeStorage model.VerificationCodeStorage
+	settings                model.ServerSettings
 }
 
 // Router returns server's main router.
 func (s *Server) Router() model.Router {
 	return s.MainRouter
+}
+
+func (s *Server) Settings() model.ServerSettings {
+	return s.settings
 }
 
 func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -219,16 +225,22 @@ func (s *Server) Close() {
 }
 
 // InitConfigurationStorage initializes configuration storage.
-func InitConfigurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (model.ConfigurationStorage, error) {
-	switch settings.Type {
-	case model.ConfigurationStorageTypeEtcd:
-		return configStoreEtcd.NewConfigurationStorage(settings, serverConfigPath)
-	case model.ConfigurationStorageTypeS3:
-		return configStoreS3.NewConfigurationStorage(settings)
-	case model.ConfigurationStorageTypeFile:
-		return configStoreFile.NewConfigurationStorage(settings)
+func InitConfigurationStorage(config, etcdKey string) (model.ConfigurationStorage, error) {
+	// Parse the URL and ensure there are no errors.
+	u, err := url.Parse(config)
+	if err != nil {
+		log.Println("unable to parse config flag:", err, warningMsg)
+		return nil, fmt.Errorf("Unable to parse config string: %s", config)
 	}
-	return nil, fmt.Errorf("Configuration storage of type '%s' is not supported", settings.Type)
+
+	switch strings.ToLower(u.Scheme) {
+	case "etcd":
+		return configStoreEtcd.NewConfigurationStorage(config, etcdKey)
+	case "s3":
+		return configStoreS3.NewConfigurationStorage(config)
+	default:
+		return configStoreFile.NewConfigurationStorage(config)
+	}
 }
 
 func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {

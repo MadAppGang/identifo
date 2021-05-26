@@ -6,76 +6,80 @@ import (
 	"fmt"
 	"log"
 	"reflect"
+	"strings"
 	"time"
 
 	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
-	configStorageFile "github.com/madappgang/identifo/configuration/storage/file"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"go.etcd.io/etcd/clientv3"
 )
 
 const (
-	defaultEtcdConnectionString = "http://127.0.0.1:2379"
-	timeoutPerRequest           = 5 * time.Second
+	// defaultEtcdConnectionString = "http://127.0.0.1:2379"
+	timeoutPerRequest = 5 * time.Second
 )
 
 // ConfigurationStorage is an etcd-backed storage for server configuration.
 type ConfigurationStorage struct {
 	Client      *clientv3.Client
-	FileStorage *configStorageFile.ConfigurationStorage
 	settingsKey string
 	keyStorage  model.KeyStorage
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage(settings model.ConfigurationStorageSettings, serverConfigPath string) (*ConfigurationStorage, error) {
-	if settings.SettingsKey == "" {
-		return nil, fmt.Errorf("Empty server settings key for etcd")
-	}
-
-	if settings.Endpoints == nil {
-		settings.Endpoints = []string{defaultEtcdConnectionString}
-	}
-
-	c, err := clientv3.New(clientv3.Config{
-		Endpoints:   settings.Endpoints,
+func NewConfigurationStorage(config, etcdKey string) (*ConfigurationStorage, error) {
+	log.Println("Loading server configuration from the etcd...")
+	cfg := clientv3.Config{
 		DialTimeout: timeoutPerRequest,
-	})
-
-	if err != nil {
-		return nil, err
 	}
 
-	settingsKey := settings.SettingsKey
-	// Init file storage for config replication.
-	settings.SettingsKey = serverConfigPath
-	fileStorage, err := configStorageFile.NewConfigurationStorage(settings)
+	components := strings.Split(config[7:], "@")
+	if len(components) > 1 {
+		cfg.Endpoints = strings.Split(components[1], ",")
+		creds := strings.Split(components[0], ":")
+		if len(creds) == 2 {
+			cfg.Username = creds[0]
+			cfg.Password = creds[1]
+		}
+	} else if len(components) == 1 {
+		cfg.Endpoints = strings.Split(components[0], ",")
+	} else {
+		return nil, fmt.Errorf("could not get etcd endpoints from config: %s", config)
+	}
+
+	etcdClient, err := clientv3.New(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Cannot not connect to etcd config storage: %s", err)
+	}
+
+	cs := ConfigurationStorage{
+		Client:      etcdClient,
+		settingsKey: etcdKey,
+	}
+
+	settings := model.ServerSettings{}
+	if err := cs.LoadServerSettings(&settings); err != nil {
+		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
 	}
 
 	var keyStorage model.KeyStorage
 
-	switch settings.KeyStorage.Type {
+	switch settings.ConfigurationStorage.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
 	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
 	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
 	}
 	if err != nil {
 		return nil, err
 	}
 
-	return &ConfigurationStorage{
-		Client:      c,
-		FileStorage: fileStorage,
-		settingsKey: settingsKey,
-		keyStorage:  keyStorage,
-	}, nil
+	cs.keyStorage = keyStorage
+	return &cs, nil
 }
 
 // InsertConfig inserts key-value pair to configuration storage.
@@ -100,16 +104,6 @@ func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) erro
 	}
 
 	_, err = cs.Client.Put(context.Background(), key, strVal)
-	if err == nil {
-		// Also update file.
-		go func() {
-			if fileErr := cs.FileStorage.InsertConfig(cs.FileStorage.ServerConfigPath, value); fileErr != nil {
-				fmt.Println("Could not replicate settings in file: ", fileErr)
-			} else {
-				fmt.Println("Successfully replicated settings in file")
-			}
-		}()
-	}
 	return err
 }
 

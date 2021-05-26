@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -26,33 +27,57 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
-func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
-	s3client, err := s3Storage.NewS3Client(settings.Region)
-	if err != nil {
-		return nil, err
-	}
+func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
+	log.Println("Loading server configuration from the S3 bucket...")
 
-	var keyStorage model.KeyStorage
-
-	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
-	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
-	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
+	components := strings.Split(config[5:], "@")
+	var pathComponents []string
+	region := ""
+	if len(components) == 2 {
+		region = components[0]
+		pathComponents = strings.Split(components[1], "/")
+	} else if len(components) == 1 {
+		pathComponents = strings.Split(components[0], "/")
+	} else {
+		log.Fatalf("could not get s3 file path from config: %s", config)
 	}
+	if len(pathComponents) < 2 {
+		log.Fatalf("could not get s3 file path from config: %s", config)
+	}
+	bucket := pathComponents[0]
+	path := strings.Join(pathComponents[1:], "/")
+
+	s3client, err := s3Storage.NewS3Client(region)
 	if err != nil {
-		return nil, err
+		log.Fatalf("Cannot initialize S3 client: %s.", err)
 	}
 
 	cs := &ConfigurationStorage{
 		Client:     s3client,
-		Bucket:     settings.Bucket,
-		ObjectName: settings.SettingsKey,
-		keyStorage: keyStorage,
+		Bucket:     bucket,
+		ObjectName: path,
 		UpdateChan: make(chan interface{}, 1),
 	}
+
+	settings := model.ServerSettings{}
+	if err := cs.LoadServerSettings(&settings); err != nil {
+		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
+	}
+
+	var keyStorage model.KeyStorage
+
+	switch settings.ConfigurationStorage.KeyStorage.Type {
+	case model.KeyStorageTypeLocal:
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+	case model.KeyStorageTypeS3:
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+	default:
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
+	}
+	if err != nil {
+		return nil, err
+	}
+	cs.keyStorage = keyStorage
 	return cs, nil
 }
 

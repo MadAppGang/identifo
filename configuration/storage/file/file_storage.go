@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"strings"
 
 	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
@@ -13,6 +14,9 @@ import (
 	"github.com/madappgang/identifo/model"
 	"gopkg.in/yaml.v2"
 )
+
+// config path for server name
+const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
 
 // ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
@@ -22,28 +26,67 @@ type ConfigurationStorage struct {
 	updateChanClosed bool
 }
 
-// NewConfigurationStorage creates and returns new file configuration storage.
-func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
-	var keyStorage model.KeyStorage
-	var err error
+func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
+	configPaths := []string{
+		os.Getenv(serverConfigPathEnvName),
+		"./server-config.yaml",
+		"../../server/server-config.yaml",
+	}
 
-	switch settings.KeyStorage.Type {
+	for _, p := range configPaths {
+		if p == "" {
+			continue
+		}
+		if fileExists(p) {
+			c, e := NewConfigurationStorage(p)
+			// if error, trying to other file from the list
+			if e != nil {
+				log.Printf("Unable to load default config from file %s, trying other one from the list (if any)", p)
+				continue
+			} else {
+				log.Printf("Successfully loaded default config from  file %s", p)
+				return c, nil
+			}
+		}
+	}
+	err := fmt.Errorf("Unable to load default config file from the following candidates: %+v", configPaths)
+	log.Println(err)
+	return nil, err
+}
+
+// NewConfigurationStorage creates and returns new file configuration storage.
+func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
+	log.Println("Loading server configuration from specified file...")
+	filename := config
+	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
+		filename = filename[7:]
+	}
+
+	cs := &ConfigurationStorage{
+		ServerConfigPath: filename,
+		UpdateChan:       make(chan interface{}, 1),
+	}
+
+	settings := model.ServerSettings{}
+	if err := cs.LoadServerSettings(&settings); err != nil {
+		return nil, fmt.Errorf("Cannot not load settings from local file config storage: %s", err)
+	}
+
+	var err error
+	var keyStorage model.KeyStorage
+	switch settings.ConfigurationStorage.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
 	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
 	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
 	}
 	if err != nil {
 		return nil, err
 	}
-
-	return &ConfigurationStorage{
-		ServerConfigPath: settings.SettingsKey,
-		UpdateChan:       make(chan interface{}, 1),
-		keyStorage:       keyStorage,
-	}, nil
+	cs.keyStorage = keyStorage
+	return cs, nil
 }
 
 // InsertConfig writes new value to server configuration file.
@@ -75,7 +118,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(ss *model.ServerSettings) err
 		return fmt.Errorf("Cannot get server configuration file: %s", err)
 	}
 
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, ss.ConfigurationStorage.SettingsKey))
+	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
 	if err != nil {
 		return fmt.Errorf("Cannot read server configuration file: %s", err)
 	}
@@ -120,4 +163,13 @@ func (cs *ConfigurationStorage) updateConfigFile(in interface{}, dir string) err
 		return fmt.Errorf("Cannot write configuration file: %s", err)
 	}
 	return nil
+}
+
+// fileExists check if file exists
+func fileExists(filename string) bool {
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }

@@ -10,8 +10,8 @@ services:
     networks:
       - identifo
     volumes:
-      - ./server-config.yaml:/root/server-config.yaml
-      - ./jwt/:/root/jwt/
+      - ./server-config-dev.yaml:/root/server-config.yaml
+      - ./jwt/test_artifacts:/root/jwt/
       - ./static/:/root/static/
 
 networks:

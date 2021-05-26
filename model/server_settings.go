@@ -84,6 +84,12 @@ const (
 	StaticFilesStorageTypeDynamoDB = "dynamodb"
 )
 
+// ConfigFileSettings config file settings
+type ConfigFileSettings struct {
+	ConfigString string
+	EtcdKey      string
+}
+
 // ConfigurationStorageSettings holds together configuration storage settings.
 type ConfigurationStorageSettings struct {
 	Type        ConfigurationStorageType `yaml:"type,omitempty" json:"type,omitempty"`
@@ -228,7 +234,7 @@ const (
 )
 
 // GetPort returns port on which host listens to incoming connections.
-func (ss *ServerSettings) GetPort() string {
+func (ss ServerSettings) GetPort() string {
 	u, err := url.Parse(ss.General.Host)
 	if err != nil {
 		panic(err)
