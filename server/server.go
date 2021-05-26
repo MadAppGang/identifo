@@ -229,7 +229,7 @@ func InitConfigurationStorage(config, etcdKey string) (model.ConfigurationStorag
 	// Parse the URL and ensure there are no errors.
 	u, err := url.Parse(config)
 	if err != nil {
-		log.Println("unable to parse config flag:", err, warningMsg)
+		log.Println("unable to parse config flag:", err)
 		return nil, fmt.Errorf("Unable to parse config string: %s", config)
 	}
 
