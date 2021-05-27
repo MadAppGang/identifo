@@ -185,6 +185,12 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 	return sfs.localStorage.AdminPanelHandlers()
 }
 
+// WebHandlers returns handlers for the web.
+// Web build is always being stored locally, despite the static storage type.
+func (sfs *StaticFilesStorage) WebHandlers() *model.WebHandlers {
+	return sfs.localStorage.WebHandlers()
+}
+
 // Close is to satisfy the interface.
 func (sfs *StaticFilesStorage) Close() {}
 
