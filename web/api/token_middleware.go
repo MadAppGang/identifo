@@ -35,7 +35,7 @@ func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 		tokenString := string(tokenBytes)
 
 		v := jwtValidator.NewValidator(
-			[]string{app.ID},
+			[]string{app.ID, "identifo"},
 			[]string{ar.tokenService.Issuer()},
 			[]string{},
 			[]string{tokenType},
