@@ -33,7 +33,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
 	defer cancel()
 
-	var t = Token{Token: token, ID: primitive.NewObjectID()}
+	var t = Token{Token: token, ID: primitive.NewObjectID().Hex()}
 	_, err := ts.coll.InsertOne(ctx, t)
 	return err
 }
@@ -67,6 +67,6 @@ func (ts *TokenStorage) Close() {}
 
 // Token is struct to store tokens in database.
 type Token struct {
-	ID    primitive.ObjectID `bson:"_id,omitempty"` // TODO: Make use of jti claim.
-	Token string             `bson:"token,omitempty"`
+	ID    string `bson:"_id,omitempty"` // TODO: Make use of jti claim.
+	Token string `bson:"token,omitempty"`
 }

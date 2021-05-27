@@ -36,7 +36,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 	defer cancel()
 
 	var i = model.Invite{
-		ID:        primitive.NewObjectID().String(),
+		ID:        primitive.NewObjectID().Hex(),
 		AppID:     appID,
 		Token:     inviteToken,
 		Archived:  true,
@@ -139,7 +139,7 @@ func (is *InviteStorage) ArchiveByID(id string) error {
 		return err
 	}
 
-	filter := bson.M{"_id": hexID}
+	filter := bson.M{"_id": hexID.Hex()}
 	update := bson.M{"archived": true}
 
 	_, err = is.coll.UpdateOne(ctx, filter, update)

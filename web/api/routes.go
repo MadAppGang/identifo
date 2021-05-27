@@ -36,7 +36,11 @@ func (ar *Router) initRoutes() {
 	auth.Path(`/{phone_login:phone_login/?}`).HandlerFunc(ar.PhoneLogin()).Methods("POST")
 	auth.Path(`/{federated:federated/?}`).HandlerFunc(ar.FederatedLogin()).Methods("POST")
 	auth.Path(`/{register:register/?}`).HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
-	auth.Path(`/{reset_password:reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	auth.Path(`/{request_reset_password:request_reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	auth.Path(`/{reset_password:reset_password/?}`).Handler(negroni.New(
+		ar.Token(model.TokenTypeReset, nil),
+		negroni.Wrap(ar.ResetPassword()),
+	)).Methods("POST")
 
 	auth.Path(`/{app_settings:app_settings/?}`).HandlerFunc(ar.GetAppSettings()).Methods("GET")
 

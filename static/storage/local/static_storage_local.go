@@ -17,6 +17,17 @@ import (
 type StaticFilesStorage struct {
 	Folder string
 }
+type spaFileSystem struct {
+	root http.FileSystem
+}
+
+func (fs *spaFileSystem) Open(name string) (http.File, error) {
+	f, err := fs.root.Open(name)
+	if os.IsNotExist(err) {
+		return fs.root.Open("index.html")
+	}
+	return f, err
+}
 
 // NewStaticFilesStorage creates and returns new local static files storage.
 func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
@@ -113,6 +124,15 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 		SrcHandler:        srcHandler,
 		ManagementHandler: managementHandler,
 		BuildHandler:      buildHandler,
+	}
+}
+
+// WebHandlers returns handlers for the web.
+func (sfs *StaticFilesStorage) WebHandlers() *model.WebHandlers {
+	appHandler := http.FileServer(&spaFileSystem{http.Dir(path.Join(sfs.Folder, model.WebBuildPath))})
+
+	return &model.WebHandlers{
+		AppHandler: appHandler,
 	}
 }
 

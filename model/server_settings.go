@@ -70,6 +70,7 @@ type StaticFilesStorageSettings struct {
 	Region           string                 `yaml:"region,omitempty" json:"region,omitempty"`
 	Endpoint         string                 `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 	ServeAdminPanel  bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	ServeNewWeb      bool                   `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
 }
 
 // StaticFilesStorageType is a type of static files storage.
