@@ -72,7 +72,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	defer cancel()
 
 	var u model.User
-	if err := us.coll.FindOne(ctx, bson.M{"_id": hexID}).Decode(&u); err != nil {
+	if err := us.coll.FindOne(ctx, bson.M{"_id": hexID.Hex()}).Decode(&u); err != nil {
 		return model.User{}, err
 	}
 	return u, nil
@@ -282,7 +282,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ud model.User
-	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud); err != nil {
+	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud); err != nil {
 		return model.User{}, err
 	}
 	return ud, nil
@@ -302,7 +302,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	defer cancel()
 
 	var ud model.User
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud)
+	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
 	return err
 }
 
@@ -320,7 +320,7 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ud model.User
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update, opts).Decode(&ud)
+	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
 	return err
 }
 
@@ -353,7 +353,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	_, err = us.coll.DeleteOne(ctx, bson.M{"_id": hexID})
+	_, err = us.coll.DeleteOne(ctx, bson.M{"_id": hexID.Hex()})
 	return err
 }
 
@@ -421,7 +421,7 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	defer cancel()
 
 	var ud model.User
-	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID}, update).Decode(&ud); err != nil {
+	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update).Decode(&ud); err != nil {
 		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
 	}
 }
