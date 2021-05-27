@@ -22,16 +22,14 @@ import (
 
 func main() {
 	configFlag := flag.String("config", "", "The location of a server configuration file (local file, s3 or etcd)")
-	etcdKeyName := flag.String("etcd_key", "identifo", "Key for config settings in etcd folder")
 	flag.Parse()
 
 	forever := make(chan struct{}, 1)
 
-	configStorage, err := server.InitConfigurationStorage(*configFlag, *etcdKeyName)
+	configStorage, err := server.InitConfigurationStorage(*configFlag)
 	if err != nil {
-		log.Printf("Unable to init config using\n\tconfig string: %s\n\tetcdKeyName: %s\n\twith error: %v\n",
+		log.Printf("Unable to init config using\n\tconfig string: %s\n\twith error: %v\n",
 			*configFlag,
-			*etcdKeyName,
 			err,
 		)
 		// Trying to fall back to default settings:

@@ -19,14 +19,12 @@ const (
 
 func loadConfig() model.ConfigurationStorage {
 	configFlag := flag.String("config", "", "The location of a server configuration file (local file, s3 or etcd)")
-	etcdKeyName := flag.String("etcd_key", "identifo", "Key for config settings in etcd folder")
 	flag.Parse()
 
-	configStorage, err := server.InitConfigurationStorage(*configFlag, *etcdKeyName)
+	configStorage, err := server.InitConfigurationStorage(*configFlag)
 	if err != nil {
-		log.Printf("Unable to init config using\n config string: %s\netcdKeyName: %s\nwith error: %v\n",
+		log.Printf("Unable to init config using\n config string: %s\nwith error: %v\n",
 			*configFlag,
-			*etcdKeyName,
 			err,
 		)
 		// Trying to fall back to default settings:

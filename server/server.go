@@ -225,7 +225,7 @@ func (s *Server) Close() {
 }
 
 // InitConfigurationStorage initializes configuration storage.
-func InitConfigurationStorage(config, etcdKey string) (model.ConfigurationStorage, error) {
+func InitConfigurationStorage(config string) (model.ConfigurationStorage, error) {
 	// Parse the URL and ensure there are no errors.
 	u, err := url.Parse(config)
 	if err != nil {
@@ -235,7 +235,7 @@ func InitConfigurationStorage(config, etcdKey string) (model.ConfigurationStorag
 
 	switch strings.ToLower(u.Scheme) {
 	case "etcd":
-		return configStoreEtcd.NewConfigurationStorage(config, etcdKey)
+		return configStoreEtcd.NewConfigurationStorage(config)
 	case "s3":
 		return configStoreS3.NewConfigurationStorage(config)
 	default:

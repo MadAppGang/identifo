@@ -19,6 +19,7 @@ import (
 const (
 	// defaultEtcdConnectionString = "http://127.0.0.1:2379"
 	timeoutPerRequest = 5 * time.Second
+	defaultEtcdKey    = "identifo"
 )
 
 // ConfigurationStorage is an etcd-backed storage for server configuration.
@@ -29,26 +30,33 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage(config, etcdKey string) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the etcd...")
 	cfg := clientv3.Config{
 		DialTimeout: timeoutPerRequest,
 	}
 
+	var es string
 	components := strings.Split(config[7:], "@")
 	if len(components) > 1 {
-		cfg.Endpoints = strings.Split(components[1], ",")
+		es = components[1]
 		creds := strings.Split(components[0], ":")
 		if len(creds) == 2 {
 			cfg.Username = creds[0]
 			cfg.Password = creds[1]
 		}
 	} else if len(components) == 1 {
-		cfg.Endpoints = strings.Split(components[0], ",")
+		es = components[0]
 	} else {
 		return nil, fmt.Errorf("could not get etcd endpoints from config: %s", config)
 	}
 
+	etcdKey := defaultEtcdKey
+	components = strings.Split(es, "|")
+	if len(components) > 1 {
+		etcdKey = components[1]
+	}
+	cfg.Endpoints = strings.Split(components[0], ",")
 	etcdClient, err := clientv3.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot not connect to etcd config storage: %s", err)
