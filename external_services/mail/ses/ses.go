@@ -15,7 +15,8 @@ import (
 // NewEmailService creates new email service.
 func NewEmailService(ess model.EmailServiceSettings, templater *model.EmailTemplater) (model.EmailService, error) {
 	sess, err := session.NewSession(&aws.Config{
-		Region: aws.String(ess.Region)},
+		Region: aws.String(ess.Region),
+	},
 	)
 	if err != nil {
 		return nil, err
@@ -102,27 +103,27 @@ func (es *EmailService) SendTemplateEmail(subject, recipient string, template *t
 }
 
 // SendResetEmail sends reset password emails.
-func (es *EmailService) SendResetEmail(subject, recipient string, data interface{}) error {
+func (es *EmailService) SendResetEmail(subject, recipient string, data model.ResetEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.ResetPasswordTemplate, data)
 }
 
 // SendInviteEmail sends invite email to the recipient.
-func (es *EmailService) SendInviteEmail(subject, recipient string, data interface{}) error {
+func (es *EmailService) SendInviteEmail(subject, recipient string, data model.InviteEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteTemplate, data)
 }
 
 // SendWelcomeEmail sends welcoming emails.
-func (es *EmailService) SendWelcomeEmail(subject, recipient string, data interface{}) error {
+func (es *EmailService) SendWelcomeEmail(subject, recipient string, data model.WelcomeEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.WelcomeTemplate, data)
 }
 
 // SendVerifyEmail sends email address verification emails.
-func (es *EmailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
+func (es *EmailService) SendVerifyEmail(subject, recipient string, data model.VerifyEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyTemplate, data)
 }
 
 // SendTFAEmail sends emails with one-time password.
-func (es *EmailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+func (es *EmailService) SendTFAEmail(subject, recipient string, data model.SendTFAEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.TFATemplate, data)
 }
 
