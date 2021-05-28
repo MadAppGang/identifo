@@ -5,8 +5,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
-	"reflect"
-	"strings"
 	"time"
 
 	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
@@ -17,9 +15,7 @@ import (
 )
 
 const (
-	// defaultEtcdConnectionString = "http://127.0.0.1:2379"
 	timeoutPerRequest = 5 * time.Second
-	defaultEtcdKey    = "identifo"
 )
 
 // ConfigurationStorage is an etcd-backed storage for server configuration.
@@ -30,33 +26,14 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
-func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the etcd...")
 	cfg := clientv3.Config{
 		DialTimeout: timeoutPerRequest,
+		Username:    config.Etcd.Username,
+		Password:    config.Etcd.Password,
+		Endpoints:   config.Etcd.Endpoints,
 	}
-
-	var es string
-	components := strings.Split(config[7:], "@")
-	if len(components) > 1 {
-		es = components[1]
-		creds := strings.Split(components[0], ":")
-		if len(creds) == 2 {
-			cfg.Username = creds[0]
-			cfg.Password = creds[1]
-		}
-	} else if len(components) == 1 {
-		es = components[0]
-	} else {
-		return nil, fmt.Errorf("could not get etcd endpoints from config: %s", config)
-	}
-
-	etcdKey := defaultEtcdKey
-	components = strings.Split(es, "|")
-	if len(components) > 1 {
-		etcdKey = components[1]
-	}
-	cfg.Endpoints = strings.Split(components[0], ",")
 	etcdClient, err := clientv3.New(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot not connect to etcd config storage: %s", err)
@@ -64,7 +41,7 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 
 	cs := ConfigurationStorage{
 		Client:      etcdClient,
-		settingsKey: etcdKey,
+		settingsKey: config.Etcd.Key,
 	}
 
 	settings := model.ServerSettings{}
@@ -74,13 +51,13 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 
 	var keyStorage model.KeyStorage
 
-	switch settings.ConfigurationStorage.KeyStorage.Type {
+	switch settings.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
 	}
 	if err != nil {
 		return nil, err
@@ -90,29 +67,12 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 	return &cs, nil
 }
 
-// InsertConfig inserts key-value pair to configuration storage.
-func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
-	var strVal string
-	var err error
-
-	switch reflect.TypeOf(value).Kind() {
-	case reflect.String:
-		strVal = value.(string)
-	case reflect.Ptr:
-		out, err := json.Marshal(value)
-		if err != nil {
-			return fmt.Errorf("Cannot serialize pointer %v to string: %s", value, err)
-		}
-		strVal = string(out)
-	}
-
-	if key == "" && strVal == "" {
-		go cs.idleInsertConfig()
-		return nil
-	}
-
-	_, err = cs.Client.Put(context.Background(), key, strVal)
-	return err
+// WriteConfig write new configuration.
+func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
+	// TODO: implement etcd update
+	return fmt.Errorf("not supported")
+	// _, err = cs.Client.Put(context.Background(), settings, strVal)
+	// return err
 }
 
 // LoadServerSettings loads server configuration from configuration storage.
@@ -149,21 +109,3 @@ func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 
 // CloseUpdateChan implements ConfigurationStorage interface.
 func (cs *ConfigurationStorage) CloseUpdateChan() {}
-
-// idleInsertConfig inserts existing settings.
-func (cs *ConfigurationStorage) idleInsertConfig() {
-	key := cs.settingsKey
-	settings := new(model.ServerSettings)
-	if err := cs.LoadServerSettings(settings); err != nil {
-		log.Println("Error while idle config insert: could not load server settings.", err)
-		return
-	}
-	if key == "" {
-		log.Println("Error while idle config insert: empty key.")
-		return
-	}
-	if err := cs.InsertConfig(key, settings); err != nil {
-		log.Println("Error while idle config insert.", err)
-		return
-	}
-}

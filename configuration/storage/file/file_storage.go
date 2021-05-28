@@ -6,7 +6,6 @@ import (
 	"log"
 	"os"
 	"path/filepath"
-	"strings"
 
 	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
@@ -38,7 +37,8 @@ func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
 			continue
 		}
 		if fileExists(p) {
-			c, e := NewConfigurationStorage(p)
+			cs, _ := model.ConfigStorageSettingsFromStringFile(p)
+			c, e := NewConfigurationStorage(cs)
 			// if error, trying to other file from the list
 			if e != nil {
 				log.Printf("Unable to load default config from file %s, trying other one from the list (if any)", p)
@@ -55,15 +55,14 @@ func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
 }
 
 // NewConfigurationStorage creates and returns new file configuration storage.
-func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from specified file...")
-	filename := config
-	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
-		filename = filename[7:]
+	if config.Type != model.ConfigStorageTypeFile {
+		return nil, fmt.Errorf("cold not crate file config storage from non-file settings")
 	}
 
 	cs := &ConfigurationStorage{
-		ServerConfigPath: filename,
+		ServerConfigPath: config.File.FileName,
 		UpdateChan:       make(chan interface{}, 1),
 	}
 
@@ -74,13 +73,13 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 
 	var err error
 	var keyStorage model.KeyStorage
-	switch settings.ConfigurationStorage.KeyStorage.Type {
+	switch settings.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
 	}
 	if err != nil {
 		return nil, err
@@ -89,15 +88,15 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 	return cs, nil
 }
 
-// InsertConfig writes new value to server configuration file.
-func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
-	dir, err := os.Getwd()
+// WriteConfig writes new config to server configuration file.
+func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
+	ss, err := yaml.Marshal(settings)
 	if err != nil {
-		return fmt.Errorf("Cannot get server configuration file: %s", err)
+		return fmt.Errorf("Cannot marshall configuration: %s", err)
 	}
 
-	if err = cs.updateConfigFile(value, filepath.Join(dir, key)); err != nil {
-		return fmt.Errorf("Cannot update server configuration file: %s", err)
+	if err = ioutil.WriteFile(cs.ServerConfigPath, ss, 0644); err != nil {
+		return fmt.Errorf("Cannot write configuration file: %s", err)
 	}
 
 	// Indicate config update. To prevent writing to a closed channel, make a check.
@@ -151,18 +150,6 @@ func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 func (cs *ConfigurationStorage) CloseUpdateChan() {
 	close(cs.UpdateChan)
 	cs.updateChanClosed = true
-}
-
-func (cs *ConfigurationStorage) updateConfigFile(in interface{}, dir string) error {
-	ss, err := yaml.Marshal(in)
-	if err != nil {
-		return fmt.Errorf("Cannot marshall configuration: %s", err)
-	}
-
-	if err = ioutil.WriteFile(dir, ss, 0644); err != nil {
-		return fmt.Errorf("Cannot write configuration file: %s", err)
-	}
-	return nil
 }
 
 // fileExists check if file exists

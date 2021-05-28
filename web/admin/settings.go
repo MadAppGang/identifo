@@ -158,15 +158,15 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 // FetchConfigurationStorageSettings fetches configuration storage settings.
 func (ar *Router) FetchConfigurationStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.ConfigurationStorage)
+		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Config)
 	}
 }
 
 // RestartServer restarts server with new settings.
 func (ar *Router) RestartServer() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := ar.configurationStorage.InsertConfig(ar.ServerSettings.ConfigurationStorage.SettingsKey, ar.newSettings); err != nil {
-			ar.logger.Println("Cannot insert new settings into configuartion storage:", err)
+		if err := ar.configurationStorage.WriteConfig(*ar.newSettings); err != nil {
+			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
@@ -177,7 +177,7 @@ func (ar *Router) RestartServer() http.HandlerFunc {
 // UpdateConfigurationStorageSettings changes storage connection settings.
 func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var configurationStorageSettingsUpdate model.ConfigurationStorageSettings
+		var configurationStorageSettingsUpdate model.ConfigStorageSettings
 
 		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
 			return
@@ -187,8 +187,8 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.newSettings.ConfigurationStorage = configurationStorageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.ConfigurationStorage)
+		ar.newSettings.Config = configurationStorageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Config)
 	}
 }
 

@@ -6,7 +6,7 @@ import (
 
 // ConfigurationStorage stores server configuration.
 type ConfigurationStorage interface {
-	InsertConfig(key string, value interface{}) error
+	WriteConfig(ServerSettings) error
 	LoadServerSettings(*ServerSettings) error
 	InsertKeys(keys *JWTKeys) error
 	LoadKeys(ijwt.TokenSignatureAlgorithm) (*JWTKeys, error)

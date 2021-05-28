@@ -1,0 +1,133 @@
+general: # General server settings.
+  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
+  issuer: http://localhost:8081 # JWT tokens issuer.
+  algorithm: rs256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+
+# Names of environment variables that store admin credentials.
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
+# Storage settings holds together all storage settings.
+# All settings for particular database engine (i.e, filepaths for BoltDB,
+# endpoints and regions for DynamoDB etc.) are assumed to be the same across
+# all storages. If they are not the same, the latest option in this file will be applied.
+# For example, if there are two MongoDB-backed storages, appStorage and tokenStorage,
+# and endpoint for appStorage is localhost:27017, while tokenStorage's endpoint is localhost:27018,
+# server will connect both storages to localhost:27018.
+storage:
+  appStorage:
+    # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
+    type: boltdb
+    # Name of the database (MongoDB-specific)
+    name: identifo
+    # Endpoint of the database server (MongoDB and DynamoDB specific). For DynamoDB, can be inferred from the region automatically.
+    endpoint: mongodb://localhost:27017
+    # AWS Region where the database is located in (DynamoDB-specific).
+    # Full list of possible values: https://docs.aws.amazon.com/general/latest/gr/rande.html.
+    region: us-east-2
+    # Path to the database file (BoltDB-specific).
+    path: ./db.db
+  userStorage:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
+  tokenStorage:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
+  tokenBlacklist:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
+  verificationCodeStorage:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
+  inviteStorage:
+    type: boltdb
+    name: identifo
+    endpoint: mongodb://localhost:27017
+    region: us-east-2
+    path: ./db.db
+
+# Storage for admin sessions.
+sessionStorage:
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
+  # Admin session duration in seconds.
+  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  sessionDuration: 300
+  address: # Redis-related setting.
+  password: # Redis-related setting.
+  db: # Redis-related setting.
+  region: # DynamoDB-related setting.
+  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
+
+# Storage for server configuration.
+configurationStorage:
+  # Configuration storage type. Supported values are: "etcd", "s3", and "file".
+  type: file
+  # Key for accessing server settings in the configuration storage.
+  # If type is etcd, must be a key name (e.g, identifo/server-settings).
+  # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
+  # If type is file, must be a filename (e.g, server-config.yaml).
+  settingsKey: server-config.yaml
+  endpoints: # Etcd-related setting.
+  region: ap-southeast-2
+  bucket: evergen-general-test
+  keyStorage: # Storage for keys used for signing and verifying JWTs.
+    type: local # Key storage type. Supported values are "local" and "s3".
+    folder: jwt/test_artifacts # Folder for public.pem and private.pem keys. Assumed to be root if omitted.
+    bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
+    region: # Required if type is 's3'.
+
+staticFilesStorage:
+  type: local # Supported values are "local", "s3", and "dynamodb".
+  serverConfigPath: server-config.yaml # Path to the file with server settings.
+  # Folder for static files if type is "local" or "s3".
+  # All following paths are relative to this location. Assumed to be root if omitted.
+  folder: ./static
+  # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set,
+  # it overrides the value specified here.
+  bucket:
+  region: # Required when type is "s3" or "dynamodb".
+  endpoint: # DynamoDB-specific setting. Can be ommitted when region is set.
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  serveNewWeb: true # If ommited or set to false, will be served old templated based web version.
+
+login: # Supported login ways.
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  # Type of two-factor authentication, if application enables it.
+  # Supported values are: "app" (like Google Authenticator), "sms", "email".
+  tfaType: app
+
+externalServices:
+  emailService: # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
+    domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
+    privateKey: # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
+    publicKey: # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
+    sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
+  smsService: # SMS service settings.
+    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
+    accountSid: # Twilio-related setting.
+    authToken: # Twilio-related setting.
+    serviceSid: # Twilio-related setting.
+    apiKey: # Nexmo-related setting.
+    apiSecret: # Nexmo-related setting.
+    username: # RouteMobile-related setting.
+    password: # RouteMobile-related setting.
+    source: # RouteMobile-related setting.
+    region: # RouteMobile-related setting. Supported values are: uae.

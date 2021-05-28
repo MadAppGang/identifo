@@ -4,11 +4,8 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"log"
 	"net/http"
-	"net/url"
 	"os"
-	"strings"
 
 	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
@@ -226,21 +223,16 @@ func (s *Server) Close() {
 }
 
 // InitConfigurationStorage initializes configuration storage.
-func InitConfigurationStorage(config string) (model.ConfigurationStorage, error) {
-	// Parse the URL and ensure there are no errors.
-	u, err := url.Parse(config)
-	if err != nil {
-		log.Println("unable to parse config flag:", err)
-		return nil, fmt.Errorf("Unable to parse config string: %s", config)
-	}
-
-	switch strings.ToLower(u.Scheme) {
-	case "etcd":
+func InitConfigurationStorage(config model.ConfigStorageSettings) (model.ConfigurationStorage, error) {
+	switch config.Type {
+	case model.ConfigStorageTypeEtcd:
 		return configStoreEtcd.NewConfigurationStorage(config)
-	case "s3":
+	case model.ConfigStorageTypeS3:
 		return configStoreS3.NewConfigurationStorage(config)
-	default:
+	case model.ConfigStorageTypeFile:
 		return configStoreFile.NewConfigurationStorage(config)
+	default:
+		return nil, fmt.Errorf("config type is not supported")
 	}
 }
 

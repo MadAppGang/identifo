@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"fmt"
 	"log"
-	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -24,39 +23,24 @@ type ConfigurationStorage struct {
 	UpdateChan       chan interface{}
 	updateChanClosed bool
 	keyStorage       model.KeyStorage
+	config           model.ConfigStorageSettings
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
-func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the S3 bucket...")
 
-	components := strings.Split(config[5:], "@")
-	var pathComponents []string
-	region := ""
-	if len(components) == 2 {
-		region = components[0]
-		pathComponents = strings.Split(components[1], "/")
-	} else if len(components) == 1 {
-		pathComponents = strings.Split(components[0], "/")
-	} else {
-		log.Fatalf("could not get s3 file path from config: %s", config)
-	}
-	if len(pathComponents) < 2 {
-		log.Fatalf("could not get s3 file path from config: %s", config)
-	}
-	bucket := pathComponents[0]
-	path := strings.Join(pathComponents[1:], "/")
-
-	s3client, err := s3Storage.NewS3Client(region)
+	s3client, err := s3Storage.NewS3Client(config.S3.Region)
 	if err != nil {
 		log.Fatalf("Cannot initialize S3 client: %s.", err)
 	}
 
 	cs := &ConfigurationStorage{
 		Client:     s3client,
-		Bucket:     bucket,
-		ObjectName: path,
+		Bucket:     config.S3.Bucket,
+		ObjectName: config.S3.Key,
 		UpdateChan: make(chan interface{}, 1),
+		config:     config,
 	}
 
 	settings := model.ServerSettings{}
@@ -66,13 +50,13 @@ func NewConfigurationStorage(config string) (*ConfigurationStorage, error) {
 
 	var keyStorage model.KeyStorage
 
-	switch settings.ConfigurationStorage.KeyStorage.Type {
+	switch settings.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
 	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.ConfigurationStorage.KeyStorage)
+		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
 	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.ConfigurationStorage.KeyStorage.Type)
+		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
 	}
 	if err != nil {
 		return nil, err
@@ -98,18 +82,18 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 		return fmt.Errorf("Cannot decode S3 response: %s", err)
 	}
 
-	if settings.ConfigurationStorage.Type != model.ConfigurationStorageTypeS3 {
-		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.ConfigurationStorage.Type)
+	if settings.Config.Type != model.ConfigStorageTypeS3 {
+		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
 	}
 
 	return nil
 }
 
-// InsertConfig puts new configuration into the storage.
-func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
+// WriteConfig puts new configuration into the storage.
+func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
 	log.Println("Putting new config to S3...")
 
-	valueBytes, err := yaml.Marshal(value)
+	valueBytes, err := yaml.Marshal(settings)
 	if err != nil {
 		return fmt.Errorf("Cannot marshal settings value: %s", err)
 	}

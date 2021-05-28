@@ -1,16 +1,12 @@
 package main
 
 import (
-	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 
-	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
 	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
-	configWatcherEtcd "github.com/madappgang/identifo/configuration/watcher/etcd"
-	configWatcherGeneric "github.com/madappgang/identifo/configuration/watcher/generic"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/server/boltdb"
@@ -23,10 +19,11 @@ import (
 func main() {
 	configFlag := flag.String("config", "", "The location of a server configuration file (local file, s3 or etcd)")
 	flag.Parse()
-
 	forever := make(chan struct{}, 1)
 
-	configStorage, err := server.InitConfigurationStorage(*configFlag)
+	// ignore error to fall back to default if needed
+	settings, _ := model.ConfigStorageSettingsFromString(*configFlag)
+	configStorage, err := server.InitConfigurationStorage(settings)
 	if err != nil {
 		log.Printf("Unable to init config using\n\tconfig string: %s\n\twith error: %v\n",
 			*configFlag,
@@ -46,8 +43,9 @@ func main() {
 		Handler: srv.Router(),
 	}
 
-	watcher := initWatcher(httpSrv, srv)
-	defer watcher.Stop()
+	// TODO: Refactor config watcher
+	// watcher := initWatcher(httpSrv, srv)
+	// defer watcher.Stop()
 
 	go startHTTPServer(httpSrv)
 
@@ -99,57 +97,58 @@ func initServer(configStorage model.ConfigurationStorage) model.Server {
 	return srv
 }
 
-func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatcher {
-	var cw model.ConfigurationWatcher
-	var err error
+// TODO: Refactor watchers
+// func initWatcher(httpSrv *http.Server, srv model.Server) model.ConfigurationWatcher {
+// 	var cw model.ConfigurationWatcher
+// 	var err error
 
-	watchChan := make(chan interface{}, 1)
-	configStorage := srv.ConfigurationStorage()
+// 	watchChan := make(chan interface{}, 1)
+// 	configStorage := srv.ConfigurationStorage()
 
-	switch srv.Settings().ConfigurationStorage.Type {
-	case model.ConfigurationStorageTypeEtcd:
-		etcdStorage, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
-		if !ok {
-			log.Panicln("Incorrect configuration storage type")
-		}
-		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcdStorage, srv.Settings().ConfigurationStorage.SettingsKey, watchChan)
-	case model.ConfigurationStorageTypeS3, model.ConfigurationStorageTypeFile:
-		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, srv.Settings().ConfigurationStorage.SettingsKey, watchChan)
-	default:
-		log.Panicln("Unknown config storage type:", srv.Settings().ConfigurationStorage.Type)
-	}
+// 	switch srv.Settings().Config.Type {
+// 	case model.ConfigStorageTypeEtcd:
+// 		etcdStorage, ok := configStorage.(*configStoreEtcd.ConfigurationStorage)
+// 		if !ok {
+// 			log.Panicln("Incorrect configuration storage type")
+// 		}
+// 		cw, err = configWatcherEtcd.NewConfigurationWatcher(etcdStorage, srv.Settings().Config.SettingsKey, watchChan)
+// 	case model.ConfigStorageTypeS3, model.ConfigStorageTypeFile:
+// 		cw, err = configWatcherGeneric.NewConfigurationWatcher(configStorage, srv.Settings().ConfigurationStorage.SettingsKey, watchChan)
+// 	default:
+// 		log.Panicln("Unknown config storage type:", srv.Settings().ConfigurationStorage.Type)
+// 	}
 
-	if err != nil {
-		log.Panicln("Cannot init configuration watcher: ", err)
-	}
+// 	if err != nil {
+// 		log.Panicln("Cannot init configuration watcher: ", err)
+// 	}
 
-	cw.Watch()
-	log.Printf("Watcher initialized (type %s)\n", srv.Settings().ConfigurationStorage.Type)
+// 	cw.Watch()
+// 	log.Printf("Watcher initialized (type %s)\n", srv.Settings().ConfigurationStorage.Type)
 
-	go func() {
-		for event := range cw.WatchChan() {
-			log.Printf("New event from watcher: %+v\n", event)
-			var settings model.ServerSettings
-			if err := configStorage.LoadServerSettings(&settings); err != nil {
-				log.Panicln("Cannot reload server configuration: ", err)
-			}
+// 	go func() {
+// 		for event := range cw.WatchChan() {
+// 			log.Printf("New event from watcher: %+v\n", event)
+// 			var settings model.ServerSettings
+// 			if err := configStorage.LoadServerSettings(&settings); err != nil {
+// 				log.Panicln("Cannot reload server configuration: ", err)
+// 			}
 
-			if err := httpSrv.Shutdown(context.Background()); err != nil {
-				log.Panicln("Cannot shutdown server: ", err)
-			}
+// 			if err := httpSrv.Shutdown(context.Background()); err != nil {
+// 				log.Panicln("Cannot shutdown server: ", err)
+// 			}
 
-			srv.Close()
-			srv = initServer(configStorage)
-			*httpSrv = http.Server{Addr: srv.Settings().GetPort()}
+// 			srv.Close()
+// 			srv = initServer(configStorage)
+// 			*httpSrv = http.Server{Addr: srv.Settings().GetPort()}
 
-			httpSrv.Handler = srv.Router()
+// 			httpSrv.Handler = srv.Router()
 
-			log.Println("Starting new web server...")
-			go startHTTPServer(httpSrv)
-		}
-	}()
-	return cw
-}
+// 			log.Println("Starting new web server...")
+// 			go startHTTPServer(httpSrv)
+// 		}
+// 	}()
+// 	return cw
+// }
 
 func initPartialComposer(dbType model.DatabaseType, settings model.StorageSettings) (server.PartialDatabaseComposer, error) {
 	switch dbType {

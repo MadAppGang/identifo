@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
 
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -21,8 +20,8 @@ type KeyStorage struct {
 // NewKeyStorage creates and returns new key files storage.
 func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
 	return &KeyStorage{
-		PrivateKeyPath: path.Join(settings.Folder, model.PrivateKeyName),
-		PublicKeyPath:  path.Join(settings.Folder, model.PublicKeyName),
+		PrivateKeyPath: settings.File.PrivateKeyPath,
+		PublicKeyPath:  settings.File.PublicKeyPath,
 	}, nil
 }
 
