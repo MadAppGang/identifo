@@ -100,7 +100,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 	defer cancel()
 
 	filter := bson.M{}
-	if !withArchived {
+	if withArchived == false {
 		filter["archived"] = false
 	}
 
