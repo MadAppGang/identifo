@@ -204,7 +204,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 		Limit:     aws.Int64(int64(limit)),
 	}
 
-	if withArchived == false {
+	if !withArchived {
 		scanInput.FilterExpression = aws.String("#archived = :archived")
 		scanInput.ExpressionAttributeValues = map[string]*dynamodb.AttributeValue{
 			":archived": {BOOL: aws.Bool(false)},

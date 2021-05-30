@@ -37,7 +37,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 // GetByEmail returns valid and not expired invite by email.
 func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	for _, invite := range is.storage {
-		if invite.Email == email && invite.Archived == false && invite.ExpiresAt.After(time.Now()) {
+		if invite.Email == email && !invite.Archived && invite.ExpiresAt.After(time.Now()) {
 			return invite, nil
 		}
 	}
@@ -62,7 +62,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 	)
 
 	for _, invite := range is.storage {
-		if withArchived == false && invite.Archived == true {
+		if !withArchived && invite.Archived {
 			continue
 		}
 
