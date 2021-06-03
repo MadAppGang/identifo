@@ -79,7 +79,7 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 				return err
 			}
 
-			if res.Email == email && res.Archived == false && res.ExpiresAt.After(time.Now()) {
+			if res.Email == email && !res.Archived && res.ExpiresAt.After(time.Now()) {
 				invite = res
 				return nil
 			}
@@ -130,7 +130,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 				return err
 			}
 
-			if withArchived == false && invite.Archived == true {
+			if !withArchived && invite.Archived {
 				return nil
 			}
 
