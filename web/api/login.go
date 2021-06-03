@@ -124,7 +124,7 @@ func (ar *Router) sendOTPCode(user model.User) error {
 		case model.TFATypeSMS:
 			return ar.sendTFACodeInSMS(user.Phone, otp)
 		case model.TFATypeEmail:
-			return ar.sendTFACodeOnEmail(user.Email, otp)
+			return ar.sendTFACodeOnEmail(user, otp)
 		}
 
 	}
@@ -152,7 +152,6 @@ func (ar *Router) GetUser() http.HandlerFunc {
 		}
 		ar.ServeJSON(w, http.StatusOK, user.SanitizedTFA())
 	}
-
 }
 
 // getTokenPayloadForApp get additional token payload data
@@ -245,12 +244,16 @@ func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
 	return nil
 }
 
-func (ar *Router) sendTFACodeOnEmail(email, otp string) error {
-	if email == "" {
+func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
+	if user.Email == "" {
 		return errors.New("unable to send email OTP, user has no email")
 	}
 
-	if err := ar.emailService.SendTFAEmail("One-time password", email, otp); err != nil {
+	emailData := model.SendTFAEmailData{
+		User: user,
+		OTP:  otp,
+	}
+	if err := ar.emailService.SendTFAEmail("One-time password", user.Email, emailData); err != nil {
 		return fmt.Errorf("unable to send email with OTP with error: %s", err)
 	}
 	return nil

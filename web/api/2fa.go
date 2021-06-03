@@ -259,13 +259,13 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		userID, err := ar.userStorage.IDByName(d.Email)
+		user, err := ar.userStorage.UserByEmail(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.IDByName")
 			return
 		}
 
-		resetToken, err := ar.tokenService.NewResetToken(userID)
+		resetToken, err := ar.tokenService.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.NewResetToken")
 			return
@@ -291,8 +291,19 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			Path:     path.Join(ar.WebRouterPrefix, "tfa/disable"),
 			RawQuery: query,
 		}
+		uu := &url.URL{
+			Scheme: host.Scheme,
+			Host:   host.Host,
+			Path:   path.Join(ar.WebRouterPrefix, "tfa/disable"),
+		}
+		resetEmailData := model.ResetEmailData{
+			User:  user,
+			Token: resetTokenString,
+			Host:  uu.String(),
+			URL:   u.String(),
+		}
 
-		if err = ar.emailService.SendResetEmail("Disable Two-Factor Authentication", d.Email, u.String()); err != nil {
+		if err = ar.emailService.SendResetEmail("Disable Two-Factor Authentication", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail")
 			return
 		}
@@ -324,7 +335,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		userID, err := ar.userStorage.IDByName(d.Email)
+		user, err := ar.userStorage.UserByEmail(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.IDByName")
 			return
@@ -341,7 +352,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		resetToken, err := ar.tokenService.NewResetToken(userID)
+		resetToken, err := ar.tokenService.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.NewResetToken")
 			return
@@ -367,8 +378,20 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			Path:     path.Join(ar.WebRouterPrefix, "tfa/reset"),
 			RawQuery: query,
 		}
+		uu := &url.URL{
+			Scheme: host.Scheme,
+			Host:   host.Host,
+			Path:   path.Join(ar.WebRouterPrefix, "tfa/reset"),
+		}
 
-		if err = ar.emailService.SendResetEmail("Reset Two-Factor Authentication", d.Email, u.String()); err != nil {
+		resetEmailData := model.ResetEmailData{
+			URL:   u.String(),
+			User:  user,
+			Token: resetTokenString,
+			Host:  uu.String(),
+		}
+
+		if err = ar.emailService.SendResetEmail("Reset Two-Factor Authentication", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestTFAReset.SendResetEmail")
 			return
 		}

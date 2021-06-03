@@ -100,7 +100,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 	defer cancel()
 
 	filter := bson.M{}
-	if withArchived == false {
+	if !withArchived {
 		filter["archived"] = false
 	}
 
@@ -123,7 +123,7 @@ func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	defer cancel()
 
 	filter := bson.M{"email": email}
-	update := bson.M{"archived": true}
+	update := bson.M{"$set": bson.M{"archived": true}}
 
 	_, err := is.coll.UpdateMany(ctx, filter, update)
 	return err
@@ -140,7 +140,7 @@ func (is *InviteStorage) ArchiveByID(id string) error {
 	}
 
 	filter := bson.M{"_id": hexID.Hex()}
-	update := bson.M{"archived": true}
+	update := bson.M{"$set": bson.M{"archived": true}}
 
 	_, err = is.coll.UpdateOne(ctx, filter, update)
 	return err
