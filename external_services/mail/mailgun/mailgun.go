@@ -50,26 +50,26 @@ func (es emailService) SendTemplateEmail(subject, recipient string, template *te
 }
 
 // SendResetEmail sends reset password emails.
-func (es emailService) SendResetEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendResetEmail(subject, recipient string, data model.ResetEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.ResetPasswordTemplate, data)
 }
 
 // SendInviteEmail sends invite email to the recipient.
-func (es emailService) SendInviteEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendInviteEmail(subject, recipient string, data model.InviteEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.InviteTemplate, data)
 }
 
 // SendWelcomeEmail sends welcoming emails.
-func (es emailService) SendWelcomeEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendWelcomeEmail(subject, recipient string, data model.WelcomeEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.WelcomeTemplate, data)
 }
 
 // SendVerifyEmail sends verification emails.
-func (es emailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendVerifyEmail(subject, recipient string, data model.VerifyEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.VerifyTemplate, data)
 }
 
 // SendTFAEmail sends emails with one-time password.
-func (es emailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendTFAEmail(subject, recipient string, data model.SendTFAEmailData) error {
 	return es.SendTemplateEmail(subject, recipient, es.tmpltr.TFATemplate, data)
 }

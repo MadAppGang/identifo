@@ -38,31 +38,31 @@ func (es emailService) SendTemplateEmail(subject, recipient string, template *te
 }
 
 // SendResetEmail returns nil error.
-func (es emailService) SendResetEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendResetEmail(subject, recipient string, data model.ResetEmailData) error {
 	fmt.Printf("✉️: MOCK EMAIL SERVICE: Sending reset Email \nsubject: %s\recipient: %s\n data: %+v\n\n", subject, recipient, data)
 	return nil
 }
 
 // SendInviteEmail returns nil error.
-func (es emailService) SendInviteEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendInviteEmail(subject, recipient string, data model.InviteEmailData) error {
 	fmt.Printf("✉️: MOCK EMAIL SERVICE: Sending invite Email \nsubject: %s\recipient: %s\n data: %+v\n\n", subject, recipient, data)
 	return nil
 }
 
 // SendWelcomeEmail returns nil error.
-func (es emailService) SendWelcomeEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendWelcomeEmail(subject, recipient string, data model.WelcomeEmailData) error {
 	fmt.Printf("✉️: MOCK EMAIL SERVICE: Sending welcome Email \nsubject: %s\recipient: %s\n data: %+v\n\n", subject, recipient, data)
 	return nil
 }
 
 // SendVerifyEmail returns nil error.
-func (es emailService) SendVerifyEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendVerifyEmail(subject, recipient string, data model.VerifyEmailData) error {
 	fmt.Printf("✉️: MOCK EMAIL SERVICE: Sending verification Email \nsubject: %s\recipient: %s\n data: %+v\n\n", subject, recipient, data)
 	return nil
 }
 
 // SendTFAEmail returns nil error.
-func (es emailService) SendTFAEmail(subject, recipient string, data interface{}) error {
+func (es emailService) SendTFAEmail(subject, recipient string, data model.SendTFAEmailData) error {
 	fmt.Printf("✉️: MOCK EMAIL SERVICE: Sending TFA Email \nsubject: %s\recipient: %s\n data: %+v\n\n", subject, recipient, data)
 	return nil
 }

@@ -26,18 +26,15 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.userStorage.UserExists(d.Email); !userExists {
+		user, err := ar.userStorage.UserByEmail(d.Email)
+		if err == model.ErrUserNotFound {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestResetPassword.UserExists")
 			return
+		} else if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
 		}
 
-		id, err := ar.userStorage.IDByName(d.Email)
-		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestResetPassword.IDByName")
-			return
-		}
-
-		resetToken, err := ar.tokenService.NewResetToken(id)
+		resetToken, err := ar.tokenService.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")
 			return
@@ -63,8 +60,16 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			Path:     path.Join(ar.WebRouterPrefix, "password/reset"),
 			RawQuery: query,
 		}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
 
-		if err = ar.emailService.SendResetEmail("Reset Password", d.Email, u.String()); err != nil {
+		resetEmailData := model.ResetEmailData{
+			User:  user,
+			Token: resetTokenString,
+			URL:   u.String(),
+			Host:  uu.String(),
+		}
+
+		if err = ar.emailService.SendResetEmail("Reset Password", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail")
 			return
 		}
