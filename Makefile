@@ -3,6 +3,12 @@ DOCKER_IMAGE_VERSION = 1.0.0
 
 run_boltdb:
 	go run main.go --config=file://./cmd/config-boltdb.yaml
+run_mem:
+	go run main.go --config=file://./cmd/config-mem.yaml
+run_mongodb:
+	go run main.go --config=file://./cmd/config-mongodb.yaml
+
+
 
 docker_image:
 	docker build  --tag madappgangd/identifo:latest --tag madappgangd/identifo:$(DOCKER_IMAGE_VERSION) . 

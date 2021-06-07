@@ -16,14 +16,13 @@ require (
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/form3tech-oss/jwt-go v3.2.2+incompatible
-	github.com/go-playground/locales v0.12.1 // indirect
-	github.com/go-playground/universal-translator v0.16.0 // indirect
+	github.com/go-playground/universal-translator v0.17.0 // indirect
 	github.com/go-redis/redis v0.0.0-20190503082931-75795aa4236d
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/google/uuid v1.2.0 // indirect
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/websocket v1.4.2 // indirect
-	github.com/leodido/go-urn v1.1.0 // indirect
+	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/pallinder/go-randomdata v1.2.0

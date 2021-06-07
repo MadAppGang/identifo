@@ -198,7 +198,7 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 	if len(sfs.Type) == 0 {
 		return fmt.Errorf("%s. Empty static files storage type", subject)
 	}
-	if len(sfs.ServerConfigPath) == 0 {
+	if (len(sfs.ServerConfigPath) == 0) && (sfs.Type != "local") {
 		return fmt.Errorf("%s. Empty server config path", subject)
 	}
 
