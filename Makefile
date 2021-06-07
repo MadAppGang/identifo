@@ -5,8 +5,14 @@ run_boltdb:
 	go run main.go --config=file://./cmd/config-boltdb.yaml
 run_mem:
 	go run main.go --config=file://./cmd/config-mem.yaml
-run_mongodb:
+run_mongo:
 	go run main.go --config=file://./cmd/config-mongodb.yaml
+run_dynamodb:
+	AWS_ACCESS_KEY_ID=DUMMYIDEXAMPLE \
+	AWS_SECRET_ACCESS_KEY=DUMMYEXAMPLEKEY \
+	go run main.go --config=file://./cmd/config-dynamodb.yaml
+
+
 
 
 

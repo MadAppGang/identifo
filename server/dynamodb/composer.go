@@ -116,7 +116,7 @@ func NewPartialComposer(settings model.StorageSettings, options ...func(*Partial
 	}
 
 	if settings.InviteStorage.Type == model.DBTypeDynamoDB {
-		pc.newVerificationCodeStorage = dynamodb.NewVerificationCodeStorage
+		pc.newInviteStorage = dynamodb.NewInviteStorage
 		dbEndpoint = settings.InviteStorage.Endpoint
 		dbRegion = settings.InviteStorage.Region
 	}

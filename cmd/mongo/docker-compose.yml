@@ -5,8 +5,8 @@ services:
       ports:
         - "27017:27017"
       volumes:
-        - tayble_mongo_data:/data/db
+        - identifo_mongo_data:/data/db
 
-#this will create named volume: tayble_mongo_data
+#this will create named volume: identifo_mongo_data
 volumes:
-  tayble_mongo_data:
+  identifo_mongo_data:
