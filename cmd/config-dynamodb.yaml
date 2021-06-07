@@ -9,31 +9,15 @@ adminAccount:
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
 storage:
-  appStorage:
-    # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
+  appStorage: &dynamo_settings
     type: dynamodb
     endpoint: http://localhost:8000
     region: us-east-2
-  userStorage:
-    type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
-  tokenStorage:
-    type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
-  tokenBlacklist:
-    type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
-  verificationCodeStorage:
-    type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
-  inviteStorage:
-    type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
+  userStorage: *dynamo_settings
+  tokenStorage: *dynamo_settings
+  tokenBlacklist: *dynamo_settings
+  verificationCodeStorage: *dynamo_settings
+  inviteStorage: *dynamo_settings
 
 # Storage for admin sessions.
 sessionStorage:

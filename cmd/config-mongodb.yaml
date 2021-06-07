@@ -9,30 +9,15 @@ adminAccount:
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
 storage:
-  appStorage:
+  appStorage: &storage_settings
     type: mongodb
     name: identifo-test
     endpoint: mongodb://localhost:27017
-  userStorage:
-    type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
-  tokenStorage:
-    type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
-  tokenBlacklist:
-    type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
-  verificationCodeStorage:
-    type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
-  inviteStorage:
-    type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
+  userStorage: *storage_settings
+  tokenStorage: *storage_settings
+  tokenBlacklist: *storage_settings
+  verificationCodeStorage: *storage_settings
+  inviteStorage: *storage_settings
 
 # Storage for admin sessions.
 sessionStorage:
