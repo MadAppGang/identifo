@@ -13,7 +13,17 @@ import (
 const blacklistedTokensCollectionName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new MongoDB-backed token blacklist.
-func NewTokenBlacklist(db *DB) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(settings model.MongodDatabaseSettings) (model.TokenBlacklist, error) {
+	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
+		return nil, ErrorEmptyConnectionStringDatabase
+	}
+
+	// create database
+	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
 	coll := db.Database.Collection(blacklistedTokensCollectionName)
 	return &TokenBlacklist{coll: coll, timeout: 30 * time.Second}, nil
 }
@@ -33,7 +43,7 @@ func (tb *TokenBlacklist) Add(token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), tb.timeout)
 	defer cancel()
 
-	var t = Token{Token: token, ID: primitive.NewObjectID().Hex()}
+	t := Token{Token: token, ID: primitive.NewObjectID().Hex()}
 	_, err := tb.coll.InsertOne(ctx, t)
 	return err
 }

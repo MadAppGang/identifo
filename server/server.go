@@ -7,9 +7,6 @@ import (
 	"net/http"
 	"os"
 
-	configStoreEtcd "github.com/madappgang/identifo/configuration/storage/etcd"
-	configStoreFile "github.com/madappgang/identifo/configuration/storage/file"
-	configStoreS3 "github.com/madappgang/identifo/configuration/storage/s3"
 	"github.com/madappgang/identifo/external_services/mail/mailgun"
 	emailMock "github.com/madappgang/identifo/external_services/mail/mock"
 	"github.com/madappgang/identifo/external_services/mail/ses"
@@ -31,41 +28,32 @@ import (
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/html"
+	"github.com/rs/cors"
 )
 
-// ServerSettings are server settings.
-// var ServerSettings model.ServerSettings
+var defaultCors = model.CorsOptions{
+	API: &cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}},
+}
 
 // NewServer creates backend service.
-func NewServer(settings model.ServerSettings, db DatabaseComposer, configurationStorage model.ConfigurationStorage, cors *model.CorsOptions, options ...func(*Server) error) (model.Server, error) {
-	var err error
-	if configurationStorage == nil {
-		return nil, err
+func NewServer(storages model.ServerStorageCollection, options ...func(*Server) error) (model.Server, error) {
+	if storages.Config == nil {
+		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}
 
-	appStorage, userStorage, tokenStorage, tokenBlacklist, verificationCodeStorage, inviteStorage, err := db.Compose()
-	if err != nil {
-		return nil, err
-	}
-
-	tokenService, err := initTokenService(settings.General, configurationStorage, tokenStorage, appStorage, userStorage)
-	if err != nil {
-		return nil, err
-	}
-
-	staticFilesStorage, err := initStaticFilesStorage(settings.StaticFilesStorage)
+	settings, err := storages.Config.LoadServerSettings(false)
 	if err != nil {
 		return nil, err
 	}
 
 	s := Server{
-		appStorage:              appStorage,
-		userStorage:             userStorage,
-		tokenStorage:            tokenStorage,
-		tokenBlacklist:          tokenBlacklist,
-		verificationCodeStorage: verificationCodeStorage,
-		configurationStorage:    configurationStorage,
-		staticFilesStorage:      staticFilesStorage,
+		appStorage:              storages.App,
+		userStorage:             storages.User,
+		tokenStorage:            storages.Token,
+		tokenBlacklist:          storages.Blocklist,
+		verificationCodeStorage: storages.Verification,
+		configurationStorage:    storages.Config,
+		staticFilesStorage:      storages.Static,
 		settings:                settings,
 	}
 
@@ -75,7 +63,7 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 	}
 	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
 
-	ms, err := initEmailService(settings.ExternalServices.EmailService, staticFilesStorage)
+	ms, err := initEmailService(settings.ExternalServices.EmailService, storages.Static)
 	if err != nil {
 		return nil, err
 	}
@@ -93,7 +81,8 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 
 	originChecker := originchecker.NewOriginChecker()
 
-	apps, _, err := appStorage.FetchApps("", 0, 0)
+	// validate, try to fetch apps
+	apps, _, err := storages.App.FetchApps("", 0, 0)
 	if err != nil {
 		return nil, err
 	}
@@ -120,19 +109,19 @@ func NewServer(settings model.ServerSettings, db DatabaseComposer, configuration
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
 			html.StaticFilesStorageSettings(&settings.StaticFilesStorage),
-			html.CorsOption(cors),
+			html.CorsOption(defaultCors),
 		},
 		APIRouterSettings: []func(*api.Router) error{
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.CorsOption(cors, originChecker),
+			api.CorsOption(defaultCors, originChecker),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
 			admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
 			admin.ServerSettingsOption(&settings),
-			admin.CorsOption(cors, originChecker),
+			admin.CorsOption(defaultCors, originChecker),
 		},
 		LoggerSettings: settings.Logger,
 	}
@@ -220,20 +209,6 @@ func (s *Server) Close() {
 	s.TokenBlacklist().Close()
 	s.VerificationCodeStorage().Close()
 	s.StaticFilesStorage().Close()
-}
-
-// InitConfigurationStorage initializes configuration storage.
-func InitConfigurationStorage(config model.ConfigStorageSettings) (model.ConfigurationStorage, error) {
-	switch config.Type {
-	case model.ConfigStorageTypeEtcd:
-		return configStoreEtcd.NewConfigurationStorage(config)
-	case model.ConfigStorageTypeS3:
-		return configStoreS3.NewConfigurationStorage(config)
-	case model.ConfigStorageTypeFile:
-		return configStoreFile.NewConfigurationStorage(config)
-	default:
-		return nil, fmt.Errorf("config type is not supported")
-	}
 }
 
 func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {

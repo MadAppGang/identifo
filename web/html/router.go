@@ -58,9 +58,9 @@ func HostOption(host string) func(r *Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions) func(*Router) error {
+func CorsOption(corsOptions model.CorsOptions) func(*Router) error {
 	return func(r *Router) error {
-		if corsOptions != nil && corsOptions.HTML != nil {
+		if corsOptions.HTML != nil {
 			r.cors = cors.New(*corsOptions.HTML)
 		}
 		return nil

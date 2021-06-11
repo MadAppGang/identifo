@@ -7,7 +7,7 @@ import (
 // ConfigurationStorage stores server configuration.
 type ConfigurationStorage interface {
 	WriteConfig(ServerSettings) error
-	LoadServerSettings(*ServerSettings) error
+	LoadServerSettings(forceReload bool) (ServerSettings, error)
 	InsertKeys(keys *JWTKeys) error
 	LoadKeys(ijwt.TokenSignatureAlgorithm) (*JWTKeys, error)
 	GetUpdateChan() chan interface{}

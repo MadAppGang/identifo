@@ -32,6 +32,5 @@
             "args": ["--config=file://./cmd/config-dynamodb.yaml"],
             "showLog": true
         }
-
     ]
 }

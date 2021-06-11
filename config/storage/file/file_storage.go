@@ -7,8 +7,8 @@ import (
 	"os"
 	"path/filepath"
 
-	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
-	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
+	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
+	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"gopkg.in/yaml.v2"
@@ -23,6 +23,8 @@ type ConfigurationStorage struct {
 	keyStorage       model.KeyStorage
 	UpdateChan       chan interface{}
 	updateChanClosed bool
+	cache            model.ServerSettings
+	cached           bool
 }
 
 func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
@@ -66,12 +68,11 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		UpdateChan:       make(chan interface{}, 1),
 	}
 
-	settings := model.ServerSettings{}
-	if err := cs.LoadServerSettings(&settings); err != nil {
+	settings, err := cs.LoadServerSettings(true)
+	if err != nil {
 		return nil, fmt.Errorf("Cannot not load settings from local file config storage: %s", err)
 	}
 
-	var err error
 	var keyStorage model.KeyStorage
 	switch settings.KeyStorage.Type {
 	case model.KeyStorageTypeLocal:
@@ -111,21 +112,32 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 }
 
 // LoadServerSettings loads server settings from the file.
-func (cs *ConfigurationStorage) LoadServerSettings(ss *model.ServerSettings) error {
+func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.ServerSettings, error) {
+	if !forceReload && cs.cached {
+		return cs.cache, nil
+	}
+
 	dir, err := os.Getwd()
 	if err != nil {
-		return fmt.Errorf("Cannot get server configuration file: %s", err)
+		return model.ServerSettings{}, fmt.Errorf("Cannot get server configuration file: %s", err)
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
 	if err != nil {
-		return fmt.Errorf("Cannot read server configuration file: %s", err)
+		return model.ServerSettings{}, fmt.Errorf("Cannot read server configuration file: %s", err)
 	}
 
-	if err = yaml.Unmarshal(yamlFile, ss); err != nil {
-		return fmt.Errorf("Cannot unmarshal server configuration file: %s", err)
+	var settings model.ServerSettings
+	if err = yaml.Unmarshal(yamlFile, &settings); err != nil {
+		return model.ServerSettings{}, fmt.Errorf("Cannot unmarshal server configuration file: %s", err)
 	}
-	return ss.Validate()
+
+	if err != nil {
+		cs.cache = settings
+		cs.cached = true
+	}
+
+	return settings, settings.Validate()
 }
 
 // InsertKeys inserts new public and private keys.

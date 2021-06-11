@@ -1,4 +1,4 @@
-package local
+package fs
 
 import (
 	"bytes"
@@ -13,10 +13,28 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
+// NewStaticFilesStorage creates and returns new local static files storage.
+func NewStaticFilesStorage(settings model.LocalStaticFilesStorageSettings, fallback model.StaticFilesStorage) (model.StaticFilesStorage, error) {
+	return &StaticFilesStorage{
+		Folder:   settings.FolderPath,
+		fallback: fallback,
+	}, nil
+}
+
+// DefaultFileStorage creates and returns default file storage
+func DefaultFileStorage(path string) (model.StaticFilesStorage, error) {
+	return &StaticFilesStorage{
+		Folder:   path,
+		fallback: nil,
+	}, nil
+}
+
 // StaticFilesStorage is a local storage of static files.
 type StaticFilesStorage struct {
-	Folder string
+	Folder   string
+	fallback model.StaticFilesStorage
 }
+
 type spaFileSystem struct {
 	root http.FileSystem
 }
@@ -29,13 +47,6 @@ func (fs *spaFileSystem) Open(name string) (http.File, error) {
 	return f, err
 }
 
-// NewStaticFilesStorage creates and returns new local static files storage.
-func NewStaticFilesStorage(settings model.StaticFilesStorageSettings) (*StaticFilesStorage, error) {
-	return &StaticFilesStorage{
-		Folder: settings.Folder,
-	}, nil
-}
-
 // GetFile is for fetching a file from a local file system.
 func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
@@ -45,6 +56,9 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 
 	if _, err := os.Stat(filepath); err != nil {
 		if os.IsNotExist(err) {
+			if sfs.fallback != nil {
+				return sfs.fallback.GetFile(name)
+			}
 			return nil, model.ErrorNotFound
 		}
 		return nil, fmt.Errorf("Error while checking file '%s' existence. %s", filepath, err)
@@ -61,17 +75,17 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
 	filepath, err := model.GetStaticFilePathByFilename(name, sfs.Folder)
 	if err != nil {
-		return fmt.Errorf("Cannot compose filepath. %s", err)
+		return fmt.Errorf("unable compose the filepath. %s", err)
 	}
 
 	file, err := os.OpenFile(filepath, os.O_WRONLY|os.O_CREATE, 0666)
 	if err != nil {
-		return fmt.Errorf("Cannot open file: %s", err.Error())
+		return fmt.Errorf("unable to open the file: %s", err.Error())
 	}
 	defer file.Close()
 
 	if _, err = io.Copy(file, bytes.NewReader(contents)); err != nil {
-		return fmt.Errorf("Cannot save file: %s", err.Error())
+		return fmt.Errorf("error saving the file: %s", err.Error())
 	}
 	return nil
 }

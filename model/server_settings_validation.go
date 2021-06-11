@@ -80,34 +80,33 @@ func (ss *StorageSettings) Validate() error {
 
 // Validate validates database settings.
 func (dbs *DatabaseSettings) Validate() error {
-	subject := "DatabaseSettings"
-	if dbs == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
 	if len(dbs.Type) == 0 {
-		return fmt.Errorf("Empty database type")
+		return fmt.Errorf("empty database type")
 	}
 
 	switch dbs.Type {
 	case DBTypeFake:
 		return nil
 	case DBTypeBoltDB:
-		if len(dbs.Path) == 0 {
-			return fmt.Errorf("Empty database path")
+		if len(dbs.BoltDB.Path) == 0 {
+			return fmt.Errorf("empty database path")
 		}
 	case DBTypeDynamoDB:
-		if len(dbs.Region) == 0 {
-			return fmt.Errorf("Empty AWS region")
+		if len(dbs.Dynamo.Region) == 0 {
+			return fmt.Errorf("empty Dynamo region")
+		}
+		if len(dbs.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("empty Dynamo endpoint")
 		}
 	case DBTypeMongoDB:
-		if _, err := url.ParseRequestURI(dbs.Endpoint); err != nil {
-			return fmt.Errorf("Invalid endpoint. %s", err)
+		if _, err := url.ParseRequestURI(dbs.Mongo.ConnectionString); err != nil {
+			return fmt.Errorf("invalid mongo connection string. %s", err)
 		}
-		if len(dbs.Name) == 0 {
-			return fmt.Errorf("Empty database name")
+		if len(dbs.Mongo.DatabaseName) == 0 {
+			return fmt.Errorf("empty mongo database name")
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		return fmt.Errorf("unsupported database type %s", dbs.Type)
 	}
 	return nil
 }

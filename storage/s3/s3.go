@@ -15,7 +15,7 @@ func NewS3Client(region string) (*s3.S3, error) {
 	cfg := getConfig(region)
 	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
 	if err != nil {
-		return nil, fmt.Errorf("Cannot create new session: %s", err)
+		return nil, fmt.Errorf("error creating new s3 session: %s", err)
 	}
 	return s3.New(sess, cfg), nil
 }

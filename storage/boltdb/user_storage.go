@@ -22,7 +22,17 @@ const (
 )
 
 // NewUserStorage creates and inits an embedded user storage.
-func NewUserStorage(db *bolt.DB) (model.UserStorage, error) {
+func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, error) {
+	if len(settings.Path) == 0 {
+		return nil, ErrorEmptyDatabasePath
+	}
+
+	// init database
+	db, err := InitDB(settings.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	us := UserStorage{db: db}
 
 	if err := db.Update(func(tx *bolt.Tx) error {

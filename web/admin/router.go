@@ -52,7 +52,7 @@ func HostOption(host string) func(*Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
+func CorsOption(corsOptions model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
 		if originChecker != nil {
 			r.originChecker = originChecker
@@ -60,7 +60,7 @@ func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.Ori
 			r.originChecker = originchecker.NewOriginChecker()
 		}
 
-		if corsOptions != nil && corsOptions.Admin != nil {
+		if corsOptions.Admin != nil {
 			r.cors = cors.New(*corsOptions.Admin)
 		}
 		return nil

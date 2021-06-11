@@ -14,27 +14,31 @@ import (
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
 	"github.com/madappgang/identifo/model"
-	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
-	idynamodb "github.com/madappgang/identifo/storage/dynamodb"
 )
 
 const staticFilesTableName = "StaticFiles"
 
 // StaticFilesStorage is a storage of static files in DynamoDB.
 type StaticFilesStorage struct {
-	db           *idynamodb.DB
-	localStorage *staticStoreLocal.StaticFilesStorage
+	db       *DB
+	fallback model.StaticFilesStorage // fallback storage if we could not find the template here
 }
 
 // NewStaticFilesStorage creates and returns new local static files storage.
-func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStorage *staticStoreLocal.StaticFilesStorage) (*StaticFilesStorage, error) {
-	db, err := idynamodb.NewDB(settings.Endpoint, settings.Region)
+func NewStaticFilesStorage(settings model.DynamoDatabaseSettings, fallback model.StaticFilesStorage) (model.StaticFilesStorage, error) {
+	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
+		return nil, ErrorEmptyEndpointRegion
+	}
+
+	// create database
+	db, err := NewDB(settings.Endpoint, settings.Region)
 	if err != nil {
 		return nil, err
 	}
+
 	sfs := &StaticFilesStorage{
-		db:           db,
-		localStorage: localStorage,
+		db:       db,
+		fallback: fallback,
 	}
 	if err = sfs.ensureTable(); err != nil {
 		return nil, err
@@ -52,7 +56,7 @@ func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
 	}
 
 	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
-	return sfs.localStorage.GetFile(name)
+	return sfs.fallback.GetFile(name)
 }
 
 type fileData struct {
@@ -73,7 +77,6 @@ func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
 			},
 		},
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("Error getting static file from db: %s", err)
 	}
@@ -83,7 +86,7 @@ func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
 
 	fd := new(fileData)
 	if err = dynamodbattribute.UnmarshalMap(result.Item, fd); err != nil {
-		return nil, fmt.Errorf("Error unmarshalling static file data: %s", err)
+		return nil, fmt.Errorf("error un-marshaling static file data: %s", err)
 	}
 	return []byte(fd.File), nil
 }
@@ -120,7 +123,7 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 
 	tmpl, err := template.New(templateName).Parse(string(tmplBytes))
 	if err != nil {
-		return nil, fmt.Errorf("Cannot parse template '%s'. %s", templateName, err)
+		return nil, fmt.Errorf("unable to parse template '%s'. %s", templateName, err)
 	}
 	return tmpl, nil
 }
@@ -139,8 +142,8 @@ func (sfs *StaticFilesStorage) GetAppleFile(name string) ([]byte, error) {
 		return nil, nil
 	}
 
-	log.Printf("Error getting %s from DynamoDB: %s. Using local storage.\n", name, err)
-	return sfs.localStorage.GetAppleFile(name)
+	log.Printf("error getting %s from DynamoDB: %s. Using fallback storage.\n", name, err)
+	return sfs.fallback.GetAppleFile(name)
 }
 
 // AssetHandlers returns handlers for assets.
@@ -167,7 +170,7 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 		}
 
 		prefix := strings.TrimSuffix(r.URL.Path, name)
-		localHandler := http.FileServer(http.Dir(path.Join(sfs.localStorage.Folder, prefix)))
+		localHandler := http.FileServer(http.Dir(path.Join(sfs.fallback.Folder, prefix)))
 		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
 	})
 

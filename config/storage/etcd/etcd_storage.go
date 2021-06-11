@@ -7,8 +7,8 @@ import (
 	"log"
 	"time"
 
-	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
-	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
+	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
+	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"go.etcd.io/etcd/clientv3"
@@ -23,6 +23,8 @@ type ConfigurationStorage struct {
 	Client      *clientv3.Client
 	settingsKey string
 	keyStorage  model.KeyStorage
+	cache       model.ServerSettings
+	cached      bool
 }
 
 // NewConfigurationStorage creates new etcd-backed server config storage.
@@ -44,8 +46,8 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		settingsKey: config.Etcd.Key,
 	}
 
-	settings := model.ServerSettings{}
-	if err := cs.LoadServerSettings(&settings); err != nil {
+	settings, err := cs.LoadServerSettings(true)
+	if err != nil {
 		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
 	}
 
@@ -64,6 +66,7 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 	}
 
 	cs.keyStorage = keyStorage
+	cs.cached = false
 	return &cs, nil
 }
 
@@ -76,17 +79,27 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 }
 
 // LoadServerSettings loads server configuration from configuration storage.
-func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
+func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.ServerSettings, error) {
+	if !forceReload && cs.cached {
+		return cs.cache, nil
+	}
 	res, err := cs.Client.Get(context.Background(), cs.settingsKey)
 	if err != nil {
-		return fmt.Errorf("Cannot get value by key %s: %s", cs.settingsKey, err)
+		return model.ServerSettings{},
+			fmt.Errorf("Cannot get value by key %s: %s", cs.settingsKey, err)
 	}
 	if len(res.Kvs) == 0 {
-		return fmt.Errorf("Etcd: No value for key %s", cs.settingsKey)
+		return model.ServerSettings{},
+			fmt.Errorf("Etcd: No value for key %s", cs.settingsKey)
 	}
 
-	err = json.Unmarshal(res.Kvs[0].Value, settings)
-	return err
+	var settings model.ServerSettings
+	err = json.Unmarshal(res.Kvs[0].Value, &settings)
+	if err != nil {
+		cs.cache = settings
+		cs.cached = true
+	}
+	return settings, err
 }
 
 // InsertKeys inserts new public and private keys into the key storage.

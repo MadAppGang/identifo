@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	keyStorageLocal "github.com/madappgang/identifo/configuration/key_storage/local"
-	keyStorageS3 "github.com/madappgang/identifo/configuration/key_storage/s3"
+	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
+	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
 	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
@@ -24,6 +24,8 @@ type ConfigurationStorage struct {
 	updateChanClosed bool
 	keyStorage       model.KeyStorage
 	config           model.ConfigStorageSettings
+	cache            model.ServerSettings
+	cached           bool
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
@@ -43,8 +45,8 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		config:     config,
 	}
 
-	settings := model.ServerSettings{}
-	if err := cs.LoadServerSettings(&settings); err != nil {
+	settings, err := cs.LoadServerSettings(true)
+	if err != nil {
 		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
 	}
 
@@ -66,7 +68,11 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 }
 
 // LoadServerSettings loads server configuration from S3.
-func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSettings) error {
+func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.ServerSettings, error) {
+	if !forceReload && cs.cached {
+		return cs.cache, nil
+	}
+
 	getObjInput := &s3.GetObjectInput{
 		Bucket: aws.String(cs.Bucket),
 		Key:    aws.String(cs.ObjectName),
@@ -74,19 +80,23 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 
 	resp, err := cs.Client.GetObject(getObjInput)
 	if err != nil {
-		return fmt.Errorf("Cannot get object from S3: %s", err)
+		return model.ServerSettings{}, fmt.Errorf("Cannot get object from S3: %s", err)
 	}
 	defer resp.Body.Close()
 
-	if err = yaml.NewDecoder(resp.Body).Decode(settings); err != nil {
-		return fmt.Errorf("Cannot decode S3 response: %s", err)
+	var settings model.ServerSettings
+	if err = yaml.NewDecoder(resp.Body).Decode(&settings); err != nil {
+		return model.ServerSettings{}, fmt.Errorf("Cannot decode S3 response: %s", err)
 	}
 
 	if settings.Config.Type != model.ConfigStorageTypeS3 {
-		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
+		return model.ServerSettings{}, fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
 	}
 
-	return nil
+	cs.cache = settings
+	cs.cached = true
+
+	return settings, nil
 }
 
 // WriteConfig puts new configuration into the storage.

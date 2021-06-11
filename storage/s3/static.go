@@ -14,48 +14,46 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	"github.com/madappgang/identifo/model"
-	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
 )
 
-// StaticFilesStorage is a storage of static files in S3.
-type StaticFilesStorage struct {
-	client       *s3.S3
-	bucket       string
-	folder       string
-	localStorage *staticStoreLocal.StaticFilesStorage
+// S3FilesStorage is a storage of static files in S3.
+type S3FilesStorage struct {
+	client   *s3.S3
+	bucket   string
+	folder   string
+	fallback model.StaticFilesStorage
 }
 
 // NewStaticFilesStorage creates and returns new static files storage in S3.
-func NewStaticFilesStorage(settings model.StaticFilesStorageSettings, localStorage *staticStoreLocal.StaticFilesStorage) (*StaticFilesStorage, error) {
-	s3Client, err := s3Storage.NewS3Client(settings.Region)
+func NewStaticFilesStorage(settings model.S3StaticFilesStorageSettings, fallback model.StaticFilesStorage) (model.StaticFilesStorage, error) {
+	s3Client, err := NewS3Client(settings.Region)
 	if err != nil {
 		return nil, err
 	}
 
-	return &StaticFilesStorage{
-		client:       s3Client,
-		bucket:       settings.Bucket,
-		folder:       settings.Folder,
-		localStorage: localStorage,
+	return &S3FilesStorage{
+		client:   s3Client,
+		bucket:   settings.Bucket,
+		folder:   settings.Folder,
+		fallback: fallback,
 	}, nil
 }
 
 // GetFile is for fetching a file by name from the S3 bucket.
 // It is a wrapper over the private method getFile.
 // It provides fallback behavior via using eponymous local storage method.
-func (sfs *StaticFilesStorage) GetFile(name string) ([]byte, error) {
+func (sfs *S3FilesStorage) GetFile(name string) ([]byte, error) {
 	file, err := sfs.getFile(name)
 	if err == nil {
 		return file, nil
 	}
 
 	log.Printf("Error getting %s from S3: %s. Using local storage.\n", name, err)
-	return sfs.localStorage.GetFile(name)
+	return sfs.fallback.GetFile(name)
 }
 
-func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
+func (sfs *S3FilesStorage) getFile(name string) ([]byte, error) {
 	key, err := model.GetStaticFilePathByFilename(name, sfs.folder)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot get file %s. %s", key, err)
@@ -83,7 +81,7 @@ func (sfs *StaticFilesStorage) getFile(name string) ([]byte, error) {
 }
 
 // UploadFile is a generic file uploader.
-func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
+func (sfs *S3FilesStorage) UploadFile(name string, contents []byte) error {
 	filepath, err := model.GetStaticFilePathByFilename(name, sfs.folder)
 	if err != nil {
 		return fmt.Errorf("Cannot compose filepath. %s", err)
@@ -103,7 +101,7 @@ func (sfs *StaticFilesStorage) UploadFile(name string, contents []byte) error {
 }
 
 // ParseTemplate parses the html template.
-func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
+func (sfs *S3FilesStorage) ParseTemplate(templateName string) (*template.Template, error) {
 	tmplBytes, err := sfs.GetFile(templateName)
 	if err != nil {
 		return nil, err
@@ -118,7 +116,7 @@ func (sfs *StaticFilesStorage) ParseTemplate(templateName string) (*template.Tem
 
 // GetAppleFile is for reading Apple-related static files.
 // Unlike generic GetFile, it does not treat model.ErrorNotFound as error.
-func (sfs *StaticFilesStorage) GetAppleFile(filename string) ([]byte, error) {
+func (sfs *S3FilesStorage) GetAppleFile(filename string) ([]byte, error) {
 	// Call private method since we don't want to retry fetching file from the local storage.
 	// If error is not nil and not model.ErrorNotFound, we'll retry the whole GetAppleFile.
 	file, err := sfs.getFile(filename)
@@ -131,11 +129,11 @@ func (sfs *StaticFilesStorage) GetAppleFile(filename string) ([]byte, error) {
 	}
 
 	log.Printf("Error getting %s from S3: %s. Using local storage.\n", filename, err)
-	return sfs.localStorage.GetAppleFile(filename)
+	return sfs.fallback.GetAppleFile(filename)
 }
 
 // AssetHandlers returns handlers for assets.
-func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
+func (sfs *S3FilesStorage) AssetHandlers() *model.AssetHandlers {
 	handler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		split := strings.Split(r.URL.Path, "/")
 
@@ -174,18 +172,18 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 
 // AdminPanelHandlers returns handlers for the admin panel.
 // Adminpanel build is always being stored locally, despite the static storage type.
-func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	return sfs.localStorage.AdminPanelHandlers()
+func (sfs *S3FilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
+	return sfs.fallback.AdminPanelHandlers()
 }
 
 // WebHandlers returns handlers for the web.
 // Web build is always being stored locally, despite the static storage type.
-func (sfs *StaticFilesStorage) WebHandlers() *model.WebHandlers {
-	return sfs.localStorage.WebHandlers()
+func (sfs *S3FilesStorage) WebHandlers() *model.WebHandlers {
+	return sfs.fallback.WebHandlers()
 }
 
 // Close is to satisfy the interface.
-func (sfs *StaticFilesStorage) Close() {}
+func (sfs *S3FilesStorage) Close() {}
 
 // writeError writes an error message to the response and logger.
 func writeError(w http.ResponseWriter, err error, code int, userInfo string) {

@@ -48,11 +48,24 @@ type StorageSettings struct {
 
 // DatabaseSettings holds together all settings applicable to a particular database.
 type DatabaseSettings struct {
-	Type     DatabaseType `yaml:"type,omitempty" json:"type,omitempty"`
-	Name     string       `yaml:"name,omitempty" json:"name,omitempty"`
-	Endpoint string       `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
-	Region   string       `yaml:"region,omitempty" json:"region,omitempty"`
-	Path     string       `yaml:"path,omitempty" json:"path,omitempty"`
+	Type   DatabaseType           `yaml:"type,omitempty" json:"type,omitempty"`
+	BoltDB BoltDBDatabaseSettings `yaml:"boltdb,omitempty" json:"boltdb,omitempty"`
+	Mongo  MongodDatabaseSettings `yaml:"mongo,omitempty" json:"mongo,omitempty"`
+	Dynamo DynamoDatabaseSettings `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
+}
+
+type BoltDBDatabaseSettings struct {
+	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+}
+
+type MongodDatabaseSettings struct {
+	ConnectionString string `yaml:"connectionString,omitempty" json:"connection_string,omitempty"`
+	DatabaseName     string `yaml:"databaseName,omitempty" json:"database_name,omitempty"`
+}
+
+type DynamoDatabaseSettings struct {
+	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
+	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
 }
 
 // DatabaseType is a type of database.
@@ -67,14 +80,27 @@ const (
 
 // StaticFilesStorageSettings are settings for static files storage.
 type StaticFilesStorageSettings struct {
-	Type             StaticFilesStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	ServerConfigPath string                 `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	Folder           string                 `yaml:"folder,omitempty" json:"folder,omitempty"`
-	Bucket           string                 `yaml:"bucket,omitempty" json:"bucket,omitempty"`
-	Region           string                 `yaml:"region,omitempty" json:"region,omitempty"`
-	Endpoint         string                 `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
-	ServeAdminPanel  bool                   `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
-	ServeNewWeb      bool                   `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
+	Type             StaticFilesStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
+	Dynamo           DynamoDatabaseSettings          `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
+	Local            LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
+	S3               S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
+	ServerConfigPath string                          `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
+	Folder           string                          `yaml:"folder,omitempty" json:"folder,omitempty"`
+	Bucket           string                          `yaml:"bucket,omitempty" json:"bucket,omitempty"`
+	Region           string                          `yaml:"region,omitempty" json:"region,omitempty"`
+	Endpoint         string                          `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+	ServeAdminPanel  bool                            `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	ServeNewWeb      bool                            `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
+}
+
+type S3StaticFilesStorageSettings struct {
+	Region string `yaml:"region,omitempty" json:"region,omitempty"`
+	Bucket string `yaml:"bucket,omitempty" json:"bucket,omitempty"`
+	Folder string `yaml:"folder,omitempty" json:"folder,omitempty"`
+}
+
+type LocalStaticFilesStorageSettings struct {
+	FolderPath string `yaml:"folder,omitempty" json:"folder,omitempty"`
 }
 
 // StaticFilesStorageType is a type of static files storage.
