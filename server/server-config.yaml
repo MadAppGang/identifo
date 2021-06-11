@@ -75,7 +75,7 @@ sessionStorage:
 configurationStorage:
   # Configuration storage type. Supported values are: "etcd", "s3", and "file".
   type: file
-  # Key for accessing server settings in the configuraion storage.
+  # Key for accessing server settings in the configuration storage.
   # If type is s3, must be a name of an object in the bucket (e.g, server-config.yaml).
   # If type is file, must be a filename (e.g, server-config.yaml).
   settingsKey: identifo/server-settings
@@ -84,7 +84,7 @@ configurationStorage:
   bucket: # S3-related setting.
   keyStorage: # Storage for keys used for signing and verifying JWTs.
     type: local # Key storage type. Supported values are "local" and "s3".
-    folder: ./jwt # Folder for static files. Assumed to be root if ommitted.
+    folder: ./jwt # Folder for static files. Assumed to be root if omitted.
     bucket: # S3-related setting. If "IDENTIFO_JWT_KEYS_BUCKET" env variable is set, it overrides the value specified here.
     region: # Required if type is 's3'.
 
@@ -93,11 +93,11 @@ staticFilesStorage:
   serverConfigPath: ./server-config.yaml  # Path to the file with server settings.
   # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
   # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
-  folder: ./static # Folder for static files. All following paths are relative to this location. Assumed to be root if ommitted.
+  folder: ./static # Folder for static files. All following paths are relative to this location. Assumed to be root if omitted.
   bucket: # Bucket which contains static files if type is "s3".
   region: # Required when type is "s3" or "dynamodb".
-  endpoint: # DynamoDB-specific setting. Can be ommitted when region is set.
-  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  endpoint: # DynamoDB-specific setting. Can be omitted when region is set.
+  serveAdminPanel: true # If omitted or set to false, admin-panel router won't be initialized.
 
 login:   # Supported login ways.
   loginWith:

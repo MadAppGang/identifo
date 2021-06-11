@@ -1,0 +1,12 @@
+version: "2"
+services:
+    mongo:
+      image: mongo:latest
+      ports:
+        - "27017:27017"
+      volumes:
+        - identifo_mongo_data:/data/db
+
+#this will create named volume: identifo_mongo_data
+volumes:
+  identifo_mongo_data:

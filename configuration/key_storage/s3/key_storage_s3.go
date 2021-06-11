@@ -5,7 +5,6 @@ import (
 	"io"
 	"io/ioutil"
 	"log"
-	"path"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -26,16 +25,16 @@ type KeyStorage struct {
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
 func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
-	s3Client, err := s3Storage.NewS3Client(settings.Region)
+	s3Client, err := s3Storage.NewS3Client(settings.S3.Region)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KeyStorage{
 		Client:         s3Client,
-		Bucket:         settings.Bucket,
-		PrivateKeyPath: path.Join(settings.Folder, model.PrivateKeyName),
-		PublicKeyPath:  path.Join(settings.Folder, model.PublicKeyName),
+		Bucket:         settings.S3.Bucket,
+		PrivateKeyPath: settings.S3.PrivateKeyKey,
+		PublicKeyPath:  settings.S3.PublicKeyKey,
 	}, nil
 }
 

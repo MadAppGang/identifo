@@ -12,6 +12,7 @@ type Server interface {
 	ConfigurationStorage() ConfigurationStorage
 	ImportApps(filename string) error
 	ImportUsers(filename string) error
+	Settings() ServerSettings
 	Close()
 }
 

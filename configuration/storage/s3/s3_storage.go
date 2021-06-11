@@ -23,13 +23,29 @@ type ConfigurationStorage struct {
 	UpdateChan       chan interface{}
 	updateChanClosed bool
 	keyStorage       model.KeyStorage
+	config           model.ConfigStorageSettings
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
-func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*ConfigurationStorage, error) {
-	s3client, err := s3Storage.NewS3Client(settings.Region)
+func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
+	log.Println("Loading server configuration from the S3 bucket...")
+
+	s3client, err := s3Storage.NewS3Client(config.S3.Region)
 	if err != nil {
-		return nil, err
+		log.Fatalf("Cannot initialize S3 client: %s.", err)
+	}
+
+	cs := &ConfigurationStorage{
+		Client:     s3client,
+		Bucket:     config.S3.Bucket,
+		ObjectName: config.S3.Key,
+		UpdateChan: make(chan interface{}, 1),
+		config:     config,
+	}
+
+	settings := model.ServerSettings{}
+	if err := cs.LoadServerSettings(&settings); err != nil {
+		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
 	}
 
 	var keyStorage model.KeyStorage
@@ -45,14 +61,7 @@ func NewConfigurationStorage(settings model.ConfigurationStorageSettings) (*Conf
 	if err != nil {
 		return nil, err
 	}
-
-	cs := &ConfigurationStorage{
-		Client:     s3client,
-		Bucket:     settings.Bucket,
-		ObjectName: settings.SettingsKey,
-		keyStorage: keyStorage,
-		UpdateChan: make(chan interface{}, 1),
-	}
+	cs.keyStorage = keyStorage
 	return cs, nil
 }
 
@@ -73,18 +82,18 @@ func (cs *ConfigurationStorage) LoadServerSettings(settings *model.ServerSetting
 		return fmt.Errorf("Cannot decode S3 response: %s", err)
 	}
 
-	if settings.ConfigurationStorage.Type != model.ConfigurationStorageTypeS3 {
-		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.ConfigurationStorage.Type)
+	if settings.Config.Type != model.ConfigStorageTypeS3 {
+		return fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
 	}
 
 	return nil
 }
 
-// InsertConfig puts new configuration into the storage.
-func (cs *ConfigurationStorage) InsertConfig(key string, value interface{}) error {
+// WriteConfig puts new configuration into the storage.
+func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
 	log.Println("Putting new config to S3...")
 
-	valueBytes, err := yaml.Marshal(value)
+	valueBytes, err := yaml.Marshal(settings)
 	if err != nil {
 		return fmt.Errorf("Cannot marshal settings value: %s", err)
 	}

@@ -534,7 +534,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 			continue // TODO: use internal pagination mechanism
 		}
 		user := model.User{}
-		if err = dynamodbattribute.UnmarshalMap(result.Items[i], user); err != nil {
+		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &user); err != nil {
 			log.Println("error while unmarshal user: ", err)
 			return []model.User{}, 0, ErrorInternalError
 		}

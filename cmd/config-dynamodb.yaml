@@ -1,0 +1,83 @@
+general: # General server settings.
+  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
+  issuer: http://localhost:8081 # JWT tokens issuer.
+  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+
+# Names of environment variables that store admin credentials.
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
+storage:
+  appStorage: &dynamo_settings
+    type: dynamodb
+    endpoint: http://localhost:8000
+    region: us-east-2
+  userStorage: *dynamo_settings
+  tokenStorage: *dynamo_settings
+  tokenBlacklist: *dynamo_settings
+  verificationCodeStorage: *dynamo_settings
+  inviteStorage: *dynamo_settings
+
+# Storage for admin sessions.
+sessionStorage:
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
+  # Admin session duration in seconds.
+  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  sessionDuration: 300
+  address: # Redis-related setting.
+  password: # Redis-related setting.
+  db: # Redis-related setting.
+  region: # DynamoDB-related setting.
+  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
+
+keyStorage: # Storage for keys used for signing and verifying JWTs.
+  type: local # Key storage type. Supported values are "local" and "s3".
+  #file/local key storage settings
+  file:
+    private_key_path: ./jwt/test_artifacts/private.pem
+    public_key_path: ./jwt/test_artifacts/public.pem
+
+
+staticFilesStorage:
+  type: local # Supported values are "local", "s3", and "dynamodb".
+  serverConfigPath: server-config.yaml # Path to the file with server settings.
+  # Folder for static files if type is "local" or "s3".
+  # All following paths are relative to this location. Assumed to be root if omitted.
+  folder: ./static
+  # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set,
+  # it overrides the value specified here.
+  bucket:
+  region: # Required when type is "s3" or "dynamodb".
+  endpoint: # DynamoDB-specific setting. Can be ommitted when region is set.
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  serveNewWeb: true # If ommited or set to false, will be served old templated based web version.
+
+login: # Supported login ways.
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  # Type of two-factor authentication, if application enables it.
+  # Supported values are: "app" (like Google Authenticator), "sms", "email".
+  tfaType: app
+
+externalServices:
+  emailService: # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
+    domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
+    privateKey: # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
+    publicKey: # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
+    sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
+  smsService: # SMS service settings.
+    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
+    accountSid: # Twilio-related setting.
+    authToken: # Twilio-related setting.
+    serviceSid: # Twilio-related setting.
+    apiKey: # Nexmo-related setting.
+    apiSecret: # Nexmo-related setting.
+    username: # RouteMobile-related setting.
+    password: # RouteMobile-related setting.
+    source: # RouteMobile-related setting.
+    region: # RouteMobile-related setting. Supported values are: uae.

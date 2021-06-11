@@ -1,22 +1,26 @@
 package model
 
 import (
+	"fmt"
 	"net"
 	"net/url"
 	"strings"
 )
 
+const defaultEtcdKey = "identifo"
+
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General              GeneralServerSettings        `yaml:"general,omitempty" json:"general,omitempty"`
-	AdminAccount         AdminAccountSettings         `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	Storage              StorageSettings              `yaml:"storage,omitempty" json:"storage,omitempty"`
-	ConfigurationStorage ConfigurationStorageSettings `yaml:"configurationStorage,omitempty" json:"configuration_storage,omitempty"`
-	SessionStorage       SessionStorageSettings       `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	StaticFilesStorage   StaticFilesStorageSettings   `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
-	ExternalServices     ExternalServicesSettings     `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
-	Login                LoginSettings                `yaml:"login,omitempty" json:"login,omitempty"`
-	Logger               LoggerSettings               `yaml:"logger,omitempty" json:"logger,omitempty"`
+	General            GeneralServerSettings      `yaml:"general,omitempty" json:"general,omitempty"`
+	AdminAccount       AdminAccountSettings       `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
+	Storage            StorageSettings            `yaml:"storage,omitempty" json:"storage,omitempty"`
+	SessionStorage     SessionStorageSettings     `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
+	StaticFilesStorage StaticFilesStorageSettings `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
+	ExternalServices   ExternalServicesSettings   `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
+	Login              LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
+	KeyStorage         KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"keyStorage,omitempty"`
+	Config             ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
+	Logger             LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -85,26 +89,24 @@ const (
 	StaticFilesStorageTypeDynamoDB = "dynamodb"
 )
 
-// ConfigurationStorageSettings holds together configuration storage settings.
-type ConfigurationStorageSettings struct {
-	Type        ConfigurationStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	SettingsKey string                   `yaml:"settingsKey,omitempty" json:"settings_key,omitempty"`
-	Endpoints   []string                 `yaml:"endpoints,omitempty" json:"endpoints,omitempty"`
-	Bucket      string                   `yaml:"bucket,omitempty" json:"bucket,omitempty"`
-	Region      string                   `yaml:"region,omitempty" json:"region,omitempty"`
-	KeyStorage  KeyStorageSettings       `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
+type ConfigStorageSettings struct {
+	Type      ConfigStorageType    `json:"type,omitempty" yaml:"type,omitempty"`
+	RawString string               `json:"raw_string,omitempty" yaml:"raw_string,omitempty"`
+	S3        *S3StorageSettings   `json:"s3,omitempty" yaml:"s3,omitempty"`
+	File      *FileStorageSettings `json:"file,omitempty" yaml:"file,omitempty"`
+	Etcd      *EtcdStorageSettings `json:"etcd,omitempty" yaml:"etcd,omitempty"`
 }
 
-// ConfigurationStorageType describes type of configuration storage.
-type ConfigurationStorageType string
+// ConfigStorageType describes type of configuration storage.
+type ConfigStorageType string
 
 const (
-	// ConfigurationStorageTypeEtcd is an etcd storage.
-	ConfigurationStorageTypeEtcd ConfigurationStorageType = "etcd"
+	// ConfigStorageTypeEtcd is an etcd storage.
+	ConfigStorageTypeEtcd ConfigStorageType = "etcd"
 	// ConfigurationStorageTypeS3 is an AWS S3 storage.
-	ConfigurationStorageTypeS3 ConfigurationStorageType = "s3"
+	ConfigStorageTypeS3 ConfigStorageType = "s3"
 	// ConfigurationStorageTypeFile is a config file.
-	ConfigurationStorageTypeFile ConfigurationStorageType = "file"
+	ConfigStorageTypeFile ConfigStorageType = "file"
 )
 
 // SessionStorageSettings holds together session storage settings.
@@ -132,10 +134,21 @@ const (
 
 // KeyStorageSettings are settings for the key storage.
 type KeyStorageSettings struct {
-	Type   KeyStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	Folder string         `yaml:"folder,omitempty" json:"folder,omitempty"`
-	Region string         `yaml:"region,omitempty" json:"region,omitempty"`
-	Bucket string         `yaml:"bucket,omitempty" json:"bucket,omitempty"`
+	Type KeyStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
+	S3   *S3KeyStorageSettings   `yaml:"s3,omitempty" json:"s3,omitempty"`
+	File *KeyStorageFileSettings `yaml:"file,omitempty" json:"file,omitempty"`
+}
+
+type KeyStorageFileSettings struct {
+	PrivateKeyPath string `json:"private_key_path,omitempty" yaml:"private_key_path,omitempty"`
+	PublicKeyPath  string `json:"public_key_path,omitempty" yaml:"public_key_path,omitempty"`
+}
+
+type S3KeyStorageSettings struct {
+	Region        string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
+	Bucket        string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
+	PublicKeyKey  string `yaml:"public_key_key,omitempty" json:"public_key_key,omitempty" bson:"public_key_key,omitempty"`
+	PrivateKeyKey string `yaml:"private_key_key,omitempty" json:"private_key_key,omitempty" bson:"private_key_key,omitempty"`
 }
 
 // KeyStorageType is a type of the key storage.
@@ -229,7 +242,7 @@ const (
 )
 
 // GetPort returns port on which host listens to incoming connections.
-func (ss *ServerSettings) GetPort() string {
+func (ss ServerSettings) GetPort() string {
 	u, err := url.Parse(ss.General.Host)
 	if err != nil {
 		panic(err)
@@ -244,4 +257,113 @@ func (ss *ServerSettings) GetPort() string {
 
 type LoggerSettings struct {
 	DumpRequest bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
+}
+
+type FileStorageSettings struct {
+	// just a file name
+	FileName string `yaml:"file_name,omitempty" json:"file_name,omitempty" bson:"file_name,omitempty"`
+}
+
+type S3StorageSettings struct {
+	Region string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
+	Bucket string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
+	Key    string `yaml:"key,omitempty" json:"key,omitempty" bson:"key,omitempty"`
+}
+
+type EtcdStorageSettings struct {
+	Endpoints []string `json:"endpoints,omitempty" yaml:"endpoints,omitempty"`
+	Key       string   `json:"key,omitempty" yaml:"key,omitempty"`
+	Username  string   `json:"username,omitempty" yaml:"username,omitempty"`
+	Password  string   `json:"password,omitempty" yaml:"password,omitempty"`
+}
+
+func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, error) {
+	// Parse the URL and ensure there are no errors.
+	u, err := url.Parse(config)
+	if err != nil {
+		return ConfigStorageSettings{}, fmt.Errorf("Unable to parse config string: %s", config)
+	}
+
+	switch strings.ToLower(u.Scheme) {
+	case "etcd":
+		return ConfigStorageSettingsFromStringEtcd(config)
+	case "s3":
+		return ConfigStorageSettingsFromStringS3(config)
+	default:
+		return ConfigStorageSettingsFromStringFile(config)
+	}
+}
+
+func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, error) {
+	components := strings.Split(config[5:], "@")
+	var pathComponents []string
+	region := ""
+	if len(components) == 2 {
+		region = components[0]
+		pathComponents = strings.Split(components[1], "/")
+	} else if len(components) == 1 {
+		pathComponents = strings.Split(components[0], "/")
+	} else {
+		return ConfigStorageSettings{}, fmt.Errorf("could not get s3 file path from config: %s", config)
+	}
+	if len(pathComponents) < 2 {
+		return ConfigStorageSettings{}, fmt.Errorf("could not get s3 file path from config: %s", config)
+	}
+	bucket := pathComponents[0]
+	path := strings.Join(pathComponents[1:], "/")
+
+	return ConfigStorageSettings{
+		Type:      ConfigStorageTypeS3,
+		RawString: config,
+		S3: &S3StorageSettings{
+			Region: region,
+			Bucket: bucket,
+			Key:    path,
+		},
+	}, nil
+}
+
+func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, error) {
+	filename := config
+	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
+		filename = filename[7:]
+	}
+	return ConfigStorageSettings{
+		Type:      ConfigStorageTypeFile,
+		RawString: config,
+		File: &FileStorageSettings{
+			FileName: filename,
+		},
+	}, nil
+}
+
+func ConfigStorageSettingsFromStringEtcd(config string) (ConfigStorageSettings, error) {
+	result := ConfigStorageSettings{
+		Type:      ConfigStorageTypeEtcd,
+		RawString: config,
+		Etcd: &EtcdStorageSettings{
+			Key: defaultEtcdKey,
+		},
+	}
+	var es string
+	components := strings.Split(config[7:], "@")
+	if len(components) > 1 {
+		es = components[1]
+		creds := strings.Split(components[0], ":")
+		if len(creds) == 2 {
+			result.Etcd.Username = creds[0]
+			result.Etcd.Password = creds[1]
+		}
+	} else if len(components) == 1 {
+		es = components[0]
+	} else {
+		return ConfigStorageSettings{}, fmt.Errorf("could not get etcd endpoints from config: %s", config)
+	}
+
+	components = strings.Split(es, "|")
+	if len(components) > 1 {
+		result.Etcd.Key = components[1]
+	}
+	result.Etcd.Endpoints = strings.Split(components[0], ",")
+	return result, nil
 }

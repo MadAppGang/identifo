@@ -24,9 +24,9 @@ func (ss *ServerSettings) Validate() error {
 	if err := ss.SessionStorage.Validate(); err != nil {
 		return err
 	}
-	if err := ss.ConfigurationStorage.Validate(); err != nil {
-		return err
-	}
+	// if err := ss.ConfigurationStorage.Validate(); err != nil {
+	// 	return err
+	// }
 	if err := ss.StaticFilesStorage.Validate(); err != nil {
 		return err
 	}
@@ -146,45 +146,43 @@ func (sss *SessionStorageSettings) Validate() error {
 const identifoConfigBucketEnvName = "IDENTIFO_CONFIG_BUCKET"
 
 // Validate validates configuration storage settings.
-func (css *ConfigurationStorageSettings) Validate() error {
+func (css *ConfigStorageSettings) Validate() error {
 	subject := "ConfigurationStorageSettings"
 	if css == nil {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-	if len(css.Type) == 0 {
-		return fmt.Errorf("Empty configuration storage type")
-	}
-	if len(css.SettingsKey) == 0 {
-		return fmt.Errorf("%s. Empty settings key", subject)
-	}
-
 	switch css.Type {
-	case ConfigurationStorageTypeFile:
-		break
-	case ConfigurationStorageTypeEtcd:
-		for _, ep := range css.Endpoints {
-			if _, err := url.ParseRequestURI(ep); err != nil {
-				return fmt.Errorf("%s. Invalid etcd enpoint. %s", subject, err)
-			}
+	case ConfigStorageTypeFile:
+		if css.File == nil {
+			return fmt.Errorf("%s. empty file key", subject)
 		}
-	case ConfigurationStorageTypeS3:
-		if len(css.Region) == 0 {
+		if len(css.File.FileName) == 0 {
+			return fmt.Errorf("%s. empty file key ", subject)
+		}
+		break
+	case ConfigStorageTypeEtcd:
+		return fmt.Errorf("%s. etcd storage not supported", subject)
+	case ConfigStorageTypeS3:
+		if css.S3 == nil {
+			return fmt.Errorf("%s. empty s3 settings key", subject)
+		}
+		if len(css.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 		if bucket := os.Getenv(identifoConfigBucketEnvName); len(bucket) != 0 {
-			css.Bucket = bucket
+			css.S3.Bucket = bucket
 		}
-		if len(css.Bucket) == 0 {
-			return fmt.Errorf("%s. Bucket for config is not set", subject)
+		if len(css.S3.Bucket) == 0 {
+			return fmt.Errorf("%s. S3 Bucket for config is not set", subject)
+		}
+		if len(css.S3.Key) == 0 {
+			return fmt.Errorf("%s. S3 Key for config is not set", subject)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}
 
-	if err := css.KeyStorage.Validate(); err != nil {
-		return err
-	}
 	return nil
 }
 
@@ -200,7 +198,7 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 	if len(sfs.Type) == 0 {
 		return fmt.Errorf("%s. Empty static files storage type", subject)
 	}
-	if len(sfs.ServerConfigPath) == 0 {
+	if (len(sfs.ServerConfigPath) == 0) && (sfs.Type != "local") {
 		return fmt.Errorf("%s. Empty server config path", subject)
 	}
 
@@ -238,16 +236,28 @@ func (kss *KeyStorageSettings) Validate() error {
 
 	switch kss.Type {
 	case KeyStorageTypeLocal:
+		if kss.File == nil {
+			return fmt.Errorf("%s. Empty File settings key", subject)
+		}
 		break
 	case KeyStorageTypeS3:
-		if len(kss.Region) == 0 {
+		if kss.S3 == nil {
+			return fmt.Errorf("%s. Empty S3 settings key", subject)
+		}
+		if len(kss.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 		if bucket := os.Getenv(identifoJWTKeysBucketEnvName); len(bucket) != 0 {
-			kss.Bucket = bucket
+			kss.S3.Bucket = bucket
 		}
-		if len(kss.Bucket) == 0 {
+		if len(kss.S3.Bucket) == 0 {
 			return fmt.Errorf("%s. Bucket for keys is not set", subject)
+		}
+		if len(kss.S3.PrivateKeyKey) == 0 {
+			return fmt.Errorf("%s. Private key  key is not set", subject)
+		}
+		if len(kss.S3.PublicKeyKey) == 0 {
+			return fmt.Errorf("%s. Public key  key is not set", subject)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type '%s'", subject, kss.Type)

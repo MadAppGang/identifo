@@ -12,12 +12,8 @@ import (
 
 // NewS3Client creates and returns new S3 client.
 func NewS3Client(region string) (*s3.S3, error) {
-	if len(region) == 0 {
-		return nil, fmt.Errorf("No S3 region for configuration specified")
-	}
-
 	cfg := getConfig(region)
-	sess, err := session.NewSession(cfg)
+	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
 	if err != nil {
 		return nil, fmt.Errorf("Cannot create new session: %s", err)
 	}
@@ -25,7 +21,10 @@ func NewS3Client(region string) (*s3.S3, error) {
 }
 
 func getConfig(region string) *aws.Config {
-	cfg := aws.NewConfig().WithRegion(region)
+	cfg := aws.NewConfig()
+	if len(region) > 0 {
+		cfg = cfg.WithRegion(region)
+	}
 
 	cfg.HTTPClient = http.DefaultClient
 	cfg.HTTPClient.Timeout = 10 * time.Second

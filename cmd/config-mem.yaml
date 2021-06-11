@@ -1,0 +1,54 @@
+general: # General server settings.
+  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
+  issuer: http://localhost:8081 # JWT tokens issuer.
+  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+
+# Names of environment variables that store admin credentials.
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+
+storage:
+  appStorage:
+    type: fake
+  userStorage:
+    type: fake
+  tokenStorage:
+    type: fake
+  tokenBlacklist:
+    type: fake
+  verificationCodeStorage:
+    type: fake
+  inviteStorage:
+    type: fake
+
+# Storage for admin sessions.
+sessionStorage:
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
+  sessionDuration: 300
+
+keyStorage: # Storage for keys used for signing and verifying JWTs.
+  type: local # Key storage type. Supported values are "local" and "s3".
+  file:
+    private_key_path: ./jwt/test_artifacts/private.pem
+    public_key_path: ./jwt/test_artifacts/public.pem
+
+
+staticFilesStorage:
+  type: local # Supported values are "local", "s3", and "dynamodb".
+  folder: ./static
+  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
+  serveNewWeb: true # If ommited or set to false, will be served old templated based web version.
+
+login: # Supported login ways.
+  loginWith:
+    phone: true
+    username: true
+    federated: true
+  tfaType: app
+
+externalServices:
+  emailService: # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
+  smsService: # SMS service settings.
+    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
