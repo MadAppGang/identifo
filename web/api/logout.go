@@ -31,7 +31,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		accessTokenString := string(accessTokenBytes)
 
 		// Blacklist current access token.
-		if err := ar.tokenBlacklist.Add(accessTokenString); err != nil {
+		if err := ar.server.Storages().Blocklist.Add(accessTokenString); err != nil {
 			ar.logger.Printf("Cannot blacklist access token: %s\n", err)
 		}
 
@@ -53,7 +53,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		// Detach device token, if present.
 		if len(d.DeviceToken) > 0 {
 			// TODO: check for ownership when device tokens are supported.
-			if err := ar.userStorage.DetachDeviceToken(d.DeviceToken); err != nil {
+			if err := ar.server.Storages().User.DetachDeviceToken(d.DeviceToken); err != nil {
 				ar.logger.Println("Cannot detach device token")
 			}
 		}
@@ -95,11 +95,11 @@ func (ar *Router) revokeRefreshToken(refreshTokenString, accessTokenString strin
 		return fmt.Errorf("%s tried to revoke refresh token that belong to %s", atSub, rtSub)
 	}
 
-	if err := ar.tokenStorage.DeleteToken(refreshTokenString); err != nil {
+	if err := ar.server.Storages().Token.DeleteToken(refreshTokenString); err != nil {
 		return fmt.Errorf("Cannot delete refresh token: %s", err)
 	}
 
-	if err := ar.tokenBlacklist.Add(refreshTokenString); err != nil {
+	if err := ar.server.Storages().Blocklist.Add(refreshTokenString); err != nil {
 		return fmt.Errorf("Cannot blacklist refresh token: %s", err)
 	}
 	return nil

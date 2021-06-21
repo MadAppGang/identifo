@@ -26,7 +26,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByEmail(d.Email)
+		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err == model.ErrUserNotFound {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestResetPassword.UserExists")
 			return
@@ -34,13 +34,13 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
 		}
 
-		resetToken, err := ar.tokenService.NewResetToken(user.ID)
+		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")
 			return
 		}
 
-		resetTokenString, err := ar.tokenService.String(resetToken)
+		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.tokenService_String")
 			return
@@ -69,7 +69,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			Host:  uu.String(),
 		}
 
-		if err = ar.emailService.SendResetEmail("Reset Password", d.Email, resetEmailData); err != nil {
+		if err = ar.server.Services().Email.SendResetEmail("Reset Password", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail")
 			return
 		}
@@ -108,20 +108,20 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "ResetPassword.UserByID")
 			return
 		}
 
 		// Save new password.
-		if err := ar.userStorage.ResetPassword(user.ID, d.Password); err != nil {
+		if err := ar.server.Storages().User.ResetPassword(user.ID, d.Password); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "ResetPassword.ResetPassword")
 			return
 		}
 
 		// Refetch user with new password hash.
-		if user, err = ar.userStorage.UserByNamePassword(user.Username, d.Password); err != nil {
+		if user, err = ar.server.Storages().User.UserByNamePassword(user.Username, d.Password); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "ResetPassword.RefetchUser")
 			return
 		}

@@ -16,29 +16,20 @@ import (
 
 // Router is a router that handles all API requests.
 type Router struct {
-	middleware              *negroni.Negroni
-	cors                    *cors.Cors
-	logger                  *log.Logger
-	router                  *mux.Router
-	appStorage              model.AppStorage
-	userStorage             model.UserStorage
-	tokenStorage            model.TokenStorage
-	tokenBlacklist          model.TokenBlacklist
-	inviteStorage           model.InviteStorage
-	verificationCodeStorage model.VerificationCodeStorage
-	staticFilesStorage      model.StaticFilesStorage
-	tfaType                 model.TFAType
-	tokenService            model.TokenService
-	smsService              model.SMSService
-	emailService            model.EmailService
-	oidcConfiguration       *OIDCConfiguration
-	jwk                     *jwk
-	Authorizer              *authorization.Authorizer
-	Host                    string
-	SupportedLoginWays      model.LoginWith
-	WebRouterPrefix         string
-	tokenPayloadServices    map[string]model.TokenPayloadProvider
-	LoggerSettings          model.LoggerSettings
+	server               model.Server
+	middleware           *negroni.Negroni
+	cors                 *cors.Cors
+	logger               *log.Logger
+	router               *mux.Router
+	tfaType              model.TFAType
+	oidcConfiguration    *OIDCConfiguration
+	jwk                  *jwk
+	Authorizer           *authorization.Authorizer
+	Host                 string
+	SupportedLoginWays   model.LoginWith
+	WebRouterPrefix      string
+	tokenPayloadServices map[string]model.TokenPayloadProvider
+	LoggerSettings       model.LoggerSettings
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -98,23 +89,14 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 	}
 }
 
-// NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, is model.InviteStorage, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ model.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
+// NewRouter creates and inits new router.
+func NewRouter(server model.Server, logger *log.Logger, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		middleware:              negroni.Classic(),
-		router:                  mux.NewRouter(),
-		appStorage:              as,
-		userStorage:             us,
-		tokenStorage:            ts,
-		tokenBlacklist:          tb,
-		inviteStorage:           is,
-		verificationCodeStorage: vcs,
-		staticFilesStorage:      sfs,
-		tokenService:            tServ,
-		smsService:              smsServ,
-		emailService:            emailServ,
-		Authorizer:              authorizer,
-		LoggerSettings:          loggerSettings,
+		server:         server,
+		middleware:     negroni.Classic(),
+		router:         mux.NewRouter(),
+		Authorizer:     authorizer,
+		LoggerSettings: loggerSettings,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

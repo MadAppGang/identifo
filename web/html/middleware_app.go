@@ -31,7 +31,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
-		app, err := ar.AppStorage.ActiveAppByID(appID)
+		app, err := ar.Server.Storages().App.ActiveAppByID(appID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting app by id. %s", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)

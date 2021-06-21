@@ -48,7 +48,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "EnableTFA.UserByID")
 			return
@@ -73,7 +73,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			Secret:    gotp.RandomSecret(16),
 		}
 
-		if _, err := ar.userStorage.UpdateUser(userID, user); err != nil {
+		if _, err := ar.server.Storages().User.UpdateUser(userID, user); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
 			return
 		}
@@ -148,7 +148,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "FinalizeTFA.UserByID")
 			return
@@ -174,7 +174,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		// Issue new access, and, if requested, refresh token, and then invalidate the old one.
-		scopes, err := ar.userStorage.RequestScopes(user.ID, d.Scopes)
+		scopes, err := ar.server.Storages().User.RequestScopes(user.ID, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.RequestScopes")
 			return
@@ -194,7 +194,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		// Blacklist old access token.
-		if err := ar.tokenBlacklist.Add(oldAccessTokenString); err != nil {
+		if err := ar.server.Storages().Blocklist.Add(oldAccessTokenString); err != nil {
 			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
 		}
 
@@ -205,7 +205,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID)
+		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
@@ -242,7 +242,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.userStorage.UserExists(d.Email); !userExists {
+		if userExists := ar.server.Storages().User.UserExists(d.Email); !userExists {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestDisabledTFA.UserExists")
 			return
 		}
@@ -258,19 +258,19 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByEmail(d.Email)
+		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.IDByName")
 			return
 		}
 
-		resetToken, err := ar.tokenService.NewResetToken(user.ID)
+		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.NewResetToken")
 			return
 		}
 
-		resetTokenString, err := ar.tokenService.String(resetToken)
+		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.tokenService_String")
 			return
@@ -302,7 +302,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			URL:   u.String(),
 		}
 
-		if err = ar.emailService.SendResetEmail("Disable Two-Factor Authentication", d.Email, resetEmailData); err != nil {
+		if err = ar.server.Services().Email.SendResetEmail("Disable Two-Factor Authentication", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail")
 			return
 		}
@@ -329,12 +329,12 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.userStorage.UserExists(d.Email); !userExists {
+		if userExists := ar.server.Storages().User.UserExists(d.Email); !userExists {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestTFAReset.UserExists")
 			return
 		}
 
-		user, err := ar.userStorage.UserByEmail(d.Email)
+		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.IDByName")
 			return
@@ -351,13 +351,13 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		resetToken, err := ar.tokenService.NewResetToken(user.ID)
+		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.NewResetToken")
 			return
 		}
 
-		resetTokenString, err := ar.tokenService.String(resetToken)
+		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.tokenService_String")
 			return
@@ -390,7 +390,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			Host:  uu.String(),
 		}
 
-		if err = ar.emailService.SendResetEmail("Reset Two-Factor Authentication", d.Email, resetEmailData); err != nil {
+		if err = ar.server.Services().Email.SendResetEmail("Reset Two-Factor Authentication", d.Email, resetEmailData); err != nil {
 			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestTFAReset.SendResetEmail")
 			return
 		}

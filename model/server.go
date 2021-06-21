@@ -7,11 +7,8 @@ import (
 // Server holds together all dependencies.
 type Server interface {
 	Router() Router
-	AppStorage() AppStorage
-	UserStorage() UserStorage
-	ConfigurationStorage() ConfigurationStorage
-	ImportApps(filename string) error
-	ImportUsers(filename string) error
+	Storages() ServerStorageCollection
+	Services() ServerServices
 	Settings() ServerSettings
 	Close()
 }
@@ -35,7 +32,8 @@ type ServerStorageCollection struct {
 }
 
 type ServerServices struct {
-	SMS   SMSService
-	Email EmailService
-	Token TokenService
+	SMS     SMSService
+	Email   EmailService
+	Token   TokenService
+	Session SessionService
 }

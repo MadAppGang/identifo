@@ -7,6 +7,7 @@
 - [x] refactor config file from flat to tree structure
 - [x] refactor session service
 - [x] refactor token service model
+- [ ] html/routes.go - check to we need static files handler?
 - [ ] refactor token service creation with configurator
 - [ ] refactor key storage
 - [ ] refactor main file

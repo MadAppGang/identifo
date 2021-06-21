@@ -16,22 +16,14 @@ import (
 
 // Router handles incoming http connections.
 type Router struct {
-	Middleware                 *negroni.Negroni
-	Logger                     *log.Logger
-	Router                     *mux.Router
-	AppStorage                 model.AppStorage
-	UserStorage                model.UserStorage
-	TokenStorage               model.TokenStorage
-	TokenBlacklist             model.TokenBlacklist
-	TokenService               model.TokenService
-	SMSService                 model.SMSService
-	EmailService               model.EmailService
-	staticFilesStorage         model.StaticFilesStorage
-	staticFilesStorageSettings *model.StaticFilesStorageSettings
-	Authorizer                 *authorization.Authorizer
-	PathPrefix                 string
-	Host                       string
-	cors                       *cors.Cors
+	Server     model.Server
+	Middleware *negroni.Negroni
+	Logger     *log.Logger
+	Router     *mux.Router
+	Authorizer *authorization.Authorizer
+	PathPrefix string
+	Host       string
+	cors       *cors.Cors
 }
 
 func defaultOptions() []func(*Router) error {
@@ -67,19 +59,12 @@ func CorsOption(corsOptions model.CorsOptions) func(*Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sfs model.StaticFilesStorage, ts model.TokenStorage, tb model.TokenBlacklist, tService model.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(server model.Server, logger *log.Logger, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		Middleware:         negroni.Classic(),
-		Router:             mux.NewRouter(),
-		AppStorage:         as,
-		UserStorage:        us,
-		TokenStorage:       ts,
-		TokenBlacklist:     tb,
-		TokenService:       tService,
-		SMSService:         smsServ,
-		EmailService:       emailServ,
-		staticFilesStorage: sfs,
-		Authorizer:         authorizer,
+		Middleware: negroni.Classic(),
+		Router:     mux.NewRouter(),
+		Server:     server,
+		Authorizer: authorizer,
 	}
 
 	for _, option := range append(defaultOptions(), options...) {
@@ -139,12 +124,4 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Reroute to our internal implementation.
 	ar.Router.ServeHTTP(w, r)
-}
-
-// ServerSettingsOption sets path to configuration file with server settings.
-func StaticFilesStorageSettings(settings *model.StaticFilesStorageSettings) func(*Router) error {
-	return func(r *Router) error {
-		r.staticFilesStorageSettings = settings
-		return nil
-	}
 }

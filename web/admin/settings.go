@@ -11,7 +11,7 @@ import (
 // FetchServerSettings returns server settings.
 func (ar *Router) FetchServerSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings())
 	}
 }
 
@@ -60,7 +60,7 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 		if len(adminDataUpdate.LoginEnvName) > 0 {
 			adminData.LoginEnvName = adminDataUpdate.LoginEnvName
 		} else {
-			adminData.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
+			adminData.LoginEnvName = ar.server.Settings().AdminAccount.LoginEnvName
 		}
 
 		if len(adminDataUpdate.Password) > 0 {
@@ -69,7 +69,7 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 		if len(adminDataUpdate.PasswordEnvName) > 0 {
 			adminData.PasswordEnvName = adminDataUpdate.PasswordEnvName
 		} else {
-			adminData.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
+			adminData.PasswordEnvName = ar.server.Settings().AdminAccount.PasswordEnvName
 		}
 
 		if ar.updateAdminAccountSettings(w, adminData) != nil {
@@ -83,7 +83,7 @@ func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
 // FetchGeneralSettings fetches server's general settings.
 func (ar *Router) FetchGeneralSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.General)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().General)
 	}
 }
 
@@ -108,7 +108,7 @@ func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
 // FetchStorageSettings fetches server's general settings.
 func (ar *Router) FetchStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Storage)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Storage)
 	}
 }
 
@@ -133,7 +133,7 @@ func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
 // FetchSessionStorageSettings fetches session storage settings.
 func (ar *Router) FetchSessionStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.SessionStorage)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().SessionStorage)
 	}
 }
 
@@ -158,14 +158,14 @@ func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
 // FetchConfigurationStorageSettings fetches configuration storage settings.
 func (ar *Router) FetchConfigurationStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Config)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Config)
 	}
 }
 
 // RestartServer restarts server with new settings.
 func (ar *Router) RestartServer() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := ar.configurationStorage.WriteConfig(*ar.newSettings); err != nil {
+		if err := ar.server.Storages().Config.WriteConfig(*ar.newSettings); err != nil {
 			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
@@ -195,7 +195,7 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 // FetchStaticFilesStorageSettings fetches static files settings.
 func (ar *Router) FetchStaticFilesStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.StaticFilesStorage)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().StaticFilesStorage)
 	}
 }
 
@@ -216,7 +216,7 @@ func (ar *Router) UpdateStaticFilesStorageSettings() http.HandlerFunc {
 // FetchLoginSettings fetches app's login settings.
 func (ar *Router) FetchLoginSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.Login)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Login)
 	}
 }
 
@@ -237,7 +237,7 @@ func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
 // FetchExternalServicesSettings fetches settings for external services.
 func (ar *Router) FetchExternalServicesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.ServerSettings.ExternalServices)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().ExternalServices)
 	}
 }
 
@@ -262,7 +262,7 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 // TestDatabaseConnection tests database connection.
 func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		if err := ar.appStorage.TestDatabaseConnection(); err != nil {
+		if err := ar.server.Storages().App.TestDatabaseConnection(); err != nil {
 			ar.ServeJSON(w, http.StatusInternalServerError, nil)
 		} else {
 			ar.ServeJSON(w, http.StatusOK, nil)
@@ -272,14 +272,14 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 
 // getAdminAccountSettings admin account settings and parses them to adminData struct.
 func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLoginData) error {
-	adminLogin := os.Getenv(ar.ServerSettings.AdminAccount.LoginEnvName)
+	adminLogin := os.Getenv(ar.server.Settings().AdminAccount.LoginEnvName)
 	if len(adminLogin) == 0 {
 		err := fmt.Errorf("Admin login not set")
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
 		return err
 	}
 
-	adminPassword := os.Getenv(ar.ServerSettings.AdminAccount.PasswordEnvName)
+	adminPassword := os.Getenv(ar.server.Settings().AdminAccount.PasswordEnvName)
 	if len(adminPassword) == 0 {
 		err := fmt.Errorf("Admin password not set")
 		ar.Error(w, err, http.StatusInternalServerError, err.Error())
@@ -287,9 +287,9 @@ func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLogin
 	}
 
 	ald.Login = adminLogin
-	ald.LoginEnvName = ar.ServerSettings.AdminAccount.LoginEnvName
+	ald.LoginEnvName = ar.server.Settings().AdminAccount.LoginEnvName
 	ald.Password = adminPassword
-	ald.PasswordEnvName = ar.ServerSettings.AdminAccount.PasswordEnvName
+	ald.PasswordEnvName = ar.server.Settings().AdminAccount.PasswordEnvName
 
 	return nil
 }
@@ -297,7 +297,7 @@ func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLogin
 func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData *adminLoginData) error {
 	var needChangeConfig bool
 
-	loginEnvName := ar.ServerSettings.AdminAccount.LoginEnvName
+	loginEnvName := ar.server.Settings().AdminAccount.LoginEnvName
 	if newAdminData.LoginEnvName != loginEnvName {
 		loginEnvName = newAdminData.LoginEnvName
 		needChangeConfig = true
@@ -308,7 +308,7 @@ func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData
 		return err
 	}
 
-	passwordEnvName := ar.ServerSettings.AdminAccount.PasswordEnvName
+	passwordEnvName := ar.server.Settings().AdminAccount.PasswordEnvName
 	if newAdminData.PasswordEnvName != passwordEnvName {
 		passwordEnvName = newAdminData.PasswordEnvName
 		needChangeConfig = true
@@ -323,11 +323,11 @@ func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData
 		return nil
 	}
 
-	newSettings := ar.ServerSettings
+	newSettings := ar.server.Settings()
 	newSettings.AdminAccount.LoginEnvName = loginEnvName
 	newSettings.AdminAccount.PasswordEnvName = passwordEnvName
 
-	ar.newSettings = newSettings
+	ar.newSettings = &newSettings
 	return nil
 }
 

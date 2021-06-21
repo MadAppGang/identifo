@@ -59,10 +59,10 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if ar.oidcConfiguration == nil {
 			ar.oidcConfiguration = &OIDCConfiguration{
-				Issuer:                 ar.tokenService.Issuer(),
-				JwksURI:                ar.tokenService.Issuer() + "/.well-known/jwks.json",
-				ScopesSupported:        ar.userStorage.Scopes(),
-				SupportedIDSigningAlgs: []string{ar.tokenService.Algorithm()},
+				Issuer:                 ar.server.Services().Token.Issuer(),
+				JwksURI:                ar.server.Services().Token.Issuer() + "/.well-known/jwks.json",
+				ScopesSupported:        ar.server.Storages().User.Scopes(),
+				SupportedIDSigningAlgs: []string{ar.server.Services().Token.Algorithm()},
 			}
 		}
 		ar.ServeJSON(w, http.StatusOK, ar.oidcConfiguration)
@@ -90,11 +90,11 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 		ar.jwk = &jwk{
 			Use: "sig",
-			Alg: ar.tokenService.Algorithm(),
-			Kid: ar.tokenService.KeyID(),
+			Alg: ar.server.Services().Token.Algorithm(),
+			Kid: ar.server.Services().Token.KeyID(),
 		}
 
-		switch pub := ar.tokenService.PublicKey().(type) {
+		switch pub := ar.server.Services().Token.PublicKey().(type) {
 		case *rsa.PublicKey:
 			// https://tools.ietf.org/html/rfc7518#section-6.3.1
 			ar.jwk.Kty = "RSA"
@@ -128,7 +128,7 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 
 // ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.
 func (ar *Router) ServeADDAFile() http.HandlerFunc {
-	data, err := ar.staticFilesStorage.GetAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
+	data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
 	}
@@ -146,7 +146,7 @@ func (ar *Router) ServeADDAFile() http.HandlerFunc {
 
 // ServeAASAFile lets Apple servers download apple-app-site-association file.
 func (ar *Router) ServeAASAFile() http.HandlerFunc {
-	data, err := ar.staticFilesStorage.GetAppleFile(model.AppleFilenames.AppSiteAssociation)
+	data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.AppSiteAssociation)
 	if err != nil {
 		ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
 	}

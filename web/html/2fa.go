@@ -30,7 +30,7 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.UserStorage.UserByID(token.UserID())
+		user, err := ar.Server.Storages().User.UserByID(token.UserID())
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
@@ -42,14 +42,14 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 			Secret:    "",
 		}
 
-		if _, err := ar.UserStorage.UpdateUser(token.UserID(), user); err != nil {
+		if _, err := ar.Server.Storages().User.UpdateUser(token.UserID(), user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
 		}
 
 		// Invalidate reset token after use.
-		if err := ar.TokenBlacklist.Add(tokenString); err != nil {
+		if err := ar.Server.Storages().Blocklist.Add(tokenString); err != nil {
 			ar.Logger.Printf("Cannot blacklist reset token after use: %s\n", err)
 		}
 
@@ -60,7 +60,7 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 
 // DisableTFAHandler handles disable TFA GET request.
 func (ar *Router) DisableTFAHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.DisableTFA)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.DisableTFA)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse DisableTFA template.", err)
 	}
@@ -104,7 +104,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.UserStorage.UserByID(token.UserID())
+		user, err := ar.Server.Storages().User.UserByID(token.UserID())
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
@@ -135,14 +135,14 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 			return
 		}
 
-		if _, err := ar.UserStorage.UpdateUser(token.UserID(), user); err != nil {
+		if _, err := ar.Server.Storages().User.UpdateUser(token.UserID(), user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
 		}
 
 		// Invalidate reset token after use.
-		if err := ar.TokenBlacklist.Add(tokenString); err != nil {
+		if err := ar.Server.Storages().Blocklist.Add(tokenString); err != nil {
 			ar.Logger.Printf("Cannot blacklist reset token after use: %s\n", err)
 		}
 
@@ -153,7 +153,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 
 // ResetTFAHandler handles reset TFA GET request.
 func (ar *Router) ResetTFAHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.ResetTFA)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.ResetTFA)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse ResetTFA template.", err)
 	}
@@ -171,7 +171,7 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.UserStorage.UserByID(token.UserID())
+		user, err := ar.Server.Storages().User.UserByID(token.UserID())
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
@@ -183,7 +183,7 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			Secret:    gotp.RandomSecret(16),
 		}
 
-		if _, err := ar.UserStorage.UpdateUser(user.ID, user); err != nil {
+		if _, err := ar.Server.Storages().User.UpdateUser(user.ID, user); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return

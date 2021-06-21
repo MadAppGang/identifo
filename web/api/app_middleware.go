@@ -19,7 +19,7 @@ const (
 func (ar *Router) AppID() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
-		app, err := ar.appStorage.ActiveAppByID(appID)
+		app, err := ar.server.Storages().App.ActiveAppByID(appID)
 		if err != nil {
 			err = fmt.Errorf("Error getting App by ID: %s", err)
 			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, err.Error(), "AppID.AppFromContext")

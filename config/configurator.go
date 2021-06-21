@@ -6,6 +6,8 @@ import (
 	"github.com/madappgang/identifo/services/mail"
 	"github.com/madappgang/identifo/services/sms"
 	"github.com/madappgang/identifo/storage"
+
+	jwt "github.com/madappgang/identifo/jwt/service"
 )
 
 // NewServer creates new server instance from ServerSettings
@@ -81,7 +83,7 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		return nil, err
 	}
 
-	srvs := model.ServerThirdPartyServices{
+	srvs := model.ServerServices{
 		SMS:   sms,
 		Email: email,
 	}
@@ -92,4 +94,21 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 	}
 
 	return server, nil
+}
+
+func NewTokenService(settings model.GeneralServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
+	// tokenServiceAlg, ok := model.StrToTokenSignAlg[settings.Algorithm]
+	// if !ok {
+	// 	return nil, fmt.Errorf("Unknown token service algorithm %s", settings.Algorithm)
+	// }
+	keys := 
+
+	tokenService, err := jwt.NewJWTokenService(
+		settings,
+		settings.Issuer,
+		storages.Token,
+		storages.App,
+		storages.User,
+	)
+	return tokenService, err
 }

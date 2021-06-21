@@ -16,24 +16,16 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	middleware           *negroni.Negroni
-	cors                 *cors.Cors
-	originChecker        *originchecker.OriginChecker
-	logger               *log.Logger
-	router               *mux.Router
-	sessionService       model.SessionService
-	sessionStorage       model.SessionStorage
-	appStorage           model.AppStorage
-	userStorage          model.UserStorage
-	configurationStorage model.ConfigurationStorage
-	staticFilesStorage   model.StaticFilesStorage
-	inviteStorage        model.InviteStorage
-	ServerConfigPath     string
-	ServerSettings       *model.ServerSettings
-	newSettings          *model.ServerSettings
-	RedirectURL          string
-	PathPrefix           string
-	Host                 string
+	server        model.Server
+	middleware    *negroni.Negroni
+	cors          *cors.Cors
+	originChecker *originchecker.OriginChecker
+	logger        *log.Logger
+	router        *mux.Router
+	newSettings   *model.ServerSettings
+	RedirectURL   string
+	PathPrefix    string
+	Host          string
 }
 
 func defaultOptions() []func(*Router) error {
@@ -67,22 +59,22 @@ func CorsOption(corsOptions model.CorsOptions, originChecker *originchecker.Orig
 	}
 }
 
-// ServerConfigPathOption sets path to configuration file with admin server settings.
-func ServerConfigPathOption(configPath string) func(*Router) error {
-	return func(r *Router) error {
-		r.ServerConfigPath = configPath
-		return nil
-	}
-}
+// // ServerConfigPathOption sets path to configuration file with admin server settings.
+// func ServerConfigPathOption(configPath string) func(*Router) error {
+// 	return func(r *Router) error {
+// 		r.ServerConfigPath = configPath
+// 		return nil
+// 	}
+// }
 
-// ServerSettingsOption sets path to configuration file with server settings.
-func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
-	return func(r *Router) error {
-		r.ServerSettings = settings
-		r.newSettings = settings
-		return nil
-	}
-}
+// // ServerSettingsOption sets path to configuration file with server settings.
+// func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
+// 	return func(r *Router) error {
+// 		r.ServerSettings = settings
+// 		r.newSettings = settings
+// 		return nil
+// 	}
+// }
 
 // RedirectURLOption sets redirect url value.
 func RedirectURLOption(redirectURL string) func(*Router) error {
@@ -101,17 +93,11 @@ func PathPrefixOptions(prefix string) func(r *Router) error {
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(logger *log.Logger, sServ model.SessionService, sStor model.SessionStorage, as model.AppStorage, us model.UserStorage, cs model.ConfigurationStorage, sfs model.StaticFilesStorage, is model.InviteStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(server model.Server, logger *log.Logger, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
-		middleware:           negroni.Classic(),
-		router:               mux.NewRouter(),
-		sessionService:       sServ,
-		sessionStorage:       sStor,
-		appStorage:           as,
-		userStorage:          us,
-		configurationStorage: cs,
-		staticFilesStorage:   sfs,
-		inviteStorage:        is,
+		server:     server,
+		middleware: negroni.Classic(),
+		router:     mux.NewRouter(),
 	}
 
 	for _, option := range append(defaultOptions(), options...) {

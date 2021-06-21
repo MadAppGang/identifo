@@ -40,7 +40,7 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 		return false
 	}
 
-	session, err := ar.sessionStorage.GetSession(sessionID)
+	session, err := ar.server.Storages().Session.GetSession(sessionID)
 	if err != nil {
 		ar.Error(w, err, http.StatusUnauthorized, err.Error())
 		return false
@@ -55,7 +55,7 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 }
 
 func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
-	if err := ar.sessionService.ProlongSession(sessionID); err != nil {
+	if err := ar.server.Services().Session.ProlongSession(sessionID); err != nil {
 		ar.logger.Println("Error prolonging session:", err)
 		return
 	}
@@ -63,7 +63,7 @@ func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 		Name:     cookieName,
 		Value:    encode(sessionID),
 		Path:     "/",
-		MaxAge:   ar.sessionService.SessionDurationSeconds(),
+		MaxAge:   ar.server.Services().Session.SessionDurationSeconds(),
 		HttpOnly: true,
 	}
 	http.SetCookie(w, c)
