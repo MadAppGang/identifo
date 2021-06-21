@@ -4,7 +4,7 @@ import (
 	"errors"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/njern/gonexmo"
+	nexmo "github.com/njern/gonexmo"
 )
 
 // SMSService sends SMS via Nexmo service.
@@ -13,7 +13,7 @@ type SMSService struct {
 }
 
 // NewSMSService creates, inits and returns Nexmo-backed SMS service.
-func NewSMSService(settings model.SMSServiceSettings) (*SMSService, error) {
+func NewSMSService(settings model.NexmoServiceSettings) (*SMSService, error) {
 	client, err := nexmo.NewClient(settings.APIKey, settings.APISecret)
 	if err != nil {
 		return nil, err

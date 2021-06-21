@@ -9,9 +9,9 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
-	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	s3Storage "github.com/madappgang/identifo/storage/s3"
 	"gopkg.in/yaml.v2"
 )
 

@@ -170,7 +170,9 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 		}
 
 		prefix := strings.TrimSuffix(r.URL.Path, name)
-		localHandler := http.FileServer(http.Dir(path.Join(sfs.fallback.Folder, prefix)))
+		// localHandler := http.FileServer(http.Dir(path.Join(sfs.fallback.Folder, prefix)))
+		// TODO: Refactor this, ho to get files and where to get files
+		localHandler := http.FileServer(http.Dir(prefix))
 		http.StripPrefix(prefix, localHandler).ServeHTTP(w, r)
 	})
 
@@ -185,13 +187,13 @@ func (sfs *StaticFilesStorage) AssetHandlers() *model.AssetHandlers {
 // AdminPanelHandlers returns handlers for the admin panel.
 // Adminpanel build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
-	return sfs.localStorage.AdminPanelHandlers()
+	return sfs.fallback.AdminPanelHandlers()
 }
 
 // WebHandlers returns handlers for the web.
 // Web build is always being stored locally, despite the static storage type.
 func (sfs *StaticFilesStorage) WebHandlers() *model.WebHandlers {
-	return sfs.localStorage.WebHandlers()
+	return sfs.fallback.WebHandlers()
 }
 
 // Close is to satisfy the interface.

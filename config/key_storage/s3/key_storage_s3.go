@@ -10,9 +10,9 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	jwt "github.com/form3tech-oss/jwt-go"
-	s3Storage "github.com/madappgang/identifo/external_services/storage/s3"
 	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
+	s3Storage "github.com/madappgang/identifo/storage/s3"
 )
 
 // KeyStorage is a wrapper over public and private key files.

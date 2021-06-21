@@ -31,4 +31,10 @@ type ServerStorageCollection struct {
 	Verification VerificationCodeStorage
 	Config       ConfigurationStorage
 	Static       StaticFilesStorage
+	Session      SessionStorage
+}
+
+type ServerThirdPartyServices struct {
+	SMS   SMSService
+	Email EmailService
 }

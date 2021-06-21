@@ -1,4 +1,4 @@
-package sessions
+package redis
 
 import (
 	"encoding/json"
@@ -9,30 +9,26 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-const (
-	defaultRedisAddress  = "localhost:6379"
-	defaultRedisPassword = ""
-	defaultRedisDB       = 0
-)
-
 // RedisSessionStorage is a Redis-backed storage for admin sessions.
 type RedisSessionStorage struct {
 	client *redis.Client
 }
 
 // NewSessionStorage creates new Redis session storage.
-func NewSessionStorage(settings model.SessionStorageSettings) (model.SessionStorage, error) {
+func NewSessionStorage(settings model.RedisDatabaseSettings) (model.SessionStorage, error) {
 	var addr, password string
 	var db int
 
 	if settings.Address == "" {
 		addr = defaultRedisAddress
+	} else {
+		addr = settings.Address
 	}
+
 	if settings.Password == "" {
 		password = defaultRedisPassword
-	}
-	if settings.DB == 0 {
-		db = defaultRedisDB
+	} else {
+		password = settings.Password
 	}
 
 	client := redis.NewClient(&redis.Options{

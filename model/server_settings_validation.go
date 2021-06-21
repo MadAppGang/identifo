@@ -129,13 +129,17 @@ func (sss *SessionStorageSettings) Validate() error {
 	case SessionStorageMem:
 		return nil
 	case SessionStorageRedis:
-		if _, err := url.ParseRequestURI(sss.Address); err != nil {
+		if _, err := url.ParseRequestURI(sss.Redis.Address); err != nil {
 			return fmt.Errorf("%s. Invalid address. %s", subject, err)
 		}
 	case SessionStorageDynamoDB:
-		if len(sss.Region) == 0 {
+		if len(sss.Dynamo.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
+		if len(sss.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("%s. Empty AWS Dynamo endpoint", subject)
+		}
+
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}
@@ -297,22 +301,22 @@ func (sss *SMSServiceSettings) Validate() error {
 	case SMSServiceMock:
 		return nil
 	case SMSServiceNexmo:
-		if len(sss.APIKey) == 0 || len(sss.APISecret) == 0 {
+		if len(sss.Nexmo.APIKey) == 0 || len(sss.Nexmo.APISecret) == 0 {
 			return fmt.Errorf("%s. Error creating Nexmo SMS service, missing at least one of the parameters:"+
-				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.APIKey, sss.APISecret)
+				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.Nexmo.APIKey, sss.Nexmo.APISecret)
 		}
 	case SMSServiceTwilio:
-		if len(sss.AccountSid) == 0 || len(sss.AuthToken) == 0 || len(sss.ServiceSid) == 0 {
+		if len(sss.Twilio.AccountSid) == 0 || len(sss.Twilio.AuthToken) == 0 || len(sss.Twilio.ServiceSid) == 0 {
 			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
-				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.AccountSid, sss.AuthToken, sss.ServiceSid)
+				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.Twilio.AccountSid, sss.Twilio.AuthToken, sss.Twilio.ServiceSid)
 		}
 	case SMSServiceRouteMobile:
-		if len(sss.Username) == 0 || len(sss.Password) == 0 || len(sss.Source) == 0 {
+		if len(sss.Routemobile.Username) == 0 || len(sss.Routemobile.Password) == 0 || len(sss.Routemobile.Source) == 0 {
 			return fmt.Errorf("%s. Error creating RouteMobile SMS service, missing at least one of the parameters:"+
-				"\n username : %v\n password : %v\n", subject, sss.Username, sss.Password)
+				"\n username : %v\n password : %v\n", subject, sss.Routemobile.Username, sss.Routemobile.Password)
 		}
-		if sss.Region != RouteMobileRegionUAE {
-			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Region)
+		if sss.Routemobile.Region != RouteMobileRegionUAE {
+			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Routemobile.Region)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)

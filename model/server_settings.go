@@ -137,13 +137,10 @@ const (
 
 // SessionStorageSettings holds together session storage settings.
 type SessionStorageSettings struct {
-	Type            SessionStorageType `yaml:"type,omitempty" json:"type,omitempty"`
-	SessionDuration SessionDuration    `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
-	Address         string             `yaml:"address,omitempty" json:"address,omitempty"`
-	Password        string             `yaml:"password,omitempty" json:"password,omitempty"`
-	DB              int                `yaml:"db,omitempty" json:"db,omitempty"`
-	Region          string             `yaml:"region,omitempty" json:"region,omitempty"`
-	Endpoint        string             `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+	Type            SessionStorageType     `yaml:"type,omitempty" json:"type,omitempty"`
+	SessionDuration SessionDuration        `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
+	Redis           RedisDatabaseSettings  `yaml:"redis,omitempty" json:"redis,omitempty"`
+	Dynamo          DynamoDatabaseSettings `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
 }
 
 // SessionStorageType - where to store admin sessions.
@@ -157,6 +154,19 @@ const (
 	// SessionStorageDynamoDB means to store sessions in DynamoDB.
 	SessionStorageDynamoDB = "dynamodb"
 )
+
+// RedisDatabaseSettings redis storage settings
+type RedisDatabaseSettings struct {
+	// host:port address.
+	Address string `yaml:"address,omitempty" json:"address,omitempty"`
+	// Optional password. Must match the password specified in the
+	// requirepass server configuration option.
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	// Database to be selected after connecting to the server.
+	DB int `yaml:"db,omitempty" json:"db,omitempty"`
+}
+
+type DynamoDBSessionStorageSettings struct{}
 
 // KeyStorageSettings are settings for the key storage.
 type KeyStorageSettings struct {
@@ -217,22 +227,10 @@ type EmailServiceSettings struct {
 
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {
-	Type SMSServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-
-	// Twilio related config.
-	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
-	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
-	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
-
-	// Nexmo related config.
-	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
-	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
-
-	// RouteMobile related config.
-	Username string `yaml:"username,omitempty" json:"username,omitempty"`
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
-	Source   string `yaml:"source,omitempty" json:"source,omitempty"`
-	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
+	Type        SMSServiceType             `yaml:"type,omitempty" json:"type,omitempty"`
+	Twilio      TwilioServiceSettings      `yaml:"twilio,omitempty" json:"twilio,omitempty"`
+	Nexmo       NexmoServiceSettings       `yaml:"nexmo,omitempty" json:"nexmo,omitempty"`
+	Routemobile RouteMobileServiceSettings `yaml:"routemobile,omitempty" json:"routemobile,omitempty"`
 }
 
 // SMSServiceType - service for sending sms messages.
@@ -244,6 +242,27 @@ const (
 	SMSServiceRouteMobile SMSServiceType = "routemobile" // SMSServiceRouteMobile is a RouteMobile SMS service.
 	SMSServiceMock        SMSServiceType = "mock"        // SMSServiceMock is an SMS service mock.
 )
+
+type TwilioServiceSettings struct {
+	// Twilio related config.
+	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
+	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
+	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
+}
+
+type NexmoServiceSettings struct {
+	// Nexmo related config.
+	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
+	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
+}
+
+type RouteMobileServiceSettings struct {
+	// RouteMobile related config.
+	Username string `yaml:"username,omitempty" json:"username,omitempty"`
+	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	Source   string `yaml:"source,omitempty" json:"source,omitempty"`
+	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
+}
 
 // LoginSettings are settings of login.
 type LoginSettings struct {

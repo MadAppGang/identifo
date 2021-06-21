@@ -1,29 +1,14 @@
 package server
 
 import (
-	"errors"
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
 
-	"github.com/madappgang/identifo/external_services/mail/mailgun"
-	emailMock "github.com/madappgang/identifo/external_services/mail/mock"
-	"github.com/madappgang/identifo/external_services/mail/ses"
-	smsMock "github.com/madappgang/identifo/external_services/sms/mock"
-	"github.com/madappgang/identifo/external_services/sms/nexmo"
-	"github.com/madappgang/identifo/external_services/sms/routemobile"
-	"github.com/madappgang/identifo/external_services/sms/twilio"
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server/utils/originchecker"
-	dynamodb "github.com/madappgang/identifo/sessions/dynamodb"
-	mem "github.com/madappgang/identifo/sessions/mem"
-	redis "github.com/madappgang/identifo/sessions/redis"
-	staticStoreDynamo "github.com/madappgang/identifo/static/storage/dynamodb"
-	staticStoreLocal "github.com/madappgang/identifo/static/storage/local"
-	staticStoreS3 "github.com/madappgang/identifo/static/storage/s3"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -36,7 +21,7 @@ var defaultCors = model.CorsOptions{
 }
 
 // NewServer creates backend service.
-func NewServer(storages model.ServerStorageCollection, options ...func(*Server) error) (model.Server, error) {
+func NewServer(storages model.ServerStorageCollection, services model.ServerThirdPartyServices, options ...func(*Server) error) (model.Server, error) {
 	if storages.Config == nil {
 		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}
@@ -57,22 +42,6 @@ func NewServer(storages model.ServerStorageCollection, options ...func(*Server) 
 		settings:                settings,
 	}
 
-	sessionStorage, err := initSessionStorage(settings.SessionStorage)
-	if err != nil {
-		return nil, err
-	}
-	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, sessionStorage)
-
-	ms, err := initEmailService(settings.ExternalServices.EmailService, storages.Static)
-	if err != nil {
-		return nil, err
-	}
-
-	sms, err := initSMSService(settings.ExternalServices.SMSService)
-	if err != nil {
-		return nil, err
-	}
-
 	// env variable can rewrite host option
 	hostName := os.Getenv("HOST_NAME")
 	if len(hostName) == 0 {
@@ -91,21 +60,23 @@ func NewServer(storages model.ServerStorageCollection, options ...func(*Server) 
 		originChecker.AddRawURLs(a.RedirectURLs)
 	}
 
+	sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, storages.Session)
+
 	routerSettings := web.RouterSetting{
-		AppStorage:              appStorage,
-		UserStorage:             userStorage,
-		TokenStorage:            tokenStorage,
-		VerificationCodeStorage: verificationCodeStorage,
+		AppStorage:              storages.App,
+		UserStorage:             storages.User,
+		TokenStorage:            storages.Token,
+		VerificationCodeStorage: storages.Verification,
 		TokenService:            tokenService,
-		TokenBlacklist:          tokenBlacklist,
-		InviteStorage:           inviteStorage,
+		TokenBlacklist:          storages.Blocklist,
+		InviteStorage:           storages.Invite,
 		SessionService:          sessionService,
-		SessionStorage:          sessionStorage,
-		ConfigurationStorage:    configurationStorage,
-		StaticFilesStorage:      staticFilesStorage,
+		SessionStorage:          storages.Session,
+		ConfigurationStorage:    storages.Config,
+		StaticFilesStorage:      storages.Static,
 		ServeAdminPanel:         settings.StaticFilesStorage.ServeAdminPanel,
-		SMSService:              sms,
-		EmailService:            ms,
+		SMSService:              services.SMS,
+		EmailService:            services.Email,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
 			html.StaticFilesStorageSettings(&settings.StaticFilesStorage),
@@ -115,7 +86,7 @@ func NewServer(storages model.ServerStorageCollection, options ...func(*Server) 
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.CorsOption(defaultCors, originChecker),
+			api.CorsOption(&defaultCors, originChecker),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
@@ -230,93 +201,4 @@ func initTokenService(generalSettings model.GeneralServerSettings, configStorage
 		userStorage,
 	)
 	return tokenService, err
-}
-
-func initSessionStorage(settings model.SessionStorageSettings) (model.SessionStorage, error) {
-	switch settings.Type {
-	case model.SessionStorageRedis:
-		return redis.NewSessionStorage(settings)
-	case model.SessionStorageMem:
-		return mem.NewSessionStorage()
-	case model.SessionStorageDynamoDB:
-		return dynamodb.NewSessionStorage(settings)
-	}
-	return nil, fmt.Errorf("Session storage of type '%s' is not supported", settings.Type)
-}
-
-func initStaticFilesStorage(settings model.StaticFilesStorageSettings) (model.StaticFilesStorage, error) {
-	localStaticFilesStorage, err := staticStoreLocal.NewStaticFilesStorage(settings)
-	if err != nil {
-		return nil, err
-	}
-	switch settings.Type {
-	case model.StaticFilesStorageTypeLocal:
-		return localStaticFilesStorage, nil
-	case model.StaticFilesStorageTypeS3:
-		return staticStoreS3.NewStaticFilesStorage(settings, localStaticFilesStorage)
-	case model.StaticFilesStorageTypeDynamoDB:
-		return staticStoreDynamo.NewStaticFilesStorage(settings, localStaticFilesStorage)
-	}
-	return nil, fmt.Errorf("Session storage of type '%s' is not supported", settings.Type)
-}
-
-func initSMSService(settings model.SMSServiceSettings) (model.SMSService, error) {
-	switch settings.Type {
-	case model.SMSServiceTwilio:
-		return twilio.NewSMSService(settings)
-	case model.SMSServiceNexmo:
-		return nexmo.NewSMSService(settings)
-	case model.SMSServiceRouteMobile:
-		return routemobile.NewSMSService(settings)
-	case model.SMSServiceMock:
-		return smsMock.NewSMSService()
-	}
-	return nil, fmt.Errorf("SMS service of type '%s' is not supported", settings.Type)
-}
-
-func initEmailService(ess model.EmailServiceSettings, sfs model.StaticFilesStorage) (model.EmailService, error) {
-	tpltr, err := model.NewEmailTemplater(sfs)
-	if err != nil {
-		return nil, err
-	}
-	if tpltr == nil {
-		return nil, errors.New("Email templater holds nil value")
-	}
-
-	switch ess.Type {
-	case model.EmailServiceMailgun:
-		return mailgun.NewEmailService(ess, tpltr), nil
-	case model.EmailServiceAWS:
-		return ses.NewEmailService(ess, tpltr)
-	case model.EmailServiceMock:
-		return emailMock.NewEmailService(), nil
-	}
-	return nil, fmt.Errorf("Email service of type '%s' is not supported", ess.Type)
-}
-
-// ImportApps imports apps from file.
-func (s *Server) ImportApps(filename string) error {
-	data, err := dataFromFile(filename)
-	if err != nil {
-		return err
-	}
-	return s.AppStorage().ImportJSON(data)
-}
-
-// ImportUsers imports users from file.
-func (s *Server) ImportUsers(filename string) error {
-	data, err := dataFromFile(filename)
-	if err != nil {
-		return err
-	}
-	return s.UserStorage().ImportJSON(data)
-}
-
-func dataFromFile(filename string) ([]byte, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-	return ioutil.ReadAll(file)
 }

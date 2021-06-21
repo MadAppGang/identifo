@@ -1,7 +1,6 @@
-package sessions
+package dynamodb
 
 import (
-	"errors"
 	"fmt"
 	"log"
 	"time"
@@ -24,10 +23,7 @@ type DynamoDBSessionStorage struct {
 }
 
 // NewSessionStorage creates new DynamoDB session storage.
-func NewSessionStorage(settings model.SessionStorageSettings) (model.SessionStorage, error) {
-	if len(settings.Region) == 0 {
-		return nil, errors.New("Empty region string")
-	}
+func NewSessionStorage(settings model.DynamoDatabaseSettings) (model.SessionStorage, error) {
 	config := &aws.Config{
 		Region:   aws.String(settings.Region),
 		Endpoint: aws.String(settings.Endpoint),
@@ -69,7 +65,7 @@ func (dss *DynamoDBSessionStorage) GetSession(id string) (model.Session, error) 
 	}
 
 	if err = dynamodbattribute.UnmarshalMap(result.Item, &session); err != nil {
-		return session, fmt.Errorf("Error unmarshalling item: %s", err)
+		return session, fmt.Errorf("Error unmarshaling item: %s", err)
 	}
 	return session, nil
 }

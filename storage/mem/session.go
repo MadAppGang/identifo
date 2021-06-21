@@ -1,4 +1,4 @@
-package sessions
+package mem
 
 import (
 	"sync"
@@ -13,10 +13,10 @@ type memoryStorage struct {
 }
 
 // NewSessionStorage creates an in-memory session storage.
-func NewSessionStorage() (model.SessionStorage, error) {
+func NewSessionStorage() model.SessionStorage {
 	return &memoryStorage{
 		sessions: make(map[string]model.Session),
-	}, nil
+	}
 }
 
 func (m *memoryStorage) GetSession(id string) (model.Session, error) {

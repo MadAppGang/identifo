@@ -14,7 +14,7 @@ type SMSService struct {
 }
 
 // NewSMSService creates, inits and returns Twilio-backed SMS service.
-func NewSMSService(settings model.SMSServiceSettings) (*SMSService, error) {
+func NewSMSService(settings model.TwilioServiceSettings) (*SMSService, error) {
 	t := &SMSService{
 		messagingServiceSid: settings.ServiceSid,
 		client:              gotwilio.NewTwilioClient(settings.AccountSid, settings.AuthToken),

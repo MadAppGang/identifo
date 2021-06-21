@@ -3,19 +3,20 @@ package config
 import (
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
+	"github.com/madappgang/identifo/services/mail"
+	"github.com/madappgang/identifo/services/sms"
 	"github.com/madappgang/identifo/storage"
 )
 
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage) (model.Server, error) {
-	
-	//read settings, if they empty or use cached version
-	settings, err := storages.Config.LoadServerSettings(false)
+	// read settings, if they empty or use cached version
+	settings, err := config.LoadServerSettings(false)
 	if err != nil {
 		return nil, err
 	}
 
-	//Create all storages
+	// Create all storages
 	app, err := storage.NewAppStorage(settings.Storage.AppStorage)
 	if err != nil {
 		return nil, err
@@ -46,8 +47,17 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		return nil, err
 	}
 
-	// create 3rd party services
+	session, err := storage.NewSessionStorage(settings.SessionStorage)
+	if err != nil {
+		return nil, err
+	}
 
+	static, err := storage.NewStaticFileStorage(settings.StaticFilesStorage)
+	if err != nil {
+		return nil, err
+	}
+
+	// create 3rd party services
 
 	sc := model.ServerStorageCollection{
 		App:          app,
@@ -56,14 +66,30 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		Blocklist:    tokenBlacklist,
 		Invite:       invite,
 		Verification: verification,
-		Config:       
-		Static:       
+		Session:      session,
+		Config:       config,
+		Static:       static,
 	}
-	server, err := server.NewServer(sc)
+
+	sms, err := sms.NewService(settings.ExternalServices.SMSService)
 	if err != nil {
 		return nil, err
 	}
 
-	return &server, nil
-}
+	email, err := mail.NewService(settings.ExternalServices.EmailService, static)
+	if err != nil {
+		return nil, err
+	}
 
+	srvs := model.ServerThirdPartyServices{
+		SMS:   sms,
+		Email: email,
+	}
+
+	server, err := server.NewServer(sc, srvs)
+	if err != nil {
+		return nil, err
+	}
+
+	return server, nil
+}

@@ -23,7 +23,7 @@ type SMSService struct {
 }
 
 // NewSMSService creates, inits and returns RouteMobile-backed SMS service.
-func NewSMSService(settings model.SMSServiceSettings) (*SMSService, error) {
+func NewSMSService(settings model.RouteMobileServiceSettings) (*SMSService, error) {
 	s := &SMSService{
 		username: settings.Username,
 		password: settings.Password,
