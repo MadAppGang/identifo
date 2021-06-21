@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
@@ -204,7 +203,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 
 		tokenString, err := ar.TokenService.String(token)
 		if err != nil {
-			ar.Logger.Printf("Error stringifying token: %v", err)
+			ar.Logger.Printf("Error stringify token: %v", err)
 			serveTemplate()
 			return
 		}
@@ -212,7 +211,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		refreshString := ""
 
 		// If requesting offline access then generate and set refreshString
-		if contains(scopes, jwtService.OfflineScope) {
+		if contains(scopes, model.OfflineScope) {
 			refresh, err := ar.TokenService.NewRefreshToken(user, scopes, app)
 			if err != nil {
 				ar.Logger.Printf("Error creating refresh token: %v", err)
@@ -221,7 +220,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			}
 			refreshString, err = ar.TokenService.String(refresh)
 			if err != nil {
-				ar.Logger.Printf("Error stringifying refresh token: %v", err)
+				ar.Logger.Printf("Error stringify refresh token: %v", err)
 				serveTemplate()
 				return
 			}

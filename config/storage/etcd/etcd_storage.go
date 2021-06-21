@@ -9,7 +9,6 @@ import (
 
 	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
 	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
-	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"go.etcd.io/etcd/clientv3"
 )
@@ -95,10 +94,6 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 
 	var settings model.ServerSettings
 	err = json.Unmarshal(res.Kvs[0].Value, &settings)
-	if err != nil {
-		cs.cache = settings
-		cs.cached = true
-	}
 	return settings, err
 }
 
@@ -111,7 +106,7 @@ func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
 }
 
 // LoadKeys loads public and private keys from the key storage.
-func (cs *ConfigurationStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
+func (cs *ConfigurationStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
 	return cs.keyStorage.LoadKeys(alg)
 }
 

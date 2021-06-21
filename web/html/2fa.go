@@ -5,7 +5,6 @@ import (
 	"path"
 	"time"
 
-	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	"github.com/xlzd/gotp"
@@ -23,7 +22,7 @@ func (ar *Router) DisableTFA() http.HandlerFunc {
 		}
 		tokenString := string(tokenBytes)
 
-		token, ok := r.Context().Value(model.TokenContextKey).(ijwt.Token)
+		token, ok := r.Context().Value(model.TokenContextKey).(model.Token)
 		if !ok {
 			ar.Logger.Println("Error getting token from context")
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
@@ -97,7 +96,7 @@ func (ar *Router) ResetTFA() http.HandlerFunc {
 		}
 		tokenString := string(tokenBytes)
 
-		token, ok := r.Context().Value(model.TokenContextKey).(ijwt.Token)
+		token, ok := r.Context().Value(model.TokenContextKey).(model.Token)
 		if !ok {
 			ar.Logger.Println("Error getting token from context")
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
@@ -166,7 +165,7 @@ func (ar *Router) ResetTFAHandler() http.HandlerFunc {
 			return
 		}
 
-		token, ok := r.Context().Value(model.TokenContextKey).(ijwt.Token)
+		token, ok := r.Context().Value(model.TokenContextKey).(model.Token)
 		if !ok {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return

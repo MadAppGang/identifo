@@ -8,7 +8,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/rs/cors"
@@ -24,7 +23,7 @@ type Router struct {
 	UserStorage                model.UserStorage
 	TokenStorage               model.TokenStorage
 	TokenBlacklist             model.TokenBlacklist
-	TokenService               jwtService.TokenService
+	TokenService               model.TokenService
 	SMSService                 model.SMSService
 	EmailService               model.EmailService
 	staticFilesStorage         model.StaticFilesStorage
@@ -68,7 +67,7 @@ func CorsOption(corsOptions model.CorsOptions) func(*Router) error {
 }
 
 // NewRouter creates and initializes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sfs model.StaticFilesStorage, ts model.TokenStorage, tb model.TokenBlacklist, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sfs model.StaticFilesStorage, ts model.TokenStorage, tb model.TokenBlacklist, tService model.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		Middleware:         negroni.Classic(),
 		Router:             mux.NewRouter(),
@@ -76,7 +75,7 @@ func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, sf
 		UserStorage:        us,
 		TokenStorage:       ts,
 		TokenBlacklist:     tb,
-		TokenService:       tServ,
+		TokenService:       tService,
 		SMSService:         smsServ,
 		EmailService:       emailServ,
 		staticFilesStorage: sfs,

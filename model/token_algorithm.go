@@ -1,4 +1,4 @@
-package jwt
+package model
 
 import (
 	"encoding/json"
@@ -19,7 +19,8 @@ var (
 var StrToTokenSignAlg = map[string]TokenSignatureAlgorithm{
 	"es256": TokenSignatureAlgorithmES256,
 	"rs256": TokenSignatureAlgorithmRS256,
-	"auto":  TokenSignatureAlgorithmAuto}
+	"auto":  TokenSignatureAlgorithmAuto,
+}
 
 // TokenSignatureAlgorithm is a signing algorithm used by the token service.
 // For now, we only support ES256 and RS256.

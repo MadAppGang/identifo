@@ -38,8 +38,8 @@ const (
 
 // Validator is an abstract token validator.
 type Validator interface {
-	Validate(jwt.Token) error
-	ValidateString(string) (jwt.Token, error)
+	Validate(model.Token) error
+	ValidateString(string) (model.Token, error)
 }
 
 // Config is a struct to set all the required params for Validator
@@ -129,9 +129,9 @@ type validator struct {
 }
 
 // Validate validates token.
-func (v *validator) Validate(t jwt.Token) error {
+func (v *validator) Validate(t model.Token) error {
 	if t == nil {
-		return jwt.ErrEmptyToken
+		return model.ErrEmptyToken
 	}
 	// We assume the signature and standart claims were validated on parse.
 	if err := t.Validate(); err != nil {
@@ -141,19 +141,19 @@ func (v *validator) Validate(t jwt.Token) error {
 	// We have already validated time based claims "exp, iat, nbf".
 	// But, if any of the above claims are not in the token, it will still be considered a valid claim.
 	// That's why these two fields are required: "exp, iat".
-	token, ok := t.(*jwt.JWToken)
+	token, ok := t.(*model.JWToken)
 	if !ok {
-		return jwt.ErrTokenInvalid
+		return model.ErrTokenInvalid
 	}
 
 	// Ensure the signature algorithm attack is not passing through.
 	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
-		return jwt.ErrTokenInvalid
+		return model.ErrTokenInvalid
 	}
 
-	claims, ok := token.JWT.Claims.(*jwt.Claims)
+	claims, ok := token.JWT.Claims.(*model.Claims)
 	if !ok {
-		return jwt.ErrTokenInvalid
+		return model.ErrTokenInvalid
 	}
 
 	if claims.ExpiresAt == 0 {
@@ -228,7 +228,7 @@ func (v *validator) Validate(t jwt.Token) error {
 }
 
 // ValidateString validates string representation of the token.
-func (v *validator) ValidateString(t string) (jwt.Token, error) {
+func (v *validator) ValidateString(t string) (model.Token, error) {
 	if v.publicKey == nil {
 		return nil, ErrorConfigurationMissingPublicKey
 	}

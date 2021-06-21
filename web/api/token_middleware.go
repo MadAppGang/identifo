@@ -85,6 +85,6 @@ func intersect(a, b []string) []string {
 }
 
 // tokenFromContext returns token from request context.
-func tokenFromContext(ctx context.Context) jwt.Token {
-	return ctx.Value(model.TokenContextKey).(jwt.Token)
+func tokenFromContext(ctx context.Context) model.Token {
+	return ctx.Value(model.TokenContextKey).(model.Token)
 }

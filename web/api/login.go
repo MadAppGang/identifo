@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	thp "github.com/madappgang/identifo/user_payload_provider/http"
 	"github.com/madappgang/identifo/web/authorization"
@@ -272,7 +271,7 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string)
 		return AuthResponse{}, err
 	}
 
-	offline := contains(scopes, jwtService.OfflineScope)
+	offline := contains(scopes, model.OfflineScope)
 
 	tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 	if err != nil {

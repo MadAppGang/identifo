@@ -7,7 +7,6 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/madappgang/identifo/web/authorization"
@@ -29,7 +28,7 @@ type Router struct {
 	verificationCodeStorage model.VerificationCodeStorage
 	staticFilesStorage      model.StaticFilesStorage
 	tfaType                 model.TFAType
-	tokenService            jwtService.TokenService
+	tokenService            model.TokenService
 	smsService              model.SMSService
 	emailService            model.EmailService
 	oidcConfiguration       *OIDCConfiguration
@@ -44,7 +43,7 @@ type Router struct {
 
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	//reroute to our internal implementation
+	// reroute to our internal implementation
 	ar.router.ServeHTTP(w, r)
 }
 
@@ -100,7 +99,7 @@ func WebRouterPrefixOption(prefix string) func(*Router) error {
 }
 
 // NewRouter creates and initilizes new router.
-func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, is model.InviteStorage, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ jwtService.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(logger *log.Logger, as model.AppStorage, us model.UserStorage, ts model.TokenStorage, tb model.TokenBlacklist, is model.InviteStorage, vcs model.VerificationCodeStorage, sfs model.StaticFilesStorage, tServ model.TokenService, smsServ model.SMSService, emailServ model.EmailService, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
 	ar := Router{
 		middleware:              negroni.Classic(),
 		router:                  mux.NewRouter(),

@@ -9,7 +9,10 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
-var supportedSignatureAlgorithms = [2]ijwt.TokenSignatureAlgorithm{ijwt.TokenSignatureAlgorithmES256, ijwt.TokenSignatureAlgorithmRS256}
+var supportedSignatureAlgorithms = [2]model.TokenSignatureAlgorithm{
+	model.TokenSignatureAlgorithmES256,
+	model.TokenSignatureAlgorithmRS256,
+}
 
 // KeyStorage is a wrapper over public and private key files.
 type KeyStorage struct {
@@ -55,7 +58,7 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 }
 
 // LoadKeys loads keys from the key storage.
-func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
+func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
 	if _, err := os.Stat(ks.PublicKeyPath); err != nil {
 		if os.IsNotExist(err) {
 			wd, wdErr := os.Getwd()
@@ -79,7 +82,7 @@ func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys
 
 	keys := new(model.JWTKeys)
 
-	if alg != ijwt.TokenSignatureAlgorithmAuto {
+	if alg != model.TokenSignatureAlgorithmAuto {
 		if err := ks.loadKeys(alg, keys); err != nil {
 			return nil, err
 		}
@@ -100,7 +103,7 @@ func (ks *KeyStorage) LoadKeys(alg ijwt.TokenSignatureAlgorithm) (*model.JWTKeys
 	return keys, nil
 }
 
-func (ks *KeyStorage) loadKeys(alg ijwt.TokenSignatureAlgorithm, keys *model.JWTKeys) error {
+func (ks *KeyStorage) loadKeys(alg model.TokenSignatureAlgorithm, keys *model.JWTKeys) error {
 	privateKey, err := ijwt.LoadPrivateKeyFromPEM(ks.PrivateKeyPath, alg)
 	if err != nil {
 		return fmt.Errorf("Cannot load private key: %s", err)

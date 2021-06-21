@@ -8,7 +8,6 @@ import (
 	"math/big"
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
@@ -121,7 +120,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		offline := contains(scopes, jwtService.OfflineScope)
+		offline := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "PhoneLogin.loginUser")

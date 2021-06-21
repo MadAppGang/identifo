@@ -3,7 +3,6 @@ package api
 import (
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -75,7 +74,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 }
 
 func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []string, app model.AppData) (string, error) {
-	if !contains(scopes, jwtService.OfflineScope) { // Don't issue new refresh token if not requested.
+	if !contains(scopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
 		return "", nil
 	}
 

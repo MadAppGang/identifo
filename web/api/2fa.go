@@ -9,7 +9,6 @@ import (
 	"path"
 	"time"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
@@ -187,7 +186,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		offline := contains(scopes, jwtService.OfflineScope)
+		offline := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, d.Scopes, app, offline, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FinalizeTFA.loginUser")

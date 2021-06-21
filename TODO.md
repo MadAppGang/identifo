@@ -6,7 +6,9 @@
 - [x] implement config files instead fo set of main files
 - [x] refactor config file from flat to tree structure
 - [x] refactor session service
+- [x] refactor token service model
 - [ ] refactor token service creation with configurator
+- [ ] refactor key storage
 - [ ] refactor main file
 - [ ] refactor server creation
 - [ ] implement dump data import
@@ -18,4 +20,5 @@
   - [ ] from static data
   - [ ] from S3
   - [ ] from dynamodb
-
+- [ ] refactor and fix jwt/token.test.go
+- [ ] implement initializer with JWKS URL .well-known

@@ -43,13 +43,13 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(keys *model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(TokenService) error) (TokenService, error) {
+func NewJWTokenService(keys *model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
 	if keys == nil || keys.Private == nil || keys.Public == nil {
 		return nil, fmt.Errorf("One of the keys is empty, or both")
 	}
 
-	tokenServiceAlg, ok := keys.Algorithm.(ijwt.TokenSignatureAlgorithm)
-	if !ok || tokenServiceAlg == ijwt.TokenSignatureAlgorithmAuto {
+	tokenServiceAlg, ok := keys.Algorithm.(model.TokenSignatureAlgorithm)
+	if !ok || tokenServiceAlg == model.TokenSignatureAlgorithmAuto {
 		return nil, fmt.Errorf("Unknown token service algorithm %s ", keys.Algorithm)
 	}
 
@@ -82,7 +82,7 @@ type JWTokenService struct {
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
 	userStorage            model.UserStorage
-	algorithm              ijwt.TokenSignatureAlgorithm
+	algorithm              model.TokenSignatureAlgorithm
 	issuer                 string
 	resetTokenLifespan     int64
 	webCookieTokenLifespan int64
@@ -96,9 +96,9 @@ func (ts *JWTokenService) Issuer() string {
 // Algorithm  returns signature algorithm.
 func (ts *JWTokenService) Algorithm() string {
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		return "ES256"
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		return "RS256"
 	default:
 		return ""
@@ -125,10 +125,10 @@ func (ts *JWTokenService) WebCookieTokenLifespan() int64 {
 }
 
 // Parse parses token data from the string representation.
-func (ts *JWTokenService) Parse(s string) (ijwt.Token, error) {
+func (ts *JWTokenService) Parse(s string) (model.Token, error) {
 	tokenString := strings.TrimSpace(s)
 
-	token, err := jwt.ParseWithClaims(tokenString, &ijwt.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counterpart to verify them.
 		return ts.publicKey, nil
@@ -137,11 +137,11 @@ func (ts *JWTokenService) Parse(s string) (ijwt.Token, error) {
 		return nil, err
 	}
 
-	return &ijwt.JWToken{JWT: token}, nil
+	return &model.JWToken{JWT: token}, nil
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Validator, tokenType string) (ijwt.Token, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Validator, tokenType string) (model.Token, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
 		return nil, err
@@ -159,7 +159,7 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 }
 
 // NewAccessToken creates new access token for user.
-func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (ijwt.Token, error) {
+func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (model.Token, error) {
 	if !app.Active {
 		return nil, ErrInvalidApp
 	}
@@ -190,7 +190,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		lifespan = TokenLifespan
 	}
 
-	claims := ijwt.Claims{
+	claims := model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    tokenType,
@@ -205,28 +205,28 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
+		return nil, model.ErrWrongSignatureAlgorithm
 	}
 
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
-	return &ijwt.JWToken{JWT: token, New: true}, nil
+	return &model.JWToken{JWT: token, New: true}, nil
 }
 
 // NewRefreshToken creates new refresh token.
-func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (ijwt.Token, error) {
+func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (model.Token, error) {
 	if !app.Active || !app.Offline {
 		return nil, ErrInvalidApp
 	}
 	// no offline request
-	if !contains(scopes, OfflineScope) {
+	if !contains(scopes, model.OfflineScope) {
 		return nil, ErrInvalidOfflineScope
 	}
 
@@ -245,7 +245,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		lifespan = RefreshTokenLifespan
 	}
 
-	claims := ijwt.Claims{
+	claims := model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    model.TokenTypeRefresh,
@@ -260,20 +260,20 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
+		return nil, model.ErrWrongSignatureAlgorithm
 	}
 
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	t := &ijwt.JWToken{JWT: token, New: true}
+	t := &model.JWToken{JWT: token, New: true}
 	tokenString, err := ts.String(t)
 	if err != nil {
 		return nil, ErrSavingToken
@@ -286,19 +286,19 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 }
 
 // RefreshAccessToken issues new access token for provided refresh token.
-func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Token, error) {
-	rt, ok := refreshToken.(*ijwt.JWToken)
+func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.Token, error) {
+	rt, ok := refreshToken.(*model.JWToken)
 	if !ok || rt == nil {
-		return nil, ijwt.ErrTokenInvalid
+		return nil, model.ErrTokenInvalid
 	}
 
 	if err := rt.Validate(); err != nil {
 		return nil, err
 	}
 
-	claims, ok := rt.JWT.Claims.(*ijwt.Claims)
+	claims, ok := rt.JWT.Claims.(*model.Claims)
 	if !ok || claims == nil {
-		return nil, ijwt.ErrTokenInvalid
+		return nil, model.ErrTokenInvalid
 	}
 
 	app, err := ts.appStorage.AppByID(claims.Audience[0])
@@ -328,7 +328,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken ijwt.Token) (ijwt.Toke
 }
 
 // NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error) {
+func (ts *JWTokenService) NewInviteToken(email, role string) (model.Token, error) {
 	payload := make(map[string]interface{})
 	// add payload data here
 	if email != "" {
@@ -342,13 +342,13 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error)
 
 	lifespan := InviteTokenLifespan
 
-	claims := &ijwt.Claims{
+	claims := &model.Claims{
 		Payload: payload,
 		Type:    model.TokenTypeInvite,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
-			// Subject:   u.ID(),
+			// Subject:   u.ID(), //TODO: investigate why are we suppressing subject id from here?
 			Audience: []string{"identifo"},
 			IssuedAt: now,
 		},
@@ -356,28 +356,28 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (ijwt.Token, error)
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
+		return nil, model.ErrWrongSignatureAlgorithm
 	}
 
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
-	return &ijwt.JWToken{JWT: token, New: true}, nil
+	return &model.JWToken{JWT: token, New: true}, nil
 }
 
 // NewResetToken creates new token for password resetting.
-func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
+func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 	now := ijwt.TimeFunc().Unix()
 
 	lifespan := ts.resetTokenLifespan
 
-	claims := ijwt.Claims{
+	claims := model.Claims{
 		Type: model.TokenTypeReset,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -390,31 +390,31 @@ func (ts *JWTokenService) NewResetToken(userID string) (ijwt.Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
+		return nil, model.ErrWrongSignatureAlgorithm
 	}
 
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	return &ijwt.JWToken{JWT: token, New: true}, nil
+	return &model.JWToken{JWT: token, New: true}, nil
 }
 
 // NewWebCookieToken creates new web cookie token.
-func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
+func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	if !u.Active {
 		return nil, ErrInvalidUser
 	}
 	now := ijwt.TimeFunc().Unix()
 	lifespan := ts.resetTokenLifespan
 
-	claims := ijwt.Claims{
+	claims := model.Claims{
 		Type: model.TokenTypeWebCookie,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -427,34 +427,34 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (ijwt.Token, error) {
 
 	var sm jwt.SigningMethod
 	switch ts.algorithm {
-	case ijwt.TokenSignatureAlgorithmES256:
+	case model.TokenSignatureAlgorithmES256:
 		sm = jwt.SigningMethodES256
-	case ijwt.TokenSignatureAlgorithmRS256:
+	case model.TokenSignatureAlgorithmRS256:
 		sm = jwt.SigningMethodRS256
 	default:
-		return nil, ijwt.ErrWrongSignatureAlgorithm
+		return nil, model.ErrWrongSignatureAlgorithm
 	}
 
-	token := ijwt.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
 	if token == nil {
 		return nil, ErrCreatingToken
 	}
 
-	return &ijwt.JWToken{JWT: token, New: true}, nil
+	return &model.JWToken{JWT: token, New: true}, nil
 }
 
 // String returns string representation of a token.
-func (ts *JWTokenService) String(t ijwt.Token) (string, error) {
-	token, ok := t.(*ijwt.JWToken)
+func (ts *JWTokenService) String(t model.Token) (string, error) {
+	token, ok := t.(*model.JWToken)
 	if !ok {
-		return "", ijwt.ErrTokenInvalid
+		return "", model.ErrTokenInvalid
 	}
 
 	if err := t.Validate(); err != nil {
 		return "", err
 	}
 	if !token.New && !token.JWT.Valid {
-		return "", ijwt.ErrTokenInvalid
+		return "", model.ErrTokenInvalid
 	}
 
 	str, err := token.JWT.SignedString(ts.privateKey)

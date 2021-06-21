@@ -34,7 +34,8 @@ type ServerStorageCollection struct {
 	Session      SessionStorage
 }
 
-type ServerThirdPartyServices struct {
+type ServerServices struct {
 	SMS   SMSService
 	Email EmailService
+	Token TokenService
 }

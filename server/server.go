@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"os"
 
-	ijwt "github.com/madappgang/identifo/jwt"
 	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server/utils/originchecker"
@@ -183,7 +182,7 @@ func (s *Server) Close() {
 }
 
 func initTokenService(generalSettings model.GeneralServerSettings, configStorage model.ConfigurationStorage, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage) (jwtService.TokenService, error) {
-	tokenServiceAlg, ok := ijwt.StrToTokenSignAlg[generalSettings.Algorithm]
+	tokenServiceAlg, ok := model.StrToTokenSignAlg[generalSettings.Algorithm]
 	if !ok {
 		return nil, fmt.Errorf("Unknown token service algorithm %s", generalSettings.Algorithm)
 	}
