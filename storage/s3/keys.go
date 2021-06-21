@@ -11,7 +11,6 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	jwt "github.com/form3tech-oss/jwt-go"
 	"github.com/madappgang/identifo/model"
-	s3Storage "github.com/madappgang/identifo/storage/s3"
 )
 
 // KeyStorage is a wrapper over public and private key files.
@@ -24,7 +23,7 @@ type KeyStorage struct {
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
 func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
-	s3Client, err := s3Storage.NewS3Client(settings.S3.Region)
+	s3Client, err := NewS3Client(settings.S3.Region)
 	if err != nil {
 		return nil, err
 	}
@@ -38,10 +37,7 @@ func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
 }
 
 // InsertKeys inserts private and public keys into S3 key storage.
-func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
-	if keys == nil {
-		return fmt.Errorf("Empty keys")
-	}
+func (ks *KeyStorage) InsertKeys(keys model.JWTKeys) error {
 	keysMap := map[string]interface{}{
 		ks.PrivateKeyPath: keys.Private,
 		ks.PublicKeyPath:  keys.Public,
@@ -70,8 +66,8 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 }
 
 // LoadKeys loads keys from the key storage.
-func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
-	keys := new(model.JWTKeys)
+func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (model.JWTKeys, error) {
+	keys := model.JWTKeys{}
 
 	for _, keyPath := range [2]string{ks.PublicKeyPath, ks.PrivateKeyPath} {
 		getKeyInput := &s3.GetObjectInput{
@@ -81,20 +77,20 @@ func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKey
 
 		resp, err := ks.Client.GetObject(getKeyInput)
 		if err != nil {
-			return nil, fmt.Errorf("Cannot get %s from S3: %s", keyPath, err)
+			return keys, fmt.Errorf("Cannot get %s from S3: %s", keyPath, err)
 		}
 		defer resp.Body.Close()
 
 		key, err := ioutil.ReadAll(resp.Body)
 		if err != nil {
-			return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
+			return keys, fmt.Errorf("Cannot decode S3 response: %s", err)
 		}
 
 		if strings.Contains(keyPath, ks.PublicKeyPath) {
 			keys.Public = key
 			keys.Algorithm, err = ks.guessTokenServiceAlgorithm(key)
 			if err != nil {
-				return nil, err
+				return keys, err
 			}
 		} else {
 			keys.Private = key

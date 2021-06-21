@@ -1,6 +1,8 @@
 package config
 
 import (
+	"fmt"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/services/mail"
@@ -59,7 +61,10 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		return nil, err
 	}
 
-	// create 3rd party services
+	key, err := storage.NewKeyStorage(settings.KeyStorage)
+	if err != nil {
+		return nil, err
+	}
 
 	sc := model.ServerStorageCollection{
 		App:          app,
@@ -71,8 +76,10 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		Session:      session,
 		Config:       config,
 		Static:       static,
+		Key:          key,
 	}
 
+	// create 3rd party services
 	sms, err := sms.NewService(settings.ExternalServices.SMSService)
 	if err != nil {
 		return nil, err
@@ -83,9 +90,18 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		return nil, err
 	}
 
+	tokenS, err := NewTokenService(settings.General, sc)
+	if err != nil {
+		return nil, err
+	}
+
+	sessionS := model.NewSessionManager(settings.SessionStorage.SessionDuration, session)
+
 	srvs := model.ServerServices{
-		SMS:   sms,
-		Email: email,
+		SMS:     sms,
+		Email:   email,
+		Token:   tokenS,
+		Session: sessionS,
 	}
 
 	server, err := server.NewServer(sc, srvs)
@@ -97,14 +113,18 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 }
 
 func NewTokenService(settings model.GeneralServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
-	// tokenServiceAlg, ok := model.StrToTokenSignAlg[settings.Algorithm]
-	// if !ok {
-	// 	return nil, fmt.Errorf("Unknown token service algorithm %s", settings.Algorithm)
-	// }
-	keys := 
+	tokenServiceAlg, ok := model.StrToTokenSignAlg[settings.Algorithm]
+	if !ok {
+		return nil, fmt.Errorf("Unknown token service algorithm %s", settings.Algorithm)
+	}
+
+	keys, err := storages.Key.LoadKeys(tokenServiceAlg)
+	if err != nil {
+		return nil, err
+	}
 
 	tokenService, err := jwt.NewJWTokenService(
-		settings,
+		keys,
 		settings.Issuer,
 		storages.Token,
 		storages.App,

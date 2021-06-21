@@ -3,7 +3,6 @@ package config
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/config/storage/etcd"
 	"github.com/madappgang/identifo/config/storage/file"
 	"github.com/madappgang/identifo/config/storage/s3"
 	"github.com/madappgang/identifo/model"
@@ -12,8 +11,8 @@ import (
 // InitConfigurationStorage initializes configuration storage.
 func InitConfigurationStorage(config model.ConfigStorageSettings) (model.ConfigurationStorage, error) {
 	switch config.Type {
-	case model.ConfigStorageTypeEtcd:
-		return etcd.NewConfigurationStorage(config)
+	// case model.ConfigStorageTypeEtcd:
+	// 	return etcd.NewConfigurationStorage(config)
 	case model.ConfigStorageTypeS3:
 		return s3.NewConfigurationStorage(config)
 	case model.ConfigStorageTypeFile:

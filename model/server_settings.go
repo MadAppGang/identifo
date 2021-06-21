@@ -128,7 +128,8 @@ type ConfigStorageType string
 
 const (
 	// ConfigStorageTypeEtcd is an etcd storage.
-	ConfigStorageTypeEtcd ConfigStorageType = "etcd"
+	// TODO: etcd not supported now
+	// ConfigStorageTypeEtcd ConfigStorageType = "etcd"
 	// ConfigurationStorageTypeS3 is an AWS S3 storage.
 	ConfigStorageTypeS3 ConfigStorageType = "s3"
 	// ConfigurationStorageTypeFile is a config file.
@@ -170,9 +171,9 @@ type DynamoDBSessionStorageSettings struct{}
 
 // KeyStorageSettings are settings for the key storage.
 type KeyStorageSettings struct {
-	Type KeyStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
-	S3   *S3KeyStorageSettings   `yaml:"s3,omitempty" json:"s3,omitempty"`
-	File *KeyStorageFileSettings `yaml:"file,omitempty" json:"file,omitempty"`
+	Type KeyStorageType         `yaml:"type,omitempty" json:"type,omitempty"`
+	S3   S3KeyStorageSettings   `yaml:"s3,omitempty" json:"s3,omitempty"`
+	File KeyStorageFileSettings `yaml:"file,omitempty" json:"file,omitempty"`
 }
 
 type KeyStorageFileSettings struct {
@@ -330,8 +331,8 @@ func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, erro
 	}
 
 	switch strings.ToLower(u.Scheme) {
-	case "etcd":
-		return ConfigStorageSettingsFromStringEtcd(config)
+	// case "etcd":
+	// 	return ConfigStorageSettingsFromStringEtcd(config)
 	case "s3":
 		return ConfigStorageSettingsFromStringS3(config)
 	default:
@@ -382,33 +383,34 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 	}, nil
 }
 
-func ConfigStorageSettingsFromStringEtcd(config string) (ConfigStorageSettings, error) {
-	result := ConfigStorageSettings{
-		Type:      ConfigStorageTypeEtcd,
-		RawString: config,
-		Etcd: &EtcdStorageSettings{
-			Key: defaultEtcdKey,
-		},
-	}
-	var es string
-	components := strings.Split(config[7:], "@")
-	if len(components) > 1 {
-		es = components[1]
-		creds := strings.Split(components[0], ":")
-		if len(creds) == 2 {
-			result.Etcd.Username = creds[0]
-			result.Etcd.Password = creds[1]
-		}
-	} else if len(components) == 1 {
-		es = components[0]
-	} else {
-		return ConfigStorageSettings{}, fmt.Errorf("could not get etcd endpoints from config: %s", config)
-	}
+// TODO: implement ETCD storage
+// func ConfigStorageSettingsFromStringEtcd(config string) (ConfigStorageSettings, error) {
+// 	result := ConfigStorageSettings{
+// 		Type:      ConfigStorageTypeEtcd,
+// 		RawString: config,
+// 		Etcd: &EtcdStorageSettings{
+// 			Key: defaultEtcdKey,
+// 		},
+// 	}
+// 	var es string
+// 	components := strings.Split(config[7:], "@")
+// 	if len(components) > 1 {
+// 		es = components[1]
+// 		creds := strings.Split(components[0], ":")
+// 		if len(creds) == 2 {
+// 			result.Etcd.Username = creds[0]
+// 			result.Etcd.Password = creds[1]
+// 		}
+// 	} else if len(components) == 1 {
+// 		es = components[0]
+// 	} else {
+// 		return ConfigStorageSettings{}, fmt.Errorf("could not get etcd endpoints from config: %s", config)
+// 	}
 
-	components = strings.Split(es, "|")
-	if len(components) > 1 {
-		result.Etcd.Key = components[1]
-	}
-	result.Etcd.Endpoints = strings.Split(components[0], ",")
-	return result, nil
-}
+// 	components = strings.Split(es, "|")
+// 	if len(components) > 1 {
+// 		result.Etcd.Key = components[1]
+// 	}
+// 	result.Etcd.Endpoints = strings.Split(components[0], ",")
+// 	return result, nil
+// }

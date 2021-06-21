@@ -104,7 +104,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 
 		formKeys := r.MultipartForm.File["keys"]
 
-		keys := &model.JWTKeys{}
+		keys := model.JWTKeys{}
 
 		for _, fileHeader := range formKeys {
 			f, err := fileHeader.Open()
@@ -134,7 +134,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			return
 		}
 
-		if err := ar.server.Storages().Config.InsertKeys(keys); err != nil {
+		if err := ar.server.Storages().Key.InsertKeys(keys); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}

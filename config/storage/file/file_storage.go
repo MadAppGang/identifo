@@ -7,8 +7,6 @@ import (
 	"os"
 	"path/filepath"
 
-	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
-	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
 	"github.com/madappgang/identifo/model"
 	"gopkg.in/yaml.v2"
 )
@@ -19,7 +17,6 @@ const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
 // ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
 	ServerConfigPath string
-	keyStorage       model.KeyStorage
 	UpdateChan       chan interface{}
 	updateChanClosed bool
 	cache            model.ServerSettings
@@ -67,24 +64,6 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		UpdateChan:       make(chan interface{}, 1),
 	}
 
-	settings, err := cs.LoadServerSettings(true)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot not load settings from local file config storage: %s", err)
-	}
-
-	var keyStorage model.KeyStorage
-	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
-	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
-	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
-	}
-	if err != nil {
-		return nil, err
-	}
-	cs.keyStorage = keyStorage
 	return cs, nil
 }
 
@@ -137,19 +116,6 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 	}
 
 	return settings, settings.Validate()
-}
-
-// InsertKeys inserts new public and private keys.
-func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
-	if err := cs.keyStorage.InsertKeys(keys); err != nil {
-		return err
-	}
-	return nil
-}
-
-// LoadKeys loads public and private keys from the key storage.
-func (cs *ConfigurationStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
-	return cs.keyStorage.LoadKeys(alg)
 }
 
 // GetUpdateChan returns update channel.

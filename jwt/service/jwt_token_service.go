@@ -43,8 +43,8 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(keys *model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
-	if keys == nil || keys.Private == nil || keys.Public == nil {
+func NewJWTokenService(keys model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
+	if keys.Private == nil || keys.Public == nil {
 		return nil, fmt.Errorf("One of the keys is empty, or both")
 	}
 

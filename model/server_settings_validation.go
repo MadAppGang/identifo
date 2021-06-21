@@ -164,8 +164,6 @@ func (css *ConfigStorageSettings) Validate() error {
 			return fmt.Errorf("%s. empty file key ", subject)
 		}
 		break
-	case ConfigStorageTypeEtcd:
-		return fmt.Errorf("%s. etcd storage not supported", subject)
 	case ConfigStorageTypeS3:
 		if css.S3 == nil {
 			return fmt.Errorf("%s. empty s3 settings key", subject)
@@ -239,14 +237,11 @@ func (kss *KeyStorageSettings) Validate() error {
 
 	switch kss.Type {
 	case KeyStorageTypeLocal:
-		if kss.File == nil {
-			return fmt.Errorf("%s. Empty File settings key", subject)
+		if len(kss.File.PrivateKeyPath) == 0 {
+			return fmt.Errorf("%s. empty File settings key", subject)
 		}
 		break
 	case KeyStorageTypeS3:
-		if kss.S3 == nil {
-			return fmt.Errorf("%s. Empty S3 settings key", subject)
-		}
 		if len(kss.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}

@@ -4,13 +4,13 @@ import (
 	"bytes"
 	"fmt"
 	"log"
+	"net/http"
+	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	keyStorageLocal "github.com/madappgang/identifo/config/key_storage/local"
-	keyStorageS3 "github.com/madappgang/identifo/config/key_storage/s3"
 	"github.com/madappgang/identifo/model"
-	s3Storage "github.com/madappgang/identifo/storage/s3"
 	"gopkg.in/yaml.v2"
 )
 
@@ -21,7 +21,6 @@ type ConfigurationStorage struct {
 	ObjectName       string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
-	keyStorage       model.KeyStorage
 	config           model.ConfigStorageSettings
 	cache            model.ServerSettings
 	cached           bool
@@ -31,7 +30,7 @@ type ConfigurationStorage struct {
 func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the S3 bucket...")
 
-	s3client, err := s3Storage.NewS3Client(config.S3.Region)
+	s3client, err := NewS3Client(config.S3.Region)
 	if err != nil {
 		log.Fatalf("Cannot initialize S3 client: %s.", err)
 	}
@@ -44,25 +43,6 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		config:     config,
 	}
 
-	settings, err := cs.LoadServerSettings(true)
-	if err != nil {
-		return nil, fmt.Errorf("Cannot not load settings from etcd config storage: %s", err)
-	}
-
-	var keyStorage model.KeyStorage
-
-	switch settings.KeyStorage.Type {
-	case model.KeyStorageTypeLocal:
-		keyStorage, err = keyStorageLocal.NewKeyStorage(settings.KeyStorage)
-	case model.KeyStorageTypeS3:
-		keyStorage, err = keyStorageS3.NewKeyStorage(settings.KeyStorage)
-	default:
-		return nil, fmt.Errorf("Unknown key storage type: %s", settings.KeyStorage.Type)
-	}
-	if err != nil {
-		return nil, err
-	}
-	cs.keyStorage = keyStorage
 	return cs, nil
 }
 
@@ -133,19 +113,6 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 	return err
 }
 
-// InsertKeys inserts new public and private keys to the S3 bucket.
-func (cs *ConfigurationStorage) InsertKeys(keys *model.JWTKeys) error {
-	if err := cs.keyStorage.InsertKeys(keys); err != nil {
-		return err
-	}
-	return nil
-}
-
-// LoadKeys loads public and private keys from the key storage.
-func (cs *ConfigurationStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
-	return cs.keyStorage.LoadKeys(alg)
-}
-
 // GetUpdateChan returns update channel.
 func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 	return cs.UpdateChan
@@ -155,4 +122,26 @@ func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 func (cs *ConfigurationStorage) CloseUpdateChan() {
 	close(cs.UpdateChan)
 	cs.updateChanClosed = true
+}
+
+// NewS3Client creates and returns new S3 client.
+func NewS3Client(region string) (*s3.S3, error) {
+	cfg := getConfig(region)
+	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
+	if err != nil {
+		return nil, fmt.Errorf("error creating new s3 session: %s", err)
+	}
+	return s3.New(sess, cfg), nil
+}
+
+func getConfig(region string) *aws.Config {
+	cfg := aws.NewConfig()
+	if len(region) > 0 {
+		cfg = cfg.WithRegion(region)
+	}
+
+	cfg.HTTPClient = http.DefaultClient
+	cfg.HTTPClient.Timeout = 10 * time.Second
+
+	return cfg
 }

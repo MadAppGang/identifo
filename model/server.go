@@ -29,6 +29,7 @@ type ServerStorageCollection struct {
 	Config       ConfigurationStorage
 	Static       StaticFilesStorage
 	Session      SessionStorage
+	Key          KeyStorage
 }
 
 type ServerServices struct {

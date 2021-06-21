@@ -7,11 +7,10 @@
 - [x] refactor config file from flat to tree structure
 - [x] refactor session service
 - [x] refactor token service model
+- [x] refactor key storage
+- [x] refactor token service creation with configurator
+- [x] refactor server creation
 - [ ] html/routes.go - check to we need static files handler?
-- [ ] refactor token service creation with configurator
-- [ ] refactor key storage
-- [ ] refactor main file
-- [ ] refactor server creation
 - [ ] implement dump data import
 - [ ] implement integration testing
 - [ ] check config file change monitoring
@@ -21,5 +20,5 @@
   - [ ] from static data
   - [ ] from S3
   - [ ] from dynamodb
-- [ ] refactor and fix jwt/token.test.go
+- [ ] refactor and fix jwt/token_test.go
 - [ ] implement initializer with JWKS URL .well-known

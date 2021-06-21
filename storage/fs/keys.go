@@ -1,11 +1,11 @@
-package local
+package fs
 
 import (
 	"fmt"
 	"io"
 	"os"
 
-	ijwt "github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -29,8 +29,8 @@ func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
 }
 
 // InsertKeys inserts public and private keys.
-func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
-	if keys == nil || keys.Private == nil || keys.Public == nil {
+func (ks *KeyStorage) InsertKeys(keys model.JWTKeys) error {
+	if keys.Private == nil || keys.Public == nil {
 		return fmt.Errorf("Cannot insert empty key(s)")
 	}
 	keysMap := map[string]interface{}{
@@ -58,62 +58,59 @@ func (ks *KeyStorage) InsertKeys(keys *model.JWTKeys) error {
 }
 
 // LoadKeys loads keys from the key storage.
-func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (*model.JWTKeys, error) {
+func (ks *KeyStorage) LoadKeys(alg model.TokenSignatureAlgorithm) (model.JWTKeys, error) {
 	if _, err := os.Stat(ks.PublicKeyPath); err != nil {
 		if os.IsNotExist(err) {
 			wd, wdErr := os.Getwd()
 			if wdErr != nil {
-				return nil, fmt.Errorf("Public key not found. Also, cannot get working directory: %s", wdErr)
+				return model.JWTKeys{}, fmt.Errorf("Public key not found. Also, cannot get working directory: %s", wdErr)
 			}
-			return nil, fmt.Errorf("Public key file not found. Working directory: %s, key path: %s", wd, ks.PublicKeyPath)
+			return model.JWTKeys{}, fmt.Errorf("Public key file not found. Working directory: %s, key path: %s", wd, ks.PublicKeyPath)
 		}
-		return nil, fmt.Errorf("Error while checking public key existence. %s", err)
+		return model.JWTKeys{}, fmt.Errorf("Error while checking public key existence. %s", err)
 	}
+
 	if _, err := os.Stat(ks.PrivateKeyPath); err != nil {
 		if os.IsNotExist(err) {
 			wd, wdErr := os.Getwd()
 			if wdErr != nil {
-				return nil, fmt.Errorf("Private key not found. Also, cannot get working directory: %s", wdErr)
+				return model.JWTKeys{}, fmt.Errorf("Private key not found. Also, cannot get working directory: %s", wdErr)
 			}
-			return nil, fmt.Errorf("Private key file not found. Working directory: %s, key path: %s", wd, ks.PrivateKeyPath)
+			return model.JWTKeys{}, fmt.Errorf("Private key file not found. Working directory: %s, key path: %s", wd, ks.PrivateKeyPath)
 		}
-		return nil, fmt.Errorf("Error while checking private key existence. %s", err)
+		return model.JWTKeys{}, fmt.Errorf("Error while checking private key existence. %s", err)
 	}
 
-	keys := new(model.JWTKeys)
-
+	keys := model.JWTKeys{}
 	if alg != model.TokenSignatureAlgorithmAuto {
-		if err := ks.loadKeys(alg, keys); err != nil {
-			return nil, err
-		}
-		return keys, nil
+		return ks.loadKeys(alg)
 	}
 
-	// Trying to guess algo.
+	// Trying to guess algorithm
 	var err error
 	for _, a := range supportedSignatureAlgorithms {
-		if err = ks.loadKeys(a, keys); err == nil {
+		keys, err = ks.loadKeys(a)
+		if err == nil {
 			break
 		}
 	}
-	if err != nil {
-		return nil, err
-	}
-
-	return keys, nil
+	return keys, err
 }
 
-func (ks *KeyStorage) loadKeys(alg model.TokenSignatureAlgorithm, keys *model.JWTKeys) error {
-	privateKey, err := ijwt.LoadPrivateKeyFromPEM(ks.PrivateKeyPath, alg)
+func (ks *KeyStorage) loadKeys(alg model.TokenSignatureAlgorithm) (model.JWTKeys, error) {
+	keys := model.JWTKeys{}
+
+	privateKey, err := jwt.LoadPrivateKeyFromPEM(ks.PrivateKeyPath, alg)
 	if err != nil {
-		return fmt.Errorf("Cannot load private key: %s", err)
+		return keys, fmt.Errorf("Cannot load private key: %s", err)
 	}
-	publicKey, err := ijwt.LoadPublicKeyFromPEM(ks.PublicKeyPath, alg)
+
+	publicKey, err := jwt.LoadPublicKeyFromPEM(ks.PublicKeyPath, alg)
 	if err != nil {
-		return fmt.Errorf("Cannot load public key: %s", err)
+		return keys, fmt.Errorf("Cannot load public key: %s", err)
 	}
 	keys.Private = privateKey
 	keys.Public = publicKey
 	keys.Algorithm = alg
-	return nil
+	return keys, nil
 }
