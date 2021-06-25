@@ -45,6 +45,7 @@ func main() {
 
 	go startHTTPServer(httpSrv)
 
+	log.Printf("Started the server on host: %s", srv.Settings().General.Host)
 	// Handle SIGINT and SIGTERM.
 	ch := make(chan os.Signal)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)

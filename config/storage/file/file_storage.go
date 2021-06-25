@@ -63,6 +63,7 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		ServerConfigPath: config.File.FileName,
 		UpdateChan:       make(chan interface{}, 1),
 	}
+	log.Printf("Successfully loaded config data from %s\n", config.File.FileName)
 
 	return cs, nil
 }
