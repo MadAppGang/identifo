@@ -27,10 +27,10 @@ func (ss *ServerSettings) Validate() error {
 	// if err := ss.ConfigurationStorage.Validate(); err != nil {
 	// 	return err
 	// }
-	if err := ss.StaticFilesStorage.Validate(); err != nil {
+	if err := ss.Static.Validate(); err != nil {
 		return err
 	}
-	if err := ss.ExternalServices.Validate(); err != nil {
+	if err := ss.Services.Validate(); err != nil {
 		return err
 	}
 	return nil
@@ -265,16 +265,16 @@ func (kss *KeyStorageSettings) Validate() error {
 }
 
 // Validate validates external services settings.
-func (ess *ExternalServicesSettings) Validate() error {
+func (ess *ServicesSettings) Validate() error {
 	subject := "ExternalServicesSettings"
 	if ess == nil {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-	if err := ess.EmailService.Validate(); err != nil {
+	if err := ess.Email.Validate(); err != nil {
 		return fmt.Errorf("%s. %s", subject, err)
 	}
-	if err := ess.SMSService.Validate(); err != nil {
+	if err := ess.SMS.Validate(); err != nil {
 		return fmt.Errorf("%s. %s", subject, err)
 	}
 	return nil
@@ -351,38 +351,38 @@ func (ess *EmailServiceSettings) Validate() error {
 		return nil
 	case EmailServiceAWS:
 		if region := os.Getenv(awsSESRegionKey); len(region) != 0 {
-			ess.Region = region
+			ess.SES.Region = region
 		}
 		if sender := os.Getenv(awsSESSenderKey); len(sender) != 0 {
-			ess.Sender = sender
+			ess.SES.Sender = sender
 		}
-		if len(ess.Sender) == 0 {
+		if len(ess.SES.Sender) == 0 {
 			return fmt.Errorf("%s. Empty AWS sender", subject)
 		}
-		if len(ess.Region) == 0 {
+		if len(ess.SES.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 	case EmailServiceMailgun:
 		if domain := os.Getenv(mailgunDomainKey); len(domain) != 0 {
-			ess.Domain = domain
+			ess.Mailgun.Domain = domain
 		}
 		if publicKey := os.Getenv(mailgunPublicKey); len(publicKey) != 0 {
-			ess.PublicKey = publicKey
+			ess.Mailgun.PublicKey = publicKey
 		}
 		if privateKey := os.Getenv(mailgunPrivateKey); len(privateKey) != 0 {
-			ess.PrivateKey = privateKey
+			ess.Mailgun.PrivateKey = privateKey
 		}
 		if sender := os.Getenv(mailgunSenderKey); len(sender) != 0 {
-			ess.Sender = sender
+			ess.Mailgun.Sender = sender
 		}
 
-		if len(ess.Domain) == 0 {
+		if len(ess.Mailgun.Domain) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun domain", subject)
 		}
-		if len(ess.PublicKey)*len(ess.PrivateKey) == 0 {
+		if len(ess.Mailgun.PublicKey) == 0 || len(ess.Mailgun.PrivateKey) == 0 {
 			return fmt.Errorf("%s. At least one of the keys is empty", subject)
 		}
-		if len(ess.Sender) == 0 {
+		if len(ess.Mailgun.Sender) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun sender", subject)
 		}
 	default:

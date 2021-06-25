@@ -34,11 +34,12 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
     public_key_path: ./jwt/test_artifacts/public.pem
 
 
-staticFilesStorage:
-  type: local # Supported values are "local", "s3", and "dynamodb".
-  folder: ./static
-  serveAdminPanel: true # If ommited or set to false, adminpanel router won't be initialized.
-  serveNewWeb: true # If ommited or set to false, will be served old templated based web version.
+static:
+  type: local
+  local:
+    folder: ./static
+  serveAdminPanel: true 
+  serveNewWeb: true 
 
 login: # Supported login ways.
   loginWith:
@@ -47,8 +48,8 @@ login: # Supported login ways.
     federated: true
   tfaType: app
 
-externalServices:
-  emailService: # Email service settings.
-    type: mock # Supported values are "mailgun", "aws ses", and "mock".
-  smsService: # SMS service settings.
-    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
+services:
+  email: 
+    type: mock 
+  sms: 
+    type: mock 

@@ -73,23 +73,20 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   #   public_key_key: /secrets/keys/public.pem
   #   private_key_key: /secrets/keys/private.pem
 
-staticFilesStorage:
+static:
   type: local # Supported values are "local", "s3", and "dynamodb".
   
-  # stetting from getting static files from local file system (technically it could be mounted network file system like ftp or nfs)
+  # static files from local file system (technically it could be mounted network file system like ftp or nfs)
   local:
-    # All following paths are relative to this location. Assumed to be root if omitted.
-    folder: ./static
-
+        folder: ./static # All following paths are relative to this location. Assumed to be root if omitted.
   # s3 static files storage, present here as example
-  s3:
-
-
-  # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set,
-  # it overrides the value specified here.
-  bucket:
-  region: # Required when type is "s3" or "dynamodb".
-  endpoint: # DynamoDB-specific setting. Can be omitted when region is set.
+  # s3:
+  #   region: ap-southeast-2
+  #   bucket: identifo-bucket # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set,
+  #   folder: demo
+  # dynamo:
+  #   region: ap-southeast-2
+  #   endpoint: arn:aws:dynamodb:us-east-1:231546564:table/StockTable
   serveAdminPanel: true # If omitted or set to false, admin panel router won't be initialized.
   serveNewWeb: true # If omitted or set to false, will be served old templated based web version.
 
@@ -102,22 +99,28 @@ login: # Supported login ways.
   # Supported values are: "app" (like Google Authenticator), "sms", "email".
   tfaType: app
 
-externalServices:
-  emailService: # Email service settings.
-    type: mock # Supported values are "mailgun", "aws ses", and "mock".
-    domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
-    privateKey: # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
-    publicKey: # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
-    sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
-    region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
-  smsService: # SMS service settings.
+services:
+  email: # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".    
+    # mailgun:
+    #   domain: identifo.com # Mailgun related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
+    #   privateKey: ABXCDS # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
+    #   publicKey: AAABBBDDD # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
+    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    # ses:
+    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    #   region: es-east1 # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
+  sms: # SMS service settings.
     type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
-    accountSid: # Twilio-related setting.
-    authToken: # Twilio-related setting.
-    serviceSid: # Twilio-related setting.
-    apiKey: # Nexmo-related setting.
-    apiSecret: # Nexmo-related setting.
-    username: # RouteMobile-related setting.
-    password: # RouteMobile-related setting.
-    source: # RouteMobile-related setting.
-    region: # RouteMobile-related setting. Supported values are: uae.
+    # twilio:
+    #   accountSid: SID1234 # Twilio-related setting.
+    #   authToken: TOKENABCDS # Twilio-related setting.
+    #   serviceSid: SIDFFFF # Twilio-related setting.
+    # nexmo:
+    #   apiKey: KEY1234 # Nexmo-related setting.
+    #   apiSecret: SECRET4433 # Nexmo-related setting.
+    # routemobile:      
+    #   username: identifo # RouteMobile-related setting.
+    #   password: secret # RouteMobile-related setting.
+    #   source: whatever # RouteMobile-related setting.
+    #   region: australia # RouteMobile-related setting. Supported values are: uae.

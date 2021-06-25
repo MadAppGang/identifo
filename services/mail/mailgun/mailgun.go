@@ -15,7 +15,7 @@ type emailService struct {
 }
 
 // NewEmailService creates and inits new email service.
-func NewEmailService(ess model.EmailServiceSettings, templater *model.EmailTemplater) model.EmailService {
+func NewEmailService(ess model.MailgunEmailServiceSettings, templater *model.EmailTemplater) model.EmailService {
 	mg := mailgun.NewMailgun(ess.Domain, ess.PrivateKey, ess.PublicKey)
 	return emailService{mailgun: mg, sender: ess.Sender, tmpltr: templater}
 }

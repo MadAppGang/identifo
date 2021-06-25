@@ -56,7 +56,7 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		return nil, err
 	}
 
-	static, err := storage.NewStaticFileStorage(settings.StaticFilesStorage)
+	static, err := storage.NewStaticFileStorage(settings.Static)
 	if err != nil {
 		return nil, err
 	}
@@ -80,12 +80,12 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 	}
 
 	// create 3rd party services
-	sms, err := sms.NewService(settings.ExternalServices.SMSService)
+	sms, err := sms.NewService(settings.Services.SMS)
 	if err != nil {
 		return nil, err
 	}
 
-	email, err := mail.NewService(settings.ExternalServices.EmailService, static)
+	email, err := mail.NewService(settings.Services.Email, static)
 	if err != nil {
 		return nil, err
 	}

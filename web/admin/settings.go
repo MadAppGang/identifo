@@ -195,7 +195,7 @@ func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
 // FetchStaticFilesStorageSettings fetches static files settings.
 func (ar *Router) FetchStaticFilesStorageSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().StaticFilesStorage)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Static)
 	}
 }
 
@@ -208,8 +208,8 @@ func (ar *Router) UpdateStaticFilesStorageSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.newSettings.StaticFilesStorage = staticFilesStorageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.StaticFilesStorage)
+		ar.newSettings.Static = staticFilesStorageSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Static)
 	}
 }
 
@@ -237,14 +237,14 @@ func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
 // FetchExternalServicesSettings fetches settings for external services.
 func (ar *Router) FetchExternalServicesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().ExternalServices)
+		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Services)
 	}
 }
 
 // UpdateExternalServicesSettings changes settings for external services.
 func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		var servicesSettingsUpdate model.ExternalServicesSettings
+		var servicesSettingsUpdate model.ServicesSettings
 
 		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
 			return
@@ -254,8 +254,8 @@ func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
 			return
 		}
 
-		ar.newSettings.ExternalServices = servicesSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.ExternalServices)
+		ar.newSettings.Services = servicesSettingsUpdate
+		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Services)
 	}
 }
 

@@ -11,16 +11,16 @@ const defaultEtcdKey = "identifo"
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General            GeneralServerSettings      `yaml:"general,omitempty" json:"general,omitempty"`
-	AdminAccount       AdminAccountSettings       `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	Storage            StorageSettings            `yaml:"storage,omitempty" json:"storage,omitempty"`
-	SessionStorage     SessionStorageSettings     `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	StaticFilesStorage StaticFilesStorageSettings `yaml:"staticFilesStorage,omitempty" json:"static_files_storage,omitempty"`
-	ExternalServices   ExternalServicesSettings   `yaml:"externalServices,omitempty" json:"external_services,omitempty"`
-	Login              LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
-	KeyStorage         KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"keyStorage,omitempty"`
-	Config             ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
-	Logger             LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
+	General        GeneralServerSettings      `yaml:"general,omitempty" json:"general,omitempty"`
+	AdminAccount   AdminAccountSettings       `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
+	Storage        StorageSettings            `yaml:"storage,omitempty" json:"storage,omitempty"`
+	SessionStorage SessionStorageSettings     `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
+	Static         StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
+	Services       ServicesSettings           `yaml:"services,omitempty" json:"external_services,omitempty"`
+	Login          LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
+	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"keyStorage,omitempty"`
+	Config         ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
+	Logger         LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -193,10 +193,10 @@ const (
 	KeyStorageTypeS3 = "s3"
 )
 
-// ExternalServicesSettings are settings for external services.
-type ExternalServicesSettings struct {
-	EmailService EmailServiceSettings `yaml:"emailService,omitempty" json:"email_service,omitempty"`
-	SMSService   SMSServiceSettings   `yaml:"smsService,omitempty" json:"sms_service,omitempty"`
+// ServicesSettings are settings for external services.
+type ServicesSettings struct {
+	Email EmailServiceSettings `yaml:"email,omitempty" json:"email_service,omitempty"`
+	SMS   SMSServiceSettings   `yaml:"sms,omitempty" json:"sms_service,omitempty"`
 }
 
 // EmailServiceType - how to send email to clients.
@@ -206,19 +206,28 @@ const (
 	// EmailServiceMailgun is a Mailgun service.
 	EmailServiceMailgun = "mailgun"
 	// EmailServiceAWS is an AWS SES service.
-	EmailServiceAWS = "aws ses"
+	EmailServiceAWS = "ses"
 	// EmailServiceMock is an email service mock.
 	EmailServiceMock = "mock"
 )
 
 // EmailServiceSettings holds together settings for the email service.
 type EmailServiceSettings struct {
-	Type       EmailServiceType `yaml:"type,omitempty" json:"type,omitempty"`
-	Domain     string           `yaml:"domain,omitempty" json:"domain,omitempty"`
-	PublicKey  string           `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	PrivateKey string           `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	Sender     string           `yaml:"sender,omitempty" json:"sender,omitempty"`
-	Region     string           `yaml:"region,omitempty" json:"region,omitempty"`
+	Type    EmailServiceType            `yaml:"type,omitempty" json:"type,omitempty"`
+	Mailgun MailgunEmailServiceSettings `yaml:"mailgun,omitempty" json:"mailgun,omitempty"`
+	SES     SESEmailServiceSettings     `yaml:"ses,omitempty" json:"ses,omitempty"`
+}
+
+type MailgunEmailServiceSettings struct {
+	Domain     string `yaml:"domain,omitempty" json:"domain,omitempty"`
+	PrivateKey string `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
+	PublicKey  string `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
+	Sender     string `yaml:"sender,omitempty" json:"sender,omitempty"`
+}
+
+type SESEmailServiceSettings struct {
+	Region string `yaml:"region,omitempty" json:"region,omitempty"`
+	Sender string `yaml:"sender,omitempty" json:"sender,omitempty"`
 }
 
 // SMSServiceSettings holds together settings for SMS service.

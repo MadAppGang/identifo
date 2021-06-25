@@ -13,7 +13,7 @@ import (
 )
 
 // NewEmailService creates new email service.
-func NewEmailService(ess model.EmailServiceSettings, templater *model.EmailTemplater) (model.EmailService, error) {
+func NewEmailService(ess model.SESEmailServiceSettings, templater *model.EmailTemplater) (model.EmailService, error) {
 	sess, err := session.NewSession(&aws.Config{
 		Region: aws.String(ess.Region),
 	},

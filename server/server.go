@@ -57,7 +57,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 
 	routerSettings := web.RouterSetting{
 		Server:          &s,
-		ServeAdminPanel: settings.StaticFilesStorage.ServeAdminPanel,
+		ServeAdminPanel: settings.Static.ServeAdminPanel,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
 			// html.StaticFilesStorageSettings(&settings.StaticFilesStorage),

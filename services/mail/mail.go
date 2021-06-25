@@ -21,9 +21,9 @@ func NewService(ess model.EmailServiceSettings, sfs model.StaticFilesStorage) (m
 
 	switch ess.Type {
 	case model.EmailServiceMailgun:
-		return mailgun.NewEmailService(ess, templater), nil
+		return mailgun.NewEmailService(ess.Mailgun, templater), nil
 	case model.EmailServiceAWS:
-		return ses.NewEmailService(ess, templater)
+		return ses.NewEmailService(ess.SES, templater)
 	case model.EmailServiceMock:
 		return mock.NewEmailService(), nil
 	}
