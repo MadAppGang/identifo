@@ -11,8 +11,9 @@ adminAccount:
 storage:
   appStorage: &storage_settings
     type: mongodb
-    name: identifo-test
-    endpoint: mongodb://localhost:27017
+    mongo:
+      database: identifo-test
+      connection: mongodb://localhost:27017
   userStorage: *storage_settings
   tokenStorage: *storage_settings
   tokenBlacklist: *storage_settings

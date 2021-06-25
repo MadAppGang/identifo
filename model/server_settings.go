@@ -59,8 +59,8 @@ type BoltDBDatabaseSettings struct {
 }
 
 type MongodDatabaseSettings struct {
-	ConnectionString string `yaml:"connectionString,omitempty" json:"connection_string,omitempty"`
-	DatabaseName     string `yaml:"databaseName,omitempty" json:"database_name,omitempty"`
+	ConnectionString string `yaml:"connection,omitempty" json:"connection,omitempty"`
+	DatabaseName     string `yaml:"database,omitempty" json:"database,omitempty"`
 }
 
 type DynamoDatabaseSettings struct {
@@ -80,17 +80,12 @@ const (
 
 // StaticFilesStorageSettings are settings for static files storage.
 type StaticFilesStorageSettings struct {
-	Type             StaticFilesStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
-	Dynamo           DynamoDatabaseSettings          `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
-	Local            LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
-	S3               S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
-	ServerConfigPath string                          `yaml:"serverConfigPath,omitempty" json:"server_config_path,omitempty"`
-	Folder           string                          `yaml:"folder,omitempty" json:"folder,omitempty"`
-	Bucket           string                          `yaml:"bucket,omitempty" json:"bucket,omitempty"`
-	Region           string                          `yaml:"region,omitempty" json:"region,omitempty"`
-	Endpoint         string                          `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
-	ServeAdminPanel  bool                            `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
-	ServeNewWeb      bool                            `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
+	Type            StaticFilesStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
+	Dynamo          DynamoDatabaseSettings          `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
+	Local           LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
+	S3              S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
+	ServeAdminPanel bool                            `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	ServeNewWeb     bool                            `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
 }
 
 type S3StaticFilesStorageSettings struct {

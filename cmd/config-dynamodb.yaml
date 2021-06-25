@@ -11,8 +11,9 @@ adminAccount:
 storage:
   appStorage: &dynamo_settings
     type: dynamodb
-    endpoint: http://localhost:8000
-    region: us-east-2
+    dynamo:
+      endpoint: http://localhost:8000
+      region: us-east-2
   userStorage: *dynamo_settings
   tokenStorage: *dynamo_settings
   tokenBlacklist: *dynamo_settings

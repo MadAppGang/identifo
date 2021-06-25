@@ -199,27 +199,28 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 	if len(sfs.Type) == 0 {
 		return fmt.Errorf("%s. Empty static files storage type", subject)
 	}
-	if (len(sfs.ServerConfigPath) == 0) && (sfs.Type != "local") {
-		return fmt.Errorf("%s. Empty server config path", subject)
-	}
 
 	switch sfs.Type {
 	case StaticFilesStorageTypeLocal:
 		return nil
 	case StaticFilesStorageTypeS3:
-		if len(sfs.Region) == 0 {
+		if len(sfs.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 		if bucket := os.Getenv(identifoStaticFilesBucketEnvName); len(bucket) != 0 {
-			sfs.Bucket = bucket
+			sfs.S3.Bucket = bucket
 		}
-		if len(sfs.Bucket) == 0 {
+		if len(sfs.S3.Bucket) == 0 {
 			return fmt.Errorf("%s. Bucket for static files is not set", subject)
 		}
 	case StaticFilesStorageTypeDynamoDB:
-		if len(sfs.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
+		if len(sfs.Dynamo.Region) == 0 {
+			return fmt.Errorf("%s. Empty dynamodb region", subject)
 		}
+		if len(sfs.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("%s. Empty dynamodb endpoints", subject)
+		}
+
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}

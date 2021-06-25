@@ -18,7 +18,8 @@ adminAccount:
 storage:
   appStorage: &storage_settings
     type: boltdb
-    path: ./db.db
+    boltdb:
+      path: ./db.db
   userStorage: *storage_settings
   tokenStorage: *storage_settings
   tokenBlacklist: *storage_settings

@@ -36,12 +36,12 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		oldRefreshToken := tokenFromContext(r.Context())
 
 		// Issue new access token and stringify it for response.
-		accessToken, err := ar.tokenService.RefreshAccessToken(oldRefreshToken)
+		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.RefreshAccessToken")
 			return
 		}
-		accessTokenString, err := ar.tokenService.String(accessToken)
+		accessTokenString, err := ar.server.Services().Token.String(accessToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.accessTokenString")
 			return
@@ -83,17 +83,17 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 		return "", err
 	}
 
-	user, err := ar.userStorage.UserByID(userID)
+	user, err := ar.server.Storages().User.UserByID(userID)
 	if err != nil {
 		return "", err
 	}
 
-	refreshToken, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+	refreshToken, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
 		return "", err
 	}
 
-	refreshTokenString, err := ar.tokenService.String(refreshToken)
+	refreshTokenString, err := ar.server.Services().Token.String(refreshToken)
 	if err != nil {
 		return "", err
 	}
@@ -102,10 +102,10 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 }
 
 func (ar *Router) invalidateOldRefreshToken(oldRefreshTokenString string) {
-	if err := ar.tokenStorage.DeleteToken(oldRefreshTokenString); err != nil {
+	if err := ar.server.Storages().Token.DeleteToken(oldRefreshTokenString); err != nil {
 		ar.logger.Println("Cannot delete old refresh token from token storage:", err)
 	}
-	if err := ar.tokenBlacklist.Add(oldRefreshTokenString); err != nil {
+	if err := ar.server.Storages().Blocklist.Add(oldRefreshTokenString); err != nil {
 		ar.logger.Println("Cannot blacklist old refresh token:", err)
 	}
 	ar.logger.Println("Old refresh token successfully invalidated")
