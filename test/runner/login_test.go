@@ -1,9 +1,11 @@
 package runner_test
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httputil"
@@ -50,6 +52,7 @@ func TestLogin(t *testing.T) {
 		Done()
 }
 
+// test happy day login, with no refresh token included
 func TestLoginWithNoRefresh(t *testing.T) {
 	g := NewGomegaWithT(t)
 
@@ -77,15 +80,28 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		})).
 		Type("json").
 		Status(200).
-		// JSONSchema("data/jwt_token_scheme.json").
+		JSONSchema("data/jwt_token_scheme.json").
 		Done()
 }
 
 // test wrong app ID login
 func TestLoginWithWrongAppID(t *testing.T) {
+	g := NewGomegaWithT(t)
+
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", "wrong_app_ID").
 		Expect(t).
+		AssertFunc(dumpResponse).
+		AssertFunc(validateJSON(func(data map[string]interface{}) error {
+			g.Expect(data["error"]).To(MatchAllKeys(Keys{
+				"id":               Equal("error.api.request.app_id.invalid"),
+				"message":          Not(BeZero()),
+				"detailed_message": Not(BeZero()),
+				"status":           BeNumerically("==", 400),
+			}))
+			return nil
+		})).
+		Type("json").
 		Status(400).
 		Done()
 }
@@ -177,11 +193,17 @@ type validatorFunc = func(map[string]interface{}) error
 
 func validateJSON(validator validatorFunc) assert.Func {
 	return func(res *http.Response, req *http.Request) error {
-		var data map[string]interface{}
-		err := json.NewDecoder(res.Body).Decode(&data)
+		body, err := ioutil.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
+
+		// Re-fill body reader stream after reading it
+		res.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+		// parse the data
+		var data map[string]interface{}
+		json.Unmarshal(body, &data)
 		return validator(data)
 	}
 }
