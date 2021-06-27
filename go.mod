@@ -2,9 +2,6 @@ module github.com/madappgang/identifo
 
 go 1.16
 
-// https://github.com/etcd-io/etcd/issues/11749#issuecomment-679189808
-replace github.com/coreos/bbolt => go.etcd.io/bbolt v1.3.5
-
 require (
 	github.com/aws/aws-sdk-go v1.38.45
 	github.com/boltdb/bolt v1.3.1

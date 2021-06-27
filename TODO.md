@@ -10,9 +10,12 @@
 - [x] refactor key storage
 - [x] refactor token service creation with configurator
 - [x] refactor server creation
-- [ ] html/routes.go - check to we need static files handler?
+- [ ] Check crash scenarious
+- [ ] release V2 beta branch
 - [ ] implement dump data import
+- [ ] implement app setting to validate HMAC signature (Web apps disabled by default)
 - [ ] implement integration testing
+- [ ] html/routes.go - check for we need static files handler?
 - [ ] check config file change monitoring
 - [ ] check S3 config file support
 - [ ] check S3 config file reloading
