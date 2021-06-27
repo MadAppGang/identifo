@@ -91,7 +91,7 @@ func TestLoginWithWrongAppID(t *testing.T) {
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", "wrong_app_ID").
 		Expect(t).
-		AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
 				"id":               Equal("error.api.request.app_id.invalid"),
@@ -108,6 +108,8 @@ func TestLoginWithWrongAppID(t *testing.T) {
 
 // test wrong signature for mobile app
 func TestLoginWithWrongSignature(t *testing.T) {
+	g := NewGomegaWithT(t)
+
 	data := `
 	{
 		"username": "test@madappgang.com",
@@ -117,11 +119,20 @@ func TestLoginWithWrongSignature(t *testing.T) {
 	signature, _ := runner.Signature(data, "app_secret")
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", "wrong_app_ID").
+		SetHeader("X-Identifo-ClientID", "59fd884d8f6b180001f5b4e2").
 		SetHeader("Digest", "SHA-256="+signature+"_wrong").
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
+		// AssertFunc(dumpResponse).
+		AssertFunc(validateJSON(func(data map[string]interface{}) error {
+			g.Expect(data["error"]).To(MatchAllKeys(Keys{
+				"id":      Equal("error.api.request.signature.invalid"),
+				"message": Not(BeZero()),
+				"status":  BeNumerically("==", 400),
+			}))
+			return nil
+		})).
 		Status(400).
 		Done()
 }
