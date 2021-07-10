@@ -19,6 +19,7 @@ const (
 	UserBySocialIDBucket    = "UserBySocialID"        // UserBySocialIDBucket is a name for bucket with social IDs as keys.
 	UserByNameAndPassword   = "UserByNameAndPassword" // UserByNameAndPassword  is a name for bucket with user names as keys.
 	UserByPhoneNumberBucket = "UserByPhoneNumber"     // UserByPhoneNumberBucket is a name for bucket with phone numbers as keys.
+	UserByEmailBucket       = "UserByEmail"           // UserByEmailBucket is a name for bucket with email as keys.
 )
 
 // NewUserStorage creates and inits an embedded user storage.
@@ -36,6 +37,9 @@ func NewUserStorage(db *bolt.DB) (model.UserStorage, error) {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserByPhoneNumberBucket)); err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserByEmailBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
@@ -73,8 +77,34 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 
 // UserByEmail returns user by its email.
 func (us *UserStorage) UserByEmail(email string) (model.User, error) {
-	// TODO: implement boltdb UserByEmail
-	return model.User{}, errors.New("Not implemented. ")
+	var res model.User
+	err := us.db.View(func(tx *bolt.Tx) error {
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		// We use email as a key.
+		// Get user ID.
+		userID := ueb.Get([]byte(email))
+		if userID == nil {
+			return model.ErrUserNotFound
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		// Get user by userID.
+		u := ub.Get(userID)
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	return res, nil
 }
 
 // DeleteUser deletes user by ID.
@@ -100,11 +130,20 @@ func (us *UserStorage) DeleteUser(id string) error {
 		return err
 	}
 
-	err := us.db.Update(func(tx *bolt.Tx) error {
+	if err := us.db.Update(func(tx *bolt.Tx) error {
 		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
 		return upnb.Delete([]byte(id))
-	})
-	return err
+	}); err != nil {
+		return err
+	}
+
+	if err := us.db.Update(func(tx *bolt.Tx) error {
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		return ueb.Delete([]byte(id))
+	}); err != nil {
+		return err
+	}
+	return nil
 }
 
 // UserByFederatedID returns user by federated ID.
@@ -265,9 +304,16 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 		}
 
 		// we use username and password hash as a key
-		key := user.Username
 		unpb := tx.Bucket([]byte(UserByNameAndPassword))
-		return unpb.Put([]byte(key), []byte(user.ID))
+		if err := unpb.Put([]byte(user.Username), []byte(user.ID)); err != nil {
+			return err
+		}
+
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		if err := ueb.Put([]byte(user.Email), []byte(user.ID)); err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return model.User{}, err
@@ -401,8 +447,16 @@ func (us *UserStorage) UpdateUser(userID string, user model.User) (model.User, e
 			return err
 		}
 
-		ubnp := tx.Bucket([]byte(UserByNameAndPassword))
-		return ubnp.Put([]byte(user.Username), []byte(user.ID))
+		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		if err := unpb.Put([]byte(user.Username), []byte(user.ID)); err != nil {
+			return err
+		}
+
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		if err := ueb.Put([]byte(user.Email), []byte(user.ID)); err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return model.User{}, err
