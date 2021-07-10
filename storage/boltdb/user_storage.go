@@ -137,13 +137,10 @@ func (us *UserStorage) DeleteUser(id string) error {
 		return err
 	}
 
-	if err := us.db.Update(func(tx *bolt.Tx) error {
+	return us.db.Update(func(tx *bolt.Tx) error {
 		ueb := tx.Bucket([]byte(UserByEmailBucket))
 		return ueb.Delete([]byte(id))
-	}); err != nil {
-		return err
-	}
-	return nil
+	})
 }
 
 // UserByFederatedID returns user by federated ID.
@@ -310,10 +307,7 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 		}
 
 		ueb := tx.Bucket([]byte(UserByEmailBucket))
-		if err := ueb.Put([]byte(user.Email), []byte(user.ID)); err != nil {
-			return err
-		}
-		return nil
+		return ueb.Put([]byte(user.Email), []byte(user.ID))
 	})
 	if err != nil {
 		return model.User{}, err
@@ -453,10 +447,7 @@ func (us *UserStorage) UpdateUser(userID string, user model.User) (model.User, e
 		}
 
 		ueb := tx.Bucket([]byte(UserByEmailBucket))
-		if err := ueb.Put([]byte(user.Email), []byte(user.ID)); err != nil {
-			return err
-		}
-		return nil
+		return ueb.Put([]byte(user.Email), []byte(user.ID))
 	})
 	if err != nil {
 		return model.User{}, err
