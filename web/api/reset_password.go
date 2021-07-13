@@ -10,7 +10,6 @@ import (
 )
 
 // RequestResetPassword requests password reset
-// FIXME: We used email as param but search for user by username
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequestEmail struct {
 		Email string `json:"email,omitempty"`
