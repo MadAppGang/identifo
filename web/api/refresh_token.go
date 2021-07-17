@@ -1,6 +1,7 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
@@ -21,8 +22,9 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		rd := requestData{}
-		if ar.MustParseJSON(w, r, &rd) != nil {
-			return
+		if err := json.NewDecoder(r.Body).Decode(&rd); err != nil {
+			// Assume we have not requested any scopes,  if there is no valid data in the body
+			rd = requestData{Scopes: []string{}}
 		}
 
 		app := middleware.AppFromContext(r.Context())
