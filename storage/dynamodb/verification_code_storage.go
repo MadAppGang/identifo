@@ -23,9 +23,19 @@ const (
 )
 
 // NewVerificationCodeStorage creates and provisions new DynamoDB verification code storage.
-func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(settings model.DynamoDatabaseSettings) (model.VerificationCodeStorage, error) {
+	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
+		return nil, ErrorEmptyEndpointRegion
+	}
+
+	// create database
+	db, err := NewDB(settings.Endpoint, settings.Region)
+	if err != nil {
+		return nil, err
+	}
+
 	vcs := &VerificationCodeStorage{db: db}
-	err := vcs.ensureTable()
+	err = vcs.ensureTable()
 	return vcs, err
 }
 
@@ -43,7 +53,6 @@ func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) 
 			":phone": {S: aws.String(phone)},
 		},
 	})
-
 	if err != nil {
 		log.Println("Error querying for verification code:", err)
 		return false, ErrorInternalError

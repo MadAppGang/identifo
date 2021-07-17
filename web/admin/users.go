@@ -36,7 +36,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
 
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			if err == model.ErrUserNotFound {
 				ar.Error(w, err, http.StatusNotFound, "")
@@ -62,7 +62,7 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 			return
 		}
 
-		users, total, err := ar.userStorage.FetchUsers(filterStr, skip, limit)
+		users, total, err := ar.server.Storages().User.FetchUsers(filterStr, skip, limit)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -101,7 +101,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole, false)
+		user, err := ar.server.Storages().User.AddUserByNameAndPassword(rd.Username, rd.Password, rd.AccessRole, false)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
@@ -109,7 +109,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 
 		user.TFAInfo = rd.TFAInfo
 
-		user, err = ar.userStorage.UpdateUser(user.ID, user)
+		user, err = ar.server.Storages().User.UpdateUser(user.ID, user)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "Setting TFA data")
 			return
@@ -130,7 +130,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		existing, err := ar.userStorage.UserByID(userID)
+		existing, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
@@ -140,7 +140,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			u.TFAInfo = existing.TFAInfo
 		}
 
-		user, err := ar.userStorage.UpdateUser(userID, u)
+		user, err := ar.server.Storages().User.UpdateUser(userID, u)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
@@ -157,7 +157,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 func (ar *Router) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
-		if err := ar.userStorage.DeleteUser(userID); err != nil {
+		if err := ar.server.Storages().User.DeleteUser(userID); err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}

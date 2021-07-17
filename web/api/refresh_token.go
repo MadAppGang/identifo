@@ -1,9 +1,9 @@
 package api
 
 import (
+	"encoding/json"
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -22,8 +22,9 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		rd := requestData{}
-		if ar.MustParseJSON(w, r, &rd) != nil {
-			return
+		if err := json.NewDecoder(r.Body).Decode(&rd); err != nil {
+			// Assume we have not requested any scopes,  if there is no valid data in the body
+			rd = requestData{Scopes: []string{}}
 		}
 
 		app := middleware.AppFromContext(r.Context())
@@ -37,12 +38,12 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		oldRefreshToken := tokenFromContext(r.Context())
 
 		// Issue new access token and stringify it for response.
-		accessToken, err := ar.tokenService.RefreshAccessToken(oldRefreshToken)
+		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.RefreshAccessToken")
 			return
 		}
-		accessTokenString, err := ar.tokenService.String(accessToken)
+		accessTokenString, err := ar.server.Services().Token.String(accessToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.accessTokenString")
 			return
@@ -75,7 +76,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 }
 
 func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []string, app model.AppData) (string, error) {
-	if !contains(scopes, jwtService.OfflineScope) { // Don't issue new refresh token if not requested.
+	if !contains(scopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
 		return "", nil
 	}
 
@@ -84,17 +85,17 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 		return "", err
 	}
 
-	user, err := ar.userStorage.UserByID(userID)
+	user, err := ar.server.Storages().User.UserByID(userID)
 	if err != nil {
 		return "", err
 	}
 
-	refreshToken, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+	refreshToken, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
 		return "", err
 	}
 
-	refreshTokenString, err := ar.tokenService.String(refreshToken)
+	refreshTokenString, err := ar.server.Services().Token.String(refreshToken)
 	if err != nil {
 		return "", err
 	}
@@ -103,10 +104,10 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 }
 
 func (ar *Router) invalidateOldRefreshToken(oldRefreshTokenString string) {
-	if err := ar.tokenStorage.DeleteToken(oldRefreshTokenString); err != nil {
+	if err := ar.server.Storages().Token.DeleteToken(oldRefreshTokenString); err != nil {
 		ar.logger.Println("Cannot delete old refresh token from token storage:", err)
 	}
-	if err := ar.tokenBlacklist.Add(oldRefreshTokenString); err != nil {
+	if err := ar.server.Storages().Blocklist.Add(oldRefreshTokenString); err != nil {
 		ar.logger.Println("Cannot blacklist old refresh token:", err)
 	}
 	ar.logger.Println("Old refresh token successfully invalidated")

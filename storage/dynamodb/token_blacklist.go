@@ -12,9 +12,19 @@ import (
 const blacklistedTokensTableName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new DynamoDB token storage.
-func NewTokenBlacklist(db *DB) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(settings model.DynamoDatabaseSettings) (model.TokenBlacklist, error) {
+	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
+		return nil, ErrorEmptyEndpointRegion
+	}
+
+	// create database
+	db, err := NewDB(settings.Endpoint, settings.Region)
+	if err != nil {
+		return nil, err
+	}
+
 	ts := &TokenBlacklist{db: db}
-	err := ts.ensureTable()
+	err = ts.ensureTable()
 	return ts, err
 }
 

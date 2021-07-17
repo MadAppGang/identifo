@@ -13,7 +13,17 @@ import (
 const tokensCollectionName = "RefreshTokens"
 
 // NewTokenStorage creates a MongoDB token storage.
-func NewTokenStorage(db *DB) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.MongodDatabaseSettings) (model.TokenStorage, error) {
+	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
+		return nil, ErrorEmptyConnectionStringDatabase
+	}
+
+	// create database
+	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
 	coll := db.Database.Collection(tokensCollectionName)
 	return &TokenStorage{coll: coll, timeout: 30 * time.Second}, nil
 }
@@ -33,7 +43,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
 	defer cancel()
 
-	var t = Token{Token: token, ID: primitive.NewObjectID().Hex()}
+	t := Token{Token: token, ID: primitive.NewObjectID().Hex()}
 	_, err := ts.coll.InsertOne(ctx, t)
 	return err
 }

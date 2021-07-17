@@ -31,6 +31,20 @@
             "envFile": "${workspaceFolder}/.env",
             "args": ["--config=file://./cmd/config-dynamodb.yaml"],
             "showLog": true
+        },
+        {
+            "name": "BoltDB",
+            "type": "go",
+            "request": "launch",
+            "mode": "debug",
+            "remotePath": "",
+            "port": 2345,
+            "host": "127.0.0.1",
+            "program": "${workspaceFolder}/main.go",
+            "cwd": "${workspaceFolder}",
+            "envFile": "${workspaceFolder}/.env",
+            "args": ["--config=file://./cmd/config-boltdb.yaml"],
+            "showLog": true
         }
 
     ]

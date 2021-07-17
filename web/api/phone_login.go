@@ -8,7 +8,6 @@ import (
 	"math/big"
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
@@ -41,12 +40,12 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 
 		// TODO: add limiter here. Check frequency of requests.
 		code := randStringBytes(phoneVerificationCodeLength)
-		if err := ar.verificationCodeStorage.CreateVerificationCode(authData.PhoneNumber, code); err != nil {
+		if err := ar.server.Storages().Verification.CreateVerificationCode(authData.PhoneNumber, code); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.CreateVerificationCode")
 			return
 		}
 
-		if err := ar.smsService.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code)); err != nil {
+		if err := ar.server.Services().SMS.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code)); err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unable to send sms. %s", err), "RequestVerificationCode.SendSMS")
 			return
 		}
@@ -79,7 +78,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		needVerification := app.DebugTFACode == "" || authData.Code != app.DebugTFACode
 		if needVerification { // check verification code
-			if exists, err := ar.verificationCodeStorage.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
+			if exists, err := ar.server.Storages().Verification.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
 				return
 			} else if !exists {
@@ -88,9 +87,9 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			}
 		}
 
-		user, err := ar.userStorage.UserByPhone(authData.PhoneNumber)
+		user, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
-			user, err = ar.userStorage.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole)
+			user, err = ar.server.Storages().User.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole)
 		}
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
@@ -109,7 +108,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.userStorage.RequestScopes(user.ID, authData.Scopes)
+		scopes, err := ar.server.Storages().User.RequestScopes(user.ID, authData.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "PhoneLogin.RequestScopes")
 			return
@@ -121,7 +120,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		offline := contains(scopes, jwtService.OfflineScope)
+		offline := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "PhoneLogin.loginUser")
@@ -135,7 +134,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID)
+		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

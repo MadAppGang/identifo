@@ -48,6 +48,12 @@ func (ar *Router) initRoutes() {
 		ar.Token(model.TokenTypeRefresh, nil),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
+
+	auth.Path(`/{token:token/?}`).Handler(negroni.New(
+		ar.Token(model.TokenTypeRefresh, nil),
+		negroni.Wrap(ar.RefreshTokens()),
+	)).Methods("POST")
+
 	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestInviteLink()),

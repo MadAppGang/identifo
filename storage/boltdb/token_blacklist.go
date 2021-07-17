@@ -14,7 +14,17 @@ const (
 )
 
 // NewTokenBlacklist creates a token blacklist in BoltDB.
-func NewTokenBlacklist(db *bolt.DB) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(settings model.BoltDBDatabaseSettings) (model.TokenBlacklist, error) {
+	if len(settings.Path) == 0 {
+		return nil, ErrorEmptyDatabasePath
+	}
+
+	// init database
+	db, err := InitDB(settings.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	tb := &TokenBlacklist{db: db}
 	if err := tb.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(BlacklistedTokenBucket)); err != nil {

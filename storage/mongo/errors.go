@@ -1,9 +1,9 @@
 package mongo
 
-//Error - domain level error type
+// Error - domain level error type
 type Error string
 
-//Error - implementation of std.Error protocol
+// Error - implementation of std.Error protocol
 func (e Error) Error() string { return string(e) }
 
 const (
@@ -13,4 +13,6 @@ const (
 	ErrorEmptyAppID = Error("Empty appID param")
 	// ErrorInactiveApp means app is inactive
 	ErrorInactiveApp = Error("App is inactive")
+	// ErrorEmptyConnectionStringDatabase empty connection string or database name
+	ErrorEmptyConnectionStringDatabase = Error("unable to create mongodb storage for empty connection string or empty database name")
 )

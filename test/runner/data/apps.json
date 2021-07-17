@@ -1,0 +1,15 @@
+[
+    {
+		"id":"59fd884d8f6b180001f5b4e2",
+		"secret":"app_secret",
+		"name":"Test app App",
+		"active":true, 
+		"description":"Amazing ios app", 
+		"scopes":["smartrun"],
+		"offline":true,
+		"redirect_urls": ["http://localhost:3000/callback"],
+		"refresh_token_lifespan":9000000,
+		"token_lifespan":9000,
+		"token_payload":["name", "email"]
+	}
+]

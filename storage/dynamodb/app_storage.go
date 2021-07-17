@@ -14,9 +14,19 @@ import (
 var appsTableName = "Applications"
 
 // NewAppStorage creates new DynamoDB AppStorage implementation.
-func NewAppStorage(db *DB) (model.AppStorage, error) {
+func NewAppStorage(settings model.DynamoDatabaseSettings) (model.AppStorage, error) {
+	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
+		return nil, ErrorEmptyEndpointRegion
+	}
+
+	// create database
+	db, err := NewDB(settings.Endpoint, settings.Region)
+	if err != nil {
+		return nil, err
+	}
+
 	as := &AppStorage{db: db}
-	err := as.ensureTable()
+	err = as.ensureTable()
 	return as, err
 }
 

@@ -22,7 +22,17 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a BoltDB invites storage.
-func NewInviteStorage(db *bolt.DB) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorage, error) {
+	if len(settings.Path) == 0 {
+		return nil, ErrorEmptyDatabasePath
+	}
+
+	// init database
+	db, err := InitDB(settings.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	is := &InviteStorage{db: db}
 	// Ensure that we have needed bucket in the database.
 	if err := db.Update(func(tx *bolt.Tx) error {

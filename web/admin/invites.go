@@ -28,7 +28,7 @@ func (ar *Router) FetchInvites() http.HandlerFunc {
 			return
 		}
 
-		invites, total, err := ar.inviteStorage.GetAll(withValid, skip, limit)
+		invites, total, err := ar.server.Storages().Invite.GetAll(withValid, skip, limit)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "")
 			return
@@ -51,7 +51,7 @@ func (ar *Router) GetInviteByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 
-		invite, err := ar.inviteStorage.GetByID(id)
+		invite, err := ar.server.Storages().Invite.GetByID(id)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteNotFound, http.StatusInternalServerError, "")
 			return
@@ -66,7 +66,7 @@ func (ar *Router) ArchiveInviteByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		id := mux.Vars(r)["id"]
 
-		if err := ar.inviteStorage.ArchiveByID(id); err != nil {
+		if err := ar.server.Storages().Invite.ArchiveByID(id); err != nil {
 			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, "")
 			return
 		}

@@ -16,7 +16,17 @@ import (
 const appsCollectionName = "Applications"
 
 // NewAppStorage creates new MongoDB AppStorage implementation.
-func NewAppStorage(db *DB) (model.AppStorage, error) {
+func NewAppStorage(settings model.MongodDatabaseSettings) (model.AppStorage, error) {
+	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
+		return nil, ErrorEmptyConnectionStringDatabase
+	}
+
+	// create database
+	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
 	coll := db.Database.Collection(appsCollectionName)
 	return &AppStorage{coll: coll, timeout: 30 * time.Second}, nil
 }

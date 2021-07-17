@@ -15,7 +15,7 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	tokenValidator := jwtValidator.NewValidator(
 		[]string{"identifo"},
-		[]string{ar.TokenService.Issuer()},
+		[]string{ar.Server.Services().Token.Issuer()},
 		[]string{},
 		[]string{model.TokenTypeReset},
 	)
@@ -37,7 +37,7 @@ func (ar *Router) ResetTokenMiddleware() negroni.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.Parse(tstr)
+		token, err := ar.Server.Services().Token.Parse(tstr)
 		if err != nil {
 			ar.Logger.Printf("Error invalid token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusMovedPermanently)

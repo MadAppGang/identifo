@@ -17,7 +17,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get requester data
 		requesterID := tokenFromContext(r.Context()).UserID()
-		requester, err := ar.userStorage.UserByID(requesterID)
+		requester, err := ar.server.Storages().User.UserByID(requesterID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "RequestInviteLink.UserByID")
 			return
@@ -37,24 +37,24 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		_, err = ar.inviteStorage.GetByEmail(d.Email)
+		_, err = ar.server.Storages().Invite.GetByEmail(d.Email)
 		if err != nil && !errors.Is(err, model.ErrorNotFound) {
 			ar.Error(w, ErrorAPIInviteUnableToGet, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_GetByEmail")
 			return
 		}
 
-		if err := ar.inviteStorage.ArchiveAllByEmail(d.Email); err != nil {
+		if err := ar.server.Storages().Invite.ArchiveAllByEmail(d.Email); err != nil {
 			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_InvalidateAllByEmail")
 			return
 		}
 
-		inviteToken, err := ar.tokenService.NewInviteToken(d.Email, d.Role)
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return
 		}
 
-		inviteTokenString, err := ar.tokenService.String(inviteToken)
+		inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.tokenService_String")
 			return
@@ -80,7 +80,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		// Send email only if it's specified.
 		if d.Email != "" {
 			uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "register")}
-			err = ar.inviteStorage.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
+			err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
 			if err != nil {
 				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")
 				return
@@ -95,7 +95,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 				Query:     query,
 				Host:      uu.String(),
 			}
-			err = ar.emailService.SendInviteEmail("Invitation", d.Email, requestData)
+			err = ar.server.Services().Email.SendInviteEmail("Invitation", d.Email, requestData)
 			if err != nil {
 				ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, err.Error(), "RequestInviteLink.SendInviteEmail")
 				return

@@ -22,22 +22,21 @@ const (
 	RefreshTokenContextKey = "identifo.token.refresh"
 )
 
-//Handler is a full copy of negroni.HandlerFunc
-//this is the same http.HandlerFunc, it just has one additional parameter 'next'
-//next is a reference to the next handler in the handler chain
+// Handler is a full copy of negroni.HandlerFunc
+// this is the same http.HandlerFunc, it just has one additional parameter 'next'
+// next is a reference to the next handler in the handler chain
 type Handler func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc)
 
-//ErrorHandler interface for handling error from middleware
-//rw - readwriter to write error to (JSON, HTML or other error to the client)
-//errorType - error returned from middleware, you can get description by calling errorType.Description()
-//status - http status code
+// ErrorHandler interface for handling error from middleware
+// rw - readwriter to write error to (JSON, HTML or other error to the client)
+// errorType - error returned from middleware, you can get description by calling errorType.Description()
+// status - http status code
 type ErrorHandler interface {
 	Error(rw http.ResponseWriter, errorType Error, status int, description string)
 }
 
-//JWT returns middleware function you can use to handle JWT token auth
+// JWT returns middleware function you can use to handle JWT token auth
 func JWT(eh ErrorHandler, c validator.Config) (Handler, error) {
-
 	v, err := validator.NewValidatorWithConfig(c)
 	if err != nil {
 		return nil, err
@@ -64,6 +63,6 @@ func JWT(eh ErrorHandler, c validator.Config) (Handler, error) {
 }
 
 // TokenFromContext returns token from request context.
-func TokenFromContext(ctx context.Context) jwt.Token {
-	return ctx.Value(model.TokenContextKey).(jwt.Token)
+func TokenFromContext(ctx context.Context) model.Token {
+	return ctx.Value(model.TokenContextKey).(model.Token)
 }

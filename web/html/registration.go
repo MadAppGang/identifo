@@ -82,7 +82,7 @@ func (ar *Router) Register() http.HandlerFunc {
 
 		userRole := app.NewUserDefaultRole
 		if inviteToken != "" {
-			parsedInviteToken, err := ar.TokenService.Parse(inviteToken)
+			parsedInviteToken, err := ar.Server.Services().Token.Parse(inviteToken)
 			if err != nil {
 				ar.Logger.Printf("Error: Invalid invite token %s", inviteToken)
 				http.Redirect(w, r, errorPath, http.StatusFound)
@@ -117,7 +117,7 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.UserStorage.AddUserByNameAndPassword(username, password, userRole, isAnonymous)
+		user, err := ar.Server.Storages().User.AddUserByNameAndPassword(username, password, userRole, isAnonymous)
 		if err != nil {
 			if err == model.ErrorUserExists {
 				SetFlash(w, FlashErrorMessageKey, err.Error())
@@ -131,35 +131,35 @@ func (ar *Router) Register() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes, err = ar.UserStorage.RequestScopes(user.ID, scopes)
+		scopes, err = ar.Server.Storages().User.RequestScopes(user.ID, scopes)
 		if err != nil {
 			ar.Logger.Printf("error requesting scopes %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		token, err := ar.TokenService.NewWebCookieToken(user)
+		token, err := ar.Server.Services().Token.NewWebCookieToken(user)
 		if err != nil {
 			ar.Logger.Printf("error creating auth token %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		tokenString, err := ar.TokenService.String(token)
+		tokenString, err := ar.Server.Services().Token.String(token)
 		if err != nil {
 			ar.Logger.Printf("error while making a call token stringify: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
+		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.Server.Services().Token.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}
 }
 
 // RegistrationHandler serves registration page.
 func (ar *Router) RegistrationHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.Registration)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.Registration)
 	if err != nil {
 		ar.Logger.Fatalln("cannot parse registration template", err)
 	}

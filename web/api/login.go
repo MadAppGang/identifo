@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"time"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	thp "github.com/madappgang/identifo/user_payload_provider/http"
 	"github.com/madappgang/identifo/web/authorization"
@@ -72,7 +71,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByNamePassword(ld.Username, ld.Password)
+		user, err := ar.server.Storages().User.UserByNamePassword(ld.Username, ld.Password)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestIncorrectEmailOrPassword, http.StatusUnauthorized, err.Error(), "LoginWithPassword.UserByNamePassword")
 			return
@@ -117,7 +116,7 @@ func (ar *Router) sendOTPCode(user model.User) error {
 		tfa.HOTPCounter++
 		tfa.HOTPExpiredAt = time.Now().Add(time.Hour * hotpLifespanHours)
 		user.TFAInfo = tfa
-		if _, err := ar.userStorage.UpdateUser(user.ID, user); err != nil {
+		if _, err := ar.server.Storages().User.UpdateUser(user.ID, user); err != nil {
 			return err
 		}
 		switch ar.tfaType {
@@ -145,7 +144,7 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := tokenFromContext(r.Context()).UserID()
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "UpdateUser.UserByID")
 			return
@@ -178,12 +177,12 @@ func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
 func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool, tokenPayload map[string]interface{}) (accessTokenString, refreshTokenString string, err error) {
-	token, err := ar.tokenService.NewAccessToken(user, scopes, app, require2FA, tokenPayload)
+	token, err := ar.server.Services().Token.NewAccessToken(user, scopes, app, require2FA, tokenPayload)
 	if err != nil {
 		return
 	}
 
-	accessTokenString, err = ar.tokenService.String(token)
+	accessTokenString, err = ar.server.Services().Token.String(token)
 	if err != nil {
 		return
 	}
@@ -191,11 +190,11 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 		return
 	}
 
-	refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+	refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
 		return
 	}
-	refreshTokenString, err = ar.tokenService.String(refresh)
+	refreshTokenString, err = ar.server.Services().Token.String(refresh)
 	if err != nil {
 		return
 	}
@@ -238,7 +237,7 @@ func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
 		return errors.New("unable to send SMS OTP, user has no phone number")
 	}
 
-	if err := ar.smsService.SendSMS(phone, fmt.Sprintf(smsTFACode, otp)); err != nil {
+	if err := ar.server.Services().SMS.SendSMS(phone, fmt.Sprintf(smsTFACode, otp)); err != nil {
 		return fmt.Errorf("unable to send sms. %s", err)
 	}
 	return nil
@@ -253,7 +252,7 @@ func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
 		User: user,
 		OTP:  otp,
 	}
-	if err := ar.emailService.SendTFAEmail("One-time password", user.Email, emailData); err != nil {
+	if err := ar.server.Services().Email.SendTFAEmail("One-time password", user.Email, emailData); err != nil {
 		return fmt.Errorf("unable to send email with OTP with error: %s", err)
 	}
 	return nil
@@ -261,7 +260,7 @@ func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
 
 func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string) (AuthResponse, error) {
 	// Do login flow.
-	scopes, err := ar.userStorage.RequestScopes(user.ID, scopes)
+	scopes, err := ar.server.Storages().User.RequestScopes(user.ID, scopes)
 	if err != nil {
 		return AuthResponse{}, err
 	}
@@ -272,7 +271,7 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string)
 		return AuthResponse{}, err
 	}
 
-	offline := contains(scopes, jwtService.OfflineScope)
+	offline := contains(scopes, model.OfflineScope)
 
 	tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 	if err != nil {
@@ -296,7 +295,7 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string)
 			return AuthResponse{}, err
 		}
 	} else {
-		ar.userStorage.UpdateLoginMetadata(user.ID)
+		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 	}
 
 	user = user.Sanitized()

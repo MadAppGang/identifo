@@ -5,6 +5,7 @@ import (
 	"time"
 
 	jwt "github.com/form3tech-oss/jwt-go"
+	"github.com/madappgang/identifo/model"
 )
 
 // TokenHeaderKeyPrefix is a token prefix regarding RFCXXX.
@@ -23,10 +24,10 @@ func ExtractTokenFromBearerHeader(token string) []byte {
 }
 
 // ParseTokenWithPublicKey parses token with provided public key.
-func ParseTokenWithPublicKey(t string, publicKey interface{}) (Token, error) {
+func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.Token, error) {
 	tokenString := strings.TrimSpace(t)
 
-	parsedToken, err := jwt.ParseWithClaims(tokenString, &Claims{}, func(token *jwt.Token) (interface{}, error) {
+	parsedToken, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counter part to verify
 		return publicKey, nil
@@ -35,7 +36,7 @@ func ParseTokenWithPublicKey(t string, publicKey interface{}) (Token, error) {
 		return nil, err
 	}
 
-	return &JWToken{JWT: parsedToken}, nil
+	return &model.JWToken{JWT: parsedToken}, nil
 }
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).

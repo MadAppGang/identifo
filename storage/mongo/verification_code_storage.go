@@ -18,7 +18,17 @@ const (
 )
 
 // NewVerificationCodeStorage creates and inits MongoDB verification code storage.
-func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(settings model.MongodDatabaseSettings) (model.VerificationCodeStorage, error) {
+	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
+		return nil, ErrorEmptyConnectionStringDatabase
+	}
+
+	// create database
+	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
 	coll := db.Database.Collection(verificationCodesCollectionName)
 	vcs := &VerificationCodeStorage{coll: coll, timeout: 30 * time.Second}
 
@@ -47,7 +57,7 @@ func NewVerificationCodeStorage(db *DB) (model.VerificationCodeStorage, error) {
 		Options: createdAtOptions,
 	}
 
-	err := db.EnsureCollectionIndices(verificationCodesCollectionName, []mongo.IndexModel{*phoneIndex, *codeIndex, *createdAtIndex})
+	err = db.EnsureCollectionIndices(verificationCodesCollectionName, []mongo.IndexModel{*phoneIndex, *codeIndex, *createdAtIndex})
 	return vcs, err
 }
 

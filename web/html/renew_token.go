@@ -12,13 +12,13 @@ import (
 
 // RenewToken creates new id_token if user is already authenticated.
 func (ar *Router) RenewToken() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.WebMessage)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.WebMessage)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse WebMessage template.", err)
 	}
 	tokenValidator := jwtValidator.NewValidator(
 		[]string{"identifo"},
-		[]string{ar.TokenService.Issuer()},
+		[]string{ar.Server.Services().Token.Issuer()},
 		[]string{},
 		[]string{model.TokenTypeWebCookie},
 	)
@@ -45,7 +45,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 		}
 
 		appID := strings.TrimSpace(r.URL.Query().Get(FormKeyAppID))
-		app, err := ar.AppStorage.ActiveAppByID(appID)
+		app, err := ar.Server.Storages().App.ActiveAppByID(appID)
 		if err != nil {
 			message := fmt.Sprintf("Error getting App by ID: %v", err)
 			ar.Logger.Printf(message)
@@ -62,7 +62,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			serveTemplate("not authorized", "", redirectURI)
 			return
 		}
-		webCookieToken, err := ar.TokenService.Parse(tstr)
+		webCookieToken, err := ar.Server.Services().Token.Parse(tstr)
 		if err != nil {
 			ar.Logger.Printf("Error invalid token: %v", err)
 			deleteCookie(w, CookieKeyWebCookieToken)
@@ -79,7 +79,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 
 		userID := webCookieToken.UserID()
 
-		user, err := ar.UserStorage.UserByID(userID)
+		user, err := ar.Server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
 			deleteCookie(w, CookieKeyWebCookieToken)
@@ -95,7 +95,7 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			return
 		}
 
-		scopes, err = ar.UserStorage.RequestScopes(userID, scopes)
+		scopes, err = ar.Server.Storages().User.RequestScopes(userID, scopes)
 		if err != nil {
 			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, userID)
 			message := fmt.Sprintf("user not allowed to access this scopes %v", scopes)
@@ -103,14 +103,14 @@ func (ar *Router) RenewToken() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false, nil)
+		token, err := ar.Server.Services().Token.NewAccessToken(user, scopes, app, false, nil)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate("server error", "", redirectURI)
 			return
 		}
 
-		tokenString, err := ar.TokenService.String(token)
+		tokenString, err := ar.Server.Services().Token.String(token)
 		if err != nil {
 			ar.Logger.Printf("Error stringifying token: %v", err)
 			serveTemplate("server error", "", redirectURI)

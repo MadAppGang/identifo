@@ -21,7 +21,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		}
 
 		tokenString := r.Context().Value(model.TokenRawContextKey).(string)
-		token, err := ar.TokenService.Parse(tokenString)
+		token, err := ar.Server.Services().Token.Parse(tokenString)
 		if err != nil {
 			ar.Logger.Println("Error parsing token. ", err)
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
@@ -29,7 +29,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 			return
 		}
 
-		if err = ar.UserStorage.ResetPassword(token.UserID(), password); err != nil {
+		if err = ar.Server.Storages().User.ResetPassword(token.UserID(), password); err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error")
 			http.Redirect(w, r, path.Join(ar.PathPrefix, r.URL.String()), http.StatusMovedPermanently)
 			return
@@ -48,7 +48,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 
 // ResetPasswordHandler handles reset password GET request.
 func (ar *Router) ResetPasswordHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.ResetPassword)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.ResetPassword)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse ResetPassword template.", err)
 	}

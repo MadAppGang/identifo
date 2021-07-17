@@ -5,7 +5,6 @@ import (
 	"net/http"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/madappgang/identifo/web/middleware"
@@ -84,10 +83,10 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.userStorage.UserByFederatedID(fid, federatedID)
+		user, err := ar.server.Storages().User.UserByFederatedID(fid, federatedID)
 		// Check error not found, create new user.
 		if err == model.ErrUserNotFound && d.RegisterIfNew {
-			user, err = ar.userStorage.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole)
+			user, err = ar.server.Storages().User.AddUserWithFederatedID(fid, federatedID, app.NewUserDefaultRole)
 			if err != nil {
 				ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
 				return
@@ -113,7 +112,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Request permissions for the user.
-		scopes, err := ar.userStorage.RequestScopes(user.ID, d.Scopes)
+		scopes, err := ar.server.Storages().User.RequestScopes(user.ID, d.Scopes)
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusBadRequest, err.Error(), "FederatedLogin.RequestScopes")
 			return
@@ -127,14 +126,14 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		}
 
 		// Generate access token.
-		token, err := ar.tokenService.NewAccessToken(user, scopes, app, false, tokenPayload)
+		token, err := ar.server.Services().Token.NewAccessToken(user, scopes, app, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusUnauthorized, err.Error(), "FederatedLogin.tokenService_NewToken")
 			return
 		}
-		//check token payload data
+		// check token payload data
 
-		tokenString, err := ar.tokenService.String(token)
+		tokenString, err := ar.server.Services().Token.String(token)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
 			return
@@ -142,13 +141,13 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		refreshString := ""
 		// requesting offline access ?
-		if contains(scopes, jwtService.OfflineScope) {
-			refresh, err := ar.tokenService.NewRefreshToken(user, scopes, app)
+		if contains(scopes, model.OfflineScope) {
+			refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 			if err != nil {
 				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_NewRefreshToken")
 				return
 			}
-			refreshString, err = ar.tokenService.String(refresh)
+			refreshString, err = ar.server.Services().Token.String(refresh)
 			if err != nil {
 				ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "FederatedLogin.tokenService_String")
 				return
@@ -162,7 +161,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			User:         user,
 		}
 
-		ar.userStorage.UpdateLoginMetadata(user.ID)
+		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
