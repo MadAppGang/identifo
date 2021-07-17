@@ -14,12 +14,12 @@ func TestRegisterWithEmail(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user2, user2Pswd)
+	}`, cfg.User2, cfg.User2Pswd)
 
-	signature, _ := runner.Signature(data, appSecret)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/register").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -38,15 +38,15 @@ func TestRegisterWithEmailAndLogout(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user3, user3Pswd)
+	}`, cfg.User3, cfg.User3Pswd)
 
-	signature, _ := runner.Signature(data, appSecret)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 
 	at := ""
 	rt := ""
 
 	request.Post("/auth/register").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -67,9 +67,9 @@ func TestRegisterWithEmailAndLogout(t *testing.T) {
 		"refresh_token": "%s"
 	}`, rt)
 
-	signatureLogout, _ := runner.Signature(logoutData, appSecret)
+	signatureLogout, _ := runner.Signature(logoutData, cfg.AppSecret)
 	request.Post("/me/logout").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signatureLogout).
 		SetHeader("Authorization", "Bearer "+at).
 		SetHeader("Content-Type", "application/json").

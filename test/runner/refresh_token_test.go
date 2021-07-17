@@ -14,12 +14,12 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user1, user1Pswd)
-	signature, _ := runner.Signature(data, appSecret)
+	}`, cfg.User1, cfg.User1Pswd)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 	rt := ""
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -36,10 +36,10 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		Done()
 
 	d := fmt.Sprintf("%d", time.Now().Unix())
-	signature, _ = runner.Signature("/auth/token"+d, appSecret)
+	signature, _ = runner.Signature("/auth/token"+d, cfg.AppSecret)
 
 	request.Post("/auth/token").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+rt).
@@ -58,12 +58,12 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user1, user1Pswd)
-	signature, _ := runner.Signature(data, appSecret)
+	}`, cfg.User1, cfg.User1Pswd)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 	rt := ""
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -80,16 +80,16 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		Done()
 
 	data = `{ "scopes": ["offline"] }`
-	signature, _ = runner.Signature(data, appSecret)
+	signature, _ = runner.Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/token").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		SetHeader("Authorization", "Bearer "+rt).
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
 		JSONSchema("data/jwt_refresh_token_with_new_refresh.json").

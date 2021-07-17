@@ -21,11 +21,11 @@ func TestLogin(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user1, user1Pswd)
-	signature, _ := runner.Signature(data, appSecret)
+	}`, cfg.User1, cfg.User1Pswd)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -46,12 +46,12 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": []
-	}`, user1, user1Pswd)
+	}`, cfg.User1, cfg.User1Pswd)
 
-	signature, _ := runner.Signature(data, appSecret)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
@@ -101,12 +101,12 @@ func TestLoginWithWrongSignature(t *testing.T) {
 		"username": "%s",
 		"password": "%s",
 		"scopes": ["offline"]
-	}`, user1, user1Pswd)
+	}`, cfg.User1, cfg.User1Pswd)
 
-	signature, _ := runner.Signature(data, appSecret)
+	signature, _ := runner.Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
-		SetHeader("X-Identifo-ClientID", appID).
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
 		SetHeader("Digest", "SHA-256="+signature+"_wrong").
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
