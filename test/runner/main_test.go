@@ -18,27 +18,33 @@ import (
 	"gopkg.in/h2non/baloo.v3/assert"
 )
 
-const (
-	serverURL     = "http://localhost:8081"
-	appID         = "c3atoc9e00864hmnammg"
-	appSecret     = "nkbyOSh3sb8ha0VfLjjRuw=="
-	runTestServer = false
-
-	user1     = "test@madappgang.com"
-	user1Pswd = "Secret3"
-	user2     = "new_user@madappgang.com"
-	user2Pswd = "Secret321"
-	user3     = "new_user3@madappgang.com"
-	user3Pswd = "Secret321"
-)
-
-// original
+// testing standalone boltdb instance
 // const (
 // 	serverURL     = "http://localhost:8081"
-// 	appID         = "59fd884d8f6b180001f5b4e2"
-// 	appSecret     = "app_secret"
-// 	runTestServer = true
+// 	appID         = "c3atoc9e00864hmnammg"
+// 	appSecret     = "nkbyOSh3sb8ha0VfLjjRuw=="
+// 	runTestServer = false
+
+// 	user1     = "test@madappgang.com"
+// 	user1Pswd = "Secret3"
+// 	user2     = "new_user@madappgang.com"
+// 	user2Pswd = "Secret321"
+// 	user3     = "new_user3@madappgang.com"
+// 	user3Pswd = "Secret321"
 // )
+
+const (
+	serverURL     = "http://localhost:8081"
+	appID         = "59fd884d8f6b180001f5b4e2"
+	appSecret     = "app_secret"
+	runTestServer = true
+	user1         = "test@madappgang.com"
+	user1Pswd     = "Secret3"
+	user2         = "new_user@madappgang.com"
+	user2Pswd     = "Secret321"
+	user3         = "new_user3@madappgang.com"
+	user3Pswd     = "Secret321"
+)
 
 // test stores the HTTP testing client preconfigured
 var request = baloo.New(serverURL)
