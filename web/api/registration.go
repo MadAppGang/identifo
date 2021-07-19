@@ -9,21 +9,47 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
+// FIXME
 type registrationData struct {
 	Username  string   `json:"username,omitempty"`
+	Phone     string   `json:"phone,omitempty"`
+	Email     string   `json:"email,omitempty"`
 	Password  string   `json:"password,omitempty"`
 	Scopes    []string `json:"scopes,omitempty"`
 	Anonymous bool     `json:"anonymous,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
+	emailLen := len(rd.Email)
+	phoneLen := len(rd.Phone)
 	usernameLen := len(rd.Username)
-	if usernameLen < 6 || usernameLen > 50 {
-		return fmt.Errorf("incorrect username length %d, expected a number between 6 and 50", usernameLen)
-	}
 	pswdLen := len(rd.Password)
+	if emailLen > 0 {
+		if phoneLen > 0 || usernameLen > 0 {
+			return fmt.Errorf("don't use phone or username when login with email")
+		}
+		if !model.EmailRegexp.MatchString(rd.Email) {
+			return fmt.Errorf("invalid email")
+		}
+	}
+	if phoneLen > 0 {
+		if emailLen > 0 || usernameLen > 0 {
+			return fmt.Errorf("don't use email or username when login with phone")
+		}
+		if !model.PhoneRegexp.MatchString(rd.Email) {
+			return fmt.Errorf("invalid phone")
+		}
+	}
+	if usernameLen > 0 {
+		if phoneLen > 0 || emailLen > 0 {
+			return fmt.Errorf("don't use phone or email when login with username")
+		}
+		if usernameLen < 6 || usernameLen > 130 {
+			return fmt.Errorf("incorrect username length %d, expected a number between 6 and 130", usernameLen)
+		}
+	}
 	if pswdLen < 6 || pswdLen > 50 {
-		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 50", pswdLen)
+		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 130", pswdLen)
 	}
 	return nil
 }
@@ -90,13 +116,13 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		// Create new user.
-		user, err := ar.userStorage.AddUserByNameAndPassword(rd.Username, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
+		user, err := ar.userStorage.AddUserWithPassword(model.User{Username: rd.Username, Email: rd.Email, Phone: rd.Phone}, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
-			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
+			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserWithPassword")
 			return
 		}
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.AddUserByNameAndPassword")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RegisterWithPassword.AddUserWithPassword")
 			return
 		}
 

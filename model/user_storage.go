@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"log"
+	"math/rand"
 	"regexp"
 	"strings"
 	"time"
@@ -24,19 +25,19 @@ var (
 // UserStorage is an abstract user storage.
 type UserStorage interface {
 	UserByPhone(phone string) (User, error)
-	AddUserByPhone(phone, role string) (User, error)
+	AddUserWithPassword(user User, password, role string, isAnonymous bool) (User, error)
 	UserByID(id string) (User, error)
 	UserByEmail(email string) (User, error)
 	IDByName(name string) (string, error)
 	AttachDeviceToken(id, token string) error
 	DetachDeviceToken(token string) error
-	UserByNamePassword(name, password string) (User, error)
-	AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (User, error)
+	UserByUsername(username string) (User, error)
 	UserExists(name string) bool
 	UserByFederatedID(provider FederatedIdentityProvider, id string) (User, error)
 	AddUserWithFederatedID(provider FederatedIdentityProvider, id, role string) (User, error)
 	UpdateUser(userID string, newUser User) (User, error)
 	ResetPassword(id, password string) error
+	CheckPassword(id, password string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, int, error)
 
@@ -51,9 +52,9 @@ type UserStorage interface {
 // Everything can be User, we do not depend on any particular implementation.
 type User struct {
 	ID              string   `json:"id,omitempty" bson:"_id,omitempty"`
-	Username        string   `json:"username,omitempty" bson:"username,omitempty"`
-	Email           string   `json:"email,omitempty" bson:"email,omitempty"`
-	Phone           string   `json:"phone,omitempty" bson:"phone,omitempty"`
+	Username        string   `json:"username" bson:"username,omitempty"`
+	Email           string   `json:"email" bson:"email,omitempty"`
+	Phone           string   `json:"phone" bson:"phone,omitempty"`
 	Pswd            string   `json:"pswd,omitempty" bson:"pswd,omitempty"`
 	Active          bool     `json:"active,omitempty" bson:"active,omitempty"`
 	TFAInfo         TFAInfo  `json:"tfa_info,omitempty" bson:"tfa_info,omitempty"`
@@ -123,4 +124,20 @@ func UserFromJSON(d []byte) (User, error) {
 func PasswordHash(pwd string) string {
 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
 	return string(hash)
+}
+
+// RandomPassword creates random password
+func RandomPassword(length int) string {
+	rand.Seed(time.Now().UnixNano())
+	return randSeq(length)
+}
+
+var rndPassLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?!@#")
+
+func randSeq(n int) string {
+	b := make([]rune, n)
+	for i := range b {
+		b[i] = rndPassLetters[rand.Intn(len(rndPassLetters))]
+	}
+	return string(b)
 }

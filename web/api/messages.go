@@ -21,7 +21,7 @@ var messages = map[MessageID]string{
 	ErrorAPIInviteUnableToGet:                  "Unable to get invites. Try again or contact support team",
 	ErrorAPIEmailNotSent:                       "Unable to send email. Try again or contact support team",
 	ErrorAPIRequestPasswordWeak:                "Password is not strong enough",
-	ErrorAPIRequestIncorrectEmailOrPassword:    "Incorrect email or password",
+	ErrorAPIRequestIncorrectLoginOrPassword:    "Incorrect login or password",
 	ErrorAPIRequestScopesForbidden:             "Requested scopes are forbidden",
 	ErrorAPIRequestBodyInvalid:                 "Wrong input data",
 	ErrorAPIRequestBodyParamsInvalid:           "Input data does not pass validation. Please specify valid params",
@@ -84,7 +84,7 @@ const (
 	// ErrorAPIRequestPasswordWeak means that password didn't pass strength validation.
 	ErrorAPIRequestPasswordWeak = "error.api.request.password.weak"
 	// ErrorAPIRequestIncorrectEmailOrPassword is for incorrect email or password.
-	ErrorAPIRequestIncorrectEmailOrPassword = "error.api.request.incorrect_email_or_password"
+	ErrorAPIRequestIncorrectLoginOrPassword = "error.api.request.incorrect_login_or_password"
 	// ErrorAPIRequestScopesForbidden is for forbidden request scopes.
 	ErrorAPIRequestScopesForbidden = "error.api.request.scopes.forbidden"
 	// ErrorAPIRequestBodyInvalid means that request body is corrupted.

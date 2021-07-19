@@ -245,10 +245,10 @@ const (
 // 		t.Errorf("Unable to create service %v", err)
 // 	}
 // 	ustg, _ := mem.NewUserStorage()
-// 	user, _ := ustg.UserByNamePassword("username", "password")
+// 	user, _ := ustg.UserByUsername("username")
 // 	// generate random user until we get active user
 // 	for !user.Active {
-// 		user, _ = ustg.UserByNamePassword("username", "password")
+// 		user, _ = ustg.UserByUsername("username")
 // 	}
 // 	scopes := []string{"scope1", "scope2"}
 // 	tokenPayload := []string{"name"}

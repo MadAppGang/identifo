@@ -1,18 +1,90 @@
 <!DOCTYPE html>
-<html lang="en">
+<html dir="ltr" lang="en">
   <head>
     <base href="/web/" />
     <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width,initial-scale=1" />
-
+    <meta name="color-scheme" content="dark light" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0"
+    />
     <title>Identifo</title>
+    <script src="element/identifo/identifo.js"></script>
+    <style>
+      @font-face {
+        font-family: Circe;
+        src: url("assets/fonts/Circe-Regular.woff");
+      }
 
-    <link rel="icon" type="image/png" href="favicon.png" />
-    <link rel="stylesheet" href="global.css" />
-    <link rel="stylesheet" href="build/bundle.css" />
+      @font-face {
+        font-family: Circe;
+        font-weight: bold;
+        src: url("assets/fonts/Circe-Bold.woff");
+      }
 
-    <script defer src="build/bundle.js"></script>
+      body {
+        margin: 0;
+        font-family: Circe, Arial, sans-serif;
+      }
+      .logo {
+        font-size: 40px;
+        margin-bottom: 20px;
+      }
+
+      .login-holder {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        min-height: 100vh;
+        justify-content: center;
+      }
+    </style>
   </head>
+  <body>
+    <div class="login-holder">
+      <div class="logo">identifo</div>
+      <identifo-form theme="dark"></identifo-form>
+    </div>
+    <script>
+      const params = new URLSearchParams(window.location.search);
+      const token = params.get("token");
+      const appId =
+        params.get("app-id") || params.get("appId") || params.get("app_id");
+      const callbackUrl =
+        params.get("callback-url") ||
+        params.get("callbackUrl") ||
+        params.get("callback_url");
+      const redirectUri =
+        params.get("redirect-uri") ||
+        params.get("redirectUri") ||
+        params.get("redirect_uri");
+      const scopes = params.get("scopes");
 
-  <body></body>
+      const identifoForm = document.getElementsByTagName("identifo-form")[0];
+      identifoForm.scopes = scopes;
+      identifoForm.appId = appId;
+      identifoForm.url = `${window.location.protocol}//${window.location.host}`;
+      identifoForm.route = window.location.pathname.replace("/web/", "");
+      identifoForm.token = token;
+
+      identifoForm.addEventListener("complete", (event) => {
+        console.log(window.location.pathname.replace("/web/", ""));
+        if (redirectUri) {
+          const url = new URL(redirectUri);
+          window.location.href = url.toString();
+          return;
+        }
+
+        if (callbackUrl) {
+          const url = new URL(callbackUrl);
+          if (event.detail) {
+            url.searchParams.set("token", event.detail.access_token);
+            url.searchParams.set("refresh_token", event.detail.refresh_token);
+          }
+          window.location.href = url.toString();
+          return;
+        }
+      });
+    </script>
+  </body>
 </html>

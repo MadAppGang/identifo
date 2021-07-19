@@ -1,0 +1,18 @@
+{
+  "entries": [
+    "./components/identifo-form/identifo-form.js"
+  ],
+  "compiler": {
+    "name": "@stencil/core",
+    "version": "2.6.0",
+    "typescriptVersion": "4.2.3"
+  },
+  "collections": [],
+  "bundles": [
+    {
+      "components": [
+        "identifo-form"
+      ]
+    }
+  ]
+}

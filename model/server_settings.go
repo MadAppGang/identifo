@@ -229,6 +229,7 @@ type LoginSettings struct {
 type LoginWith struct {
 	Username  bool `yaml:"username" json:"username,omitempty"`
 	Phone     bool `yaml:"phone" json:"phone,omitempty"`
+	Email     bool `yaml:"email" json:"email,omitempty"`
 	Federated bool `yaml:"federated" json:"federated,omitempty"`
 }
 
