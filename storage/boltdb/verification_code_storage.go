@@ -14,7 +14,17 @@ const (
 )
 
 // NewVerificationCodeStorage creates and inits BoltDB verification code storage.
-func NewVerificationCodeStorage(db *bolt.DB) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(settings model.BoltDBDatabaseSettings) (model.VerificationCodeStorage, error) {
+	if len(settings.Path) == 0 {
+		return nil, ErrorEmptyDatabasePath
+	}
+
+	// init database
+	db, err := InitDB(settings.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	vcs := &VerificationCodeStorage{db: db}
 
 	if err := db.Update(func(tx *bolt.Tx) error {

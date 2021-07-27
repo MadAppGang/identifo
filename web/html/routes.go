@@ -11,13 +11,14 @@ func (ar *Router) initRoutes() {
 		panic("Empty HTML router")
 	}
 
+	// TODO: do we need it?
 	// If serve new web static files than just set web handlers and return
-	if ar.staticFilesStorageSettings.ServeNewWeb {
-		appHandler := ar.staticFilesStorage.WebHandlers()
-		ar.Router.PathPrefix(`/`).Handler(appHandler.AppHandler).Methods("GET")
+	// if ar.staticFilesStorageSettings.ServeNewWeb {
+	// 	appHandler := ar.staticFilesStorage.WebHandlers()
+	// 	ar.Router.PathPrefix(`/`).Handler(appHandler.AppHandler).Methods("GET")
 
-		return
-	}
+	// 	return
+	// }
 
 	ar.Router.Path(`/password/{reset:reset/?}`).Handler(negroni.New(
 		ar.ResetTokenMiddleware(),
@@ -86,7 +87,7 @@ func (ar *Router) initRoutes() {
 	ar.Router.HandleFunc(`/tfa/reset/{success:success/?}`, ar.HTMLFileHandler(model.StaticPagesNames.ResetTFASuccess)).Methods("GET")
 	ar.Router.HandleFunc(`/{misconfiguration:misconfiguration/?}`, ar.HTMLFileHandler(model.StaticPagesNames.Misconfiguration)).Methods("GET")
 
-	assetHandlers := ar.staticFilesStorage.AssetHandlers()
+	assetHandlers := ar.Server.Storages().Static.AssetHandlers()
 	ar.Router.PathPrefix(`/{css:css/?}`).Handler(assetHandlers.StylesHandler).Methods("GET")
 	ar.Router.PathPrefix(`/{js:js/?}`).Handler(assetHandlers.ScriptsHandler).Methods("GET")
 	ar.Router.PathPrefix(`/{img:img/?}`).Handler(assetHandlers.ImagesHandler).Methods("GET")

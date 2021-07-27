@@ -27,10 +27,10 @@ func (ss *ServerSettings) Validate() error {
 	// if err := ss.ConfigurationStorage.Validate(); err != nil {
 	// 	return err
 	// }
-	if err := ss.StaticFilesStorage.Validate(); err != nil {
+	if err := ss.Static.Validate(); err != nil {
 		return err
 	}
-	if err := ss.ExternalServices.Validate(); err != nil {
+	if err := ss.Services.Validate(); err != nil {
 		return err
 	}
 	return nil
@@ -80,34 +80,33 @@ func (ss *StorageSettings) Validate() error {
 
 // Validate validates database settings.
 func (dbs *DatabaseSettings) Validate() error {
-	subject := "DatabaseSettings"
-	if dbs == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
 	if len(dbs.Type) == 0 {
-		return fmt.Errorf("Empty database type")
+		return fmt.Errorf("empty database type")
 	}
 
 	switch dbs.Type {
 	case DBTypeFake:
 		return nil
 	case DBTypeBoltDB:
-		if len(dbs.Path) == 0 {
-			return fmt.Errorf("Empty database path")
+		if len(dbs.BoltDB.Path) == 0 {
+			return fmt.Errorf("empty database path")
 		}
 	case DBTypeDynamoDB:
-		if len(dbs.Region) == 0 {
-			return fmt.Errorf("Empty AWS region")
+		if len(dbs.Dynamo.Region) == 0 {
+			return fmt.Errorf("empty Dynamo region")
+		}
+		if len(dbs.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("empty Dynamo endpoint")
 		}
 	case DBTypeMongoDB:
-		if _, err := url.ParseRequestURI(dbs.Endpoint); err != nil {
-			return fmt.Errorf("Invalid endpoint. %s", err)
+		if _, err := url.ParseRequestURI(dbs.Mongo.ConnectionString); err != nil {
+			return fmt.Errorf("invalid mongo connection string. %s", err)
 		}
-		if len(dbs.Name) == 0 {
-			return fmt.Errorf("Empty database name")
+		if len(dbs.Mongo.DatabaseName) == 0 {
+			return fmt.Errorf("empty mongo database name")
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		return fmt.Errorf("unsupported database type %s", dbs.Type)
 	}
 	return nil
 }
@@ -130,13 +129,17 @@ func (sss *SessionStorageSettings) Validate() error {
 	case SessionStorageMem:
 		return nil
 	case SessionStorageRedis:
-		if _, err := url.ParseRequestURI(sss.Address); err != nil {
+		if _, err := url.ParseRequestURI(sss.Redis.Address); err != nil {
 			return fmt.Errorf("%s. Invalid address. %s", subject, err)
 		}
 	case SessionStorageDynamoDB:
-		if len(sss.Region) == 0 {
+		if len(sss.Dynamo.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
+		if len(sss.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("%s. Empty AWS Dynamo endpoint", subject)
+		}
+
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}
@@ -161,8 +164,6 @@ func (css *ConfigStorageSettings) Validate() error {
 			return fmt.Errorf("%s. empty file key ", subject)
 		}
 		break
-	case ConfigStorageTypeEtcd:
-		return fmt.Errorf("%s. etcd storage not supported", subject)
 	case ConfigStorageTypeS3:
 		if css.S3 == nil {
 			return fmt.Errorf("%s. empty s3 settings key", subject)
@@ -198,27 +199,28 @@ func (sfs *StaticFilesStorageSettings) Validate() error {
 	if len(sfs.Type) == 0 {
 		return fmt.Errorf("%s. Empty static files storage type", subject)
 	}
-	if (len(sfs.ServerConfigPath) == 0) && (sfs.Type != "local") {
-		return fmt.Errorf("%s. Empty server config path", subject)
-	}
 
 	switch sfs.Type {
 	case StaticFilesStorageTypeLocal:
 		return nil
 	case StaticFilesStorageTypeS3:
-		if len(sfs.Region) == 0 {
+		if len(sfs.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 		if bucket := os.Getenv(identifoStaticFilesBucketEnvName); len(bucket) != 0 {
-			sfs.Bucket = bucket
+			sfs.S3.Bucket = bucket
 		}
-		if len(sfs.Bucket) == 0 {
+		if len(sfs.S3.Bucket) == 0 {
 			return fmt.Errorf("%s. Bucket for static files is not set", subject)
 		}
 	case StaticFilesStorageTypeDynamoDB:
-		if len(sfs.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
+		if len(sfs.Dynamo.Region) == 0 {
+			return fmt.Errorf("%s. Empty dynamodb region", subject)
 		}
+		if len(sfs.Dynamo.Endpoint) == 0 {
+			return fmt.Errorf("%s. Empty dynamodb endpoints", subject)
+		}
+
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}
@@ -236,14 +238,11 @@ func (kss *KeyStorageSettings) Validate() error {
 
 	switch kss.Type {
 	case KeyStorageTypeLocal:
-		if kss.File == nil {
-			return fmt.Errorf("%s. Empty File settings key", subject)
+		if len(kss.File.PrivateKeyPath) == 0 {
+			return fmt.Errorf("%s. empty File settings key", subject)
 		}
 		break
 	case KeyStorageTypeS3:
-		if kss.S3 == nil {
-			return fmt.Errorf("%s. Empty S3 settings key", subject)
-		}
 		if len(kss.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
@@ -266,16 +265,16 @@ func (kss *KeyStorageSettings) Validate() error {
 }
 
 // Validate validates external services settings.
-func (ess *ExternalServicesSettings) Validate() error {
+func (ess *ServicesSettings) Validate() error {
 	subject := "ExternalServicesSettings"
 	if ess == nil {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-	if err := ess.EmailService.Validate(); err != nil {
+	if err := ess.Email.Validate(); err != nil {
 		return fmt.Errorf("%s. %s", subject, err)
 	}
-	if err := ess.SMSService.Validate(); err != nil {
+	if err := ess.SMS.Validate(); err != nil {
 		return fmt.Errorf("%s. %s", subject, err)
 	}
 	return nil
@@ -298,22 +297,22 @@ func (sss *SMSServiceSettings) Validate() error {
 	case SMSServiceMock:
 		return nil
 	case SMSServiceNexmo:
-		if len(sss.APIKey) == 0 || len(sss.APISecret) == 0 {
+		if len(sss.Nexmo.APIKey) == 0 || len(sss.Nexmo.APISecret) == 0 {
 			return fmt.Errorf("%s. Error creating Nexmo SMS service, missing at least one of the parameters:"+
-				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.APIKey, sss.APISecret)
+				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.Nexmo.APIKey, sss.Nexmo.APISecret)
 		}
 	case SMSServiceTwilio:
-		if len(sss.AccountSid) == 0 || len(sss.AuthToken) == 0 || len(sss.ServiceSid) == 0 {
+		if len(sss.Twilio.AccountSid) == 0 || len(sss.Twilio.AuthToken) == 0 || len(sss.Twilio.ServiceSid) == 0 {
 			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
-				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.AccountSid, sss.AuthToken, sss.ServiceSid)
+				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.Twilio.AccountSid, sss.Twilio.AuthToken, sss.Twilio.ServiceSid)
 		}
 	case SMSServiceRouteMobile:
-		if len(sss.Username) == 0 || len(sss.Password) == 0 || len(sss.Source) == 0 {
+		if len(sss.Routemobile.Username) == 0 || len(sss.Routemobile.Password) == 0 || len(sss.Routemobile.Source) == 0 {
 			return fmt.Errorf("%s. Error creating RouteMobile SMS service, missing at least one of the parameters:"+
-				"\n username : %v\n password : %v\n", subject, sss.Username, sss.Password)
+				"\n username : %v\n password : %v\n", subject, sss.Routemobile.Username, sss.Routemobile.Password)
 		}
-		if sss.Region != RouteMobileRegionUAE {
-			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Region)
+		if sss.Routemobile.Region != RouteMobileRegionUAE {
+			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Routemobile.Region)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
@@ -352,38 +351,38 @@ func (ess *EmailServiceSettings) Validate() error {
 		return nil
 	case EmailServiceAWS:
 		if region := os.Getenv(awsSESRegionKey); len(region) != 0 {
-			ess.Region = region
+			ess.SES.Region = region
 		}
 		if sender := os.Getenv(awsSESSenderKey); len(sender) != 0 {
-			ess.Sender = sender
+			ess.SES.Sender = sender
 		}
-		if len(ess.Sender) == 0 {
+		if len(ess.SES.Sender) == 0 {
 			return fmt.Errorf("%s. Empty AWS sender", subject)
 		}
-		if len(ess.Region) == 0 {
+		if len(ess.SES.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
 	case EmailServiceMailgun:
 		if domain := os.Getenv(mailgunDomainKey); len(domain) != 0 {
-			ess.Domain = domain
+			ess.Mailgun.Domain = domain
 		}
 		if publicKey := os.Getenv(mailgunPublicKey); len(publicKey) != 0 {
-			ess.PublicKey = publicKey
+			ess.Mailgun.PublicKey = publicKey
 		}
 		if privateKey := os.Getenv(mailgunPrivateKey); len(privateKey) != 0 {
-			ess.PrivateKey = privateKey
+			ess.Mailgun.PrivateKey = privateKey
 		}
 		if sender := os.Getenv(mailgunSenderKey); len(sender) != 0 {
-			ess.Sender = sender
+			ess.Mailgun.Sender = sender
 		}
 
-		if len(ess.Domain) == 0 {
+		if len(ess.Mailgun.Domain) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun domain", subject)
 		}
-		if len(ess.PublicKey)*len(ess.PrivateKey) == 0 {
+		if len(ess.Mailgun.PublicKey) == 0 || len(ess.Mailgun.PrivateKey) == 0 {
 			return fmt.Errorf("%s. At least one of the keys is empty", subject)
 		}
-		if len(ess.Sender) == 0 {
+		if len(ess.Mailgun.Sender) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun sender", subject)
 		}
 	default:

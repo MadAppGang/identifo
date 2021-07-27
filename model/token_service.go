@@ -1,0 +1,23 @@
+package model
+
+const (
+	// OfflineScope is a scope value to request refresh token.
+	OfflineScope = "offline"
+)
+
+// TokenService is an abstract token manager.
+type TokenService interface {
+	NewAccessToken(u User, scopes []string, app AppData, requireTFA bool, tokenPayload map[string]interface{}) (Token, error)
+	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
+	RefreshAccessToken(token Token) (Token, error)
+	NewInviteToken(email, role string) (Token, error)
+	NewResetToken(userID string) (Token, error)
+	NewWebCookieToken(u User) (Token, error)
+	Parse(string) (Token, error)
+	String(Token) (string, error)
+	Issuer() string
+	Algorithm() string
+	WebCookieTokenLifespan() int64
+	PublicKey() interface{} // we are not using crypto.PublicKey here to avoid dependencies
+	KeyID() string
+}

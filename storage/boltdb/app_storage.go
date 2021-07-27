@@ -17,7 +17,17 @@ const (
 )
 
 // NewAppStorage creates new BoltDB AppStorage implementation.
-func NewAppStorage(db *bolt.DB) (model.AppStorage, error) {
+func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, error) {
+	if len(settings.Path) == 0 {
+		return nil, fmt.Errorf("unable to find init boldb storage with empty database path")
+	}
+
+	// init database
+	db, err := InitDB(settings.Path)
+	if err != nil {
+		return nil, err
+	}
+
 	as := AppStorage{db: db}
 	// ensure we have app's bucket in the database
 	if err := db.Update(func(tx *bolt.Tx) error {

@@ -12,9 +12,19 @@ import (
 const tokensTableName = "RefreshTokens"
 
 // NewTokenStorage creates new DynamoDB token storage.
-func NewTokenStorage(db *DB) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.DynamoDatabaseSettings) (model.TokenStorage, error) {
+	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
+		return nil, ErrorEmptyEndpointRegion
+	}
+
+	// create database
+	db, err := NewDB(settings.Endpoint, settings.Region)
+	if err != nil {
+		return nil, err
+	}
+
 	ts := &TokenStorage{db: db}
-	err := ts.ensureTable()
+	err = ts.ensureTable()
 	return ts, err
 }
 
@@ -103,7 +113,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 		log.Println("Error while fetching token from db:", err)
 		return false
 	}
-	//empty result
+	// empty result
 	if result.Item == nil {
 		return false
 	}

@@ -33,7 +33,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 			ar.Error(w, ErrorRequestInvalidCookie, http.StatusBadRequest, "")
 			return
 		}
-		if err := ar.sessionStorage.DeleteSession(sessionID); err != nil {
+		if err := ar.server.Storages().Session.DeleteSession(sessionID); err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}

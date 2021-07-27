@@ -1,0 +1,17 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "access_token": {
+        "type": "string"
+      },
+      "refresh_token": {
+        "type": "string"
+      }
+    },
+    "required": [
+      "access_token",
+      "refresh_token"
+    ]
+  }
+  

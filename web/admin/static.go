@@ -23,7 +23,7 @@ func (ar *Router) GetStringifiedFile() http.HandlerFunc {
 			return
 		}
 
-		fileBytes, err := ar.staticFilesStorage.GetFile(filename)
+		fileBytes, err := ar.server.Storages().Static.GetFile(filename)
 		if err != nil {
 			if err == model.ErrorNotFound {
 				ar.Error(w, fmt.Errorf("File %s not found", filename), http.StatusNotFound, err.Error())
@@ -51,7 +51,7 @@ func (ar *Router) UploadStringifiedFile() http.HandlerFunc {
 			return
 		}
 
-		if err := ar.staticFilesStorage.UploadFile(filename, []byte(f.Contents)); err != nil {
+		if err := ar.server.Storages().Static.UploadFile(filename, []byte(f.Contents)); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -84,7 +84,7 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 			return
 		}
 
-		if err = ar.staticFilesStorage.UploadFile(model.AppleFilenames.DeveloperDomainAssociation, buf.Bytes()); err != nil {
+		if err = ar.server.Storages().Static.UploadFile(model.AppleFilenames.DeveloperDomainAssociation, buf.Bytes()); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, fmt.Sprintf("Cannot upload file: %s", err.Error()))
 			return
 		}
@@ -104,7 +104,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 
 		formKeys := r.MultipartForm.File["keys"]
 
-		keys := &model.JWTKeys{}
+		keys := model.JWTKeys{}
 
 		for _, fileHeader := range formKeys {
 			f, err := fileHeader.Open()
@@ -134,7 +134,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			return
 		}
 
-		if err := ar.configurationStorage.InsertKeys(keys); err != nil {
+		if err := ar.server.Storages().Key.InsertKeys(keys); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}

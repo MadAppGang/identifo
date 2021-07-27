@@ -30,13 +30,13 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		session, err := ar.sessionService.NewSession()
+		session, err := ar.server.Services().Session.NewSession()
 		if err != nil {
 			ar.Error(w, fmt.Errorf("Cannot create session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
 
-		if err = ar.sessionStorage.InsertSession(session); err != nil {
+		if err = ar.server.Storages().Session.InsertSession(session); err != nil {
 			ar.Error(w, fmt.Errorf("Cannot insert session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
@@ -45,7 +45,7 @@ func (ar *Router) Login() http.HandlerFunc {
 			Name:     cookieName,
 			Value:    encode(session.ID),
 			Path:     "/",
-			MaxAge:   ar.sessionService.SessionDurationSeconds(),
+			MaxAge:   ar.server.Services().Session.SessionDurationSeconds(),
 			HttpOnly: true,
 		}
 		http.SetCookie(w, c)

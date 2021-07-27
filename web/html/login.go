@@ -6,7 +6,6 @@ import (
 	"path"
 	"strings"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
@@ -51,14 +50,14 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.UserStorage.UserByNamePassword(username, password)
+		user, err := ar.Server.Storages().User.UserByNamePassword(username, password)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "invalid Username or Password")
 			redirectToLogin()
 			return
 		}
 
-		if _, err = ar.UserStorage.RequestScopes(user.ID, scopes); err != nil {
+		if _, err = ar.Server.Storages().User.RequestScopes(user.ID, scopes); err != nil {
 			ar.Logger.Printf("invalid scopes %v for userID: %v", scopes, user.ID)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			redirectToLogin()
@@ -79,36 +78,36 @@ func (ar *Router) Login() http.HandlerFunc {
 			return
 		}
 
-		token, err := ar.TokenService.NewWebCookieToken(user)
+		token, err := ar.Server.Services().Token.NewWebCookieToken(user)
 		if err != nil {
 			ar.Logger.Printf("error creating auth token %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		tokenString, err := ar.TokenService.String(token)
+		tokenString, err := ar.Server.Services().Token.String(token)
 		if err != nil {
 			ar.Logger.Printf("error making a call to stringify the token: %v", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}
 
-		ar.UserStorage.UpdateLoginMetadata(user.ID)
-		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.TokenService.WebCookieTokenLifespan()))
+		ar.Server.Storages().User.UpdateLoginMetadata(user.ID)
+		setCookie(w, CookieKeyWebCookieToken, tokenString, int(ar.Server.Services().Token.WebCookieTokenLifespan()))
 		redirectToLogin()
 	}
 }
 
 // LoginHandler serves login page or redirects to the callback_url if user is already authenticated.
 func (ar *Router) LoginHandler() http.HandlerFunc {
-	tmpl, err := ar.staticFilesStorage.ParseTemplate(model.StaticPagesNames.Login)
+	tmpl, err := ar.Server.Storages().Static.ParseTemplate(model.StaticPagesNames.Login)
 	if err != nil {
 		ar.Logger.Fatalln("Cannot parse Login template.", err)
 	}
 	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
 	tokenValidator := jwtValidator.NewValidator(
 		[]string{"identifo"},
-		[]string{ar.TokenService.Issuer()},
+		[]string{ar.Server.Services().Token.Issuer()},
 		[]string{},
 		[]string{model.TokenTypeWebCookie},
 	)
@@ -164,7 +163,7 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 			return
 		}
 
-		webCookieToken, err := ar.TokenService.Parse(tstr)
+		webCookieToken, err := ar.Server.Services().Token.Parse(tstr)
 		if err != nil {
 			ar.Logger.Printf("Error invalid token %v", err)
 			deleteCookie(w, CookieKeyWebCookieToken)
@@ -180,14 +179,14 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		}
 
 		userID := webCookieToken.UserID()
-		user, err := ar.UserStorage.UserByID(userID)
+		user, err := ar.Server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Logger.Printf("Error: getting UserByID: %v, userID: %v", err, userID)
 			serveTemplate()
 			return
 		}
 
-		scopes, err = ar.UserStorage.RequestScopes(userID, scopes)
+		scopes, err = ar.Server.Storages().User.RequestScopes(userID, scopes)
 		if err != nil {
 			ar.Logger.Printf("Error: invalid scopes %v for userID: %v", scopes, userID)
 			serveTemplate()
@@ -195,16 +194,16 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		}
 
 		// TODO: Add TFA support.
-		token, err := ar.TokenService.NewAccessToken(user, scopes, app, false, nil)
+		token, err := ar.Server.Services().Token.NewAccessToken(user, scopes, app, false, nil)
 		if err != nil {
 			ar.Logger.Printf("Error creating token: %v", err)
 			serveTemplate()
 			return
 		}
 
-		tokenString, err := ar.TokenService.String(token)
+		tokenString, err := ar.Server.Services().Token.String(token)
 		if err != nil {
-			ar.Logger.Printf("Error stringifying token: %v", err)
+			ar.Logger.Printf("Error stringify token: %v", err)
 			serveTemplate()
 			return
 		}
@@ -212,16 +211,16 @@ func (ar *Router) LoginHandler() http.HandlerFunc {
 		refreshString := ""
 
 		// If requesting offline access then generate and set refreshString
-		if contains(scopes, jwtService.OfflineScope) {
-			refresh, err := ar.TokenService.NewRefreshToken(user, scopes, app)
+		if contains(scopes, model.OfflineScope) {
+			refresh, err := ar.Server.Services().Token.NewRefreshToken(user, scopes, app)
 			if err != nil {
 				ar.Logger.Printf("Error creating refresh token: %v", err)
 				serveTemplate()
 				return
 			}
-			refreshString, err = ar.TokenService.String(refresh)
+			refreshString, err = ar.Server.Services().Token.String(refresh)
 			if err != nil {
-				ar.Logger.Printf("Error stringifying refresh token: %v", err)
+				ar.Logger.Printf("Error stringify refresh token: %v", err)
 				serveTemplate()
 				return
 			}

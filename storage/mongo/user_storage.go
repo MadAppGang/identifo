@@ -19,7 +19,17 @@ import (
 const usersCollectionName = "Users"
 
 // NewUserStorage creates and inits MongoDB user storage.
-func NewUserStorage(db *DB) (model.UserStorage, error) {
+func NewUserStorage(settings model.MongodDatabaseSettings) (model.UserStorage, error) {
+	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
+		return nil, ErrorEmptyConnectionStringDatabase
+	}
+
+	// create database
+	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	if err != nil {
+		return nil, err
+	}
+
 	coll := db.Database.Collection(usersCollectionName)
 	us := &UserStorage{coll: coll, timeout: 30 * time.Second}
 
@@ -51,7 +61,7 @@ func NewUserStorage(db *DB) (model.UserStorage, error) {
 		Options: phoneIndexOptions,
 	}
 
-	err := db.EnsureCollectionIndices(usersCollectionName, []mongo.IndexModel{*userNameIndex, *emailIndex, *phoneIndex})
+	err = db.EnsureCollectionIndices(usersCollectionName, []mongo.IndexModel{*userNameIndex, *emailIndex, *phoneIndex})
 	return us, err
 }
 

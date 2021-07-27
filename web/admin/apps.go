@@ -21,7 +21,7 @@ func (ar *Router) GetApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appID := getRouteVar("id", r)
 
-		app, err := ar.appStorage.AppByID(appID)
+		app, err := ar.server.Storages().App.AppByID(appID)
 		if err != nil {
 			if err == model.ErrorNotFound {
 				ar.Error(w, err, http.StatusNotFound, "")
@@ -45,7 +45,7 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 			return
 		}
 
-		apps, total, err := ar.appStorage.FetchApps(filterStr, skip, limit)
+		apps, total, err := ar.server.Storages().App.FetchApps(filterStr, skip, limit)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -79,7 +79,7 @@ func (ar *Router) CreateApp() http.HandlerFunc {
 		}
 		ad.Secret = appSecret
 
-		app, err := ar.appStorage.CreateApp(ad)
+		app, err := ar.server.Storages().App.CreateApp(ad)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return
@@ -109,7 +109,7 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 			return
 		}
 
-		app, err := ar.appStorage.UpdateApp(appID, ad)
+		app, err := ar.server.Storages().App.UpdateApp(appID, ad)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
 			return
@@ -129,7 +129,7 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 func (ar *Router) DeleteApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		appID := getRouteVar("id", r)
-		if err := ar.appStorage.DeleteApp(appID); err != nil {
+		if err := ar.server.Storages().App.DeleteApp(appID); err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
 		}
@@ -152,7 +152,7 @@ func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
 func (ar *Router) updateAllowedOrigins() error {
 	ar.originChecker.DeleteAll()
 
-	apps, _, err := ar.appStorage.FetchApps("", 0, 0)
+	apps, _, err := ar.server.Storages().App.FetchApps("", 0, 0)
 	if err != nil {
 		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
 	}

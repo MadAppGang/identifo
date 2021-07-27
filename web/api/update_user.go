@@ -20,7 +20,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 		userID := tokenFromContext(r.Context()).UserID()
-		user, err := ar.userStorage.UserByID(userID)
+		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "UpdateUser.UserByID")
 			return
@@ -31,14 +31,14 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 		// Check that new username is not taken.
-		if d.updateUsername && ar.userStorage.UserExists(d.NewUsername) {
+		if d.updateUsername && ar.server.Storages().User.UserExists(d.NewUsername) {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, "", "UpdateUser.updateUsername && userStorage.UserExists")
 			return
 		}
 
 		// Check that email is not taken.
 		if d.updateEmail {
-			if _, err := ar.userStorage.UserByEmail(d.NewEmail); err == nil {
+			if _, err := ar.server.Storages().User.UserByEmail(d.NewEmail); err == nil {
 				ar.Error(w, ErrorAPIEmailTaken, http.StatusBadRequest, "", "UpdateUser.updateEmail && UserByEmail")
 				return
 			}
@@ -46,7 +46,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// Check that phone is not taken.
 		if d.updatePhone {
-			if _, err := ar.userStorage.UserByPhone(d.NewPhone); err == nil {
+			if _, err := ar.server.Storages().User.UserByPhone(d.NewPhone); err == nil {
 				ar.Error(w, ErrorAPIEmailTaken, http.StatusBadRequest, "", "UpdateUser.updatePhone && UserByPhone")
 				return
 			}
@@ -55,20 +55,20 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Update password.
 		if d.updatePassword {
 			// Check old password.
-			if _, err := ar.userStorage.UserByNamePassword(user.Username, d.OldPassword); err != nil {
+			if _, err := ar.server.Storages().User.UserByNamePassword(user.Username, d.OldPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
 				return
 			}
 
 			// Save new password.
-			err = ar.userStorage.ResetPassword(user.ID, d.NewPassword)
+			err = ar.server.Storages().User.ResetPassword(user.ID, d.NewPassword)
 			if err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "UpdateUser.ResetPassword")
 				return
 			}
 
 			// Refetch user with new password hash.
-			if user, err = ar.userStorage.UserByNamePassword(user.Username, d.NewPassword); err != nil {
+			if user, err = ar.server.Storages().User.UserByNamePassword(user.Username, d.NewPassword); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.RefetchUser")
 				return
 			}
@@ -89,7 +89,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		}
 
 		if d.updateUsername || d.updateEmail || d.updatePhone {
-			if _, err = ar.userStorage.UpdateUser(userID, user); err != nil {
+			if _, err = ar.server.Storages().User.UpdateUser(userID, user); err != nil {
 				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "unable to update username or email. Error: "+err.Error(), " UpdateUser.UpdateUser ")
 				return
 			}

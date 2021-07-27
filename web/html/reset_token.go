@@ -13,7 +13,7 @@ import (
 
 const emailExpr = "^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$"
 
-//SendResetToken POST form request handle with password request handle
+// SendResetToken POST form request handle with password request handle
 func (ar *Router) SendResetToken() http.HandlerFunc {
 	tmpl, err := template.New("reset").Parse("Hi! We got a request to reset your password. Click <a href=\"{{.}}\">here</a> to reset your password.")
 	emailRegexp, regexpErr := regexp.Compile(emailExpr)
@@ -39,27 +39,27 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.UserStorage.UserExists(name); !userExists {
+		if userExists := ar.Server.Storages().User.UserExists(name); !userExists {
 			SetFlash(w, FlashErrorMessageKey, "This Email is unregistered")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
 			return
 		}
 
-		id, err := ar.UserStorage.IDByName(name)
+		id, err := ar.Server.Storages().User.IDByName(name)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "This Email is unregistered")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
 			return
 		}
 
-		t, err := ar.TokenService.NewResetToken(id)
+		t, err := ar.Server.Services().Token.NewResetToken(id)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
 			return
 		}
 
-		token, err := ar.TokenService.String(t)
+		token, err := ar.Server.Services().Token.String(t)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Server Error. Try later please")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)
@@ -83,7 +83,7 @@ func (ar *Router) SendResetToken() http.HandlerFunc {
 			return
 		}
 
-		err = ar.EmailService.SendHTML("Reset Password", tpl.String(), name)
+		err = ar.Server.Services().Email.SendHTML("Reset Password", tpl.String(), name)
 		if err != nil {
 			SetFlash(w, FlashErrorMessageKey, "Error sending email")
 			http.Redirect(w, r, upath, http.StatusMovedPermanently)

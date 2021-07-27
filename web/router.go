@@ -4,7 +4,6 @@ import (
 	"log"
 	"net/http"
 
-	jwtService "github.com/madappgang/identifo/jwt/service"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/adminpanel"
@@ -15,25 +14,13 @@ import (
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	AppStorage              model.AppStorage
-	UserStorage             model.UserStorage
-	TokenStorage            model.TokenStorage
-	TokenBlacklist          model.TokenBlacklist
-	InviteStorage           model.InviteStorage
-	VerificationCodeStorage model.VerificationCodeStorage
-	TokenService            jwtService.TokenService
-	SMSService              model.SMSService
-	EmailService            model.EmailService
-	SessionService          model.SessionService
-	SessionStorage          model.SessionStorage
-	StaticFilesStorage      model.StaticFilesStorage
-	ConfigurationStorage    model.ConfigurationStorage
-	Logger                  *log.Logger
-	ServeAdminPanel         bool
-	APIRouterSettings       []func(*api.Router) error
-	WebRouterSettings       []func(*html.Router) error
-	AdminRouterSettings     []func(*admin.Router) error
-	LoggerSettings          model.LoggerSettings
+	Server              model.Server
+	Logger              *log.Logger
+	ServeAdminPanel     bool
+	APIRouterSettings   []func(*api.Router) error
+	WebRouterSettings   []func(*html.Router) error
+	AdminRouterSettings []func(*admin.Router) error
+	LoggerSettings      model.LoggerSettings
 }
 
 // NewRouter creates and inits root http router.
@@ -43,17 +30,8 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	authorizer := authorization.NewAuthorizer()
 
 	r.APIRouter, err = api.NewRouter(
+		settings.Server,
 		settings.Logger,
-		settings.AppStorage,
-		settings.UserStorage,
-		settings.TokenStorage,
-		settings.TokenBlacklist,
-		settings.InviteStorage,
-		settings.VerificationCodeStorage,
-		settings.StaticFilesStorage,
-		settings.TokenService,
-		settings.SMSService,
-		settings.EmailService,
 		authorizer,
 		settings.LoggerSettings,
 		settings.APIRouterSettings...,
@@ -63,15 +41,8 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	}
 
 	r.WebRouter, err = html.NewRouter(
+		settings.Server,
 		settings.Logger,
-		settings.AppStorage,
-		settings.UserStorage,
-		settings.StaticFilesStorage,
-		settings.TokenStorage,
-		settings.TokenBlacklist,
-		settings.TokenService,
-		settings.SMSService,
-		settings.EmailService,
 		authorizer,
 		settings.WebRouterSettings...,
 	)
@@ -81,14 +52,8 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 
 	if settings.ServeAdminPanel {
 		r.AdminRouter, err = admin.NewRouter(
+			settings.Server,
 			settings.Logger,
-			settings.SessionService,
-			settings.SessionStorage,
-			settings.AppStorage,
-			settings.UserStorage,
-			settings.ConfigurationStorage,
-			settings.StaticFilesStorage,
-			settings.InviteStorage,
 			settings.AdminRouterSettings...,
 		)
 		if err != nil {
@@ -96,7 +61,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		}
 		r.AdminRouterPath = "/admin"
 
-		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.StaticFilesStorage)
+		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.Server.Storages().Static)
 		if err != nil {
 			return nil, err
 		}
