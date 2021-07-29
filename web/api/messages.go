@@ -9,50 +9,47 @@ func GetMessage(id MessageID) string {
 }
 
 var messages = map[MessageID]string{
-	ErrorAPIInternalServerError:                "Internal server error",
-	ErrorAPIUserUnableToCreate:                 "Unable to create use. Try again or contact support team",
-	ErrorAPIVerificationCodeInvalid:            "Sorry, the code you entered is invalid or has expired. Please get a new one.",
-	ErrorAPIUserNotFound:                       "Specified user not found",
-	ErrorAPIUsernameTaken:                      "Username is taken. Try to choose another one",
-	ErrorAPIEmailTaken:                         "Email is taken. Try to choose another one",
-	ErrorAPIInviteTokenServerError:             "Unable to create invite token. Try again or contact support team",
-	ErrorAPIInviteUnableToInvalidate:           "Unable to invalidate invite. Try again or contact support team",
-	ErrorAPIInviteUnableToSave:                 "Unable to save invite. Try again or contact support team",
-	ErrorAPIInviteUnableToGet:                  "Unable to get invites. Try again or contact support team",
-	ErrorAPIEmailNotSent:                       "Unable to send email. Try again or contact support team",
-	ErrorAPIRequestPasswordWeak:                "Password is not strong enough",
-	ErrorAPIRequestIncorrectEmailOrPassword:    "Incorrect email or password",
-	ErrorAPIRequestScopesForbidden:             "Requested scopes are forbidden",
-	ErrorAPIRequestBodyInvalid:                 "Wrong input data",
-	ErrorAPIRequestBodyParamsInvalid:           "Input data does not pass validation. Please specify valid params",
-	ErrorAPIRequestBodyOldPasswordInvalid:      "Old password is invalid. Please check it again",
-	ErrorAPIRequestBodyEmailInvalid:            "Specified email is invalid or empty",
-	ErrorAPIRequestSignatureInvalid:            "Incorrect or empty request signature",
-	ErrorAPIRequestAppIDInvalid:                "Incorrect or empty application ID",
-	ErrorAPIRequestTokenInvalid:                "Incorrect or empty Bearer token",
-	ErrorAPIRequestTFACodeEmpty:                "Empty two-factor authentication code",
-	ErrorAPIRequestTFACodeInvalid:              "Invalid two-factor authentication code",
-	ErrorAPIRequestTFAAlreadyEnabled:           "Two-factor authentication already enabled",
-	ErrorAPIRequestPleaseEnableTFA:             "Please enable two-factor authenticaton",
-	ErrorAPIRequestPleaseDisableTFA:            "Please disable two-factor authenticaton",
-	ErrorAPIRequestMandatoryTFA:                "Two-factor authentication is mandatory for this app",
-	ErrorAPIRequestDisabledTFA:                 "Two-factor authentication is disabled for this app",
-	ErrorAPIRequestPleaseSetPhoneForTFA:        "Please specify your phone number to be able to receive one-time passwords",
-	ErrorAPIRequestPleaseSetEmailForTFA:        "Please specify your email address to be able to receive one-time passwords",
-	ErrorAPIAppInactive:                        "Requesting app is inactive",
-	ErrorAPIAppRegistrationForbidden:           "Registration in this app is forbidden",
-	ErrorAPIAppResetTokenNotCreated:            "Unable to create reset token",
-	ErrorAPIAppAccessTokenNotCreated:           "Unable to create access token",
-	ErrorAPIAppRefreshTokenNotCreated:          "Unable to create refresh token",
-	ErrorAPIAppCannotExtractTokenSubject:       "Unable to extract Subject claim from token",
-	ErrorAPIAppCannotInitAuthorizer:            "Unable to init internal authorizer",
-	ErrorAPIAppFederatedProviderNotSupported:   "Federated provider is not supported",
-	ErrorAPIAppFederatedProviderEmptyUserID:    "Federated provider returns empty user ID",
-	ErrorAPIAppFederatedProviderEmptyAppleInfo: "Application does not have Apple info",
-	ErrorAPIAppFederatedLoginNotSupported:      "Login with federated identity provider is not supported by app",
-	ErrorAPIAppLoginWithUsernameNotSupported:   "Login with username is not supported by app",
-	ErrorAPIAppPhoneLoginNotSupported:          "Login with phone number is not supported by app",
-	ErrorAPIAppAccessDenied:                    "Access denied",
+	ErrorAPIInternalServerError:              "Internal server error",
+	ErrorAPIUserUnableToCreate:               "Unable to create use. Try again or contact support team",
+	ErrorAPIVerificationCodeInvalid:          "Sorry, the code you entered is invalid or has expired. Please get a new one.",
+	ErrorAPIUserNotFound:                     "Specified user not found",
+	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
+	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
+	ErrorAPIInviteTokenServerError:           "Unable to create invite token. Try again or contact support team",
+	ErrorAPIInviteUnableToInvalidate:         "Unable to invalidate invite. Try again or contact support team",
+	ErrorAPIInviteUnableToSave:               "Unable to save invite. Try again or contact support team",
+	ErrorAPIInviteUnableToGet:                "Unable to get invites. Try again or contact support team",
+	ErrorAPIEmailNotSent:                     "Unable to send email. Try again or contact support team",
+	ErrorAPIRequestPasswordWeak:              "Password is not strong enough",
+	ErrorAPIRequestIncorrectLoginOrPassword:  "Incorrect email or password",
+	ErrorAPIRequestScopesForbidden:           "Requested scopes are forbidden",
+	ErrorAPIRequestBodyInvalid:               "Wrong input data",
+	ErrorAPIRequestBodyParamsInvalid:         "Input data does not pass validation. Please specify valid params",
+	ErrorAPIRequestBodyOldPasswordInvalid:    "Old password is invalid. Please check it again",
+	ErrorAPIRequestBodyEmailInvalid:          "Specified email is invalid or empty",
+	ErrorAPIRequestSignatureInvalid:          "Incorrect or empty request signature",
+	ErrorAPIRequestAppIDInvalid:              "Incorrect or empty application ID",
+	ErrorAPIRequestTokenInvalid:              "Incorrect or empty Bearer token",
+	ErrorAPIRequestTFACodeEmpty:              "Empty two-factor authentication code",
+	ErrorAPIRequestTFACodeInvalid:            "Invalid two-factor authentication code",
+	ErrorAPIRequestTFAAlreadyEnabled:         "Two-factor authentication already enabled",
+	ErrorAPIRequestPleaseEnableTFA:           "Please enable two-factor authenticaton",
+	ErrorAPIRequestPleaseDisableTFA:          "Please disable two-factor authenticaton",
+	ErrorAPIRequestMandatoryTFA:              "Two-factor authentication is mandatory for this app",
+	ErrorAPIRequestDisabledTFA:               "Two-factor authentication is disabled for this app",
+	ErrorAPIRequestPleaseSetPhoneForTFA:      "Please specify your phone number to be able to receive one-time passwords",
+	ErrorAPIRequestPleaseSetEmailForTFA:      "Please specify your email address to be able to receive one-time passwords",
+	ErrorAPIAppInactive:                      "Requesting app is inactive",
+	ErrorAPIAppRegistrationForbidden:         "Registration in this app is forbidden",
+	ErrorAPIAppResetTokenNotCreated:          "Unable to create reset token",
+	ErrorAPIAppAccessTokenNotCreated:         "Unable to create access token",
+	ErrorAPIAppRefreshTokenNotCreated:        "Unable to create refresh token",
+	ErrorAPIAppCannotExtractTokenSubject:     "Unable to extract Subject claim from token",
+	ErrorAPIAppCannotInitAuthorizer:          "Unable to init internal authorizer",
+	ErrorAPIAppFederatedProviderNotSupported: "Federated provider is not supported",
+	ErrorAPIAppLoginWithUsernameNotSupported: "Login with username is not supported by app",
+	ErrorAPIAppPhoneLoginNotSupported:        "Login with phone number is not supported by app",
+	ErrorAPIAppAccessDenied:                  "Access denied",
 }
 
 const (
@@ -83,8 +80,8 @@ const (
 
 	// ErrorAPIRequestPasswordWeak means that password didn't pass strength validation.
 	ErrorAPIRequestPasswordWeak = "error.api.request.password.weak"
-	// ErrorAPIRequestIncorrectEmailOrPassword is for incorrect email or password.
-	ErrorAPIRequestIncorrectEmailOrPassword = "error.api.request.incorrect_email_or_password"
+	// ErrorAPIRequestIncorrectLoginOrPassword is for incorrect login or password.
+	ErrorAPIRequestIncorrectLoginOrPassword = "error.api.request.incorrect_login_or_password"
 	// ErrorAPIRequestScopesForbidden is for forbidden request scopes.
 	ErrorAPIRequestScopesForbidden = "error.api.request.scopes.forbidden"
 	// ErrorAPIRequestBodyInvalid means that request body is corrupted.
@@ -141,12 +138,14 @@ const (
 	// ErrorAPIAppFederatedProviderNotSupported means that the federated ID provider is not supported.
 	ErrorAPIAppFederatedProviderNotSupported = "api.app.federated.provider.not_supported"
 	// ErrorAPIAppFederatedProviderEmptyUserID means that the federated provider returns empty user ID, maybe access token does not have required permissions.
-	ErrorAPIAppFederatedProviderEmptyUserID = "api.app.federated.provider.empty_user_id"
+	ErrorAPIAppFederatedEmptyRedirect = "api.app.federated.provider.empty_redirect"
+	ErrorAPIAppFederatedEmptyProvider = "api.app.federated.provider.empty"
+	ErrorAPIAppFederatedCantComplete  = "api.app.federated.provider.cant_complete"
 	// ErrorAPIAppFederatedProviderEmptyAppleInfo means that application does not have clientID and clientSecret needed for Sign In with Apple.
-	ErrorAPIAppFederatedProviderEmptyAppleInfo = "api.app.federated.provider.empty_apple_info"
+	// ErrorAPIAppFederatedProviderEmptyAppleInfo = "api.app.federated.provider.empty_apple_info"
 
 	// ErrorAPIAppFederatedLoginNotSupported means that the app does not support federated login.
-	ErrorAPIAppFederatedLoginNotSupported = "api.app.federated.login.not_supported"
+	// ErrorAPIAppFederatedLoginNotSupported = "api.app.federated.login.not_supported"
 	// ErrorAPIAppLoginWithUsernameNotSupported means that the app does not support login by username.
 	ErrorAPIAppLoginWithUsernameNotSupported = "api.app.username.login.not_supported"
 	// ErrorAPIAppPhoneLoginNotSupported means that the app does not support login by phone number.

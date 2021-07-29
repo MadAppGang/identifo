@@ -1,0 +1,47 @@
+.info-card {
+  border: 1px solid var(--gray-line);
+  border-radius: 8px;
+  padding: 24px;
+
+  &__controls {
+    display: flex;
+    justify-content: space-between;
+  }
+
+  &__title {
+    color: var(--text);
+    font-size: 18px;
+    line-height: 26px;
+    font-weight: 700;
+  }
+
+  &__button {
+    color: var(--blue-text);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-size: 18px;
+    line-height: 26px;
+  }
+
+  &__text {
+    color: #828282;
+    font-size: 16px;
+    line-height: 24px;
+    margin-top: 8px;
+  }
+
+  &__subtitle {
+    color: var(--text);
+    font-size: 16px;
+    line-height: 24px;
+    margin: 4px 0 12px;
+  }
+
+  @include for-phone-only {
+    &__text {
+      font-size: 14px;
+      line-height: 21px;
+    }
+  }
+}

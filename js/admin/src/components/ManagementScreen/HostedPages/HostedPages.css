@@ -1,0 +1,242 @@
+.hosted-pages-main {
+  margin-top: 50px;
+}
+
+.template-editor {
+  border-radius: 7px;
+  border: 1px solid #cbe7fb;
+  min-height: 200px;
+  background-color: #fff;
+  position: relative;
+  max-width: 705px;
+  cursor: text;
+}
+
+.template-editor-inner {
+  border-radius: 7px;
+  overflow: hidden;
+}
+
+.template-editor .CodeMirror {
+  height: 410px;
+}
+
+.template-editor .CodeMirror pre.CodeMirror-line, .CodeMirror pre.CodeMirror-line-like {
+  padding-left: 7px !important;
+}
+
+.template-editor__numpad-area {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  width: 30px;
+  background-color: #f7f7f7;
+  border-right: 1px solid #ddd;
+  border-bottom-left-radius: 7px;
+  border-top-left-radius: 7px;
+}
+
+.template-selector-title {
+  font-size: 14px;
+  width: 100%;
+  text-align: right;
+  color: #aaa;
+}
+
+.template-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.template-editor__filename {
+  font-size: 15px;
+  color: #3d3d3d;
+  border-radius: 4px;
+  color: #999;
+  display: flex;
+  align-items: center;
+}
+
+.template-editor__file-icon {
+  height: 15px;
+  width: 15px;
+  fill: #999;
+  margin-right: 5px;
+}
+
+.template-editor__upload-code {
+  border: none;
+  background-color: transparent;
+  font-size: 14px;
+  color: var(--main-color);
+  cursor: pointer;
+  outline: none;
+  display: flex;
+  align-items: center;
+}
+
+.template-editor__upload-code:hover {
+  color: var(--main-color-hover);
+}
+
+.template-editor__upload-code:hover .template-editor__upload-icon {
+  fill: var(--main-color-hover);
+}
+
+.template-editor__upload-icon {
+  height: 15px;
+  fill: var(--main-color);
+  margin-right: 5px;
+}
+
+.template-editor-footer {
+  margin-top: 25px;
+}
+
+.template-lang-selector {
+  position: absolute;
+  top: 0;
+  right: 0;
+  transform: translateX(110%);
+}
+
+.template-lang-selector__btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #999;
+  height: 40px;
+  width: 55px;
+  border: none;
+  outline: none;
+  background-color: transparent;
+  font-size: 12px;
+  border-radius: 7px;
+  margin-bottom: 5px;
+  cursor: pointer;
+  position: relative;
+  z-index: 1;
+  text-transform: uppercase;
+}
+
+.template-lang-selector__btn:hover {
+  color: var(--main-color);
+}
+
+.template-lang-selector__btn.template-lang-selector__btn--active {
+  color: white;
+  transition: color 150ms;
+}
+
+.template-lang-selector__indicator {
+  background-color: var(--main-color);
+  height: 40px;
+  width: 55px;
+  border-radius: 7px;
+  position: absolute;
+  top: 0;
+  transition: all 150ms ease-in-out;
+}
+
+.file-changes-indicator {
+  height: 6px;
+  width: 6px;
+  background-color: var(--main-color);
+  border-radius: 50%;
+  margin-left: 8px;
+}
+
+.file-changes-indicator-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.file-changes-indicator:hover + .file-changes-tooltip {
+  display: block;
+}
+
+.file-changes-tooltip {
+  position: absolute;
+  white-space: nowrap;
+  top: -20px;
+  transform: translate(3px, -100%);
+  padding: 3px 7px;
+  font-size: 14px;
+  border-radius: 4px;
+  background-color: #3d3d3d;
+  color: #eee;
+  display: none;
+  animation: tooltip-appear 300ms forwards;
+  box-shadow: 0 2px 12px 1px rgba(0, 0, 0, .3);
+  pointer-events: none;
+}
+
+.editor-changes-warning {
+  background-color: #3d3d3d;
+  border-radius: 4px;
+  padding: 12px 17px;
+  color: white;
+  position: absolute;
+  top: 26px;
+  right: 3px;
+  box-shadow: 0 2px 12px 1px rgba(0, 0, 0, .3);
+  outline: none;
+  animation: editor-unsaved-changes-warning-appear 150ms ease-in-out forwards;
+}
+
+@keyframes editor-unsaved-changes-warning-appear {
+  from {
+    right: 10px;
+    opacity: 0;
+  }
+  to {
+    right: 3px;
+    opacity: 1;
+  }
+}
+
+.editor-changes-warning::after {
+  width: 0;
+  height: 0;
+  border-style: solid;
+  border-width: 10px 0 10px 7px;
+  border-color: transparent transparent transparent #3d3d3d;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  margin: auto;
+  right: 0;
+  content: '';
+  display: block;
+  transform: translateX(100%);
+}
+
+.editor-changes-warning__btns {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 10px;
+}
+
+.editor-changes-warning__btn {
+  background-color: transparent;
+  border: none;
+  color: var(--main-color);
+  text-transform: uppercase;
+  font-size: 13px;
+  cursor: pointer;
+  outline: none;
+}
+
+.editor-changes-warning__btn + .editor-changes-warning__btn {
+  margin-left: 10px;
+}
+
+.editor-changes-warning__btn.editor-changes-warning__btn--dimmed {
+  color: #9d9d9d;
+}

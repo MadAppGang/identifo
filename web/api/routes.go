@@ -23,7 +23,7 @@ func (ar *Router) initRoutes() {
 
 	apiMiddlewares := ar.middleware.With(handlers...)
 
-	ar.router.HandleFunc(`/{ping:ping/?}`, ar.HandlePing()).Methods("GET")
+	ar.router.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
 
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
@@ -31,49 +31,48 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(auth),
 	))
 
-	auth.Path(`/{login:login/?}`).HandlerFunc(ar.LoginWithPassword()).Methods("POST")
-	auth.Path(`/{request_phone_code:request_phone_code/?}`).HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
-	auth.Path(`/{phone_login:phone_login/?}`).HandlerFunc(ar.PhoneLogin()).Methods("POST")
-	auth.Path(`/{federated:federated/?}`).HandlerFunc(ar.FederatedLogin()).Methods("POST")
-	auth.Path(`/{register:register/?}`).HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
-	auth.Path(`/{request_reset_password:request_reset_password/?}`).HandlerFunc(ar.RequestResetPassword()).Methods("POST")
-	auth.Path(`/{reset_password:reset_password/?}`).Handler(negroni.New(
+	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
+	auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
+	auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods("POST")
+	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
+	auth.Path("/request_reset_password").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	auth.Path("/reset_password").Handler(negroni.New(
 		ar.Token(model.TokenTypeReset, nil),
 		negroni.Wrap(ar.ResetPassword()),
 	)).Methods("POST")
 
-	auth.Path(`/{app_settings:app_settings/?}`).HandlerFunc(ar.GetAppSettings()).Methods("GET")
+	auth.Path("/app_settings").HandlerFunc(ar.GetAppSettings()).Methods("GET")
 
-	auth.Path(`/{token:token/?}`).Handler(negroni.New(
+	auth.Path("/token").Handler(negroni.New(
 		ar.Token(model.TokenTypeRefresh, nil),
 		negroni.Wrap(ar.RefreshTokens()),
 	)).Methods("POST")
-
-	auth.Path(`/{token:token/?}`).Handler(negroni.New(
-		ar.Token(model.TokenTypeRefresh, nil),
-		negroni.Wrap(ar.RefreshTokens()),
-	)).Methods("POST")
-
-	auth.Path(`/{invite:invite/?}`).Handler(negroni.New(
+	auth.Path("/invite").Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestInviteLink()),
 	)).Methods("POST")
 
-	auth.Path(`/{tfa/enable:tfa/enable/?}`).Handler(negroni.New(
+	auth.Path("/tfa/enable").Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.EnableTFA()),
 	)).Methods("PUT")
-	auth.Path(`/{tfa/disable:tfa/disable/?}`).Handler(negroni.New(
+	auth.Path("/tfa/disable").Handler(negroni.New(
 		negroni.Wrap(ar.RequestDisabledTFA()),
 	)).Methods("PUT")
-	auth.Path(`/{tfa/login:tfa/login/?}`).Handler(negroni.New(
+	auth.Path("/tfa/login").Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, []string{model.TokenTFAPreauthScope}),
 		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
-	auth.Path(`/{tfa/reset:tfa/reset/?}`).Handler(negroni.New(
+	auth.Path("/tfa/reset").Handler(negroni.New(
 		ar.Token(model.TokenTypeAccess, nil),
 		negroni.Wrap(ar.RequestTFAReset()),
 	)).Methods("PUT")
+
+	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("POST")
+	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("GET")
+
+	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("POST")
+	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("GET")
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
@@ -83,7 +82,7 @@ func (ar *Router) initRoutes() {
 	))
 	meRouter.Path("").HandlerFunc(ar.GetUser()).Methods("GET")
 	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
-	meRouter.Path(`/{logout:logout/?}`).HandlerFunc(ar.Logout()).Methods("POST")
+	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
 
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
@@ -97,8 +96,8 @@ func (ar *Router) initRoutes() {
 
 	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(wellKnownHandlers...))
 
-	oidc.Path(`/{openid-configuration:openid-configuration/?}`).HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
-	oidc.Path(`/{jwks.json:jwks.json/?}`).HandlerFunc(ar.OIDCJwks()).Methods("GET")
-	oidc.Path(`/{apple-developer-domain-association.txt:apple-developer-domain-association.txt/?}`).HandlerFunc(ar.ServeADDAFile()).Methods("GET")
-	oidc.Path(`/{apple-app-site-association:apple-app-site-association/?}`).HandlerFunc(ar.ServeAASAFile()).Methods("GET")
+	oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
+	oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods("GET")
+	oidc.Path("/apple-developer-domain-association.txt").HandlerFunc(ar.ServeADDAFile()).Methods("GET")
+	oidc.Path("/apple-app-site-association").HandlerFunc(ar.ServeAASAFile()).Methods("GET")
 }

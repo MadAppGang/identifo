@@ -1,0 +1,53 @@
+.iap-userlist {
+  margin: 25px 0;
+}
+
+.iap-datagrid-row__user-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  background-color: #3185C3;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.iap-users-row__fake-icon {
+  height: 35px;
+  width: 35px;
+  border-radius: 50%;
+  animation: pulse .8s linear infinite;
+}
+
+.iap-users-row__fake-name,
+.iap-users-row__fake-latest-login,
+.iap-users-row__fake-logins,
+.iap-users-row__fake-email {
+  height: 15px;
+  width: 140px;
+  animation: pulse .8s linear infinite;
+  margin: 0 30px;
+  border-radius: 4px;
+}
+
+.iap-users-row__fake-name {
+  width: 100px;
+}
+
+.iap-users-row__fake-latest-login {
+  width: 50px;
+  margin-left: 50px;
+}
+
+.iap-users-row__fake-logins {
+  width: 30px;
+}
+
+.user-phone-icon {
+  height: 15px;
+  width: 15px;
+  fill: white;
+}

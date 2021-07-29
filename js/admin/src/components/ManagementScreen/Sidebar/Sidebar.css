@@ -1,0 +1,44 @@
+.iap-management-sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 240px;
+  min-height: calc(100vh - 80px); /* header height */
+  padding: 50px 0;
+  background-color: #fff;
+  position: fixed;
+}
+
+.iap-management-sidebar__section {
+  color: #000;
+  margin: 7px 0;
+  text-decoration: none;
+  font-size: 16px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding-left: 30px;
+}
+
+.iap-management-sidebar__section:hover {
+  opacity: .6;
+}
+
+.iap-management-sidebar__section.iap-management-sidebar__section--active {
+  color: #1B9CFC;
+}
+
+.iap-management-sidebar__section.iap-management-sidebar__section--active:hover {
+  opacity: 1;
+}
+
+.iap-sidebarnav-icon {
+  height: 23px;
+  width: 23px;
+  position: absolute;
+  left: -6px;
+  transform: translateY(-2px);
+}
+
+.iap-management-sidebar__section--active > .iap-sidebarnav-icon {
+  fill: #1B9CFC;
+}

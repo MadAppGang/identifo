@@ -1,0 +1,93 @@
+.iap-apps-form {
+  width: 350px;
+  margin: 50px 0;
+}
+
+.iap-tabs-tablist + .iap-apps-form {
+  margin: 20px 0;
+}
+
+.iap-apps-form__footer {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.iap-apps-form__provider {
+  margin-bottom: 15px;
+}
+
+.iap-apps-form__provider--open {
+  margin-bottom: 30px;
+}
+
+.iap-apps-form__text {
+  font: normal 13px 'Circe';
+  color: #aaa;
+}
+
+
+.iap-apps-form__secret-field {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.iap-apps-form__secret-value {
+  padding: 10px 16px;
+  min-height: 45px;
+  border-radius: 7px;
+  background-color: #f7fcff;
+  border: 1px solid #cbe7fb;
+  font-size: 14px;
+  font-family: "Circe", monospace;
+  outline: none;
+  color: #aaa;
+  width: 100%;
+  margin: 4px 5px 4px 0;
+  max-width: 233.5px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.iap-apps-form__note {
+  margin-bottom: 30px;
+  font-size: 14px;
+  color: #aaa;
+  display: flex;
+  align-items: center;
+  padding: 4px 20px;
+  border-radius: 8px;
+  background-color: #f3f3f3;
+  width: 130%;
+}
+
+.iap-apps-form__note-icon {
+  height: 55px;
+  fill: #aaa;
+  margin-right: 15px;
+}
+
+.iap-apps-form__note-link {
+  color: var(--main-color);
+  margin-left: 5px;
+  margin-right: 5px;
+}
+
+.casbin-code-editor {
+  width: 150%;
+  border: 1px solid #cbe7fb;
+  border-radius: 7px;
+  overflow: hidden;
+  margin-top: 5px;
+}
+
+.casbin-code-editor .CodeMirror {
+  height: auto !important;
+  background-color: #f7fcff;
+}
+
+.casbin-code-editor .CodeMirror pre.CodeMirror-line,
+.CodeMirror pre.CodeMirror-line-like {
+  padding-left: 10px !important;
+}

@@ -1,8 +1,6 @@
 package html
 
 import (
-	"fmt"
-	"io"
 	"log"
 	"net/http"
 	"os"
@@ -85,39 +83,6 @@ func NewRouter(server model.Server, logger *log.Logger, authorizer *authorizatio
 	ar.Middleware.UseHandler(ar.Router)
 
 	return &ar, nil
-}
-
-// Error writes an API error message to the response and logger.
-func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo string) {
-	// Log error.
-	ar.Logger.Printf("http error: %s (code=%d)\n", err, code)
-
-	// Hide error from client if it is internal.
-	if code == http.StatusInternalServerError {
-		err = model.ErrorInternal
-	}
-
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	responseString := `
-	<!DOCTYPE html>
-	<html>
-	<head>
-	  <title>Home Network</title>
-	</head>
-	<body>
-	<h2>Error</h2></br>
-	<h3>
-	` +
-		fmt.Sprintf("Error: %s, code: %d, userInfo: %s", err.Error(), code, userInfo) +
-		`
-	</h3>
-	</body>
-	</html>
-	`
-	w.WriteHeader(code)
-	if _, wrErr := io.WriteString(w, responseString); wrErr != nil {
-		ar.Logger.Println("Error writing response string:", wrErr)
-	}
 }
 
 // ServeHTTP implements identifo.Router interface.

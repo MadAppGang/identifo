@@ -3,6 +3,9 @@ services:
   identifo:
     image: identifo:latest
     build: .
+    environment:
+      - IDENTIFO_ADMIN_LOGIN=admin@admin.com
+      - IDENTIFO_ADMIN_PASSWORD=password
     env_file:
       - .env
     ports:
@@ -10,9 +13,9 @@ services:
     networks:
       - identifo
     volumes:
-      - ./server-config-dev.yaml:/root/server-config.yaml
-      - ./jwt/test_artifacts:/root/jwt/
+      - ./server-config.yaml:/root/server-config.yaml
+      - ./jwt/test_artifacts:/root/jwt/test_artifacts
       - ./static/:/root/static/
-
+      - ./db.db:/root/db.db
 networks:
   identifo:

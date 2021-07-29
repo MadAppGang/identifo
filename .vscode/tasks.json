@@ -1,0 +1,15 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Update web",
+      "type": "shell",
+      "command": "${workspaceFolder}/js/update-web.sh"
+    },
+    {
+      "label": "Update admin panel",
+      "type": "shell",
+      "command": "${workspaceFolder}/js/update-admin.sh"
+    }
+  ]
+}

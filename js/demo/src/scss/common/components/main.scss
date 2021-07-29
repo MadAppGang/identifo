@@ -1,0 +1,17 @@
+.main {
+  border: 1px;
+  height: 100%;
+}
+.App {
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.form-holder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}

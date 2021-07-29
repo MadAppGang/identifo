@@ -1,0 +1,33 @@
+.primary-btn {
+    background-color: $blue;
+    color: #fff;
+    border-radius: 5px;
+    border: none;
+    font-size: 16px;
+    padding: 8px 18px;
+    outline: none;
+    cursor: pointer;
+    border: 2px solid $blue;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    margin-right: 5px;
+    text-transform: uppercase;
+    transition: all .3s ease-in-out;
+
+    &:hover {
+        background-color: darken($blue, 10%);
+    }
+}
+
+.outlined-btn {
+    @extend .primary-btn;
+    background-color: white;
+    color: $blue;
+
+    &:hover {
+        background-color: inherit;
+        border-color: darken($blue, 10%);
+    }
+}

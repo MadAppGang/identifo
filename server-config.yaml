@@ -1,7 +1,8 @@
 general: # General server settings.
+  port: 8081
   host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
   issuer: http://localhost:8081 # JWT tokens issuer.
-  algorithm: auto # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
 adminAccount:
@@ -16,32 +17,15 @@ adminAccount:
 # and endpoint for appStorage is localhost:27017, while tokenStorage's endpoint is localhost:27018,
 # server will connect both storages to localhost:27018.
 storage:
-  appStorage:
-    # Type of the database. Supported values are: "boltdb", "mongodb", "dynamodb" and "fake" for in-memory storage.
+  appStorage: &storage_settings
     type: boltdb
-    # BoltDB specific setting
-    boltdb: 
+    boltdb:
       path: ./db.db
-  userStorage:
-    type: boltdb
-    boltdb: 
-      path: ./db.db
-  tokenStorage:
-    type: boltdb
-    boltdb: 
-      path: ./db.db
-  tokenBlacklist:
-    type: boltdb
-    boltdb: 
-      path: ./db.db
-  verificationCodeStorage:
-    type: boltdb
-    boltdb: 
-      path: ./db.db
-  inviteStorage:
-    type: boltdb
-    boltdb: 
-      path: ./db.db
+  userStorage: *storage_settings
+  tokenStorage: *storage_settings
+  tokenBlacklist: *storage_settings
+  verificationCodeStorage: *storage_settings
+  inviteStorage: *storage_settings
 
 # Storage for admin sessions.
 sessionStorage:
@@ -49,16 +33,11 @@ sessionStorage:
   # Admin session duration in seconds.
   # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
   sessionDuration: 300
-  # redis setting are  here for example only, because the type is memory
-  redis:
-    address: http://localhost:2075
-    password: secret
-    db: identifo
-  # dynamodb setting are  here for example only, because the type is memory
-  dynamo:
-    region: ap-southeast-2
-    endpoint: arn:aws:dynamodb:us-east-1:231546564:table/StockTable
-
+  address: # Redis-related setting.
+  password: # Redis-related setting.
+  db: # Redis-related setting.
+  region: # DynamoDB-related setting.
+  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
 
 keyStorage: # Storage for keys used for signing and verifying JWTs.
   type: local # Key storage type. Supported values are "local" and "s3".
@@ -66,33 +45,17 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
     public_key_path: ./jwt/test_artifacts/public.pem
-  #s3 keys storage example
-  # s3:
-  #   region: ap-southeast-2
-  #   bucket: identifo-bucket
-  #   public_key_key: /secrets/keys/public.pem
-  #   private_key_key: /secrets/keys/private.pem
 
 static:
-  type: local # Supported values are "local", "s3", and "dynamodb".
-  
-  # static files from local file system (technically it could be mounted network file system like ftp or nfs)
+  type: local
   local:
-        folder: ./static # All following paths are relative to this location. Assumed to be root if omitted.
-  # s3 static files storage, present here as example
-  # s3:
-  #   region: ap-southeast-2
-  #   bucket: identifo-bucket # Bucket which contains static files if type is "s3". If "IDENTIFO_STATIC_FILES_BUCKET" env variable is set,
-  #   folder: demo
-  # dynamo:
-  #   region: ap-southeast-2
-  #   endpoint: arn:aws:dynamodb:us-east-1:231546564:table/StockTable
-  serveAdminPanel: true # If omitted or set to false, admin panel router won't be initialized.
-  serveNewWeb: true # If omitted or set to false, will be served old templated based web version.
+    folder: ./static
+  serveAdminPanel: true
 
 login: # Supported login ways.
   loginWith:
     phone: true
+    email: true
     username: true
     federated: true
   # Type of two-factor authentication, if application enables it.
@@ -101,7 +64,7 @@ login: # Supported login ways.
 
 services:
   email: # Email service settings.
-    type: mock # Supported values are "mailgun", "aws ses", and "mock".    
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
     # mailgun:
     #   domain: identifo.com # Mailgun related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
     #   privateKey: ABXCDS # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
@@ -119,7 +82,7 @@ services:
     # nexmo:
     #   apiKey: KEY1234 # Nexmo-related setting.
     #   apiSecret: SECRET4433 # Nexmo-related setting.
-    # routemobile:      
+    # routemobile:
     #   username: identifo # RouteMobile-related setting.
     #   password: secret # RouteMobile-related setting.
     #   source: whatever # RouteMobile-related setting.

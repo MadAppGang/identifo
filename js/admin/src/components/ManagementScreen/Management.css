@@ -1,0 +1,140 @@
+.iap-management-section {
+  width: 100%;
+  padding: 50px 0 20px 40px;
+  margin-left: 205px;
+}
+
+.iap-management-section__title {
+  font-size: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: normal;
+  margin: 0;
+  padding: 0;
+}
+
+.iap-management-section__description {
+  font-size: 15px;
+  margin: 10px 0;
+}
+
+.iap-section-placeholder {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  justify-content: center;
+  padding: 30px 0;
+  flex-direction: column;
+}
+
+.iap-section-placeholder__title {
+  font: normal 36px 'Circe';
+  margin: 0 0 20px 0;
+  padding: 0;
+}
+
+.iap-section-placeholder__icon {
+  height: 110px;
+}
+
+.iap-section-placeholder__icon path,
+.iap-section-placeholder__icon circle {
+  fill: #c3e0ff;
+}
+
+.iap-placeholder__fetch-failure-icon {
+  height: 110px;
+}
+
+.iap-section-placeholder__msg {
+  margin: 25px 0 10px 0;
+}
+
+.iap-section-placeholder__add-icon {
+  height: 15px;
+  width: 15px;
+  transform: translateY(-1px);
+}
+
+.iap-section-placeholder__btn-text {
+  margin-left: 10px;
+}
+
+.iap-section__highlight {
+  background-color: #f0f9ff;
+  padding: 15px 25px;
+  border-radius: 4px;
+  color: #3d3d3d;
+  margin: 25px 0;
+}
+
+.iap-section-title__icon {
+  height: 15px;
+  transform: translate(5px, 1px);
+  line-height: 13px;
+}
+
+.iap-section__info {
+  margin: 30px 0 25px 0;
+}
+
+.iap-section__info span:first-of-type {
+  color: #5d5d5d;
+  font-weight: bold;
+  font-size: 12px;
+  text-transform: uppercase;
+}
+
+.iap-section__value--fake {
+  margin-top: 5px;
+  height: 20px;
+  border-radius: 4px;
+  background: #eee;
+  width: 150px;
+  animation: pulse .8s linear infinite;
+}
+
+.iap-management-section__back {
+  text-decoration: none;
+  color: #3d3d3d;
+  font-size: 14px;
+  border: none;
+  background: transparent;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+
+.iap-management-section__back:hover {
+  opacity: .6;
+}
+
+.iap-section-description__id {
+  background: #eee;
+  padding: 2px 5px;
+  border-radius: 4px;
+  font-size: 14px;
+  letter-spacing: .8px;
+}
+
+.iap-management-section__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.iap-management-section__tabs {
+  margin-top: 20px;
+}
+
+.iap-management-layout {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+.iap-management-content {
+  margin-top: 70px;
+}

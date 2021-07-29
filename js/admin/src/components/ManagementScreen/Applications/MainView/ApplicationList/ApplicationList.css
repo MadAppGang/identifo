@@ -1,0 +1,71 @@
+.iap-applications-list {
+  margin: 80px 0;
+}
+
+.iap-application-row {
+  padding: 15px 10px;
+  width: 100%;
+}
+
+.iap-application-row__clientid {
+  font-size: 14px;
+  color: #6d6d6d;
+  padding: 2px 7px;
+  border-radius: 2px;
+  background: #eee;
+  display: inline-block;
+  cursor: text;
+}
+
+.iap-application-row__icon-wrapper {
+  display: flex;
+  align-items: center;
+  padding-left: 15px;
+}
+
+.iap-application-row__icon {
+  height: 40px;
+  width: 40px;
+}
+
+.iap-application-row__type {
+  font-size: 12px;
+  font-weight: bold;
+  color: #7d7d7d;
+  text-transform: uppercase;
+}
+
+.iap-application-row__name {
+  font-size: 14px;
+  color: #3d3d3d;
+  margin-top: 3px;
+  padding-right: 5px;
+}
+
+.iap-application-row__tfa-status {
+  font-size: 14px;
+  color: #3d3d3d;
+  text-transform: capitalize;
+}
+
+.iap-apps-row__fake-icon {
+  height: 45px;
+  width: 45px;
+  border-radius: 50%;
+  animation: pulse .8s linear infinite;
+  margin-left: 15px;
+}
+
+.iap-apps-row__fake-type,
+.iap-apps-row__fake-client-id {
+  height: 15px;
+  width: 125px;
+  animation: pulse .8s linear infinite;
+  margin: 0 30px;
+  border-radius: 4px;
+}
+
+.iap-apps-row__fake-client-id {
+  width: 240px;
+  margin-left: 45px;
+}

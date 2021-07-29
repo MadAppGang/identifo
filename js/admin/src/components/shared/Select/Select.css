@@ -1,0 +1,63 @@
+.iap-db-dropdown {
+  position: relative;
+}
+
+.iap-db-dropdown__options {
+  position: absolute;
+  left: 0;
+  bottom: 0;
+  transform: translateY(100%);
+  padding: 5px 0;
+  min-width: 100%;
+  background-color: #fff;
+  box-shadow: 1px 4px 12px 1px rgba(0, 0, 0, .2);
+  border-radius: 6px;
+  z-index: 999;
+  animation: db-dropdown-fadein 70ms ease-out forwards;
+}
+
+.iap-db-dropdown__option {
+  width: 100%;
+  display: block;
+  padding: 12px 22px;
+  border: none;
+  outline: none;
+  background-color: #fff;
+  text-align: left;
+  font-size: 16px;
+  cursor: pointer;
+  color: #616161;
+  border-bottom: 1px solid #f0f9ff;
+}
+
+.iap-db-dropdown__option:last-of-type {
+  border: none;
+}
+
+.iap-db-dropdown__option:hover,
+.iap-db-dropdown__option:focus {
+  background-color: #f0f9ff;
+}
+
+.iap-db-dropdown__option.iap-db-dropdown__option--active {
+  font-weight: bold;
+  color: #000;
+  color: #3CA6F5;
+}
+
+.iap-select-icon {
+  height: 25px;
+  width: 25px;
+  padding: 5px;
+  fill: var(--main-color);
+  border-radius: 50%;
+  cursor: pointer;
+}
+
+.iap-select-icon rect {
+  fill: var(--main-color);
+}
+
+.iap-select-icon:hover {
+  background-color: #eee;
+}

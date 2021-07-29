@@ -1,0 +1,53 @@
+.iap-login-layout {
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.iap-login-form {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 350px;
+  box-sizing: content-box;
+}
+
+.login-form__logo {
+  display: flex;
+  padding: 0;
+  margin-bottom: 40px;
+}
+
+.login-form__logo span {
+  font: 400 24px 'Circe';
+  display: inline-block;
+  display: flex;
+  align-items: center;
+}
+
+.login-form__logo span:first-of-type {
+  padding-right: 12px;
+  border-right: 1px solid #3d3d3d;
+  color: #3d3d3d;
+  height: 26px;
+}
+
+.login-form__logo span:last-of-type {
+  font: 400 18px 'Circe';
+  padding-left: 12px;
+  height: 28px;
+  color: var(--main-color);
+}
+
+.iap-login-form__err {
+  align-self: flex-start;
+}
+
+.iap-login-form__footer {
+  margin-top: 10px;
+  width: 100%;
+}

@@ -1,0 +1,53 @@
+.iap-actions-btn {
+  position: relative;
+  z-index: 999;
+}
+
+.iap-actions-btn--stuck {
+  position: fixed;
+  right: auto;
+  top: 87px;
+}
+
+.iap-actions-btn__icon {
+  height: 12px;
+  width: 12px;
+  transform: none;
+}
+
+.iap-actions-btn__icon path,
+.iap-actions-btn__icon circle {
+  fill: #fff;
+}
+
+.iap-actions-btn__actions {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  background: #fff;
+  padding: 5px 0;
+  min-width: 100%;
+  background-color: #fff;
+  box-shadow: 1px 4px 12px 1px rgba(0, 0, 0, .2);
+  border-radius: 3px;
+  display: flex;
+  flex-direction: column;
+  transform-origin: top right;
+  animation: profile-dropdown-fadeout 100ms forwards;
+}
+
+.iap-actions-btn__action {
+  border: none;
+  background: transparent;
+  padding: 10px 23px;
+  font: normal 16px 'Circe';
+  text-align: left;
+  cursor: pointer;
+  outline: none;
+  white-space: nowrap;
+}
+
+.iap-actions-btn__action:hover,
+.iap-actions-btn__action:focus {
+  background-color: #f0f9ff;
+}

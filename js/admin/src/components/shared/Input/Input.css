@@ -1,0 +1,79 @@
+.iap-input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  width: 100%;
+}
+
+.iap-login-form__input::placeholder {
+  color: #aaa;
+}
+
+.iap-login-form__input {
+  padding: 12px 20px;
+  border-radius: 7px;
+  background-color: #f7fcff;
+  border: 1px solid #cbe7fb;
+  font-size: 15px;
+  outline: none;
+  color: #2d2d2d;
+  width: 100%;
+  margin: 4px 0;
+}
+
+.iap-login-form__input--textarea {
+  resize: none;
+}
+
+.iap-login-form__input:focus {
+  border: 1px solid #3CA6F5;
+}
+
+.iap-login-form__input:disabled {
+  opacity: .5;
+  cursor: default;
+}
+
+.iap-login-form__input.iap-login-form__input--iconized {
+  padding-left: 43px;
+}
+
+.iap-login-form__input.iap-login-form__input--invalid {
+  border-color: #d15555;
+  background-color: #fff;
+}
+
+.iap-input-icon {
+  height: 17px;
+  width: 17px;
+  position: absolute;
+  left: 17px;
+  pointer-events: none;
+  transform: translateY(-1px);
+}
+
+.iap-input-icon path,
+.iap-input-icon circle {
+  fill: #a9cce4;
+}
+
+.iap-input-error {
+  font-size: 15px;
+  color: #d15555;
+  width: 100%;
+  display: block;
+  text-align: left;
+}
+
+.iap-input-btn {
+  position: absolute;
+  right: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.iap-login-form__input.iap-login-form__input--invalid + .iap-input-btn {
+  top: 16px;
+}

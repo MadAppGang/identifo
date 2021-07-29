@@ -2,6 +2,7 @@ package admin
 
 import (
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/urfave/negroni"
@@ -77,4 +78,11 @@ func (ar *Router) getSessionID(r *http.Request) (string, error) {
 
 	sessionID, err := decode(cookie.Value)
 	return sessionID, err
+}
+
+func (ar *Router) RemoveTrailingSlash() negroni.HandlerFunc {
+	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
+		next.ServeHTTP(rw, r)
+	}
 }

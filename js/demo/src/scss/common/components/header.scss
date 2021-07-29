@@ -1,0 +1,37 @@
+.header {
+    height: $headerHeight;
+    font-size: 25px;
+    box-shadow: 0 4px 2px -2px rgb(212, 212, 212);
+    font-family: $circe_regular;
+
+    &_in {
+        height: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+    }
+
+    &_logo {
+        cursor: pointer;
+        span {
+            font-size: 24px;
+
+            &:first-child {
+                font-family: $circe_bold;
+                padding-right: 12px;
+                border-right: 1px solid $main_color;
+                color: $main_color;
+                height: 26px;
+            }
+
+            &:last-child {
+                padding-left: 12px;
+                color: $blue;
+            }
+        }
+    }
+
+    &_buttons {
+        display: flex;
+    }
+}

@@ -1,0 +1,79 @@
+.social-buttons {
+  width: 100%;
+  position: relative;
+
+  &__text {
+    font-size: 14px;
+    line-height: 21px;
+    color: #828282;
+    padding: 4px 8px;
+    margin-bottom: 39px;
+    text-align: center;
+    position: static;
+
+    &::before {
+      content: '';
+      position: absolute;
+      height: 1px;
+      width: 36%;
+      left: 0;
+      top: 14px;
+      background-color: var(--gray-line);
+    }
+
+    &::after {
+      content: '';
+      position: absolute;
+      height: 1px;
+      width: 36%;
+      right: 0;
+      top: 14px;
+      background-color: var(--gray-line);
+    }
+  }
+
+  &__social-medias {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  &__media {
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background-color: var(--social-button);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  &__media:not(:last-of-type) {
+    margin-right: 24px;
+  }
+
+  @include for-phone-only {
+    &__media {
+      width: 44px;
+      height: 44px;
+    }
+
+    &__text {
+      margin-bottom: 36px;
+      
+      &::before {
+        width: 26%;
+      }
+  
+      &::after {
+        width: 26%;
+      }
+    }
+
+    &__image {
+      width: 16px;
+      height: 16px;
+    }
+  }
+}

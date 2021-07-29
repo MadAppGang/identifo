@@ -1,0 +1,21 @@
+@import './keyframes.css';
+@import './fonts.css';
+
+:root {
+  --main-color: #3CA6F5; 
+  --main-color-hover: #1B9CFC;
+  --main-font: 'Circe';
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  font-family: var(--main-font);
+  box-sizing: border-box;
+}
+
+/* react router dom link */
+.rrdl { 
+  text-decoration: none;
+  color: inherit;
+}

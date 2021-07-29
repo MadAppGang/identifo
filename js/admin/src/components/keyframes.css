@@ -1,0 +1,98 @@
+@keyframes pulse {
+  0% {
+    background-color: #eee;
+    opacity: 1;
+  }
+  50% {
+    background-color: #f3f3f3;
+    opacity: 0.75;
+  }
+  100% {
+    background-color: #eee;
+    opacity: 1;
+  }
+}
+
+@keyframes profile-dropdown-fadeout {
+  from {
+    transform: translateY(105%) scale(0.7);
+  }
+
+  to {
+    transform: translateY(105%) scale(1);
+  }
+}
+
+@keyframes file-input-icon-appear {
+  from {
+    transform: scale(.2);
+  }
+  to {
+    transform: scale(1);
+  }
+}
+
+@keyframes upload-prompt-appear {
+  from {
+    transform: translateX(90%);
+    opacity: .3
+  }
+  to {
+    transform: translateX(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes notification-appear {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0px);
+  }
+}
+
+@keyframes db-dropdown-fadein {
+  from {
+    transform: translateY(calc(100% - 10px));
+    opacity: .1;
+  }
+
+  to {
+    transform: translateY(100%);
+    opacity: 1;
+  }
+}
+
+@keyframes progress-bar-blink {
+  10% {
+    background-color: #eee;
+  }
+  20% {
+    background-color: var(--main-color);
+  }
+}
+
+@keyframes popup-appear {
+  from {
+    opacity: 0;
+    bottom: 15px;
+  }
+  to {
+    opacity: 1;
+    bottom: 25px;
+  }
+}
+
+@keyframes tooltip-appear {
+  from {
+    top: -15px;
+    opacity: 0;
+  }
+  to {
+    top: -10px;
+    opacity: 1;
+  }
+}

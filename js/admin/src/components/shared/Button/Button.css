@@ -1,0 +1,121 @@
+.iap-btn {
+  background-color: #3CA6F5;
+  color: #fff;
+  border-radius: 5px;
+  border: none;
+  font-size: 16px;
+  padding: 8px 18px;
+  outline: none;
+  cursor: pointer;
+  border: 2px solid #3CA6F5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  margin-right: 5px;
+}
+
+.iap-btn:last-of-type {
+  margin-right: 0px;
+}
+
+.iap-btn.iap-btn--stretch {
+  width: 100%;
+}
+
+.iap-btn.iap-btn--iconized {
+  text-indent: 10px;
+}
+
+.iap-btn.iap-btn--transparent {
+  background-color: transparent;
+  border-color: transparent;
+  color: #aaa;
+}
+
+.iap-btn.iap-btn--transparent:focus,
+.iap-btn.iap-btn--transparent:hover {
+  background-color: #eee;
+  border-color: transparent;
+}
+
+.iap-btn.iap-btn--transparent:active {
+  background-color: #e8e6e6 !important;
+  border-color: transparent !important;
+  color: #7d7d7d;
+}
+
+.iap-btn.iap-btn--transparent:disabled:hover {
+  pointer-events: none;
+  background-color: transparent !important;
+  border-color: transparent !important;
+  color: #7d7d7d;
+}
+
+.iap-btn.iap-btn--error {
+  background-color: #d15555;
+  border-color: #d15555;
+}
+
+.iap-btn.iap-btn--error:hover {
+  background-color: #d66363;
+  border-color: #d66363;
+}
+
+.iap-btn.iap-btn--error:focus {
+  background-color: #d66363;
+  border-color: #c94c4c;
+}
+
+.iap-btn.iap-btn--error:active {
+  border-color: #c94c4c !important;
+  background-color: #c94c4c !important;
+}
+
+.iap-btn.iap-btn--error:disabled:hover {
+  background-color: #d15555;
+  border-color: #d15555;
+}
+
+.iap-btn:hover {
+  background-color: #1B9CFC;
+}
+
+.iap-btn:focus {
+  border-color: #1D72B3;
+}
+
+.iap-btn:active {
+  background-color: #1D8FE3;
+  border-color: #1D8FE3;
+}
+
+.iap-btn:disabled {
+  opacity: .5;
+  pointer-events: none;
+  cursor: default;
+}
+
+.iap-btn.iap-btn:disabled:hover {
+  background: #3CA6F5;
+}
+
+.iap-btn.iap-btn:active {
+  background: #3CA6F5;
+  border-color: #3CA6F5;
+}
+
+.iap-btn__icon {
+  height: 15px;
+  width: 15px;
+  transform: translateY(-1px);
+}
+
+.iap-btn__icon path,
+.iap-btn__icon circle {
+  fill: #fff;
+}
+
+.iap-btn.iap-btn--section-title-sticky-btn {
+  background-color: red !important;
+}

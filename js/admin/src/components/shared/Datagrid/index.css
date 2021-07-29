@@ -1,0 +1,69 @@
+.iap-datagrid-header {
+  border-bottom: 1px solid #eee;
+}
+
+.iap-datagrid-header .iap-datagrid-row > div {
+  font-size: 14px;
+  color: #989898;
+}
+
+.iap-datagrid-row {
+  padding: 15px 10px;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid #eee;
+}
+
+.iap-datagrid-row:last-of-type {
+  border-bottom: none;
+}
+
+.iap-datagrid-row > div {
+  color: #3d3d3d;
+  white-space: nowrap;
+}
+
+.iap-datagrid-row:hover {
+  cursor: pointer;
+  background: #f9f9f9;
+}
+
+.iap-datagrid-row.iap-datagrid-row--header {
+  padding: 10px;
+}
+
+.iap-datagrid-row.iap-datagrid-row--header:hover {
+  background-color: transparent;
+  cursor: default;
+}
+
+.iap-datagrid-body {
+  margin-top: 5px;
+}
+
+.iap-datagrid__not-found {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 35px 0 20px 0;
+  flex-direction: column;
+}
+
+.iap-datagrid__not-found-icon {
+  height: 140px;
+  width: 140px;
+}
+
+.iap-datagrid__not-found-icon path,
+.iap-datagrid__not-found-icon circle {
+  fill: #ddd;
+}
+
+.iap-datagrid__not-found-text {
+  margin: 17px 0;
+  font-size: 12px;
+  text-transform: uppercase;
+  font-weight: bold;
+  color: #5d5d5d;
+}

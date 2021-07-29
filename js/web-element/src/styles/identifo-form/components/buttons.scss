@@ -1,0 +1,35 @@
+.primary-button {
+  background-color: #6163f6;
+  border: none;
+  outline: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 192px;
+  height: 64px;
+  border-radius: 8px;
+  cursor: pointer;
+  color: #fff;
+  font-size: 18px;
+  line-height: 26px;
+  transition: all .4s;
+
+  &:active {
+    transform: translateY(-4px);
+  }
+
+  &:hover {
+    opacity: .8;
+  }
+
+  &:disabled {
+    cursor: initial;
+    opacity: 0.3;
+  }
+}
+
+@include for-phone-only {
+  .primary-button {
+    width: 100%;
+  }
+}

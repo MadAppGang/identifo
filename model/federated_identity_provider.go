@@ -1,31 +1,79 @@
 package model
 
-// FederatedIdentityProvider is an external federated identity provider type.
-// If you are missing the provider you need, please feel free to add it here.
-type FederatedIdentityProvider string
+import (
+	"encoding/json"
+	"strings"
+	"time"
 
-var (
-	// FacebookIDProvider is a Facebook ID provider.
-	FacebookIDProvider FederatedIdentityProvider = "FACEBOOK"
-	// GoogleIDProvider is a Google ID provider.
-	GoogleIDProvider FederatedIdentityProvider = "GOOGLE"
-	// TwitterIDProvider is a Twitter ID provider.
-	TwitterIDProvider FederatedIdentityProvider = "TWITTER"
-	// AppleIDProvider is an Apple ID provider.
-	AppleIDProvider FederatedIdentityProvider = "APPLE"
+	"github.com/dgrijalva/jwt-go"
+	"github.com/markbates/goth/providers/apple"
+	"github.com/markbates/goth/providers/facebook"
+	"github.com/markbates/goth/providers/google"
 )
 
-// IsValid has to be called everywhere input happens, otherwise you risk to operate on bad data - no guarantees.
-func (fid FederatedIdentityProvider) IsValid() bool {
-	switch fid {
-	case FacebookIDProvider, GoogleIDProvider, TwitterIDProvider, AppleIDProvider:
-		return true
-	}
-	return false
+var FederatedProviders = map[string]FederatedProvider{
+	"facebook": {Name: "Facebook", New: func(params map[string]string, redirectURL string, scopes ...string) (*facebook.Provider, error) {
+		return facebook.New(params["ClientId"], params["Secret"], redirectURL, scopes...), nil
+	}, Params: []string{"ClientId", "Secret"}},
+	"google": {Name: "Google", New: func(params map[string]string, redirectURL string, scopes ...string) (*google.Provider, error) {
+		return google.New(params["ClientId"], params["Secret"], redirectURL, scopes...), nil
+	}, Params: []string{"ClientId", "Secret"}},
+	"apple": {Name: "Apple", New: func(params map[string]string, redirectURL string, scopes ...string) (*apple.Provider, error) {
+		jwt.TimeFunc = func() time.Time {
+			return time.Now().Add(time.Second * 10)
+		}
+
+		secret, err := apple.MakeSecret(apple.SecretParams{
+			PKCS8PrivateKey: params["PKCS8PrivateKey"],
+			TeamId:          params["TeamId"],
+			KeyId:           params["KeyId"],
+			ClientId:        params["ClientId"],
+			Iat:             int(time.Now().Unix()),
+			// Valid for 10 minutes
+			Exp: int(time.Now().Unix()) + 10*60,
+		})
+		if err != nil {
+			return nil, err
+		}
+		return apple.New(params["ClientId"], *secret, redirectURL, nil, scopes...), nil
+	}, Params: []string{"ClientId", "PKCS8PrivateKey,textarea", "TeamId", "KeyId"}},
 }
 
-// AppleInfo represents the information needed for Sign In with Apple.
-type AppleInfo struct {
-	ClientID     string `json:"client_id,omitempty" bson:"client_id,omitempty"`
-	ClientSecret string `json:"client_secret,omitempty" bson:"client_secret,omitempty"`
+type FederatedProvider struct {
+	New           interface{} `bson:"-" json:"-"`
+	Name          string      `bson:"string,omitempty" json:"string,omitempty"`
+	DefaultScopes []string    `bson:"default_scopes,omitempty" json:"default_scopes,omitempty"`
+	Params        []string    `bson:"params,omitempty" json:"params,omitempty"`
+}
+
+type FederatedProviderSettings struct {
+	Params map[string]string `bson:"params,omitempty" json:"params,omitempty"`
+	Scopes []string          `bson:"scopes,omitempty" json:"scopes,omitempty"`
+}
+
+// Session stores data during the auth process with Google.
+type FederatedSession struct {
+	ProviderSession string
+	CallbackUrl     string
+	RedirectUrl     string
+	AppId           string
+	ProviderName    string
+	Scopes          []string
+}
+
+// Marshal the session into a string
+func (s FederatedSession) Marshal() string {
+	b, _ := json.Marshal(s)
+	return string(b)
+}
+
+func (s FederatedSession) String() string {
+	return s.Marshal()
+}
+
+// UnmarshalSession will unmarshal a JSON string into a session.
+func UnmarshalFederatedSession(data string) (*FederatedSession, error) {
+	sess := &FederatedSession{}
+	err := json.NewDecoder(strings.NewReader(data)).Decode(sess)
+	return sess, err
 }

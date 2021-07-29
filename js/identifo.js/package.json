@@ -1,0 +1,56 @@
+{
+  "name": "@identifo/identifo-auth-js",
+  "version": "3.0.8",
+  "description": "Library for web-auth through Identifo",
+  "main": "./dist/identifo.js",
+  "module": "./dist/identifo.mjs",
+  "typings": "./dist/identifo.d.ts",
+  "scripts": {
+    "build": "rollup -c",
+    "build:dev": "webpack --watch --mode=development",
+    "test": "jest --config jest.config.js --env=./custom-test-env.js",
+    "lint": "eslint . --ext .ts"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MadAppGang/identifo.js.git"
+  },
+  "keywords": [
+    "Identifo",
+    "authentication",
+    "auth",
+    "login"
+  ],
+  "author": "nikita-ks",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/MadAppGang/identifo.js/issues"
+  },
+  "homepage": "https://github.com/MadAppGang/identifo.js#readme",
+  "devDependencies": {
+    "@types/jest": "^26.0.19",
+    "@typescript-eslint/eslint-plugin": "^4.10.0",
+    "@typescript-eslint/parser": "^4.10.0",
+    "clean-webpack-plugin": "^3.0.0",
+    "esbuild": "^0.12.5",
+    "eslint": "^7.15.0",
+    "eslint-config-airbnb-typescript": "^12.0.0",
+    "eslint-plugin-import": "^2.22.0",
+    "jest": "^26.6.3",
+    "jwt-simple": "^0.5.6",
+    "rollup": "^2.50.5",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-dts": "^3.0.2",
+    "rollup-plugin-esbuild": "^4.3.1",
+    "rollup-plugin-node-resolve": "^5.2.0",
+    "ts-jest": "^26.4.4",
+    "ts-loader": "^8.0.12",
+    "typescript": "^4.3.2",
+    "webpack": "^5.10.2",
+    "webpack-cli": "^4.2.0"
+  },
+  "dependencies": {
+    "axios": "^0.21.1",
+    "jose": "3"
+  }
+}

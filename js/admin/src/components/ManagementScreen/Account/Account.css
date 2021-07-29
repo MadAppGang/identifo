@@ -1,0 +1,43 @@
+.iap-settings-section {
+  margin: 25px 0;
+}
+
+.iap-settings-section + .iap-settings-section {
+  margin-top: 50px;
+}
+
+.iap-settings-form {
+  width: 350px;
+  margin: 50px 0;
+}
+
+.iap-tabs-tablist + .iap-settings-form {
+  margin: 20px 0;
+}
+
+.iap-settings-form__footer {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.iap-settings-form__edit-password-btn {
+  border: none;
+  display: inline-block;
+  font-size: 14px;
+  font-weight: 'normal';
+  text-align: left;
+  color: #1D8FE3;
+  cursor: pointer;
+  text-decoration: underline;
+  outline: none;
+}
+
+.iap-settings-form__edit-password-btn:focus,
+.iap-settings-form__edit-password-btn:hover {
+  color: #1569A7;
+}
+
+.iap-settings-form__password-fields {
+  margin-top: 25px;
+}

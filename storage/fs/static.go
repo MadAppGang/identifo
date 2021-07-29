@@ -134,10 +134,18 @@ func (sfs *StaticFilesStorage) AdminPanelHandlers() *model.AdminPanelHandlers {
 
 	buildHandler := http.FileServer(http.Dir(path.Join(sfs.Folder, model.AdminPanelBuildPath)))
 
+	configHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		w.WriteHeader(http.StatusOK)
+		jsonData := []byte(`{"apiUrl": "/admin"}`)
+		w.Write(jsonData)
+	})
+
 	return &model.AdminPanelHandlers{
 		SrcHandler:        srcHandler,
 		ManagementHandler: managementHandler,
 		BuildHandler:      buildHandler,
+		ConfigHandler:     configHandler,
 	}
 }
 

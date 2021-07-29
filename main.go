@@ -18,9 +18,9 @@ func main() {
 	flag.Parse()
 
 	// ignore error to fall back to default if needed
-	settings, _ := model.ConfigStorageSettingsFromString(*configFlag)
+	settings, fileErr := model.ConfigStorageSettingsFromString(*configFlag)
 	configStorage, err := config.InitConfigurationStorage(settings)
-	if err != nil {
+	if err != nil || fileErr != nil || *configFlag == "" {
 		log.Printf("Unable to init config using\n\tconfig string: %s\n\twith error: %v\n",
 			*configFlag,
 			err,

@@ -1,0 +1,83 @@
+.file-input {
+  display: flex;
+  align-items: flex-start;
+}
+
+.file-input__upload-wrapper {
+  position: relative;
+  width: 60px;
+  height: 48px;
+}
+
+.file-input__upload {
+  height: 100%;
+  width: 100%;
+  border-radius: 7px;
+  background-color: var(--main-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  margin-left: 5px;
+  cursor: pointer;
+  outline: none;
+  transition: background-color 200ms;
+  top: 4px;
+  position: relative;
+}
+
+.file-input__upload--success {
+  background-color: #589C69;
+}
+
+.file-input__upload.file-input__upload--success:hover {
+  background-color: #4B935D;
+
+}
+
+.file-input__upload:hover {
+  background-color: var(--main-color-hover);
+}
+
+.file-input__upload-icon {
+  fill: white;
+  height: 20px;
+  width: 20px;
+  animation: file-input-icon-appear 200ms forwards;
+}
+
+.upload-prompt {
+  border-radius: 7px;
+  background-color: #3d3d3d;
+  padding: 7px 15px;
+  top: 4px;
+  right: -10px;
+  transform: translateX(100%);
+  position: absolute;
+  display: flex;
+  height: 100%;
+  align-items: center;
+  animation: upload-prompt-appear 200ms forwards;
+}
+
+.upload-prompt__filename {
+  font-size: 13px;
+  color: #aaa;
+  white-space: nowrap;
+  max-width: 150px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.upload-prompt__another {
+  white-space: nowrap;
+  border: none;
+  outline: none;
+  cursor: pointer;
+  background-color: transparent;
+  color: white;
+  font-size: 13px;
+  text-align: left;
+  text-transform: uppercase;
+  margin-left: 10px;
+};
