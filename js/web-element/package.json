@@ -1,6 +1,6 @@
 {
   "name": "@identifo/web-element",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "description": "Identifo web element",
   "main": "dist/index.cjs.js",
   "module": "dist/custom-elements/index.js",
@@ -23,8 +23,7 @@
   },
   "dependencies": {
     "@identifo/identifo-auth-js": "git+https://github.com/madappgang/identifo.js.git",
-    "@stencil/core": "^2.0.1",
-    "@identifo/web-element": "^0.01"
+    "@stencil/core": "^2.0.1"
   },
   "license": "MIT",
   "devDependencies": {
