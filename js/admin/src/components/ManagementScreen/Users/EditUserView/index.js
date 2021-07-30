@@ -1,8 +1,11 @@
-import React from 'react';
+/* eslint-disable camelcase */
+import React, { useState, useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
+import classnames from 'classnames';
 import EditUserForm from './Form';
 import ActionsButton from '~/components/shared/ActionsButton';
+import DropdownIcon from '~/components/icons/DropdownIcon';
 import {
   fetchUserById, alterUser, deleteUserById, resetUserError,
 } from '~/modules/users/actions';
@@ -18,8 +21,17 @@ const EditUserView = ({ match, history }) => {
   const user = useSelector(s => s.selectedUser.user);
   const error = useSelector(s => s.selectedUser.error);
 
+  const [isIdsShown, setIdsShown] = useState(false);
+
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess, notifyFailure } = useNotifications();
+
+  const federatedIds = useMemo(() => {
+    if (user && user.federated_ids) {
+      return user.federated_ids;
+    }
+    return [];
+  }, [user]);
 
   const fetchData = async () => {
     setProgress(70);
@@ -76,10 +88,24 @@ const EditUserView = ({ match, history }) => {
     history.push(goBackPath);
   };
 
+  const toggleDropdown = () => {
+    setIdsShown(!isIdsShown);
+  };
+
   const availableActions = [{
     title: 'Delete User',
     onClick: handleDeleteClick,
   }];
+
+  const dropdownIconClass = classnames({
+    'iap-dropdown-icon': true,
+    'iap-dropdown-icon--open': isIdsShown,
+  });
+
+  const federatedKeys = classnames({
+    'iap-management-section__federated-keys': true,
+    'iap-management-section__federated-keys--visible': isIdsShown,
+  });
 
   return (
     <section className="iap-management-section">
@@ -99,6 +125,21 @@ const EditUserView = ({ match, history }) => {
             {id}
           </span>
         </p>
+        {!!federatedIds.length && (
+          <div className="iap-management-section__federated">
+            <p className="iap-management-section__federated-title">Federated ids</p>
+            <DropdownIcon className={dropdownIconClass} onClick={toggleDropdown} />
+          </div>
+        )}
+        <div className={federatedKeys}>
+          {federatedIds.map((i) => {
+            return (
+              <p className="iap-management-section__description" key={i}>
+                <span className="iap-section-description__id">{i}</span>
+              </p>
+            );
+          })}
+        </div>
       </header>
       <main>
         <EditUserForm

@@ -3,10 +3,7 @@ import axios from 'axios';
 axios.defaults.withCredentials = true;
 
 const createHttpClient = () => {
-  let apiUrl = '';
-  fetch('config.json')
-    .then(r => r.json())
-    .then(r => ({ apiUrl } = r));
+  const apiUrl = localStorage.getItem('identifo-api-url') || '';
 
   const middlewares = [];
 

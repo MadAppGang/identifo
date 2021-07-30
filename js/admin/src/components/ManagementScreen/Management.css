@@ -138,3 +138,33 @@
 .iap-management-content {
   margin-top: 70px;
 }
+
+.iap-management-section__federated {
+  border-bottom: 1px solid #eee;
+  padding-bottom: 3px;
+  text-transform: uppercase;
+  font: bold 13px 'Circe';
+  color: #aaa;
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.iap-management-section__federated > .iap-dropdown-icon {
+  cursor: pointer;
+  transition: all .3s;
+}
+
+.iap-dropdown-icon--open {
+  transform: rotate(180deg);
+}
+
+.iap-management-section__federated-keys {
+  transition: max-height .5s;
+  max-height: 0;
+  overflow: hidden;
+}
+
+.iap-management-section__federated-keys--visible {
+  max-height: 200px;
+}

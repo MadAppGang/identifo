@@ -1,12 +1,18 @@
 import React from 'react';
 import PropTypes from 'prop-types';
-import { useSelector  } from 'react-redux';
+import { useSelector } from 'react-redux';
 import { Redirect, withRouter } from 'react-router-dom';
 
 const SIGNED_IN = true;
 const SIGNED_OUT = false;
 
 const ensureAuthState = (expectedAuthState, Component, redirectPath) => {
+  React.useEffect(() => {
+    fetch('config.json')
+      .then(r => r.json())
+      .then(r => localStorage.setItem('identifo-api-url', r.apiUrl));
+  }, []);
+
   const ConnectedComponent = ({ location, ...props }) => {
     const actualAuthState = useSelector(state => state.auth.authenticated);
 
