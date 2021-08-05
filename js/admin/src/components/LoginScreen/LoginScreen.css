@@ -23,7 +23,7 @@
 }
 
 .login-form__logo span {
-  font: 400 24px 'Circe';
+  font: 400 24px var(--main-font);
   display: inline-block;
   display: flex;
   align-items: center;
@@ -37,7 +37,7 @@
 }
 
 .login-form__logo span:last-of-type {
-  font: 400 18px 'Circe';
+  font: 400 18px var(--main-font);
   padding-left: 12px;
   height: 28px;
   color: var(--main-color);

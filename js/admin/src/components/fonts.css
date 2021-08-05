@@ -1,13 +1,13 @@
 @font-face {
-  font-family: 'Circe';
-  src: url('../assets/fonts/Circe-Regular.woff');
+  font-family: 'Nunito';
+  src: url('../assets/fonts/Nunito-Regular.ttf');
   font-weight: normal;
   font-style: normal;
 }
 
 @font-face {
-  font-family: 'Circe';
-  src: url('../assets/fonts/Circe-Bold.woff');
+  font-family: 'Nunito';
+  src: url('../assets/fonts/Nunito-Bold.ttf');
   font-weight: 700;
   font-style: normal;
 }

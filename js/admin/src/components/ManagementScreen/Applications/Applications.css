@@ -35,7 +35,7 @@
 }
 
 .iap-apps-form__text {
-  font: normal 13px 'Circe';
+  font: normal 13px var(--main-font);
   color: #aaa;
 }
 
@@ -53,7 +53,7 @@
   background-color: #f7fcff;
   border: 1px solid #cbe7fb;
   font-size: 14px;
-  font-family: "Circe", monospace;
+  font-family: var(--main-font), monospace;
   outline: none;
   color: #aaa;
   width: 100%;

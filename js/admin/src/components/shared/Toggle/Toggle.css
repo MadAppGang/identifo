@@ -18,7 +18,7 @@
 }
 
 .iap-default-toggle > span {
-  font: normal 15px 'Circe';
+  font: normal 15px var(--main-font);
   color: #aaa;
 }
 

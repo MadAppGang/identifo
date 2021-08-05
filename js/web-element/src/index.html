@@ -1,61 +1,64 @@
 <!DOCTYPE html>
 <html dir="ltr" lang="en">
-  <head>
-    <meta charset="utf-8" />
-    <meta name="color-scheme" content="dark light" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    <title>Stencil Component Starter</title>
-    <script type="module" src="/build/identifo.esm.js"></script>
-    <script nomodule src="/build/identifo.js"></script>
-    <style>
-      @font-face {
-        font-family: Circe;
-        src: url('https://madappgang.com/static/Circe-Regular-60d20f049399d1e46a1339b15a8198aa.woff2');
-      }
 
-      @font-face {
-        font-family: Circe;
-        font-weight: bold;
-        src: url('https://madappgang.com/static/Circe-Bold-d1db4470c6dd8e178558e034b6bd53f2.woff2');
-      }
+<head>
+  <meta charset="utf-8" />
+  <meta name="color-scheme" content="dark light" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
+  <title>Stencil Component Starter</title>
+  <script type="module" src="/build/identifo.esm.js"></script>
+  <script nomodule src="/build/identifo.js"></script>
+  <style>
+    @font-face {
+      font-family: 'Nunito';
+      src: url('./assets/fonts/Nunito-Regular.ttf');
+    }
 
-      body {
-        margin: 0;
-        font-family: Circe, Arial, sans-serif;
-      }
-      .logo {
-        font-size: 40px;
-        margin-bottom: 20px;
-      }
+    @font-face {
+      font-family: 'Nunito';
+      font-weight: bold;
+      src: url('./assets/fonts/Nunito-Bold.ttf');
+    }
 
-      .login-holder {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        min-height: 100vh;
-        justify-content: center;
-      }
-    </style>
-  </head>
+    body {
+      margin: 0;
+      font-family: 'Nunito', Arial, sans-serif;
+    }
 
-  <body>
-    <div class="login-holder">
-      <div class="logo">identifo</div>
-      <identifo-form app-id="c3vqvhea0brnc4dvdnvg" url="http://localhost:8081/" theme="dark"> </identifo-form>
-    </div>
-    <script>
-      const token = new URLSearchParams(window.location.search).get('token');
-      const identifoForm = document.getElementsByTagName('identifo-form')[0];
-      identifoForm.route = 'login';
+    .logo {
+      font-size: 40px;
+      margin-bottom: 20px;
+    }
 
-      identifoForm.addEventListener('complete', event => {
-        window.alert(event.detail);
-      });
+    .login-holder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+      justify-content: center;
+    }
+  </style>
+</head>
 
-      if (token) {
-        identifoForm.token = token;
-        identifoForm.route = 'password/reset';
-      }
-    </script>
-  </body>
+<body>
+  <div class="login-holder">
+    <div class="logo">identifo</div>
+    <identifo-form app-id="c3vqvhea0brnc4dvdnvg" url="http://localhost:8081/" theme="dark"> </identifo-form>
+  </div>
+  <script>
+    const token = new URLSearchParams(window.location.search).get('token');
+    const identifoForm = document.getElementsByTagName('identifo-form')[0];
+    identifoForm.route = 'login';
+
+    identifoForm.addEventListener('complete', event => {
+      window.alert(event.detail);
+    });
+
+    if (token) {
+      identifoForm.token = token;
+      identifoForm.route = 'password/reset';
+    }
+  </script>
+</body>
+
 </html>

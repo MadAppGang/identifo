@@ -40,7 +40,7 @@
   border: none;
   background: transparent;
   padding: 10px 23px;
-  font: normal 16px 'Circe';
+  font: normal 16px var(--main-font);
   text-align: left;
   cursor: pointer;
   outline: none;

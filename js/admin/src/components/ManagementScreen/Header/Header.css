@@ -22,7 +22,7 @@
 }
 
 .iap-management-header__logo span {
-  font: 400 18px 'Circe';
+  font: 400 18px var(--main-font);
   display: inline-block;
   display: flex;
   align-items: center;
@@ -36,7 +36,7 @@
 }
 
 .iap-management-header__logo span:last-of-type {
-  font: 400 14px 'Circe';
+  font: 400 14px var(--main-font);
   padding-left: 9px;
   color: #aaa;
   height: 20px;
@@ -93,7 +93,7 @@
   outline: none;
   background-color: #fff;
   text-align: left;
-  font: normal 15px 'Circe';
+  font: normal 15px var(--main-font);
   padding: 10px 16px;
   cursor: pointer;
   color: #616161;
