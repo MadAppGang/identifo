@@ -1,0 +1,11 @@
+.top-progress-bar {
+  width: 0vw;
+  height: 1px;
+  top: 69px;
+  position: fixed;
+  left: 0;
+  background-color: var(--main-color);
+  z-index: 1000;
+  transition: width 500ms ease-in-out;
+  animation: progress-bar-blink 2s infinite;
+}

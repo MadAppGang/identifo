@@ -1,0 +1,47 @@
+{
+  "env": {
+    "browser": true,
+    "jest": true,
+    "es6": true
+  },
+  "root": true,
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/eslint-recommended",
+    "plugin:@typescript-eslint/recommended-requiring-type-checking",
+    "plugin:@typescript-eslint/recommended",
+    "airbnb-typescript/base"
+  ],
+  "parserOptions": {
+    "project": "./tsconfig.lib.json",
+    "sourceType": "module"
+  },
+  "rules": {
+    "no-var": 1,
+    "no-return-assign": 0,
+    "no-confusing-arrow": 0,
+    "no-use-before-define": ["error", "nofunc"],
+    "camelcase": "error",
+    "complexity": ["error", 9],
+    "curly": "error",
+    "new-cap": ["error", { "properties": false }],
+    "no-empty": "error",
+    "no-eval": "error",
+    "no-implied-eval": "error",
+    "no-plusplus": 0,
+    "max-len": ["error", 128],
+    "max-nested-callbacks": [1, 2],
+    "max-params": ["error", 5],
+    "max-statements": ["error", 25],
+    "quotes": ["error", "single", { "allowTemplateLiterals": true }],
+    "wrap-iife": ["error", "any"],
+    "import/prefer-default-export": 0,
+    "import/no-cycle": ["error", { "maxDepth": 1 }],
+    "class-methods-use-this": 0,
+    "operator-linebreak": ["error", "after"],
+    "@typescript-eslint/restrict-template-expressions": ["error", { "allowNullish": true }],
+    "@typescript-eslint/indent": 0
+  }
+}

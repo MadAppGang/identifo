@@ -1,0 +1,39 @@
+.iap-db-connection-section {
+  margin-top: 25px;
+}
+
+.iap-db-form {
+  width: 350px;
+  margin: 50px 0;
+}
+
+.iap-db-form__footer {
+  margin-top: 30px;
+  display: flex;
+  align-items: center;
+}
+
+.iap-db__connection {
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+}
+
+.iap-db__connection.iap-db__connection--established {
+  color: green;
+}
+
+.iap-db__connection.iap-db__connection--failed {
+  color: #d15555;
+}
+
+.iap-db__connection-icon {
+  height: 20px;
+  transform: translateY(-1px);
+  margin-right: 10px;
+}
+
+.iap-db__connection.iap-db__connection--established .iap-db__connection-icon path,
+.iap-db__connection.iap-db__connection--established .iap-db__connection-icon circle {
+  fill: green;
+}

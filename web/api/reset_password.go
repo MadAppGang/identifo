@@ -7,10 +7,10 @@ import (
 	"path"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
 // RequestResetPassword requests password reset
-// FIXME: We used email as param but search for user by username
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequestEmail struct {
 		Email string `json:"email,omitempty"`
@@ -46,7 +46,13 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		query := fmt.Sprintf("token=%s", resetTokenString)
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusInternalServerError, "App is not in context.", "RequestResetPassword.AppFromContext")
+			return
+		}
+
+		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -97,7 +103,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Token bytes are not in context.", "ResetPassword.TokenBytesFromContext")
+			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token bytes are not in context.", "ResetPassword.TokenBytesFromContext")
 			return
 		}
 
@@ -121,7 +127,7 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		}
 
 		// Refetch user with new password hash.
-		if user, err = ar.server.Storages().User.UserByNamePassword(user.Username, d.Password); err != nil {
+		if user, err = ar.server.Storages().User.UserByUsername(user.Username); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "ResetPassword.RefetchUser")
 			return
 		}

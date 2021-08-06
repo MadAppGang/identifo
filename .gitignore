@@ -24,7 +24,8 @@ static/admin_panel/master.zip
 integrations/aws/identifo lambda/Identifo
 integrations/aws/*/jwt/*.pem
 integrations/*/*/static/apple
-integrations/*/*/static/admin_panel/build
+integrations/*/*/static/admin_panel
+integrations/*/*/static/web
 integrations/*/*/identifo-admin-master
 integrations/*/*/master.zip
 integrations/aws/identifo lambda/.env

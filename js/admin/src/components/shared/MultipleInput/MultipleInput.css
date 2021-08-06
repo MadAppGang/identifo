@@ -1,0 +1,62 @@
+.multiple-input__value-tags {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.value-tag {
+  padding: 2px 8px;
+  border-radius: 4px;
+  background-color: #3CA6F5;
+  color: white;
+  font-size: 13px;
+  font-weight: bold;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  margin-top: 4px;
+  margin-right: 3px;
+  white-space: nowrap;
+}
+
+.value-tag__delete {
+  margin-left: 5px;
+  cursor: pointer;
+  outline: none;
+  border: none;
+  background-color: transparent;
+  height: 100%;
+  display: flex;
+  align-items: center;
+}
+
+.value-tag__delete-icon {
+  height: 9px;
+  width: 9px;
+  fill: white;
+}
+
+.multiple-input__add-btn {
+  background-color: transparent;
+  cursor: pointer;
+  color: #3CA6F5;
+  font-size: 13px;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  height: 25px;
+  width: 25px;
+  outline: none;
+}
+
+.multiple-input__add-btn:hover {
+  background-color: #eee;
+}
+
+.multiple-input__add-btn-icon {
+  fill: #3CA6F5;
+  height: 17px;
+  width: 17px;
+}

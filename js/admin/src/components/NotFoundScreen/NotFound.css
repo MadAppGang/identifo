@@ -1,0 +1,7 @@
+.iap-global-not-found-screen {
+  height: calc(100vh - 70px); /* header height */
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

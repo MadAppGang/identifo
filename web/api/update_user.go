@@ -55,8 +55,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Update password.
 		if d.updatePassword {
 			// Check old password.
-			if _, err := ar.server.Storages().User.UserByNamePassword(user.Username, d.OldPassword); err != nil {
-				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && UserByNamePassword")
+			if err := ar.server.Storages().User.CheckPassword(user.ID, d.OldPassword); err != nil {
+				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.updatePassword && CheckPassword")
 				return
 			}
 
@@ -68,7 +68,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 
 			// Refetch user with new password hash.
-			if user, err = ar.server.Storages().User.UserByNamePassword(user.Username, d.NewPassword); err != nil {
+			if user, err = ar.server.Storages().User.UserByUsername(user.Username); err != nil {
 				ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "UpdateUser.RefetchUser")
 				return
 			}

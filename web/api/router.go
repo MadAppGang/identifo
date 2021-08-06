@@ -53,9 +53,9 @@ func HostOption(host string) func(*Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions *model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
+func CorsOption(corsOptions model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
-		if corsOptions != nil && corsOptions.API != nil {
+		if corsOptions.API != nil {
 			if originChecker != nil {
 				corsOptions.API.AllowOriginRequestFunc = originChecker.With(corsOptions.API.AllowOriginRequestFunc).CheckOrigin
 			}
@@ -111,6 +111,8 @@ func NewRouter(server model.Server, logger *log.Logger, authorizer *authorizatio
 	}
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
+
+	ar.middleware.Use(ar.RemoveTrailingSlash())
 
 	if ar.cors != nil {
 		ar.middleware.Use(ar.cors)

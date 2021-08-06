@@ -110,6 +110,8 @@ func NewRouter(server model.Server, logger *log.Logger, options ...func(*Router)
 		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
+	ar.middleware.Use(ar.RemoveTrailingSlash())
+
 	if ar.cors == nil {
 		ar.cors = ar.defaultCORS()
 	}

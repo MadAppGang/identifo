@@ -99,10 +99,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 // UserByEmail returns user by its email.
 func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	// TODO: implement dynamodb UserByEmail
+	// clear password hash
+	// u.Pswd = ""
 	return model.User{}, errors.New("not implemented")
 }
 
-func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvider, id string) (string, error) {
+func (us *UserStorage) userIDByFederatedID(provider string, id string) (string, error) {
 	fid := string(provider) + ":" + id
 	result, err := us.db.C.GetItem(&dynamodb.GetItemInput{
 		TableName: aws.String(usersFederatedIDTableName),
@@ -125,11 +127,12 @@ func (us *UserStorage) userIDByFederatedID(provider model.FederatedIdentityProvi
 		log.Println("error while unmarshal item: ", err)
 		return "", ErrorInternalError
 	}
+
 	return fedData.UserID, nil
 }
 
 // UserByFederatedID returns user by federated ID.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User, error) {
 	userID, err := us.userIDByFederatedID(provider, id)
 	if err != nil {
 		return model.User{}, err
@@ -137,7 +140,10 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	if len(userID) == 0 {
 		return model.User{}, model.ErrorWrongDataFormat
 	}
-	return us.UserByID(userID)
+	u, err := us.UserByID(userID)
+	// clear password hash
+	u.Pswd = ""
+	return u, err
 }
 
 // UserExists checks if user with provided name exists.
@@ -228,17 +234,13 @@ func (us *UserStorage) userIdxByPhone(phone string) (*userIndexByPhoneData, erro
 	return userdata, nil
 }
 
-// UserByNamePassword returns user by name and password.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
-	name = strings.ToLower(name)
-	userIdx, err := us.userIdxByName(name)
+// UserByUsername returns user by name
+func (us *UserStorage) UserByUsername(username string) (model.User, error) {
+	username = strings.ToLower(username)
+	userIdx, err := us.userIdxByName(username)
 	if err != nil {
 		log.Println("error getting user by name: ", err)
 		return model.User{}, err
-	}
-	// if password is incorrect, return 'not found' error for security reasons.
-	if bcrypt.CompareHashAndPassword([]byte(userIdx.Pswd), []byte(password)) != nil {
-		return model.User{}, model.ErrUserNotFound
 	}
 
 	user, err := us.UserByID(userIdx.ID)
@@ -246,6 +248,8 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		log.Println("error querying user by id: ", err)
 		return model.User{}, ErrorInternalError
 	}
+	// clear password hash
+	user.Pswd = ""
 	return user, nil
 }
 
@@ -262,7 +266,8 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 		log.Println("error querying user by id: ", err)
 		return model.User{}, ErrorInternalError
 	}
-
+	// clear password hash
+	user.Pswd = ""
 	return user, nil
 }
 
@@ -322,35 +327,33 @@ func (us *UserStorage) DeleteUser(id string) error {
 	return err
 }
 
-// AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
-	username = strings.ToLower(username)
-	_, err := us.userIdxByName(username)
-	if err != nil && err != model.ErrUserNotFound {
-		log.Println(err)
-		return model.User{}, err
-	} else if err == nil {
+// AddUserWithPassword creates new user and saves it in the database.
+func (us *UserStorage) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
+	if _, err := us.UserByUsername(user.Username); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByEmail(user.Email); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByPhone(user.Phone); err == nil {
 		return model.User{}, model.ErrorUserExists
 	}
 
 	u := model.User{
+		ID:         xid.New().String(),
 		Active:     true,
-		Username:   username,
+		Username:   user.Username,
+		Phone:      user.Phone,
+		Email:      user.Email,
 		AccessRole: role,
 		Anonymous:  isAnonymous,
-	}
-	if model.EmailRegexp.MatchString(u.Username) {
-		u.Email = u.Username
-	}
-	if model.PhoneRegexp.MatchString(u.Username) {
-		u.Phone = u.Username
 	}
 
 	return us.AddNewUser(u, password)
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, federatedID, role string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
 	if err != nil && err != model.ErrUserNotFound {
 		log.Println("error getting user by name: ", err)
@@ -359,25 +362,16 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		return model.User{}, model.ErrorUserExists
 	}
 
-	fid := string(provider) + ":" + federatedID
+	user.ID = xid.New().String()
+	user.Active = true
+	user.AccessRole = role
+	fid := user.AddFederatedId(provider, federatedID)
 
-	user, err := us.userIdxByName(fid)
-	if err != nil && err != model.ErrUserNotFound {
-		log.Println("error getting user by name: ", err)
-		return model.User{}, err
-	} else if err == model.ErrUserNotFound {
-		// no such user, let's create it
-		uData := model.User{Username: fid, AccessRole: role, Active: true}
-		u, creationErr := us.AddNewUser(uData, "")
-		if creationErr != nil {
-			log.Println("error adding new user: ", creationErr)
-			return model.User{}, creationErr
-		}
-		user = &userIndexByNameData{ID: u.ID, Username: u.Username}
+	user, creationErr := us.AddNewUser(user, "")
+	if creationErr != nil {
+		log.Println("error adding new user: ", creationErr)
+		return model.User{}, creationErr
 	}
-
-	// Nil error means that there already is a user with this federated id.
-	// The only possible way for that is faulty creation of the federated accout before.
 
 	fedData := federatedUserID{FederatedID: fid, UserID: user.ID}
 	fedInputData, err := dynamodbattribute.MarshalMap(fedData)
@@ -394,34 +388,8 @@ func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityPr
 		log.Println("error putting item: ", err)
 		return model.User{}, ErrorInternalError
 	}
-	// just in case
-	if user == nil {
-		return model.User{}, ErrorInternalError
-	}
 
-	udata := model.User{ID: user.ID, Username: user.Username, Active: true}
-	return udata, nil
-}
-
-// AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
-	_, err := us.userIdxByPhone(phone)
-	if err != nil && err != model.ErrUserNotFound {
-		log.Println(err)
-		return model.User{}, err
-	} else if err == nil {
-		return model.User{}, model.ErrorUserExists
-	}
-
-	u := model.User{
-		ID:          xid.New().String(),
-		Username:    phone,
-		Active:      true,
-		Phone:       phone,
-		AccessRole:  role,
-		NumOfLogins: 0,
-	}
-	return us.AddNewUser(u, "")
+	return user, nil
 }
 
 // UpdateUser updates user in DynamoDB storage.
@@ -472,6 +440,20 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 
 	return err
+}
+
+// CheckPassword check that password is valid for user id.
+func (us *UserStorage) CheckPassword(id, password string) error {
+	user, err := us.UserByID(id)
+	if err != nil {
+		return model.ErrUserNotFound
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
+		// return this error to hide the existence of the user.
+		return model.ErrUserNotFound
+	}
+	return nil
 }
 
 // ResetUsername sets user username.

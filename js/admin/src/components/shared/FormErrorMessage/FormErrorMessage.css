@@ -1,0 +1,22 @@
+.iap-management-section-error {
+  color: #d15555;
+  display: flex;
+  align-items: center;
+  margin-bottom: 30px;
+}
+
+.iap-management-section-error__icon {
+  width: 45px;
+  transform: translateY(-1px);
+}
+
+.iap-management-section-error__msg {
+  display: inline-block;
+  margin-left: 15px;
+  font-size: 15px;
+}
+
+.iap-management-section-error__title {
+  font-size: 14px;
+  color: #3d3d3d;
+}

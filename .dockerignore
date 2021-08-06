@@ -12,8 +12,7 @@ identifo
 *.test
 
 static/apple/*
-static/admin_panel/identifo-admin-master
-static/admin_panel/*.zip
+js/*
 
 .github
 .vscode

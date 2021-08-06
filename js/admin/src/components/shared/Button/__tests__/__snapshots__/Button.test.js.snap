@@ -1,0 +1,25 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`<Button /> renders as expected 1`] = `
+<button
+  className="iap-btn"
+  disabled={false}
+  onClick={null}
+  type="button"
+>
+  <span />
+</button>
+`;
+
+exports[`<Button /> renders as expected when disabled 1`] = `
+<button
+  className="iap-btn"
+  disabled={true}
+  onClick={null}
+  type="button"
+>
+  <span>
+    Text
+  </span>
+</button>
+`;

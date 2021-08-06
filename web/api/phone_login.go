@@ -89,7 +89,8 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
-			user, err = ar.server.Storages().User.AddUserByPhone(authData.PhoneNumber, app.NewUserDefaultRole)
+			// Generate random password for feature reset if needed
+			user, err = ar.server.Storages().User.AddUserWithPassword(model.User{Phone: authData.PhoneNumber}, model.RandomPassword(15), app.NewUserDefaultRole, false)
 		}
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")

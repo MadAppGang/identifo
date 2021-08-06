@@ -1,0 +1,34 @@
+{
+  "name": "@identifo/web-element",
+  "version": "1.0.0",
+  "description": "Identifo web element",
+  "main": "dist/index.cjs.js",
+  "module": "dist/custom-elements/index.js",
+  "es2015": "dist/esm-es5/index.mjs",
+  "es2017": "dist/esm/index.mjs",
+  "types": "dist/custom-elements/index.d.ts",
+  "collection": "dist/collection/collection-manifest.json",
+  "collection:main": "dist/collection/index.js",
+  "unpkg": "dist/identifo-web-element/identifo-web-element.esm.js",
+  "files": [
+    "dist/",
+    "loader/"
+  ],
+  "scripts": {
+    "build": "stencil build --docs",
+    "start": "stencil build --dev --watch --serve",
+    "test": "stencil test --spec --e2e",
+    "test.watch": "stencil test --spec --e2e --watchAll",
+    "generate": "stencil generate"
+  },
+  "dependencies": {
+    "@identifo/identifo-auth-js": "git+https://github.com/madappgang/identifo.js.git",
+    "@stencil/core": "^2.0.1"
+  },
+  "license": "MIT",
+  "devDependencies": {
+    "@stencil/sass": "^1.4.1",
+    "@types/jest": "^26.0.23",
+    "@types/node": "^15.9.0"
+  }
+}

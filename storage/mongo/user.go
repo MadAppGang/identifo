@@ -102,11 +102,13 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	if err := us.coll.FindOne(ctx, bson.M{"email": email}).Decode(&u); err != nil {
 		return model.User{}, err
 	}
+	// clear password hash
+	u.Pswd = ""
 	return u, nil
 }
 
 // UserByFederatedID returns user by federated ID.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User, error) {
 	sid := string(provider) + ":" + id
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
@@ -172,9 +174,9 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	return u, nil
 }
 
-// UserByNamePassword returns user by name and password.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
-	strictPattern := "^" + strings.ReplaceAll(name, "+", "\\+") + "$"
+// UserByUsername returns user by name.
+func (us *UserStorage) UserByUsername(username string) (model.User, error) {
+	strictPattern := "^" + strings.ReplaceAll(username, "+", "\\+") + "$"
 	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
@@ -185,9 +187,6 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		return model.User{}, model.ErrUserNotFound
 	}
 
-	if bcrypt.CompareHashAndPassword([]byte(u.Pswd), []byte(password)) != nil {
-		return model.User{}, model.ErrUserNotFound
-	}
 	// clear password hash
 	u.Pswd = ""
 	return u, nil
@@ -215,63 +214,44 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 	return user, nil
 }
 
-// AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
-	u := model.User{
-		ID:          primitive.NewObjectID().Hex(),
-		Username:    phone,
-		Active:      true,
-		Phone:       phone,
-		AccessRole:  role,
-		NumOfLogins: 0,
+// AddUserWithPassword creates new user and saves it in the database.
+func (us *UserStorage) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
+	if _, err := us.UserByUsername(user.Username); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByEmail(user.Email); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByPhone(user.Phone); err == nil {
+		return model.User{}, model.ErrorUserExists
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
-	defer cancel()
-
-	if _, err := us.coll.InsertOne(ctx, u); err != nil {
-		if isErrDuplication(err) {
-			return model.User{}, model.ErrorUserExists
-		}
-		return model.User{}, err
-	}
-	return u, nil
-}
-
-// AddUserByNameAndPassword registers new user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
 	u := model.User{
 		ID:         primitive.NewObjectID().Hex(),
 		Active:     true,
-		Username:   username,
+		Username:   user.Username,
+		Phone:      user.Phone,
+		Email:      user.Email,
 		AccessRole: role,
 		Anonymous:  isAnonymous,
 	}
-	if model.EmailRegexp.MatchString(u.Username) {
-		u.Email = u.Username
-	}
-	if model.PhoneRegexp.MatchString(u.Username) {
-		u.Phone = u.Username
-	}
+
 	return us.AddNewUser(u, password)
 }
 
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, federatedID, role string) (model.User, error) {
 	// If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return model.User{}, model.ErrorUserExists
 	}
 
-	sid := string(provider) + ":" + federatedID
-	u := model.User{
-		ID:           primitive.NewObjectID().Hex(),
-		Active:       true,
-		Username:     sid,
-		AccessRole:   role,
-		FederatedIDs: []string{sid},
-	}
-	return us.AddNewUser(u, "")
+	user.ID = primitive.NewObjectID().Hex()
+	user.Active = true
+	user.AccessRole = role
+	user.AddFederatedId(provider, federatedID)
+
+	return us.AddNewUser(user, "")
 }
 
 // UpdateUser updates user in MongoDB storage.
@@ -314,6 +294,20 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	var ud model.User
 	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
 	return err
+}
+
+// CheckPassword check that password is valid for user id.
+func (us *UserStorage) CheckPassword(id, password string) error {
+	user, err := us.UserByID(id)
+	if err != nil {
+		return model.ErrUserNotFound
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
+		// return this error to hide the existence of the user.
+		return model.ErrUserNotFound
+	}
+	return nil
 }
 
 // ResetUsername sets new user's username.

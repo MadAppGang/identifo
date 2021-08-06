@@ -60,28 +60,23 @@ func (us *UserStorage) Scopes() []string {
 	return []string{"offline", "user"}
 }
 
-// UserByNamePassword returns randomly generated user.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
+// UserByUsername returns randomly generated user.
+func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 	return randUser(), nil
 }
 
-// AddUserByNameAndPassword returns randomly generated user.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
-	return randUser(), nil
-}
-
-// AddUserByPhone returns randomly generated user.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
+// AddUserWithPassword creates new user and saves it in the database.
+func (us *UserStorage) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
 	return randUser(), nil
 }
 
 // UserByFederatedID returns randomly generated user.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User, error) {
 	return randUser(), nil
 }
 
 // AddUserWithFederatedID returns randomly generated user.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, id, role string) (model.User, error) {
+func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, id, role string) (model.User, error) {
 	return randUser(), nil
 }
 
@@ -92,6 +87,11 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 
 // ResetPassword does nothing here.
 func (us *UserStorage) ResetPassword(id, password string) error {
+	return nil
+}
+
+// CheckPassword does nothig here.
+func (us *UserStorage) CheckPassword(id, password string) error {
 	return nil
 }
 

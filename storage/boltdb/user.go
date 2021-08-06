@@ -15,10 +15,11 @@ import (
 )
 
 const (
-	UserBucket              = "Users"                 // UserBucket is a name for bucket with users.
-	UserBySocialIDBucket    = "UserBySocialID"        // UserBySocialIDBucket is a name for bucket with social IDs as keys.
-	UserByNameAndPassword   = "UserByNameAndPassword" // UserByNameAndPassword  is a name for bucket with user names as keys.
-	UserByPhoneNumberBucket = "UserByPhoneNumber"     // UserByPhoneNumberBucket is a name for bucket with phone numbers as keys.
+	UserBucket              = "Users"             // UserBucket is a name for bucket with users.
+	UserBySocialIDBucket    = "UserBySocialID"    // UserBySocialIDBucket is a name for bucket with social IDs as keys.
+	UserByUsername          = "UserByUsername"    // UserByUsername  is a name for bucket with user names as keys.
+	UserByPhoneNumberBucket = "UserByPhoneNumber" // UserByPhoneNumberBucket is a name for bucket with phone numbers as keys.
+	UserByEmailBucket       = "UserByEmail"       // UserByEmailBucket is a name for bucket with email as keys.
 )
 
 // NewUserStorage creates and inits an embedded user storage.
@@ -42,10 +43,13 @@ func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, e
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserBySocialIDBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
-		if _, err := tx.CreateBucketIfNotExists([]byte(UserByNameAndPassword)); err != nil {
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserByUsername)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserByPhoneNumberBucket)); err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserByEmailBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
@@ -83,8 +87,36 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 
 // UserByEmail returns user by its email.
 func (us *UserStorage) UserByEmail(email string) (model.User, error) {
-	// TODO: implement boltdb UserByEmail
-	return model.User{}, errors.New("Not implemented. ")
+	var res model.User
+	err := us.db.View(func(tx *bolt.Tx) error {
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		// We use email as a key.
+		// Get user ID.
+		userID := ueb.Get([]byte(email))
+		if userID == nil {
+			return model.ErrUserNotFound
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		// Get user by userID.
+		u := ub.Get(userID)
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	// clear password hash
+	res.Pswd = ""
+	return res, nil
 }
 
 // DeleteUser deletes user by ID.
@@ -97,7 +129,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	}
 
 	if err := us.db.Update(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		unpb := tx.Bucket([]byte(UserByUsername))
 		return unpb.Delete([]byte(id))
 	}); err != nil {
 		return err
@@ -110,15 +142,21 @@ func (us *UserStorage) DeleteUser(id string) error {
 		return err
 	}
 
-	err := us.db.Update(func(tx *bolt.Tx) error {
+	if err := us.db.Update(func(tx *bolt.Tx) error {
 		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
 		return upnb.Delete([]byte(id))
+	}); err != nil {
+		return err
+	}
+
+	return us.db.Update(func(tx *bolt.Tx) error {
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		return ueb.Delete([]byte(id))
 	})
-	return err
 }
 
 // UserByFederatedID returns user by federated ID.
-func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvider, id string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User, error) {
 	var res model.User
 	sid := string(provider) + ":" + id
 
@@ -144,13 +182,15 @@ func (us *UserStorage) UserByFederatedID(provider model.FederatedIdentityProvide
 	if err != nil {
 		return model.User{}, err
 	}
+	// clear password hash
+	res.Pswd = ""
 	return res, nil
 }
 
 // UserExists checks if user with provided name exists.
 func (us *UserStorage) UserExists(name string) bool {
 	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		unpb := tx.Bucket([]byte(UserByUsername))
 		userID := unpb.Get([]byte(name))
 
 		if userID == nil {
@@ -219,16 +259,18 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	if err != nil {
 		return model.User{}, err
 	}
+	// clear password hash
+	res.Pswd = ""
 	return res, nil
 }
 
-// UserByNamePassword returns user by name and password.
-func (us *UserStorage) UserByNamePassword(name, password string) (model.User, error) {
+// UserByUsername returns user by name
+func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 	var res model.User
 	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		unpb := tx.Bucket([]byte(UserByUsername))
 		// we use username and password hash as a key
-		key := name
+		key := username
 		// get user ID from index
 		userID := unpb.Get([]byte(key))
 		if userID == nil {
@@ -247,15 +289,13 @@ func (us *UserStorage) UserByNamePassword(name, password string) (model.User, er
 		if err != nil {
 			return err
 		}
-		if err = bcrypt.CompareHashAndPassword([]byte(res.Pswd), []byte(password)); err != nil {
-			// return this error to hide the existence of the user.
-			return model.ErrUserNotFound
-		}
 		return err
 	})
 	if err != nil {
 		return model.User{}, err
 	}
+	// clear password hash
+	res.Pswd = ""
 	return res, nil
 }
 
@@ -274,10 +314,8 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 			return err
 		}
 
-		// we use username and password hash as a key
-		key := user.Username
-		unpb := tx.Bucket([]byte(UserByNameAndPassword))
-		return unpb.Put([]byte(key), []byte(user.ID))
+		err = us.UpdateUserBuckets(tx, user)
+		return err
 	})
 	if err != nil {
 		return model.User{}, err
@@ -285,94 +323,41 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 	return user, nil
 }
 
-// AddUserByPhone registers new user with phone number.
-func (us *UserStorage) AddUserByPhone(phone, role string) (model.User, error) {
-	u := model.User{
-		ID:          xid.New().String(),
-		Username:    phone,
-		Active:      true,
-		Phone:       phone,
-		AccessRole:  role,
-		NumOfLogins: 0,
-	}
-
-	err := us.db.Update(func(tx *bolt.Tx) error {
-		data, err := json.Marshal(u)
-		if err != nil {
-			return err
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		if err := ub.Put([]byte(u.ID), data); err != nil {
-			return err
-		}
-
-		// We use phone number as a key.
-		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
-		return upnb.Put([]byte(phone), []byte(u.ID))
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-
-	return u, err
-}
-
 // AddUserWithFederatedID adds new user with social ID.
-func (us *UserStorage) AddUserWithFederatedID(provider model.FederatedIdentityProvider, federatedID, role string) (model.User, error) {
-	sid := string(provider) + ":" + federatedID
+func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, federatedID, role string) (model.User, error) {
 	// Using user name as a key. If there is no error, it means user already exists.
 	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
 		return model.User{}, model.ErrorUserExists
 	}
 
-	user := model.User{
-		ID:          sid, // not sure it's a good idea
-		Active:      true,
-		Username:    sid,
-		AccessRole:  role,
-		NumOfLogins: 0,
-	}
+	user.ID = xid.New().String()
+	user.Active = true
+	user.AccessRole = role
+	user.AddFederatedId(provider, federatedID)
 
-	err := us.db.Update(func(tx *bolt.Tx) error {
-		data, err := json.Marshal(user)
-		if err != nil {
-			return err
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		if err := ub.Put([]byte(user.ID), data); err != nil {
-			return err
-		}
-
-		usib := tx.Bucket([]byte(UserBySocialIDBucket))
-		return usib.Put([]byte(sid), []byte(user.ID))
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-	return user, nil
+	return us.AddNewUser(user, "")
 }
 
-// AddUserByNameAndPassword creates new user and saves it in the database.
-func (us *UserStorage) AddUserByNameAndPassword(username, password, role string, isAnonymous bool) (model.User, error) {
-	if us.UserExists(username) {
+// AddUserWithPassword creates new user and saves it in the database.
+func (us *UserStorage) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
+	if _, err := us.UserByUsername(user.Username); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByEmail(user.Email); err == nil {
+		return model.User{}, model.ErrorUserExists
+	}
+	if _, err := us.UserByPhone(user.Phone); err == nil {
 		return model.User{}, model.ErrorUserExists
 	}
 
 	u := model.User{
 		ID:         xid.New().String(),
 		Active:     true,
-		Username:   username,
+		Username:   user.Username,
+		Phone:      user.Phone,
+		Email:      user.Email,
 		AccessRole: role,
 		Anonymous:  isAnonymous,
-	}
-
-	if model.EmailRegexp.MatchString(username) {
-		u.Email = username
-	}
-	if model.PhoneRegexp.MatchString(username) {
-		u.Phone = username
 	}
 
 	return us.AddNewUser(u, password)
@@ -411,8 +396,7 @@ func (us *UserStorage) UpdateUser(userID string, user model.User) (model.User, e
 			return err
 		}
 
-		ubnp := tx.Bucket([]byte(UserByNameAndPassword))
-		return ubnp.Put([]byte(user.Username), []byte(user.ID))
+		return us.UpdateUserBuckets(tx, user)
 	})
 	if err != nil {
 		return model.User{}, err
@@ -446,6 +430,20 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	})
 }
 
+// CheckPassword check that password is valid for user id.
+func (us *UserStorage) CheckPassword(id, password string) error {
+	user, err := us.UserByID(id)
+	if err != nil {
+		return model.ErrUserNotFound
+	}
+
+	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
+		// return this error to hide the existence of the user.
+		return model.ErrUserNotFound
+	}
+	return nil
+}
+
 // ResetUsername sets user username.
 func (us *UserStorage) ResetUsername(id, username string) error {
 	// TODO: implement
@@ -456,7 +454,7 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 func (us *UserStorage) IDByName(name string) (string, error) {
 	var id string
 	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByNameAndPassword))
+		unpb := tx.Bucket([]byte(UserByUsername))
 		userID := unpb.Get([]byte(name))
 		if userID == nil {
 			return model.ErrUserNotFound
@@ -493,43 +491,28 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 	var total int
 
 	err := us.db.View(func(tx *bolt.Tx) error {
-		ubnp := tx.Bucket([]byte(UserByNameAndPassword))
-		var userIDs [][]byte
+		ub := tx.Bucket([]byte(UserBucket))
 
-		if iterErr := ubnp.ForEach(func(k, v []byte) error {
+		if iterErr := ub.ForEach(func(k, u []byte) error {
+			user, err := model.UserFromJSON(u)
+			if err != nil {
+				return err
+			}
+
 			if filterString == "" {
-				userIDs = append(userIDs, v)
-			} else if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
-				userIDs = append(userIDs, v)
+				users = append(users, user)
+			} else if strings.Contains(strings.ToLower(string(user.Email)), strings.ToLower(filterString)) {
+				users = append(users, user)
+			} else if strings.Contains(strings.ToLower(string(user.Phone)), strings.ToLower(filterString)) {
+				users = append(users, user)
+			} else if strings.Contains(strings.ToLower(string(user.Username)), strings.ToLower(filterString)) {
+				users = append(users, user)
 			}
 			return nil
 		}); iterErr != nil {
 			return iterErr
 		}
 
-		ub := tx.Bucket([]byte(UserBucket))
-		total = len(userIDs)
-
-		for i, uid := range userIDs {
-			if i < skip {
-				continue
-			}
-			if limit != 0 && len(users) == limit {
-				break
-			}
-
-			u := ub.Get(uid)
-			if u == nil {
-				log.Printf("User %s does not exist in %s, but does exist in %s", uid, UserBucket, UserByNameAndPassword)
-				continue
-			}
-
-			user, err := model.UserFromJSON(u)
-			if err != nil {
-				return err
-			}
-			users = append(users, user)
-		}
 		return nil
 	})
 	if err != nil {
@@ -574,4 +557,34 @@ func (us *UserStorage) Close() {
 	if err := us.db.Close(); err != nil {
 		log.Printf("Error closing user storage: %s\n", err)
 	}
+}
+
+func (us *UserStorage) UpdateUserBuckets(tx *bolt.Tx, user model.User) error {
+	if user.Username != "" {
+		unpb := tx.Bucket([]byte(UserByUsername))
+		if err := unpb.Put([]byte(user.Username), []byte(user.ID)); err != nil {
+			return err
+		}
+	}
+
+	if user.Email != "" {
+		ueb := tx.Bucket([]byte(UserByEmailBucket))
+		if err := ueb.Put([]byte(user.Email), []byte(user.ID)); err != nil {
+			return err
+		}
+	}
+	if user.Phone != "" {
+		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
+		if err := upnb.Put([]byte(user.Phone), []byte(user.ID)); err != nil {
+			return err
+		}
+	}
+	for _, fid := range user.FederatedIDs {
+		usib := tx.Bucket([]byte(UserBySocialIDBucket))
+		if err := usib.Put([]byte(fid), []byte(user.ID)); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }

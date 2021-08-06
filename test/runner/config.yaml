@@ -45,13 +45,11 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
     private_key_path: ../../jwt/test_artifacts/private.pem
     public_key_path: ../../jwt/test_artifacts/public.pem
 
-
 static:
   type: local
   local:
     folder: ../../static
-  serveAdminPanel: true 
-  serveNewWeb: true 
+  serveAdminPanel: true
 
 login: # Supported login ways.
   loginWith:
@@ -63,7 +61,7 @@ login: # Supported login ways.
   tfaType: app
 
 services:
-  email: 
-    type: mock 
-  sms: 
-    type: mock 
+  email:
+    type: mock
+  sms:
+    type: mock

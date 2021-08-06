@@ -1,0 +1,26 @@
+.otp-login {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 44px 24px 102px;
+
+  width: 100%;
+  max-width: var(--content-width);
+
+  &__register-text {
+    margin-bottom: 32px;
+    font-weight: 400;
+    font-size: 14px;
+    line-height: 24px;
+    color: #828282;
+  }
+
+  .form-control {
+    margin-bottom: 48px;
+  }
+
+  .primary-button {
+    margin-bottom: 36px;
+  }
+}

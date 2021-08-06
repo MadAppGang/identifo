@@ -15,11 +15,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		DeviceToken  string `json:"device_token,omitempty"`
 	}
 
-	response := struct {
-		Message string `json:"message"`
-	}{
-		Message: "Done",
-	}
+	result := map[string]string{"result": "ok"}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
@@ -36,7 +32,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		}
 
 		if r.Body == http.NoBody {
-			ar.ServeJSON(w, http.StatusOK, response)
+			ar.ServeJSON(w, http.StatusOK, result)
 			return
 		}
 
@@ -58,7 +54,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 			}
 		}
 
-		ar.ServeJSON(w, http.StatusOK, response)
+		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
 

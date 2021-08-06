@@ -1,7 +1,7 @@
-general:  # General server settings.
+general: # General server settings.
   host: http://localhost:8081 # Identifo server URL.
-  issuer: http://localhost:8081   # JWT tokens issuer.
-  algorithm: auto  # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+  issuer: http://localhost:8081 # JWT tokens issuer.
+  algorithm: auto # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
 adminAccount:
@@ -90,7 +90,7 @@ configurationStorage:
 
 staticFilesStorage:
   type: local # Supported values are "local", "s3", and "dynamodb".
-  serverConfigPath: ./server-config.yaml  # Path to the file with server settings.
+  serverConfigPath: ./server-config.yaml # Path to the file with server settings.
   # Location for static files. If type is local, it is a folder. If type is s3, must be a bucket name.
   # If type is s3 and "IDENTIFO_STATIC_FILES_BUCKET" env variable is set, it overrides the value specified here.
   folder: ./static # Folder for static files. All following paths are relative to this location. Assumed to be root if omitted.
@@ -99,7 +99,7 @@ staticFilesStorage:
   endpoint: # DynamoDB-specific setting. Can be omitted when region is set.
   serveAdminPanel: true # If omitted or set to false, admin-panel router won't be initialized.
 
-login:   # Supported login ways.
+login: # Supported login ways.
   loginWith:
     phone: true
     username: true
@@ -109,14 +109,14 @@ login:   # Supported login ways.
   tfaType: app
 
 externalServices:
-  emailService:  # Email service settings.
+  emailService: # Email service settings.
     type: mock # Supported values are "mailgun", "aws ses", and "mock".
     domain: # Mailgun-related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
     privateKey: # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
     publicKey: # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
     sender: # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
     region: # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
-  smsService:   # SMS service settings.
+  smsService: # SMS service settings.
     type: mock # Supported values are: "twilio", "mock".
     accountSid: # Twilio-related setting.
     authToken: # Twilio-related setting.

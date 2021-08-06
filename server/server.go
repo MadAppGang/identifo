@@ -15,7 +15,7 @@ import (
 )
 
 var defaultCors = model.CorsOptions{
-	API: &cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}},
+	API: &cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}, AllowCredentials: true},
 }
 
 // NewServer creates backend service.
@@ -67,7 +67,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 			api.HostOption(hostName),
 			api.SupportedLoginWaysOption(settings.Login.LoginWith),
 			api.TFATypeOption(settings.Login.TFAType),
-			api.CorsOption(&defaultCors, originChecker),
+			api.CorsOption(defaultCors, originChecker),
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),

@@ -2,7 +2,6 @@ package model
 
 import (
 	"fmt"
-	"net"
 	"net/url"
 	"strings"
 )
@@ -26,6 +25,7 @@ type ServerSettings struct {
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
 	Host      string `yaml:"host,omitempty" json:"host,omitempty"`
+	Port      string `yaml:"port,omitempty" json:"port,omitempty"`
 	Issuer    string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
 	Algorithm string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 }
@@ -85,7 +85,6 @@ type StaticFilesStorageSettings struct {
 	Local           LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
 	S3              S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
 	ServeAdminPanel bool                            `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
-	ServeNewWeb     bool                            `yaml:"serveNewWeb,omitempty" json:"serve_new_web,omitempty"`
 }
 
 type S3StaticFilesStorageSettings struct {
@@ -279,6 +278,7 @@ type LoginSettings struct {
 type LoginWith struct {
 	Username  bool `yaml:"username" json:"username,omitempty"`
 	Phone     bool `yaml:"phone" json:"phone,omitempty"`
+	Email     bool `yaml:"email" json:"email,omitempty"`
 	Federated bool `yaml:"federated" json:"federated,omitempty"`
 }
 
@@ -293,14 +293,9 @@ const (
 
 // GetPort returns port on which host listens to incoming connections.
 func (ss ServerSettings) GetPort() string {
-	u, err := url.Parse(ss.General.Host)
-	if err != nil {
-		panic(err)
-	}
-
-	_, port, err := net.SplitHostPort(u.Host)
-	if err != nil {
-		panic(err)
+	port := ss.General.Port
+	if port == "" {
+		panic("can't start without port")
 	}
 	return strings.Join([]string{":", port}, "")
 }
