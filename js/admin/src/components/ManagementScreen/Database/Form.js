@@ -1,6 +1,5 @@
-import React, { Component } from 'react';
+import React, { useState } from 'react';
 import PropTypes from 'prop-types';
-import update from '@madappgang/update-by-path';
 import * as Validation from '@dprovodnikov/validation';
 import Input from '~/components/shared/Input';
 import Field from '~/components/shared/Field';
@@ -15,212 +14,202 @@ const MONGO_DB = 'mongodb';
 const DYNAMO_DB = 'dynamodb';
 const BOLT_DB = 'boltdb';
 
-class ConnectionSettingsForm extends Component {
-  constructor({ settings }) {
-    super();
+const ConnectionSettingsForm = (props) => {
+  const { posting, error, settings, onCancel, onSubmit } = props;
+  const { type } = settings;
 
-    this.validate = Validation.applyRules(databaseFormValidationRules);
+  const [dbType, setDbType] = useState(type);
 
-    this.state = {
-      settings,
-      validation: {
-        type: '',
-        endpoint: '',
-        name: '',
-        region: '',
-        path: '',
-      },
-    };
+  const [validation, setValidation] = useState({
+    region: '',
+    endpoint: '',
+    path: '',
+    database: '',
+    connection: '',
+  });
 
-    this.handleInput = this.handleInput.bind(this);
-    this.handleDBTypeChange = this.handleDBTypeChange.bind(this);
-    this.handleSubmit = this.handleSubmit.bind(this);
-    this.handleBlur = this.handleBlur.bind(this);
-  }
+  const [dbSettings, setDbSettings] = useState({
+    region: type === DYNAMO_DB ? settings[type].region : '',
+    endpoint: type === DYNAMO_DB ? settings[type].endpoint : '',
+    path: type === BOLT_DB ? settings[type].path : '',
+    database: type === MONGO_DB ? settings.mongo.database : '',
+    connection: type === MONGO_DB ? settings.mongo.connection : '',
+  });
 
-  getFieldsToOmitDuringValidation() {
-    switch (this.state.settings.type) {
-      case DYNAMO_DB: return ['name', 'path', 'endpoint'];
-      case MONGO_DB: return ['region', 'path'];
-      case BOLT_DB: return ['name', 'region', 'endpoint'];
+  const validate = Validation.applyRules(databaseFormValidationRules);
+
+  const changeDbType = (value) => {
+    setDbType(value);
+    Validation.reset(validation);
+  };
+
+  const handleInput = ({ target }) => {
+    setDbSettings({ ...dbSettings, [target.name]: target.value });
+    setValidation({ ...validation, [target.name]: '' });
+  };
+
+  const getFieldsToOmitDuringValidation = () => {
+    switch (dbType) {
+      case DYNAMO_DB: return ['name', 'path', 'connection', 'database'];
+      case MONGO_DB: return ['region', 'path', 'endpoint', 'name'];
+      case BOLT_DB: return ['name', 'region', 'endpoint', 'connection', 'database'];
       default: return [];
     }
-  }
+  };
 
-  handleInput({ target }) {
-    const { name, value } = target;
-    let { validation } = this.state;
+  const handleSubmit = (e) => {
+    e.preventDefault();
 
-    if (validation[name]) {
-      validation = update(validation, { [name]: '' });
-    }
+    const payload = () => {
+      switch (dbType) {
+        case DYNAMO_DB:
+          return { region: dbSettings.region, endpoint: dbSettings.endpoint };
+        case MONGO_DB:
+          return { database: dbSettings.database, connection: dbSettings.connection };
+        case BOLT_DB:
+          return { path: dbSettings.path };
+        default:
+          return {};
+      }
+    };
 
-    this.setState(state => ({
-      settings: update(state.settings, {
-        [name]: value,
-      }),
-      validation,
-    }));
-  }
+    const validationReport = validate('all', dbSettings, { omit: getFieldsToOmitDuringValidation() });
 
-  handleBlur({ target }) {
-    const { name, value } = target;
-    const validationMessage = this.validate(name, {
-      ...this.state.settings,
-      [name]: value,
-    });
-
-    this.setState(state => ({
-      validation: update(state.validation, {
-        [name]: validationMessage,
-      }),
-    }));
-  }
-
-  handleDBTypeChange(type) {
-    this.setState(state => ({
-      settings: update(state.settings, { type }),
-      validation: Validation.reset(state.validation),
-    }));
-  }
-
-  handleSubmit(event) {
-    event.preventDefault();
-
-    const validation = this.validate('all', this.state.settings, {
-      omit: this.getFieldsToOmitDuringValidation(),
-    });
-
-    if (Validation.hasError(validation)) {
-      this.setState({ validation });
+    if (Validation.hasError(validationReport)) {
+      setValidation(validationReport);
       return;
     }
 
-    let { settings } = this.state;
+    onSubmit(
+      dbType === MONGO_DB
+        ? { ...settings, mongo: payload(), type: dbType }
+        : { ...settings, [dbType]: payload(), type: dbType },
+    );
+  };
 
-    settings = update(settings, {
-      region: region => settings.type === DYNAMO_DB ? region : '',
-      name: name => settings.type === MONGO_DB ? name : '',
-      path: path => settings.type === BOLT_DB ? path : '',
-      endpoint: endpoint => settings.type !== BOLT_DB ? endpoint : '',
-    });
+  return (
+    <div className="iap-db-connection-section">
+      <form className="iap-db-form" onSubmit={handleSubmit}>
+        {!!error && (
+          <FormErrorMessage error={error} />
+        )}
 
-    this.props.onSubmit(settings);
-  }
+        <Field label="Database type">
+          <Select
+            name="type"
+            value={dbType}
+            disabled={posting}
+            onChange={changeDbType}
+            placeholder="Select Database Type"
+          >
+            <Option value={BOLT_DB} title="Bolt DB" />
+            <Option value={MONGO_DB} title="Mongo DB" />
+            <Option value={DYNAMO_DB} title="Dynamo DB" />
+          </Select>
+        </Field>
 
-  render() {
-    const { settings, validation } = this.state;
-    const { posting, error } = this.props;
-    const { type, name, region, endpoint, path } = settings;
-
-    return (
-      <div className="iap-db-connection-section">
-        <form className="iap-db-form" onSubmit={this.handleSubmit}>
-          {!!error && (
-            <FormErrorMessage error={error} />
-          )}
-
-          <Field label="Database type">
-            <Select
-              name="type"
-              value={type}
-              disabled={posting}
-              onChange={this.handleDBTypeChange}
-              placeholder="Select Database Type"
-            >
-              <Option value={BOLT_DB} title="Bolt DB" />
-              <Option value={MONGO_DB} title="Mongo DB" />
-              <Option value={DYNAMO_DB} title="Dynamo DB" />
-            </Select>
-          </Field>
-
-          {type === DYNAMO_DB && (
+        {dbType === DYNAMO_DB && (
+          <>
             <Field label="Region">
               <Input
                 name="region"
-                value={region}
+                value={dbSettings.region}
                 placeholder="e.g. ap-northeast-3"
-                onChange={this.handleInput}
+                onChange={handleInput}
                 disabled={posting}
                 errorMessage={validation.region}
-                onBlur={this.handleBlur}
               />
             </Field>
-          )}
-
-          {type === MONGO_DB && (
-            <Field label="Name">
-              <Input
-                name="name"
-                value={name}
-                autoComplete="off"
-                placeholder="e.g. identifo"
-                disabled={posting}
-                onChange={this.handleInput}
-                errorMessage={validation.name}
-                onBlur={this.handleBlur}
-              />
-            </Field>
-          )}
-
-          {type === BOLT_DB && (
-            <Field label="Path">
-              <Input
-                name="path"
-                value={path}
-                placeholder="./db.db"
-                onChange={this.handleInput}
-                disabled={posting}
-                errorMessage={validation.path}
-                onBlur={this.handleBlur}
-              />
-            </Field>
-          )}
-
-          {type !== BOLT_DB && (
             <Field label="Endpoint">
               <Input
                 name="endpoint"
-                value={endpoint}
+                value={dbSettings.endpoint}
                 placeholder="e.g. localhost:27017"
                 disabled={posting}
-                onChange={this.handleInput}
-                onBlur={this.handleBlur}
+                onChange={handleInput}
                 errorMessage={validation.endpoint}
               />
             </Field>
-          )}
+          </>
+        )}
 
-          <footer className="iap-db-form__footer">
-            <Button
-              error={!posting && !!error}
-              type="submit"
-              Icon={posting ? LoadingIcon : SaveIcon}
-              disabled={posting || Validation.hasError(validation)}
-            >
-              Save Changes
-            </Button>
-            <Button
-              transparent
+        {dbType === MONGO_DB && (
+          <>
+            <Field label="Name">
+              <Input
+                name="database"
+                value={dbSettings.database}
+                autoComplete="off"
+                placeholder="e.g. identifo"
+                disabled={posting}
+                onChange={handleInput}
+                errorMessage={validation.database}
+              />
+            </Field>
+            <Field label="Endpoint">
+              <Input
+                name="connection"
+                value={dbSettings.connection}
+                autoComplete="off"
+                placeholder="e.g. identifo"
+                disabled={posting}
+                onChange={handleInput}
+                errorMessage={validation.connection}
+              />
+            </Field>
+          </>
+        )}
+
+        {dbType === BOLT_DB && (
+          <Field label="Path">
+            <Input
+              name="path"
+              value={dbSettings.path}
+              placeholder="./db.db"
+              onChange={handleInput}
               disabled={posting}
-              onClick={this.props.onCancel}
-            >
-              Cancel
-            </Button>
-          </footer>
-        </form>
-      </div>
-    );
-  }
-}
+              errorMessage={validation.path}
+            />
+          </Field>
+        )}
+
+        <footer className="iap-db-form__footer">
+          <Button
+            error={!posting && !!error}
+            type="submit"
+            Icon={posting ? LoadingIcon : SaveIcon}
+            disabled={posting}
+          >
+            Save Changes
+          </Button>
+          <Button
+            transparent
+            disabled={posting}
+            onClick={onCancel}
+          >
+            Cancel
+          </Button>
+        </footer>
+      </form>
+    </div>
+  );
+};
 
 ConnectionSettingsForm.propTypes = {
   posting: PropTypes.bool.isRequired,
   settings: PropTypes.shape({
     type: PropTypes.string,
-    endpoint: PropTypes.string,
-    name: PropTypes.string,
-    region: PropTypes.string,
+    mongo: PropTypes.shape({
+      connection: PropTypes.string,
+      database: PropTypes.string,
+    }),
+    boltdb: PropTypes.shape({
+      path: PropTypes.string,
+    }),
+    dynamo: PropTypes.shape({
+      region: PropTypes.string,
+      endpoint: PropTypes.string,
+    }),
   }),
   onCancel: PropTypes.func,
   onSubmit: PropTypes.func.isRequired,
@@ -230,9 +219,9 @@ ConnectionSettingsForm.propTypes = {
 ConnectionSettingsForm.defaultProps = {
   settings: {
     type: '',
-    endpoint: '',
-    name: '',
-    region: '',
+    mongo: {},
+    boltdb: {},
+    dynamo: {},
   },
   onCancel: null,
   error: null,
