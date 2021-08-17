@@ -72,7 +72,7 @@
 
     identifoForm.addEventListener("complete", (event) => {
       if (redirectUri) {
-        const url = new URL(redirectUri);
+        const url = new URL(`${redirectUri}&callbackUrl=${callbackUrl}`);
         window.location.href = url.toString();
         return;
       }

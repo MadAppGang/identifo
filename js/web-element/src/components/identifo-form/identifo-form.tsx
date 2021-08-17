@@ -568,14 +568,10 @@ export class IdentifoForm {
       const u = new URL(window.location.href);
       u.searchParams.set('callbackUrl', this.lastResponse.callbackUrl);
       window.history.replaceState({}, document.title, `${u.pathname}?${u.searchParams.toString()}`);
-
       this.complete.emit(this.lastResponse);
     }
     if (this.route === 'logout') {
-      this.auth.api.logout().then(() => this.complete.emit());
-    }
-    if (this.route === 'logout') {
-      this.auth.api.logout().then(() => this.complete.emit());
+      this.complete.emit()
     }
   }
 
