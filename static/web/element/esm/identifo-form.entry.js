@@ -804,10 +804,7 @@ const IdentifoForm = class {
       this.complete.emit(this.lastResponse);
     }
     if (this.route === 'logout') {
-      this.auth.api.logout().then(() => this.complete.emit());
-    }
-    if (this.route === 'logout') {
-      this.auth.api.logout().then(() => this.complete.emit());
+      this.complete.emit();
     }
   }
   render() {
