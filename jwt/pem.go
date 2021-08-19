@@ -3,7 +3,7 @@ package jwt
 import (
 	"io/ioutil"
 
-	jwt "github.com/form3tech-oss/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/madappgang/identifo/model"
 )
 
