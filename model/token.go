@@ -3,7 +3,7 @@ package model
 import (
 	"time"
 
-	jwt "github.com/form3tech-oss/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v4"
 )
 
 const (
@@ -19,7 +19,7 @@ const (
 // StandardTokenClaims structured version of Claims Section, as referenced at
 // https://tools.ietf.org/html/rfc7519#section-4.1
 type StandardTokenClaims interface {
-	Audience() []string
+	Audience() string
 	ExpiresAt() time.Time
 	ID() string
 	IssuedAt() time.Time
@@ -96,10 +96,10 @@ func (t *JWToken) Type() string {
 }
 
 // Audience standard token claim
-func (t *JWToken) Audience() []string {
+func (t *JWToken) Audience() string {
 	claims, ok := t.JWT.Claims.(*Claims)
 	if !ok {
-		return []string{}
+		return ""
 	}
 	return claims.Audience
 }

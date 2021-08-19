@@ -5,7 +5,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/dgrijalva/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/markbates/goth/providers/apple"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/google"

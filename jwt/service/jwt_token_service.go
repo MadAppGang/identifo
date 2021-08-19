@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"strings"
 
-	jwt "github.com/form3tech-oss/jwt-go"
+	jwt "github.com/golang-jwt/jwt/v4"
 	ijwt "github.com/madappgang/identifo/jwt"
 	jwtValidator "github.com/madappgang/identifo/jwt/validator"
 	"github.com/madappgang/identifo/model"
@@ -198,7 +198,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  []string{app.ID},
+			Audience:  app.ID,
 			IssuedAt:  now,
 		},
 	}
@@ -253,7 +253,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  []string{app.ID},
+			Audience:  app.ID,
 			IssuedAt:  now,
 		},
 	}
@@ -301,7 +301,7 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.To
 		return nil, model.ErrTokenInvalid
 	}
 
-	app, err := ts.appStorage.AppByID(claims.Audience[0])
+	app, err := ts.appStorage.AppByID(claims.Audience)
 	if err != nil || !app.Offline {
 		return nil, ErrInvalidApp
 	}
@@ -349,7 +349,7 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (model.Token, error
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
 			// Subject:   u.ID(), //TODO: investigate why are we suppressing subject id from here?
-			Audience: []string{"identifo"},
+			Audience: "identifo",
 			IssuedAt: now,
 		},
 	}
@@ -383,7 +383,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   userID,
-			Audience:  []string{"identifo"},
+			Audience:  "identifo",
 			IssuedAt:  now,
 		},
 	}
@@ -420,7 +420,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
 			Subject:   u.ID,
-			Audience:  []string{"identifo"},
+			Audience:  "identifo",
 			IssuedAt:  now,
 		},
 	}
