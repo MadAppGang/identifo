@@ -552,7 +552,7 @@ class IdentifoAuth {
         this.resetAuthValues();
         return yield Promise.reject();
       } finally {
-        window.location.hash = "";
+        window.history.pushState({}, document.title, window.location.pathname);
       }
     });
   }

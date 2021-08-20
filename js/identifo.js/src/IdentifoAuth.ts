@@ -75,8 +75,7 @@ class IdentifoAuth {
       this.resetAuthValues();
       return await Promise.reject();
     } finally {
-      // TODO: Nikita K cahnge correct window key
-      window.location.hash = '';
+      window.history.pushState({}, document.title, window.location.pathname )
     }
   }
 

@@ -1,5 +1,5 @@
 {
-  "name": "@identifo/web-element",
+  "name": "@identifo/identifo-auth-ui",
   "version": "1.0.0",
   "description": "Identifo web element",
   "main": "dist/index.cjs.js",
