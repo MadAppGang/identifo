@@ -147,11 +147,11 @@ export class IdentifoForm {
     switch (route) {
       case 'login':
         return (h("div", { class: "login-form" },
-          h("p", { class: "login-form__register-text" },
+          !this.registrationForbidden && (h("p", { class: "login-form__register-text" },
             "Don't have an account?",
             h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" },
               ' ',
-              "Sign Up")),
+              "Sign Up"))),
           h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingInput", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }),
           h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingPassword", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }),
           !!this.lastError && (h("div", { class: "error", role: "alert" }, (_a = this.lastError) === null || _a === void 0 ? void 0 : _a.detailedMessage)),

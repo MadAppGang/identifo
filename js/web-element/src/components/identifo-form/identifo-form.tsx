@@ -203,13 +203,15 @@ export class IdentifoForm {
       case 'login':
         return (
           <div class="login-form">
-            <p class="login-form__register-text">
-              Don't have an account?
-              <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                {' '}
-                Sign Up
-              </a>
-            </p>
+            {!this.registrationForbidden && (
+              <p class="login-form__register-text">
+                Don't have an account?
+                <a onClick={() => this.openRoute('register')} class="login-form__register-link">
+                  {' '}
+                  Sign Up
+                </a>
+              </p>
+            )}
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
