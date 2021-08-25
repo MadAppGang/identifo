@@ -19,9 +19,8 @@ const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\
 
 @Component({
   tag: 'identifo-form',
-  styleUrl: '../../styles/identifo-form/main.scss',
   assetsDirs: ['assets'],
-  shadow: true,
+  shadow: false,
 })
 export class IdentifoForm {
   @Prop({ mutable: true, reflect: true }) route: Routes = 'login';
