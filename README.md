@@ -50,6 +50,8 @@ identiof.login()
 {% endtabs %}
 
 {% hint style="info" %}
-Identifo is proudly created and supported by [MadAppGang](https://madappgang.com) and community. If you are missign any integration or customisation, we can do it for you as a consulting company.
+Identifo is proudly created and supported by [MadAppGang](https://madappgang.com) and the community. If you are missing any integration or customisation, we can do it for you as a consulting company.
 {% endhint %}
+
+
 
