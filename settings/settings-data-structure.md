@@ -155,13 +155,181 @@ storage:
 
 ## Session storage 
 
+Session storage keeps sessions for admin panel. 
+
+| Field | Description |
+| :--- | :--- |
+| sessionStorage | root field to hold the session values |
+| type | options are `memory`, `redis` and `dynamodb` |
+| sessionDuration | session duration in seconds |
+| redis | is object key to store values for session settings in redis |
+| redis.address | redis address  |
+| redis.password | redis password, optional |
+| redis.db | redis database name |
+| dynamo | is an object key to store session settings for dynamodb storage type |
+| dynamo.region | AWS region for dynamodb session storage  |
+| dynamo.endpoint | AWS Dynamodb endpoint for session storage |
+
+Example:
+
+```yaml
+# Storage for admin sessions.
+sessionStorage:
+  type: memory # Supported values are "memory", "redis", and "dynamodb".
+  # Admin session duration in seconds.
+  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  sessionDuration: 300
+
+  # example for redis session storage
+  # redis:
+  #   address: http://localhost:2073
+  #   password: redis_password
+  #   db: admin_sessions
+
+  # example for dynamo session storage
+  # dynamo:
+  #   region: us-east1
+  #   endpoint: dynamo_endpoint
+```
+
 ## Key storage
+
+Storage for keys used for signing and verifying JWT tokens. Technically, a private key is enough to generate the public key. But we are using both for convenience.
+
+Currently we support keys from local file system and S3. Other options could be added in the future. like: base64 encoded env variable or etcd or Hashicorp vault or AWS KMS.
+
+| Field | Description |
+| :--- | :--- |
+| keyStorage | root key for key settings |
+| type | `local` or `s3` |
+| file | key for local file type settings |
+| file.private\_key\_path | absolute or relevant path for a private key |
+| file.public\_key\_path | absolute or relevant path for a public key |
+| s3 | key for s3 file type settings |
+| s3.region | AWS S3 region |
+| s3.bucket | AWS S3 bucket  |
+| s3.public\_key\_key | Public key S3 key |
+| s3.private\_key\_key | Private key S3 key |
+
+Example:
+
+```yaml
+keyStorage: # Storage for keys used for signing and verifying JWTs.
+  type: local # Key storage type. Supported values are "local" and "s3".
+  #file/local key storage settings
+  file:
+    private_key_path: ./jwt/test_artifacts/private.pem
+    public_key_path: ./jwt/test_artifacts/public.pem
+```
 
 ## Static files serving
 
+Static file storage is responsible to store the admin panel, login pages and email templates.
+
+Now we support only one storage for all of those above.
+
+It tries to get the custom static data from the settings here, and if it failed, it gets the data included locally in docker file.
+
+| Field | Description |
+| :--- | :--- |
+| static | root key for static data storage settings |
+| type | storage type, supported values are `local`, `s3`, `dynamodb` |
+| serveAdminPanel | boolean value, if `true` - serves admin panel |
+| local | key for local static files settings |
+| local.folder | folder for static data  |
+| s3 | key for aws s3 static files settings |
+| s3.region | aws s3 region for s3 static files settings |
+| s3.bucket | aws s3 bucket for static file storage |
+| s3.folder | aws s3 key/folder/prefix for static file storage |
+| dynamo | key for aws dynamodb static files settings |
+| dynamo.region | aws dynamodb region |
+| dynamo.endpoint | aws dynamodb enpoint |
+
+Example:
+
+```yaml
+static:
+  type: local
+  serveAdminPanel: true
+  local:
+    folder: ./static
+  # s3 storage example
+  # s3:
+  #   region: east-us1
+  #   bucket: identifo-data
+  #   folder: static
+  # dynamodb storage example
+  # dynamo:
+  #   region: east-us1
+  #   endpoint: dbb-endpoint
+```
+
 ## Login options
 
+Settings for login options supported by identifo.
+
+| Field | Description |
+| :--- | :--- |
+| login | root key for login settings |
+| loginWith | key for login types  |
+| loginWith.phone | boolean value, indicating login with phone is supported |
+| loginWith.email | boolean value, login with email is supported |
+| loginWith.username | boolean value, login with username is supported |
+| loginWith.federated | boolean value, federated login is supported |
+| tfyType | Two-factor authentication, currently we support `app`, `sms` and `email`. |
+
+Example:
+
+```yaml
+login: # Supported login ways.
+  loginWith:
+    phone: true
+    email: true
+    username: true
+    federated: true
+  # Type of two-factor authentication, if application enables it.
+  # Supported values are: "app" (like Google Authenticator), "sms", "email".
+  tfaType: app
+```
+
 ## External services and integrations
+
+Now we supporting two types of external services, for sending SMS and Emails.
+
+`services` is a root key for external services settings.
+
+All services are supporting `mock` type. This type prints everything to a console, instead of sending it somewhere. Use it for development purposes.
+
+### Email external service
+
+| Field | Description |
+| :--- | :--- |
+| email | root key for email service settings |
+| email.type | email service type, supported types are mailgun, ses and mock. Mock types does not requeres any  |
+| email.mailgun | mailgun email service settings key |
+| email.mailgun.domain | mailgun domain name |
+| email.mailgun.privateKey | mailgun private key  |
+| email.mailgun.publicKey | mailgun public key |
+| email.mailgun.sender | sender email address |
+| email.ses | AWS SES email settings key |
+| email.ses.sender | email sender for SES service |
+| email.ses.region | email AWS SES region |
+
+Example:
+
+```yaml
+services:
+  email: # Email service settings.
+    type: mock # Supported values are "mailgun", "aws ses", and "mock".
+    # mailgun:
+    #   domain: identifo.com # Mailgun related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
+    #   privateKey: ABXCDS # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
+    #   publicKey: AAABBBDDD # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
+    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    # ses:
+    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    #   region: es-east1 # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
+```
 
 
 
