@@ -1,7 +1,8 @@
 # Table of contents
 
 * [Main page](README.md)
-* [Settings](settings.md)
+* [Settings](settings/README.md)
+  * [Settings data structure](settings/settings-data-structure.md)
 * [Quick start guide](quick-start-guide/README.md)
   * [Install identifo](quick-start-guide/install-identifo/README.md)
     * [local development invironment](quick-start-guide/install-identifo/local-development-invironment.md)
