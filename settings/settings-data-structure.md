@@ -1,6 +1,6 @@
 # Settings data structure
 
-### Description
+## Description
 
 This section will describe all possible settings in `settings.yaml` config file.
 
@@ -8,7 +8,7 @@ This settings file is subject for changes and extendability.
 
 
 
-### General 
+## General 
 
 | Field | Description |
 | :--- | :--- |
@@ -27,7 +27,7 @@ general:
   algorithm: es256 
 ```
 
-### Admin panel 
+## Admin panel 
 
 | Field | Description |
 | :--- | :--- |
@@ -42,7 +42,7 @@ adminAccount:
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 ```
 
-### Data storages
+## Data storages
 
 Storage settings hold together all storage settings. All settings for a particular database engine \(i.e, file paths for BoltDB, endpoints and regions for DynamoDB etc.\) are assumed to be the same across all stores. If they are not the same, the latest option in this file will be applied. For example, if there are two MongoDB-backed storage, `appStorage` and `tokenStorage`, and endpoint for `appStorage` is localhost:27017, while tokenStorage's endpoint is `localhost:27018`, the server will connect both stores to `localhost:27018`.
 
@@ -81,7 +81,7 @@ Now we support the following types:
 | boltDB | BoltDB local storage for simple solutions and single instance solutions |
 | mem | In-memory storage for testing and development |
 
-#### MongoDB
+### MongoDB
 
 | Field | Description |
 | :--- | :--- |
@@ -101,7 +101,7 @@ storage:
       connection: mongodb://localhost:27017
 ```
 
-#### BoltDB
+### BoltDB
 
 | Field | Description |
 | :--- | :--- |
@@ -119,7 +119,7 @@ storage:
       path: ./db.db
 ```
 
-#### Memory
+### Memory
 
 | Field | Description |
 | :--- | :--- |
@@ -133,7 +133,7 @@ storage:
     type: fake
 ```
 
-#### DynamoDb
+### DynamoDb
 
 | Field | Description |
 | :--- | :--- |
@@ -153,15 +153,15 @@ storage:
       region: us-east-2
 ```
 
-### Session storage 
+## Session storage 
 
-### Key storage
+## Key storage
 
-### Static files serving
+## Static files serving
 
-### Login options
+## Login options
 
-### External services and integrations
+## External services and integrations
 
 
 
