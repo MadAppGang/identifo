@@ -322,14 +322,49 @@ services:
   email: # Email service settings.
     type: mock # Supported values are "mailgun", "aws ses", and "mock".
     # mailgun:
-    #   domain: identifo.com # Mailgun related setting. If "MAILGUN_DOMAIN" env variable is set, it overrides the value specified here.
-    #   privateKey: ABXCDS # Mailgun-related setting. If "MAILGUN_PRIVATE_KEY" env variable is set, it overrides the value specified here.
-    #   publicKey: AAABBBDDD # Mailgun-related setting. If "MAILGUN_PUBLIC_KEY" env variable is set, it overrides the value specified here.
-    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
+    #   domain: identifo.com 
+    #   privateKey: ABXCDS 
+    #   publicKey: AAABBBDDD 
+    #   sender: admin@admin.com 
     # ses:
-    #   sender: admin@admin.com # Sender of the emails. If "MAILGUN_SENDER" or "AWS_SES_SENDER" env variable is set, it overrides (depending on the email service type) the value specified here.
-    #   region: es-east1 # AWS SES-related setting. If "AWS_SES_REGION" env variable is set, it overrides the value specified here.
+    #   sender: admin@admin.com 
+    #   region: es-east1 
 ```
 
+### SMS external service
 
+| Field | Description |
+| :--- | :--- |
+| sms | root key for sms settings |
+| sms.type | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
+| sms.twilio | key to store settings for Twilio SMS service |
+| sms.twilio.accountSid | Twilio account SID |
+| sms.twilio.authToken | Twilio authentication token |
+| sms.twilio.serviceSid | Twilio service SID |
+| sms.nexmo | key to store nexmo service settings |
+| sms.nexmo.apiKey | Nexmo API Key |
+| sms.nexmo.apiSecret | Nexmo API Secret |
+| sms.routemobile | RouteMobile service settings |
+| sms.routemobile.username | Routemobile username |
+| sms.routemobile.password | Routemobile service password |
+| sms.routemobile.source | Routemobile service source |
+| sms.routemobile.region | Routemobile region settings |
+
+```yaml
+services:
+  sms: # SMS service settings.
+    type: mock # Supported values are: "twilio", "nexmo", "routemobile", "mock".
+    # twilio:
+    #   accountSid: SID1234 
+    #   authToken: TOKENABCDS 
+    #   serviceSid: SIDFFFF 
+    # nexmo:
+    #   apiKey: KEY1234 
+    #   apiSecret: SECRET4433 
+    # routemobile:
+    #   username: identifo 
+    #   password: secret 
+    #   source: whatever 
+    #   region: australia 
+```
 
