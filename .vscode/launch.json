@@ -15,6 +15,10 @@
       "program": "${workspaceFolder}/main.go",
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password"
+      },
       "args": ["--config=file://./server-config.yaml"],
       "showLog": true
     },
@@ -29,6 +33,10 @@
       "program": "${workspaceFolder}/main.go",
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password"
+      },
       "args": ["--config=file://./cmd/config-dynamodb.yaml"],
       "showLog": true
     },
@@ -43,6 +51,10 @@
       "program": "${workspaceFolder}/main.go",
       "cwd": "${workspaceFolder}",
       "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password"
+      },
       "args": ["--config=file://./cmd/config-boltdb.yaml"],
       "showLog": true
     }

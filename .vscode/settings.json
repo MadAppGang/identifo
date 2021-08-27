@@ -8,5 +8,5 @@
         "mongodb",
         "nexmo",
         "twilio"
-    ]
+    ],
 }

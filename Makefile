@@ -1,5 +1,8 @@
 DOCKER_IMAGE_VERSION = 1.0.0
 
+export IDENTIFO_ADMIN_LOGIN = admin@admin.com
+export IDENTIFO_ADMIN_PASSWORD = password
+
 
 run_boltdb:
 	go run main.go --config=file://./cmd/config-boltdb.yaml
