@@ -22,7 +22,6 @@ type Router struct {
 	originChecker *originchecker.OriginChecker
 	logger        *log.Logger
 	router        *mux.Router
-	newSettings   *model.ServerSettings
 	RedirectURL   string
 	PathPrefix    string
 	Host          string

@@ -381,35 +381,3 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 		},
 	}, nil
 }
-
-// TODO: implement ETCD storage
-// func ConfigStorageSettingsFromStringEtcd(config string) (ConfigStorageSettings, error) {
-// 	result := ConfigStorageSettings{
-// 		Type:      ConfigStorageTypeEtcd,
-// 		RawString: config,
-// 		Etcd: &EtcdStorageSettings{
-// 			Key: defaultEtcdKey,
-// 		},
-// 	}
-// 	var es string
-// 	components := strings.Split(config[7:], "@")
-// 	if len(components) > 1 {
-// 		es = components[1]
-// 		creds := strings.Split(components[0], ":")
-// 		if len(creds) == 2 {
-// 			result.Etcd.Username = creds[0]
-// 			result.Etcd.Password = creds[1]
-// 		}
-// 	} else if len(components) == 1 {
-// 		es = components[0]
-// 	} else {
-// 		return ConfigStorageSettings{}, fmt.Errorf("could not get etcd endpoints from config: %s", config)
-// 	}
-
-// 	components = strings.Split(es, "|")
-// 	if len(components) > 1 {
-// 		result.Etcd.Key = components[1]
-// 	}
-// 	result.Etcd.Endpoints = strings.Split(components[0], ",")
-// 	return result, nil
-// }
