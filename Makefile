@@ -16,12 +16,8 @@ run_dynamodb:
 	go run main.go --config=file://./cmd/config-dynamodb.yaml
 
 
-
-
-
 docker_image:
 	docker build  --tag madappgangd/identifo:latest --tag madappgangd/identifo:$(DOCKER_IMAGE_VERSION) . 
-
 
 publish: docker_image
 	docker push madappgangd/identifo:latest

@@ -33,11 +33,17 @@ sessionStorage:
   # Admin session duration in seconds.
   # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
   sessionDuration: 300
-  address: # Redis-related setting.
-  password: # Redis-related setting.
-  db: # Redis-related setting.
-  region: # DynamoDB-related setting.
-  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
+
+  # example for redis session storage
+  # redis:
+  #   address: http://localhost:2073
+  #   password: redis_password
+  #   db: admin_sessions
+
+  # example for dynamo session storage
+  # dynamo:
+  #   region: us-east1
+  #   endpoint: dynamo_endpoint
 
 keyStorage: # Storage for keys used for signing and verifying JWTs.
   type: local # Key storage type. Supported values are "local" and "s3".
@@ -48,9 +54,18 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
 
 static:
   type: local
+  serveAdminPanel: true
   local:
     folder: ./static
-  serveAdminPanel: true
+  # s3 storage example
+  # s3:
+  #   region: east-us1
+  #   bucket: identifo-data
+  #   folder: static
+  # dynamodb storage example
+  # dynamo:
+  #   region: east-us1
+  #   endpoint: dbb-endpoint
 
 login: # Supported login ways.
   loginWith:
