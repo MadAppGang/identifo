@@ -3,11 +3,13 @@ import types from './types';
 
 export const CONNECTION_ESTABLISHED = 'connection_established';
 export const CONNECTION_FAILED = 'connection_failed';
+export const CONNECTION_SUCCEED = 'connection_succeed';
 export const CONNECTION_TEST_REQUIRED = 'connection_test_required';
 
 const INITIAL_STATE = {
   checking: false,
   state: CONNECTION_TEST_REQUIRED,
+  connectionStatus: CONNECTION_TEST_REQUIRED,
 };
 
 const reducer = (state = INITIAL_STATE, { type }) => {

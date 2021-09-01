@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import update from '@madappgang/update-by-path';
 import { useDispatch, useSelector } from 'react-redux';
 import StorageSettings from './StorageSettings';
-import { fetchSettings, postSettings } from '~/modules/database/actions';
+import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
 import DatabasePlaceholder from './Placeholder';
 import { Tabs, Tab } from '~/components/shared/Tabs';
 import useProgressBar from '~/hooks/useProgressBar';
@@ -17,7 +17,7 @@ const StoragesSection = () => {
   const { notifySuccess } = useNotifications();
   const settings = useSelector(state => state.database.settings.config);
   const error = useSelector(state => state.database.settings.error);
-
+  const connectionState = useSelector(state => state.database.connection.state);
   const triggerFetchSettings = async () => {
     setProgress(70);
 
@@ -51,6 +51,15 @@ const StoragesSection = () => {
     }
   };
 
+  const handleSettingsVerification = async (nodeSettings) => {
+    setProgress(70);
+    try {
+      await dispatch(verifyConnection(nodeSettings));
+    } finally {
+      setProgress(100);
+    }
+  };
+
   if (error) {
     return (
       <section className="iap-management-section">
@@ -69,30 +78,35 @@ const StoragesSection = () => {
         description: 'Setup a connection to the database all the applications are stored in.',
         settings: settings ? settings.app_storage : null,
         postSettings: handleSettingsSubmit('app_storage'),
+        verifySettings: handleSettingsVerification,
       },
       {
         title: 'User Storage',
         description: 'Setup a connection to the database all the users are stored in.',
         settings: settings ? settings.user_storage : null,
         postSettings: handleSettingsSubmit('user_storage'),
+        verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Storage',
         description: 'Setup a connection to the database all the tokens are stored in.',
         settings: settings ? settings.token_storage : null,
         postSettings: handleSettingsSubmit('token_storage'),
+        verifySettings: handleSettingsVerification,
       },
       {
         title: 'Verification Code Storage',
         description: 'Setup a connection to the database all the verification codes are stored in.',
         settings: settings ? settings.verification_code_storage : null,
         postSettings: handleSettingsSubmit('verification_code_storage'),
+        verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Blacklist Storage',
         description: 'Setup a connection to the database all the blacklisted tokens are stored in.',
         settings: settings ? settings.token_blacklist : null,
         postSettings: handleSettingsSubmit('token_blacklist'),
+        verifySettings: handleSettingsVerification,
       },
     ][index];
   };
@@ -114,7 +128,7 @@ const StoragesSection = () => {
         <Tab title="Verification Codes" />
         <Tab title="Blacklist" />
 
-        <StorageSettings progress={!!progress} {...storageSettingsProps} />
+        <StorageSettings connectionState={connectionState} progress={!!progress} {...storageSettingsProps} />
       </Tabs>
 
     </section>
