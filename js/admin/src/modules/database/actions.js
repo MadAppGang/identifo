@@ -14,6 +14,8 @@ const postSettingsAttempt = actionCreator(types.POST_DB_SETTINGS_ATTEMPT);
 const postSettingsSuccess = actionCreator(types.POST_DB_SETTINGS_SUCCESS);
 const postSettingsFailure = actionCreator(types.POST_DB_SETTINGS_FAILURE);
 
+export const resetConnectionState = actionCreator(types.RESET_CONNECTION_STORE);
+
 const testConnection = () => async (dispatch, getState, services) => {
   dispatch(testConnectionAttempt());
 

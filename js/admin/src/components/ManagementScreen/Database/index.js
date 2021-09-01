@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
 import update from '@madappgang/update-by-path';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import StorageSettings from './StorageSettings';
-import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
-import DatabasePlaceholder from './Placeholder';
-import { Tabs, Tab } from '~/components/shared/Tabs';
-import useProgressBar from '~/hooks/useProgressBar';
+import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
-
+import useProgressBar from '~/hooks/useProgressBar';
+import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
 import './index.css';
+import DatabasePlaceholder from './Placeholder';
+import StorageSettings from './StorageSettings';
+
 
 const StoragesSection = () => {
   const dispatch = useDispatch();
