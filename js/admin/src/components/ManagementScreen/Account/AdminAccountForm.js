@@ -11,18 +11,21 @@ import FormErrorMessage from '~/components/shared/FormErrorMessage';
 import useForm from '~/hooks/useForm';
 import { validateAccountForm } from './validationRules';
 
+const DEFAULT_SESSION_DURATION = 300;
+
 const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
   const initialValues = {
-    email: settings ? settings.email : '',
-    password: '',
-    confirmPassword: '',
-    editPassword: false,
+    loginEnvName: settings ? settings.login_env_name : '',
+    passwordEnvName: settings ? settings.password_env_name : '',
+    sessionDuration: '',
   };
 
-  const handleSubmit = ({ email, password, editPassword }) => {
-    onSubmit(update(settings, {
-      email, password: editPassword ? password : undefined,
-    }));
+  const handleSubmit = (data) => {
+    //  TODO: Nikita k implement form handler
+    // sessionDuration: value => Number(value) || DEFAULT_SESSION_DURATION,
+    // onSubmit(update(settings, {
+    //   emailName, password: passwordName || undefined,
+    // }));
   };
 
   const form = useForm(initialValues, validateAccountForm, handleSubmit);
@@ -31,10 +34,9 @@ const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
     if (!settings) return;
 
     form.setValues({
-      email: settings.email || '',
-      password: '',
-      confirmPassword: '',
-      editPassword: form.values.editPassword || false,
+      loginEnvName: settings.login_env_name || '',
+      passwordEnvName: settings.password_env_name || '',
+      sessionDuration: DEFAULT_SESSION_DURATION.toString(),
     });
   }, [settings]);
 
@@ -43,64 +45,39 @@ const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
       {!!error && (
         <FormErrorMessage error={error} />
       )}
-
-      <Field label="Email">
+      <Field label="session duration">
         <Input
-          name="email"
-          value={form.values.email}
-          placeholder="Enter your email"
+          name="sessionDuration"
+          value={form.values.sessionDuration}
+          placeholder="e.g 300"
           onChange={form.handleChange}
           onBlur={form.handleBlur}
-          errorMessage={form.errors.email}
+          errorMessage={form.errors.sessionDuration}
           disabled={loading}
         />
       </Field>
-
-      <Toggle
-        label="Edit password"
-        value={form.values.editPassword}
-        onChange={(value) => {
-          form.setErrors({
-            password: '',
-            confirmPassword: '',
-          });
-
-          form.setValues(update(form.values, {
-            editPassword: value,
-            password: '',
-            confirmPassword: '',
-          }));
-        }}
-      />
-
-      {form.values.editPassword && (
-        <div className="iap-settings-form__password-fields">
-          <Field label="Password">
-            <Input
-              type="password"
-              name="password"
-              value={form.values.password}
-              placeholder="Enter your password"
-              onChange={form.handleChange}
-              onBlur={form.handleBlur}
-              errorMessage={form.errors.password}
-            />
-          </Field>
-
-          <Field label="Confirm Password">
-            <Input
-              type="password"
-              name="confirmPassword"
-              value={form.values.confirmPassword}
-              placeholder="Confirm your password"
-              onChange={form.handleChange}
-              onBlur={form.handleBlur}
-              errorMessage={form.errors.confirmPassword}
-            />
-          </Field>
-        </div>
-      )}
-
+      <Field label="Login env name">
+        <Input
+          name="loginEnvName"
+          value={form.values.loginEnvName}
+          placeholder="e.g IDENTIFO_ADMIN_LOGIN"
+          onChange={form.handleChange}
+          onBlur={form.handleBlur}
+          errorMessage={form.errors.loginEnvName}
+          disabled={loading}
+        />
+      </Field>
+      <Field label="Password env name">
+        <Input
+          name="passwordEnvName"
+          value={form.values.passwordEnvName}
+          placeholder="e.g IDENTIFO_ADMIN_PASSWORD"
+          onChange={form.handleChange}
+          onBlur={form.handleBlur}
+          errorMessage={form.errors.passwordEnvName}
+          disabled={loading}
+        />
+      </Field>
       <footer className="iap-settings-form__footer">
         <Button
           type="submit"
