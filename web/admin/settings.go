@@ -54,6 +54,11 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 			return
 		}
 
+		if err := merged.Validate(); err != nil {
+			ar.Error(w, fmt.Errorf("settings validation failed with error: %v", err), http.StatusBadRequest, "")
+			return
+		}
+
 		if err := ar.server.Storages().Config.WriteConfig(merged); err != nil {
 			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
 			ar.Error(w, fmt.Errorf("error saving new config: %v", err), http.StatusInternalServerError, "")

@@ -134,7 +134,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			return
 		}
 
-		if err := ar.server.Storages().Key.InsertKeys(keys); err != nil {
+		if err := ar.server.Storages().Key.ReplaceKeys(keys); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}

@@ -8,6 +8,6 @@ const (
 
 // KeyStorage stores keys used for signing and verifying JWT tokens.
 type KeyStorage interface {
-	InsertKeys(keys JWTKeys) error
+	ReplaceKeys(keys JWTKeys) error
 	LoadKeys(alg TokenSignatureAlgorithm) (JWTKeys, error)
 }

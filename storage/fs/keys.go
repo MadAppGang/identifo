@@ -21,15 +21,15 @@ type KeyStorage struct {
 }
 
 // NewKeyStorage creates and returns new key files storage.
-func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
+func NewKeyStorage(settings model.KeyStorageFileSettings) (*KeyStorage, error) {
 	return &KeyStorage{
-		PrivateKeyPath: settings.File.PrivateKeyPath,
-		PublicKeyPath:  settings.File.PublicKeyPath,
+		PrivateKeyPath: settings.PrivateKeyPath,
+		PublicKeyPath:  settings.PublicKeyPath,
 	}, nil
 }
 
 // InsertKeys inserts public and private keys.
-func (ks *KeyStorage) InsertKeys(keys model.JWTKeys) error {
+func (ks *KeyStorage) ReplaceKeys(keys model.JWTKeys) error {
 	if keys.Private == nil || keys.Public == nil {
 		return fmt.Errorf("Cannot insert empty key(s)")
 	}

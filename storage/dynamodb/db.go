@@ -43,7 +43,7 @@ func (db *DB) IsTableExists(table string) (bool, error) {
 	_, err := db.C.DescribeTableWithContext(timeoutCtx, input)
 	if AwsErrorErrorNotFound(err) {
 		return false, nil
-		//if table not exists - create table
+		// if table not exists - create table
 	}
 	if err != nil {
 		log.Println(err)

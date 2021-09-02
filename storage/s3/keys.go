@@ -22,22 +22,22 @@ type KeyStorage struct {
 }
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
-func NewKeyStorage(settings model.KeyStorageSettings) (*KeyStorage, error) {
-	s3Client, err := NewS3Client(settings.S3.Region)
+func NewKeyStorage(settings model.S3KeyStorageSettings) (*KeyStorage, error) {
+	s3Client, err := NewS3Client(settings.Region)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KeyStorage{
 		Client:         s3Client,
-		Bucket:         settings.S3.Bucket,
-		PrivateKeyPath: settings.S3.PrivateKeyKey,
-		PublicKeyPath:  settings.S3.PublicKeyKey,
+		Bucket:         settings.Bucket,
+		PrivateKeyPath: settings.PrivateKeyKey,
+		PublicKeyPath:  settings.PublicKeyKey,
 	}, nil
 }
 
 // InsertKeys inserts private and public keys into S3 key storage.
-func (ks *KeyStorage) InsertKeys(keys model.JWTKeys) error {
+func (ks *KeyStorage) ReplaceKeys(keys model.JWTKeys) error {
 	keysMap := map[string]interface{}{
 		ks.PrivateKeyPath: keys.Private,
 		ks.PublicKeyPath:  keys.Public,
