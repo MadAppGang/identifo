@@ -110,3 +110,36 @@ func (ks *KeyStorage) guessTokenServiceAlgorithm(publicKey []byte) (interface{},
 	}
 	return nil, fmt.Errorf("Cannot guess token service algorithm. It's neither ES256 (%s), nor RS256 (%s)", errES, errRS)
 }
+
+func (ks *KeyStorage) GetKeys() (model.KeysPEM, error) {
+	keys := model.KeysPEM{}
+
+	publk, err := ks.redFile(ks.PublicKeyPath)
+	if err != nil {
+		return keys, fmt.Errorf("Cannot get %s from S3: %s", ks.PublicKeyPath, err)
+	}
+	keys.Public = string(publk)
+
+	private, err := ks.redFile(ks.PrivateKeyPath)
+	if err != nil {
+		return keys, fmt.Errorf("Cannot get %s from S3: %s", ks.PrivateKeyPath, err)
+	}
+	keys.Private = string(private)
+
+	return keys, nil
+}
+
+func (ks *KeyStorage) redFile(key string) ([]byte, error) {
+	getKeyInput := &s3.GetObjectInput{
+		Bucket: aws.String(ks.Bucket),
+		Key:    aws.String(key),
+	}
+
+	resp, err := ks.Client.GetObject(getKeyInput)
+	if err != nil {
+		return nil, fmt.Errorf("Cannot get %s from S3: %s", key, err)
+	}
+	defer resp.Body.Close()
+
+	return ioutil.ReadAll(resp.Body)
+}

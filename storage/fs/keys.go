@@ -3,6 +3,7 @@ package fs
 import (
 	"fmt"
 	"io"
+	"io/ioutil"
 	"os"
 
 	"github.com/madappgang/identifo/jwt"
@@ -112,5 +113,23 @@ func (ks *KeyStorage) loadKeys(alg model.TokenSignatureAlgorithm) (model.JWTKeys
 	keys.Private = privateKey
 	keys.Public = publicKey
 	keys.Algorithm = alg
+	return keys, nil
+}
+
+func (ks *KeyStorage) GetKeys() (model.KeysPEM, error) {
+	keys := model.KeysPEM{}
+
+	prkb, err := ioutil.ReadFile(ks.PrivateKeyPath)
+	if err != nil {
+		return model.KeysPEM{}, err
+	}
+	keys.Private = string(prkb)
+
+	pubkb, err := ioutil.ReadFile(ks.PublicKeyPath)
+	if err != nil {
+		return model.KeysPEM{}, err
+	}
+	keys.Public = string(pubkb)
+
 	return keys, nil
 }
