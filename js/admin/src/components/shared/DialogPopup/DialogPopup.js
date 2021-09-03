@@ -4,9 +4,9 @@ import Button from '~/components/shared/Button';
 import PropTypes from 'prop-types';
 import './index.css';
 
-export const Dialog = ({ title, content, buttons, callback }) => {
+export const Dialog = ({ title, content, buttons, callback, onClose }) => {
   return (
-    <div className="iap-dialog-popup--overlay">
+    <div className="iap-dialog-popup--overlay" onClick={onClose} role="presentation">
       <div className="iap-dialog-popup">
         <div className="iap-dialog-popup--in">
           {title && <h3 className="iap-dialog-popup--title">{title}</h3>}

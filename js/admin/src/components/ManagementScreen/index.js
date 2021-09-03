@@ -1,6 +1,8 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Route, Switch } from 'react-router-dom';
 import Container from '~/components/shared/Container';
+import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { NotificationContainer } from '~/components/shared/Notifications';
 import ProgressBar from '~/components/shared/TopProgressBar';
 import AccountSection from './Account';
@@ -20,34 +22,39 @@ import Sidebar from './Sidebar';
 import StaticFilesSection from './StaticFiles';
 import UsersSection from './Users';
 
-const ManagementScreen = () => (
-  <div className="iap-management-layout">
-    <ProgressBar>
-      <NotificationContainer>
-        <Header />
-        <div className="iap-management-content">
-          <Container>
-            <Sidebar />
-            <Switch>
-              <Route exact path="/management" component={ServerSection} />
-              <Route path="/management/users" component={UsersSection} />
-              <Route path="/management/database" component={DatabaseSection} />
-              <Route path="/management/applications" component={ApplicationsSection} />
-              <Route path="/management/email_integration" component={ExternalServicesSection} />
-              <Route path="/management/account" component={AccountSection} />
-              <Route path="/management/settings" component={LoginTypesSection} />
-              <Route path="/management/multi-factor_auth" component={MultiFactorAuthSection} />
-              <Route path="/management/static" component={StaticFilesSection} />
-              <Route path="/management/hosted_pages" component={HostedPagesSection} />
-              <Route path="/management/apple" component={AppleIntegrationSection} />
-              <Route component={NotFoundSection} />
-            </Switch>
-          </Container>
-        </div>
-        <ReloadServerPopup />
-      </NotificationContainer>
-    </ProgressBar>
-  </div>
-);
+const ManagementScreen = () => {
+  const dialogConfig = useSelector(s => s.applicationDialogs.settings);
+
+  return (
+    <div className="iap-management-layout">
+      {dialogConfig.show && <DialogPopup {...dialogConfig.config} />}
+      <ProgressBar>
+        <NotificationContainer>
+          <Header />
+          <div className="iap-management-content">
+            <Container>
+              <Sidebar />
+              <Switch>
+                <Route exact path="/management" component={ServerSection} />
+                <Route path="/management/users" component={UsersSection} />
+                <Route path="/management/database" component={DatabaseSection} />
+                <Route path="/management/applications" component={ApplicationsSection} />
+                <Route path="/management/email_integration" component={ExternalServicesSection} />
+                <Route path="/management/account" component={AccountSection} />
+                <Route path="/management/settings" component={LoginTypesSection} />
+                <Route path="/management/multi-factor_auth" component={MultiFactorAuthSection} />
+                <Route path="/management/static" component={StaticFilesSection} />
+                <Route path="/management/hosted_pages" component={HostedPagesSection} />
+                <Route path="/management/apple" component={AppleIntegrationSection} />
+                <Route component={NotFoundSection} />
+              </Switch>
+            </Container>
+          </div>
+          <ReloadServerPopup />
+        </NotificationContainer>
+      </ProgressBar>
+    </div>
+  );
+};
 
 export default ManagementScreen;

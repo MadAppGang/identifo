@@ -1,45 +1,20 @@
 import update from '@madappgang/update-by-path';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
 import useProgressBar from '~/hooks/useProgressBar';
 import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
-import { CONNECTION_FAILED, CONNECTION_SUCCEED, CONNECTION_TEST_REQUIRED } from '~/modules/database/connectionReducer';
-
+import { CONNECTION_SUCCEED } from '~/modules/database/connectionReducer';
+import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
+import { settingsConfig, settingsActionsEnum } from '~/modules/applications/dialogsConfigs';
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
 
-const dialogActionsEnum = {
-  save: 'save',
-  verify: 'verify',
-  close: 'close',
-};
-
-const dialogConfigsMatcher = {
-  [CONNECTION_FAILED]: {
-    content: 'The server was unable to connect with these settings',
-    buttons: [
-      { label: 'Save', data: dialogActionsEnum.save },
-      { label: 'Don`t Save', data: dialogActionsEnum.close },
-    ],
-  },
-  [CONNECTION_TEST_REQUIRED]: {
-    content: 'It would be a good idea to test the connection before saving.',
-    buttons: [
-      { label: 'Verify', data: dialogActionsEnum.verify },
-      { label: 'Save without verification', data: dialogActionsEnum.save },
-    ],
-  },
-};
-
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
-  const [dialogShown, setDialogShown] = useState(false);
-  const [dialogConfig, setDialogConfig] = useState(null);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
   const settings = useSelector(state => state.database.settings.config);
@@ -59,17 +34,6 @@ const StoragesSection = () => {
   useEffect(() => {
     triggerFetchSettings();
   }, []);
-
-  const handleDialog = (config) => {
-    setDialogShown(true);
-    return new Promise((resolve) => {
-      const callback = (d) => {
-        setDialogShown(false);
-        resolve(d);
-      };
-      setDialogConfig({ ...config, callback });
-    });
-  };
 
   const saveHandler = async (node, nodeSettings) => {
     setProgress(70);
@@ -101,20 +65,24 @@ const StoragesSection = () => {
 
   const handleSettingsSubmit = node => async (nodeSettings) => {
     if (connectionState !== CONNECTION_SUCCEED) {
-      const res = await handleDialog(dialogConfigsMatcher[connectionState]);
+      const config = {
+        ...settingsConfig[connectionState],
+        onClose: () => dispatch(hideSettingsDialog()),
+      };
+      const res = await dispatch(handleSettingsDialog(config));
       switch (res) {
-        case dialogActionsEnum.save:
+        case settingsActionsEnum.save:
           await saveHandler(node, nodeSettings);
           break;
-        case dialogActionsEnum.verify:
+        case settingsActionsEnum.verify:
           await handleSettingsVerification(nodeSettings);
           await saveHandler(node, nodeSettings);
           break;
-        case dialogActionsEnum.close:
-          setDialogShown(false);
+        case settingsActionsEnum.close:
+          dispatch(hideSettingsDialog());
           break;
         default:
-          setDialogShown(false);
+          dispatch(hideSettingsDialog());
       }
     } else {
       await saveHandler(node, nodeSettings);
@@ -193,7 +161,6 @@ const StoragesSection = () => {
           {...storageSettingsProps}
         />
       </Tabs>
-      {dialogShown && <DialogPopup {...dialogConfig} />}
     </section>
   );
 };
