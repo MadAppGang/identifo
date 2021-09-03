@@ -1,24 +1,24 @@
 import React from 'react';
-import { Switch, Route } from 'react-router-dom';
-import Header from './Header';
-import Sidebar from './Sidebar';
-import UsersSection from './Users';
-import DatabaseSection from './Database';
-import ApplicationsSection from './Applications';
-import AccountSection from './Account';
-import ServerSection from './Server';
-import ExternalServicesSection from './ExternalServices';
-import LoginTypesSection from './LoginTypes';
-import MultiFactorAuthSection from './MultiFactorAuth';
-import HostedPagesSection from './HostedPages';
-import NotFoundSection from './NotFoundSection';
-import StaticFilesSection from './StaticFiles';
-import AppleIntegrationSection from './AppleIntegration';
-import ReloadServerPopup from './ReloadServerPopup';
+import { Route, Switch } from 'react-router-dom';
 import Container from '~/components/shared/Container';
 import { NotificationContainer } from '~/components/shared/Notifications';
 import ProgressBar from '~/components/shared/TopProgressBar';
+import AccountSection from './Account';
+import AppleIntegrationSection from './AppleIntegration';
+import ApplicationsSection from './Applications';
+import DatabaseSection from './Database';
+import ExternalServicesSection from './ExternalServices';
+import Header from './Header';
+import HostedPagesSection from './HostedPages';
+import LoginTypesSection from './LoginTypes';
 import './Management.css';
+import MultiFactorAuthSection from './MultiFactorAuth';
+import NotFoundSection from './NotFoundSection';
+import ReloadServerPopup from './ReloadServerPopup';
+import ServerSection from './Server';
+import Sidebar from './Sidebar';
+import StaticFilesSection from './StaticFiles';
+import UsersSection from './Users';
 
 const ManagementScreen = () => (
   <div className="iap-management-layout">

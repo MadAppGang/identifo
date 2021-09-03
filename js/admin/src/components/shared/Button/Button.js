@@ -4,7 +4,7 @@ import classnames from 'classnames';
 
 const Button = (props) => {
   const {
-    stretch, Icon, children, error, transparent, iconClassName, extraClassName,
+    stretch, Icon, children, error, transparent, outline, success, iconClassName, extraClassName,
     ...domProps } = props;
 
   const className = classnames({
@@ -12,6 +12,8 @@ const Button = (props) => {
     'iap-btn--stretch': stretch,
     'iap-btn--iconized': !!Icon,
     'iap-btn--transparent': transparent,
+    'iap-btn--outline': outline,
+    'iap-btn--success': success,
     'iap-btn--error': error,
     [extraClassName]: !!extraClassName,
   });
@@ -38,6 +40,8 @@ Button.propTypes = {
   disabled: PropTypes.bool,
   stretch: PropTypes.bool,
   transparent: PropTypes.bool,
+  outline: PropTypes.bool,
+  success: PropTypes.bool,
   iconClassName: PropTypes.string,
   Icon: PropTypes.func,
   error: PropTypes.bool,
@@ -51,6 +55,8 @@ Button.defaultProps = {
   disabled: false,
   stretch: false,
   transparent: false,
+  outline: false,
+  success: false,
   iconClassName: '',
   Icon: null,
   error: false,
