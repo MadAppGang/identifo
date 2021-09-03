@@ -56,6 +56,7 @@ const verifyConnection = settings => async (dispatch, _, services) => {
     dispatch(testConnectionSuccess());
   } catch (err) {
     dispatch(testConnectionFailure(new Error(getError(err))));
+    throw new Error(getError(err));
   }
 };
 

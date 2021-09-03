@@ -1,23 +1,51 @@
 import update from '@madappgang/update-by-path';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
 import useProgressBar from '~/hooks/useProgressBar';
 import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
+import { CONNECTION_FAILED, CONNECTION_SUCCEED, CONNECTION_TEST_REQUIRED } from '~/modules/database/connectionReducer';
+
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
 
+const dialogActionsEnum = {
+  save: 'save',
+  verify: 'verify',
+  close: 'close',
+};
+
+const dialogConfigsMatcher = {
+  [CONNECTION_FAILED]: {
+    content: 'The server was unable to connect with these settings',
+    buttons: [
+      { label: 'Save', data: dialogActionsEnum.save },
+      { label: 'Don`t Save', data: dialogActionsEnum.close },
+    ],
+  },
+  [CONNECTION_TEST_REQUIRED]: {
+    content: 'It would be a good idea to test the connection before saving.',
+    buttons: [
+      { label: 'Verify', data: dialogActionsEnum.verify },
+      { label: 'Save without verification', data: dialogActionsEnum.save },
+    ],
+  },
+};
 
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
+  const [dialogShown, setDialogShown] = useState(false);
+  const [dialogConfig, setDialogConfig] = useState(null);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
   const settings = useSelector(state => state.database.settings.config);
   const error = useSelector(state => state.database.settings.error);
   const connectionState = useSelector(state => state.database.connection.state);
+
   const triggerFetchSettings = async () => {
     setProgress(70);
 
@@ -32,7 +60,18 @@ const StoragesSection = () => {
     triggerFetchSettings();
   }, []);
 
-  const handleSettingsSubmit = node => async (nodeSettings) => {
+  const handleDialog = (config) => {
+    setDialogShown(true);
+    return new Promise((resolve) => {
+      const callback = (d) => {
+        setDialogShown(false);
+        resolve(d);
+      };
+      setDialogConfig({ ...config, callback });
+    });
+  };
+
+  const saveHandler = async (node, nodeSettings) => {
     setProgress(70);
 
     const updatedSettings = update(settings, {
@@ -60,6 +99,28 @@ const StoragesSection = () => {
     }
   };
 
+  const handleSettingsSubmit = node => async (nodeSettings) => {
+    if (connectionState !== CONNECTION_SUCCEED) {
+      const res = await handleDialog(dialogConfigsMatcher[connectionState]);
+      switch (res) {
+        case dialogActionsEnum.save:
+          await saveHandler(node, nodeSettings);
+          break;
+        case dialogActionsEnum.verify:
+          await handleSettingsVerification(nodeSettings);
+          await saveHandler(node, nodeSettings);
+          break;
+        case dialogActionsEnum.close:
+          setDialogShown(false);
+          break;
+        default:
+          setDialogShown(false);
+      }
+    } else {
+      await saveHandler(node, nodeSettings);
+    }
+  };
+
   if (error) {
     return (
       <section className="iap-management-section">
@@ -70,7 +131,6 @@ const StoragesSection = () => {
       </section>
     );
   }
-
   const getStorageSettingsProps = (index) => {
     return [
       {
@@ -127,10 +187,13 @@ const StoragesSection = () => {
         <Tab title="Tokens" />
         <Tab title="Verification Codes" />
         <Tab title="Blacklist" />
-
-        <StorageSettings connectionState={connectionState} progress={!!progress} {...storageSettingsProps} />
+        <StorageSettings
+          connectionState={connectionState}
+          progress={!!progress}
+          {...storageSettingsProps}
+        />
       </Tabs>
-
+      {dialogShown && <DialogPopup {...dialogConfig} />}
     </section>
   );
 };

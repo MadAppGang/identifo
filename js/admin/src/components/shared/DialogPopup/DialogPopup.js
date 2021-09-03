@@ -4,7 +4,7 @@ import Button from '~/components/shared/Button';
 import PropTypes from 'prop-types';
 import './index.css';
 
-export const Dialog = ({ title, content, onSubmit, onCancel }) => {
+export const Dialog = ({ title, content, buttons, callback }) => {
   return (
     <div className="iap-dialog-popup--overlay">
       <div className="iap-dialog-popup">
@@ -12,8 +12,16 @@ export const Dialog = ({ title, content, onSubmit, onCancel }) => {
           {title && <h3 className="iap-dialog-popup--title">{title}</h3>}
           <div className="iap-dialog-popup--content">{content}</div>
           <div className="iap-dialog-popup--controls">
-            <Button onClick={onSubmit}>Confirm</Button>
-            <Button onClick={onCancel} transparent>Cancel</Button>
+            {buttons.map((btn) => {
+              return (
+                <Button
+                  key={btn.label}
+                  onClick={() => callback(btn.data)}
+                >
+                  {btn.label}
+                </Button>
+              );
+            })}
           </div>
         </div>
       </div>
@@ -32,8 +40,11 @@ export const DialogPopup = (props) => {
 DialogPopup.propTypes = {
   title: PropTypes.string,
   content: PropTypes.string.isRequired,
-  onSubmit: PropTypes.func.isRequired,
-  onCancel: PropTypes.func.isRequired,
+  callback: PropTypes.func.isRequired,
+  buttons: PropTypes.arrayOf(PropTypes.shape({
+    label: PropTypes.string.isRequired,
+    data: PropTypes.any.isRequired,
+  })).isRequired,
 };
 
 DialogPopup.defaultProps = {
