@@ -21,7 +21,7 @@ const INITIAL_STATE = {
   },
   configurationStorage: null,
   sessionStorage: null,
-  staticFiles: null,
+  staticFilesStorage: null,
   general: null,
   changed: false,
   adminAccount: null,
@@ -43,7 +43,7 @@ const reducer = (state = INITIAL_STATE, action) => {
     case RECEIVE_EXTERNAL_SETTINGS:
       return update(state, 'externalServices', payload);
     case RECEIVE_STATIC_FILES_SETTINGS:
-      return update(state, 'staticFiles', payload);
+      return update(state, 'staticFilesStorage', payload);
     case RECEIVE_GENERAL_SETTINGS:
       return update(state, 'general', payload);
     case RECEIVE_CONFIGURATION_STORAGE_SETTINGS:

@@ -31,34 +31,14 @@ const createSettingsService = ({ httpClient }) => {
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
   };
 
-  const fetchStaticFilesSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings/static`;
-    const { data } = await httpClient.get(url);
-
-    return toDeepCase(data, CAMEL_CASE);
-  };
-
   const updateStaticFilesSettings = async (settings) => {
     const url = `${httpClient.getApiUrl()}/settings/static`;
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
   };
 
-  const fetchGeneralSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings/general`;
-    const { data } = await httpClient.get(url);
-    return toDeepCase(data, CAMEL_CASE);
-  };
-
   const updateGeneralSettings = async (settings) => {
     const url = `${httpClient.getApiUrl()}/settings/general`;
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
-  const fetchConfigurationStorageSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings/storage/configuration`;
-    const { data } = await httpClient.get(url);
-
-    return toDeepCase(data, CAMEL_CASE);
   };
 
   const updateConfigurationStorageSettings = async (settings) => {
@@ -86,11 +66,8 @@ const createSettingsService = ({ httpClient }) => {
     fetchExternalServicesSettings,
     updateExternalServicesSettings,
     updateSessionStorageSettings,
-    fetchStaticFilesSettings,
     updateStaticFilesSettings,
-    fetchGeneralSettings,
     updateGeneralSettings,
-    fetchConfigurationStorageSettings,
     updateConfigurationStorageSettings,
     uploadJWTKeys,
     requestServerRestart,

@@ -100,7 +100,7 @@ const StoragesSection = () => {
       </section>
     );
   }
-  console.log(settings);
+
   const getStorageSettingsProps = (index) => {
     return [
       {
@@ -127,7 +127,7 @@ const StoragesSection = () => {
       {
         title: 'Verification Code Storage',
         description: 'Setup a connection to the database all the verification codes are stored in.',
-        settings: settings ? settings.verificationCode_storage : null,
+        settings: settings ? settings.verificationCodeStorage : null,
         postSettings: handleSettingsSubmit('verification_code_storage'),
         verifySettings: handleSettingsVerification,
       },
