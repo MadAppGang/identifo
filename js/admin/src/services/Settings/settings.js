@@ -10,13 +10,6 @@ const createSettingsService = ({ httpClient }) => {
     return toDeepCase(data, CAMEL_CASE);
   };
 
-  const fetchLoginSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings/login`;
-    const { data } = await httpClient.get(url);
-
-    return toDeepCase(data, CAMEL_CASE);
-  };
-
   const updateLoginSettings = (settings) => {
     const url = `${httpClient.getApiUrl()}/settings/login`;
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
@@ -89,7 +82,6 @@ const createSettingsService = ({ httpClient }) => {
   };
 
   return {
-    fetchLoginSettings,
     updateLoginSettings,
     fetchExternalServicesSettings,
     updateExternalServicesSettings,

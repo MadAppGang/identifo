@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import update from '@madappgang/update-by-path';
 import { useDispatch, useSelector } from 'react-redux';
-import { fetchLoginSettings, updateLoginSettings } from '~/modules/settings/actions';
+import { updateLoginSettings } from '~/modules/settings/actions';
 import LoginTypesTable from './LoginTypesTable';
 import Field from '~/components/shared/Field';
 import { Select, Option } from '~/components/shared/Select';
@@ -12,14 +12,9 @@ const LoginTypesSection = () => {
   const settings = useSelector(state => state.settings.login);
   const { setProgress } = useProgressBar();
 
-  const fetchSettings = async () => {
-    setProgress(70);
-    await dispatch(fetchLoginSettings());
-    setProgress(100);
-  };
-
   useEffect(() => {
-    fetchSettings();
+    // TODO: Nikita K removee this uef
+    setProgress(100);
   }, []);
 
   const handleChange = (type, enabled) => {
