@@ -177,11 +177,11 @@ export class IdentifoForm {
             h("a", { onClick: () => this.openRoute('login'), class: "register-form__log-in" }, "Go back to login"))));
       case 'otp/login':
         return (h("div", { class: "otp-login" },
-          h("p", { class: "otp-login__register-text" },
+          !this.registrationForbidden && (h("p", { class: "otp-login__register-text" },
             "Don't have an account?",
             h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" },
               ' ',
-              "Sign Up")),
+              "Sign Up"))),
           h("input", { type: "phone", class: "form-control", id: "floatingInput", value: this.phone, placeholder: "Phone number", onInput: event => this.phoneChange(event) }),
           h("button", { onClick: () => this.openRoute('tfa/verify'), class: "primary-button", disabled: !this.phone }, "Continue"),
           this.federatedProviders.length > 0 && (h("div", { class: "social-buttons" },

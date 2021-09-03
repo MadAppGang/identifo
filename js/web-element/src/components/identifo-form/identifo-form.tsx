@@ -310,13 +310,15 @@ export class IdentifoForm {
       case 'otp/login':
         return (
           <div class="otp-login">
-            <p class="otp-login__register-text">
-              Don't have an account?
-              <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                {' '}
-                Sign Up
-              </a>
-            </p>
+            {!this.registrationForbidden && (
+              <p class="otp-login__register-text">
+                Don't have an account?
+                <a onClick={() => this.openRoute('register')} class="login-form__register-link">
+                  {' '}
+                  Sign Up
+                </a>
+              </p>
+            )}
             <input type="phone" class="form-control" id="floatingInput" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
             <button onClick={() => this.openRoute('tfa/verify')} class="primary-button" disabled={!this.phone}>
               Continue
@@ -573,7 +575,7 @@ export class IdentifoForm {
       this.complete.emit(this.lastResponse);
     }
     if (this.route === 'logout') {
-      this.complete.emit()
+      this.complete.emit();
     }
   }
 
