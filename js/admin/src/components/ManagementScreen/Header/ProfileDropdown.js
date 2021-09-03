@@ -1,19 +1,13 @@
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
+import React from 'react';
+import { useSelector } from 'react-redux';
 import useDropdown from 'use-dropdown';
 import DropdownIcon from '~/components/icons/DropdownIcon';
-import LogoutSection from './LogoutSection';
 import AccountSection from './AccountSection';
-import { fetchAccountSettings } from '~/modules/account/actions';
+import LogoutSection from './LogoutSection';
 
 const ProfileDropdown = () => {
   const [containerRef, isOpen, open, close] = useDropdown();
-  const dispatch = useDispatch();
-  const admin = useSelector(s => s.account.settings);
-
-  useEffect(() => {
-    dispatch(fetchAccountSettings());
-  }, []);
+  const admin = useSelector(s => s.settings.adminAccount);
 
   return (
     <div className="iap-header-profile" ref={containerRef}>

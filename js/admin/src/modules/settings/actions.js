@@ -6,10 +6,18 @@ import {
   RECEIVE_GENERAL_SETTINGS,
   RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
   SETTINGS_CHANGED,
+  FETCH_SERVER_SETTINGS,
 } from './types';
-
 import { logout } from '../auth/actions';
+import actionCreator from '@madappgang/action-creator';
 import { pause } from '~/utils';
+
+const setServerSettings = actionCreator(FETCH_SERVER_SETTINGS);
+
+export const fetchServerSetings = () => async (dispatch, _, services) => {
+  const settings = await services.settings.fetchServerSettings();
+  dispatch(setServerSettings(settings));
+};
 
 export const fetchLoginSettings = () => async (dispatch, _, services) => {
   const settings = await services.settings.fetchLoginSettings();
@@ -45,14 +53,6 @@ export const updateExternalServicesSettings = settings => async (dispatch, _, se
   });
 
   dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchSessionStorageSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchSessionStorageSettings();
-  dispatch({
-    type: RECEIVE_SESSION_STORAGE_SETTINGS,
-    payload: settings,
-  });
 };
 
 export const updateSessionStorageSettings = settings => async (dispatch, _, services) => {

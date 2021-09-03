@@ -10,17 +10,6 @@ const postSettingsAttempt = actionCreator(types.POST_ACCOUNT_SETTINGS_ATTEMPT);
 const postSettingsSuccess = actionCreator(types.POST_ACCOUNT_SETTINGS_SUCCESS);
 const postSettingsFailure = actionCreator(types.POST_ACCOUNT_SETTINGS_FAILURE);
 
-const fetchAccountSettings = () => async (dispatch, _, services) => {
-  dispatch(fetchSettingsAttempt());
-
-  try {
-    const settings = await services.account.fetchSettings();
-    dispatch(fetchSettingsSuccess(settings));
-  } catch (err) {
-    dispatch(fetchSettingsFailure(getError(err)));
-  }
-};
-
 const postAccountSettings = settings => async (dispatch, _, services) => {
   dispatch(postSettingsAttempt());
 
@@ -35,7 +24,6 @@ const postAccountSettings = settings => async (dispatch, _, services) => {
 const resetAccountError = actionCreator(types.RESET_ACCOUNT_ERROR);
 
 export {
-  fetchAccountSettings,
   postAccountSettings,
   resetAccountError,
 };

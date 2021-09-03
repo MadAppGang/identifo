@@ -1,13 +1,14 @@
 import update from '@madappgang/update-by-path';
-import React, { useEffect, useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
 import useProgressBar from '~/hooks/useProgressBar';
-import { fetchSettings, postSettings, verifyConnection } from '~/modules/database/actions';
+import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
+import { postSettings, verifyConnection } from '~/modules/database/actions';
 import { CONNECTION_SUCCEED } from '~/modules/database/connectionReducer';
+import { fetchServerSetings } from '~/modules/settings/actions';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
-import { settingsConfig, settingsActionsEnum } from '~/modules/applications/dialogsConfigs';
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
@@ -17,7 +18,7 @@ const StoragesSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-  const settings = useSelector(state => state.database.settings.config);
+  const settings = useSelector(state => state.settings.storage);
   const error = useSelector(state => state.database.settings.error);
   const connectionState = useSelector(state => state.database.connection.state);
 
@@ -25,15 +26,11 @@ const StoragesSection = () => {
     setProgress(70);
 
     try {
-      await dispatch(fetchSettings());
+      await dispatch(fetchServerSetings());
     } finally {
       setProgress(100);
     }
   };
-
-  useEffect(() => {
-    triggerFetchSettings();
-  }, []);
 
   const saveHandler = async (node, nodeSettings) => {
     setProgress(70);
@@ -89,6 +86,10 @@ const StoragesSection = () => {
     }
   };
 
+  useEffect(() => {
+    setProgress(100);
+  }, []);
+
   if (error) {
     return (
       <section className="iap-management-section">
@@ -99,40 +100,41 @@ const StoragesSection = () => {
       </section>
     );
   }
+  console.log(settings);
   const getStorageSettingsProps = (index) => {
     return [
       {
         title: 'Application Storage',
         description: 'Setup a connection to the database all the applications are stored in.',
-        settings: settings ? settings.app_storage : null,
+        settings: settings ? settings.appStorage : null,
         postSettings: handleSettingsSubmit('app_storage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'User Storage',
         description: 'Setup a connection to the database all the users are stored in.',
-        settings: settings ? settings.user_storage : null,
+        settings: settings ? settings.userStorage : null,
         postSettings: handleSettingsSubmit('user_storage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Storage',
         description: 'Setup a connection to the database all the tokens are stored in.',
-        settings: settings ? settings.token_storage : null,
+        settings: settings ? settings.tokenStorage : null,
         postSettings: handleSettingsSubmit('token_storage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Verification Code Storage',
         description: 'Setup a connection to the database all the verification codes are stored in.',
-        settings: settings ? settings.verification_code_storage : null,
+        settings: settings ? settings.verificationCode_storage : null,
         postSettings: handleSettingsSubmit('verification_code_storage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Blacklist Storage',
         description: 'Setup a connection to the database all the blacklisted tokens are stored in.',
-        settings: settings ? settings.token_blacklist : null,
+        settings: settings ? settings.tokenBlacklist : null,
         postSettings: handleSettingsSubmit('token_blacklist'),
         verifySettings: handleSettingsVerification,
       },
