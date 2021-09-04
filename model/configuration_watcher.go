@@ -1,8 +1,10 @@
 package model
 
-// ConfigurationWatcher is a global server configuration watcher.
+// ConfigurationWatcher is a server configuration watcher.
 type ConfigurationWatcher interface {
 	Watch()
-	WatchChan() chan interface{}
+	IsWatching() bool
+	WatchChan() <-chan bool
+	ErrorChan() <-chan error
 	Stop()
 }
