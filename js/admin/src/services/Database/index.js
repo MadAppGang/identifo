@@ -6,13 +6,6 @@ const createDatabaseService = ({ httpClient }) => {
     return data;
   };
 
-  const fetchSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings`;
-    const { data } = await httpClient.get(url);
-
-    return data.storage;
-  };
-
   const postSettings = async (storage) => {
     const url = `${httpClient.getApiUrl()}/settings/storage`;
     const { data } = await httpClient.put(url, storage);
@@ -28,7 +21,6 @@ const createDatabaseService = ({ httpClient }) => {
 
   return Object.freeze({
     testConnection,
-    fetchSettings,
     postSettings,
     verifySettings,
   });

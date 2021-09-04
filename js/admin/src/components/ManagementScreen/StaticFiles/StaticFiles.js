@@ -1,9 +1,7 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import StaticFilesGeneralForm from './StaticFilesGeneralForm';
-import {
-  fetchStaticFilesSettings, updateStaticFilesSettings,
-} from '~/modules/settings/actions';
+import { updateStaticFilesSettings } from '~/modules/settings/actions';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
 
@@ -11,17 +9,7 @@ const StaticFilesSection = () => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-  const settings = useSelector(s => s.settings.staticFiles);
-
-  const fetchSettings = async () => {
-    setProgress(70);
-    await dispatch(fetchStaticFilesSettings());
-    setProgress(100);
-  };
-
-  React.useEffect(() => {
-    fetchSettings();
-  }, []);
+  const settings = useSelector(s => s.settings.staticFilesStorage);
 
   const handleSubmit = async (nextSettings) => {
     setProgress(70);

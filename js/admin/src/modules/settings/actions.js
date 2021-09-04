@@ -6,17 +6,17 @@ import {
   RECEIVE_GENERAL_SETTINGS,
   RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
   SETTINGS_CHANGED,
+  FETCH_SERVER_SETTINGS,
 } from './types';
-
 import { logout } from '../auth/actions';
+import actionCreator from '@madappgang/action-creator';
 import { pause } from '~/utils';
 
-export const fetchLoginSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchLoginSettings();
-  dispatch({
-    type: RECEIVE_LOGIN_SETTINGS,
-    payload: settings,
-  });
+const setServerSettings = actionCreator(FETCH_SERVER_SETTINGS);
+
+export const fetchServerSetings = () => async (dispatch, _, services) => {
+  const settings = await services.settings.fetchServerSettings();
+  dispatch(setServerSettings(settings));
 };
 
 export const updateLoginSettings = settings => async (dispatch, _, services) => {
@@ -47,14 +47,6 @@ export const updateExternalServicesSettings = settings => async (dispatch, _, se
   dispatch({ type: SETTINGS_CHANGED });
 };
 
-export const fetchSessionStorageSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchSessionStorageSettings();
-  dispatch({
-    type: RECEIVE_SESSION_STORAGE_SETTINGS,
-    payload: settings,
-  });
-};
-
 export const updateSessionStorageSettings = settings => async (dispatch, _, services) => {
   await services.settings.updateSessionStorageSettings(settings);
   dispatch({
@@ -63,14 +55,6 @@ export const updateSessionStorageSettings = settings => async (dispatch, _, serv
   });
 
   dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchStaticFilesSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchStaticFilesSettings();
-  dispatch({
-    type: RECEIVE_STATIC_FILES_SETTINGS,
-    payload: settings,
-  });
 };
 
 export const updateStaticFilesSettings = settings => async (dispatch, _, services) => {
@@ -83,14 +67,6 @@ export const updateStaticFilesSettings = settings => async (dispatch, _, service
   dispatch({ type: SETTINGS_CHANGED });
 };
 
-export const fetchGeneralSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchGeneralSettings();
-  dispatch({
-    type: RECEIVE_GENERAL_SETTINGS,
-    payload: settings,
-  });
-};
-
 export const updateGeneralSettings = settings => async (dispatch, _, services) => {
   await services.settings.updateGeneralSettings(settings);
   dispatch({
@@ -99,14 +75,6 @@ export const updateGeneralSettings = settings => async (dispatch, _, services) =
   });
 
   dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchConfigurationStorageSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchConfigurationStorageSettings();
-  dispatch({
-    type: RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
-    payload: settings,
-  });
 };
 
 export const updateConfigurationStorageSettings = settings => async (dispatch, _, services) => {

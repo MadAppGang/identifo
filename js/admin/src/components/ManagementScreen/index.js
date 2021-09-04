@@ -5,6 +5,7 @@ import Container from '~/components/shared/Container';
 import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { NotificationContainer } from '~/components/shared/Notifications';
 import ProgressBar from '~/components/shared/TopProgressBar';
+import { useSettings } from '../../hooks/useSettings';
 import AccountSection from './Account';
 import AppleIntegrationSection from './AppleIntegration';
 import ApplicationsSection from './Applications';
@@ -24,7 +25,7 @@ import UsersSection from './Users';
 
 const ManagementScreen = () => {
   const dialogConfig = useSelector(s => s.applicationDialogs.settings);
-
+  useSettings();
   return (
     <div className="iap-management-layout">
       {dialogConfig.show && <DialogPopup {...dialogConfig.config} />}

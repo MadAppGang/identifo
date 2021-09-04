@@ -1,7 +1,8 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import AccountForm from './AdminAccountForm';
-import { fetchAccountSettings, postAccountSettings } from '~/modules/account/actions';
+import { postAccountSettings } from '~/modules/account/actions';
+import { fetchServerSetings } from '~/modules/settings/actions';
 import SettingsPlaceholder from './Placeholder';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
@@ -12,17 +13,13 @@ const AdminAccountSettings = () => {
   const { notifySuccess, notifyFailure } = useNotifications();
 
   const error = useSelector(s => s.account.error);
-  const settings = useSelector(s => s.account.settings);
+  const settings = useSelector(s => s.settings.adminAccount);
 
   const fetchSettings = async () => {
     setProgress(70);
-    await dispatch(fetchAccountSettings());
+    await dispatch(fetchServerSetings());
     setProgress(100);
   };
-
-  React.useEffect(() => {
-    fetchSettings();
-  }, []);
 
   const handleFormSubmit = async () => {
     setProgress(70);
