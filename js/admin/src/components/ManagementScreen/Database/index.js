@@ -14,7 +14,6 @@ import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
 import { getStorageSettings } from '~/modules/settings/selectors';
 
-
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
@@ -36,7 +35,6 @@ const StoragesSection = () => {
 
   const saveHandler = async (node, nodeSettings) => {
     setProgress(70);
-
     const updatedSettings = { storage: update(settings, {
       [node]: nodeSettings,
     }) };
@@ -54,7 +52,8 @@ const StoragesSection = () => {
   const handleSettingsVerification = async (nodeSettings) => {
     setProgress(70);
     try {
-      await dispatch(verifyConnection(nodeSettings));
+      const paylaod = { type: 'database', database: nodeSettings };
+      await dispatch(verifyConnection(paylaod));
     } finally {
       setProgress(100);
     }

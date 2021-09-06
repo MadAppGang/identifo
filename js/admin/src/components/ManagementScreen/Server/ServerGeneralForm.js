@@ -17,6 +17,7 @@ const GeneralForm = (props) => {
     host: settings ? settings.host : '',
     issuer: settings ? settings.issuer : '',
     algorithm: settings ? settings.algorithm : '',
+    port: settings ? settings.port : '',
   };
 
   const handleSubmit = (values) => {
@@ -32,6 +33,7 @@ const GeneralForm = (props) => {
       host: settings.host,
       issuer: settings.issuer,
       algorithm: settings.algorithm,
+      port: settings.port,
     });
   }, [settings]);
 
@@ -58,6 +60,17 @@ const GeneralForm = (props) => {
           value={form.values.issuer}
           autoComplete="off"
           placeholder="Enter issuer url"
+          onChange={form.handleChange}
+          disabled={loading}
+        />
+      </Field>
+
+      <Field label="Port">
+        <Input
+          name="port"
+          value={form.values.port}
+          autoComplete="off"
+          placeholder="Enter port"
           onChange={form.handleChange}
           disabled={loading}
         />

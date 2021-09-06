@@ -33,3 +33,7 @@ export const getExternalServicesSettings = (state) => {
 export const getStaticFilesSettings = (state) => {
   return getCurentSettings(state).staticFilesStorage;
 };
+
+export const getSettingsConfig = (state) => {
+  return getCurentSettings(state).config;
+};
