@@ -1,22 +1,20 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateGeneralSettings } from '~/modules/settings/actions';
-import ServerGeneralForm from './ServerGeneralForm';
-import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+import useProgressBar from '~/hooks/useProgressBar';
+import { updateServerSettings } from '~/modules/settings/actions';
 import { getGeneralServerSettings } from '~/modules/settings/selectors';
+import ServerGeneralForm from './ServerGeneralForm';
 
 const ServerGeneralTab = () => {
   const dispatch = useDispatch();
   const settings = useSelector(getGeneralServerSettings);
-  const { progress, setProgress } = useProgressBar();
+  const { progress } = useProgressBar();
   const { notifySuccess } = useNotifications();
 
   const handleSubmit = async (nextSettings) => {
-    setProgress(70);
-    await dispatch(updateGeneralSettings(nextSettings));
-    setProgress(100);
-
+    const payload = { general: { ...nextSettings } };
+    dispatch(updateServerSettings(payload));
     notifySuccess({
       title: 'Updated',
       text: 'Server settings have been updated successfully',

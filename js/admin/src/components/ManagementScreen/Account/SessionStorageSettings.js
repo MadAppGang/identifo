@@ -1,7 +1,6 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SessionStorageForm from './SessionStorageForm';
-import { updateSessionStorageSettings } from '~/modules/settings/actions';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
 
@@ -13,7 +12,7 @@ const SessionStorageSettings = ({ error }) => {
 
   const handleSubmit = async (data) => {
     setProgress(70);
-    await dispatch(updateSessionStorageSettings(data));
+    // TODO: Nikita k update settings
     setProgress(100);
 
     notifySuccess({
