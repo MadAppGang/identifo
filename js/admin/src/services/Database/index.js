@@ -8,7 +8,7 @@ const createDatabaseService = ({ httpClient }) => {
 
   const verifySettings = async (settings) => {
     const url = `${httpClient.getApiUrl()}/test_connection`;
-    const { data } = await httpClient.put(url, settings);
+    const { data } = await httpClient.post(url, settings);
     return data;
   };
 

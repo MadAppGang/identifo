@@ -10,6 +10,12 @@ const createSettingsService = ({ httpClient }) => {
     return toDeepCase(data, CAMEL_CASE);
   };
 
+  const postServerSettings = async () => {
+    const url = `${httpClient.getApiUrl()}/settings`;
+    const { data } = await httpClient.put(url);
+    return toDeepCase(data, CAMEL_CASE);
+  };
+
   const updateLoginSettings = (settings) => {
     const url = `${httpClient.getApiUrl()}/settings/login`;
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
@@ -39,6 +45,7 @@ const createSettingsService = ({ httpClient }) => {
     updateLoginSettings,
     updateSessionStorageSettings,
     uploadJWTKeys,
+    postServerSettings,
     requestServerRestart,
     fetchServerSettings,
   };

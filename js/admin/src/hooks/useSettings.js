@@ -1,9 +1,11 @@
-import { useEffect } from 'react';
-import { useDispatch } from 'react-redux';
+import { useEffect, useState } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
 import { fetchServerSetings } from '~/modules/settings/actions';
 
 export const useSettings = () => {
   const dispatch = useDispatch();
+  const [changed, setChanged] = useState(false);
+  const state = useSelector(s => s.settings);
 
   useEffect(() => {
     const fetch = async () => {
@@ -11,4 +13,15 @@ export const useSettings = () => {
     };
     fetch();
   }, []);
+
+  useEffect(() => {
+    const [original, current] = [JSON.stringify(state.original), JSON.stringify(state.current)];
+    if (original !== current) {
+      setChanged(true);
+    }
+    if (changed && original === current) {
+      setChanged(false);
+    }
+  }, [state]);
+  return { changed };
 };
