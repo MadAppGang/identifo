@@ -22,10 +22,12 @@ import ServerSection from './Server';
 import Sidebar from './Sidebar';
 import StaticFilesSection from './StaticFiles';
 import UsersSection from './Users';
+import { SaveChangesSnack } from '~/components/shared/SaveChangesSnack/SaveChangesSkack';
 
 const ManagementScreen = () => {
   const dialogConfig = useSelector(s => s.applicationDialogs.settings);
   useSettings();
+
   return (
     <div className="iap-management-layout">
       {dialogConfig.show && <DialogPopup {...dialogConfig.config} />}
@@ -49,6 +51,7 @@ const ManagementScreen = () => {
                 <Route path="/management/apple" component={AppleIntegrationSection} />
                 <Route component={NotFoundSection} />
               </Switch>
+              <SaveChangesSnack />
             </Container>
           </div>
           <ReloadServerPopup />

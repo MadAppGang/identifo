@@ -1,4 +1,3 @@
-/* eslint-disable no-debugger */
 import React from 'react';
 import update from '@madappgang/update-by-path';
 import Field from '~/components/shared/Field';

@@ -15,6 +15,13 @@ export const fetchServerSetings = () => async (dispatch, _, services) => {
   dispatch(setServerSettings(settings));
 };
 
+export const postServerSettings = () => async (dispatch, getState, services) => {
+  try {
+    await services.settings.postServerSettings(getState().settings.current);
+  } catch (error) {
+    console.log(error);
+  }
+};
 export const updateLoginSettings = settings => async (dispatch, _, services) => {
   await services.settings.updateLoginSettings(settings);
   dispatch({
