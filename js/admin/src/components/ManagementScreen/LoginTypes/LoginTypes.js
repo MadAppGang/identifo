@@ -6,10 +6,11 @@ import LoginTypesTable from './LoginTypesTable';
 import Field from '~/components/shared/Field';
 import { Select, Option } from '~/components/shared/Select';
 import useProgressBar from '~/hooks/useProgressBar';
+import { getLoginSettings } from '~/modules/settings/selectors';
 
 const LoginTypesSection = () => {
   const dispatch = useDispatch();
-  const settings = useSelector(state => state.settings.login);
+  const settings = useSelector(getLoginSettings);
   const { setProgress } = useProgressBar();
 
   useEffect(() => {

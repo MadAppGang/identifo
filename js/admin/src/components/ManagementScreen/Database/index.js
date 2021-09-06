@@ -12,13 +12,14 @@ import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/appli
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
+import { getStorageSettings } from '~/modules/settings/selectors';
 
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-  const settings = useSelector(state => state.settings.storage);
+  const settings = useSelector(getStorageSettings);
   const error = useSelector(state => state.database.settings.error);
   const connectionState = useSelector(state => state.database.connection.state);
 

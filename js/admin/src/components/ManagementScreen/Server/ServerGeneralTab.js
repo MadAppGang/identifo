@@ -4,10 +4,11 @@ import { updateGeneralSettings } from '~/modules/settings/actions';
 import ServerGeneralForm from './ServerGeneralForm';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+import { getGeneralServerSettings } from '~/modules/settings/selectors';
 
 const ServerGeneralTab = () => {
   const dispatch = useDispatch();
-  const settings = useSelector(s => s.settings.general);
+  const settings = useSelector(getGeneralServerSettings);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
 

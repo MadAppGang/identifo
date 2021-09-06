@@ -7,12 +7,14 @@ import {
   RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
   SETTINGS_CHANGED,
   FETCH_SERVER_SETTINGS,
+  UPDATE_SERVER_SETTINGS,
 } from './types';
 import { logout } from '../auth/actions';
 import actionCreator from '@madappgang/action-creator';
 import { pause } from '~/utils';
 
 const setServerSettings = actionCreator(FETCH_SERVER_SETTINGS);
+export const updateServerSettings = actionCreator(UPDATE_SERVER_SETTINGS);
 
 export const fetchServerSetings = () => async (dispatch, _, services) => {
   const settings = await services.settings.fetchServerSettings();

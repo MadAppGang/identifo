@@ -9,11 +9,13 @@ import {
 import ConfigurationForm from './ServerConfigurationForm';
 import GeneralTab from './ServerGeneralTab';
 import JWTForm from './ServerJWTForm';
+import { getKeyStorageSettings } from '~/modules/settings/selectors';
 
 const GeneralSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const dispatch = useDispatch();
-  const settings = useSelector(s => s.settings.configurationStorage);
+  const settings = useSelector(getKeyStorageSettings);
+
   const { notifySuccess } = useNotifications();
 
   const { progress, setProgress } = useProgressBar();

@@ -7,10 +7,11 @@ import {
   RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
   SETTINGS_CHANGED,
   FETCH_SERVER_SETTINGS,
+  UPDATE_SERVER_SETTINGS,
 } from './types';
 import authTypes from '../auth/types';
 
-const INITIAL_STATE = {
+const initialSettings = {
   login: {
     loginWith: {
       username: false,
@@ -32,12 +33,19 @@ const INITIAL_STATE = {
   storage: null,
 };
 
+const INITIAL_STATE = {
+  original: initialSettings,
+  current: initialSettings,
+};
+
 const reducer = (state = INITIAL_STATE, action) => {
   const { type, payload } = action;
 
   switch (type) {
     case FETCH_SERVER_SETTINGS:
-      return update(state, payload);
+      return { ...state, original: payload, current: payload };
+    case UPDATE_SERVER_SETTINGS:
+      return update(state, 'current', payload);
     case RECEIVE_LOGIN_SETTINGS:
       return update(state, 'login', payload);
     case RECEIVE_EXTERNAL_SETTINGS:

@@ -4,12 +4,13 @@ import StaticFilesGeneralForm from './StaticFilesGeneralForm';
 import { updateStaticFilesSettings } from '~/modules/settings/actions';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+import { getStaticFilesSettings } from '~/modules/settings/selectors';
 
 const StaticFilesSection = () => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-  const settings = useSelector(s => s.settings.staticFilesStorage);
+  const settings = useSelector(getStaticFilesSettings);
 
   const handleSubmit = async (nextSettings) => {
     setProgress(70);
