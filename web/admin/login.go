@@ -22,7 +22,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		ld := adminLoginData{}
 		if err = ar.mustParseJSON(w, r, &ld); err != nil {
-			ar.Error(w, fmt.Errorf("unable to parse login and pssword: %s", err.Error), http.StatusBadRequest, "")
+			ar.Error(w, fmt.Errorf("unable to parse login and pssword: %s", err.Error()), http.StatusBadRequest, "")
 			return
 		}
 

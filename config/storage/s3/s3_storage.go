@@ -125,6 +125,10 @@ func (cs *ConfigurationStorage) CloseUpdateChan() {
 	cs.updateChanClosed = true
 }
 
+func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
+	return true
+}
+
 // NewS3Client creates and returns new S3 client.
 func NewS3Client(region string) (*s3.S3, error) {
 	cfg := getConfig(region)

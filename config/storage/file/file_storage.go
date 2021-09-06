@@ -131,6 +131,10 @@ func (cs *ConfigurationStorage) CloseUpdateChan() {
 	cs.updateChanClosed = true
 }
 
+func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
+	return false
+}
+
 // fileExists check if file exists
 func fileExists(filename string) bool {
 	info, err := os.Stat(filename)

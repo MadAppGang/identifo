@@ -13,7 +13,7 @@ import (
 )
 
 // NewServer creates new server instance from ServerSettings
-func NewServer(config model.ConfigurationStorage) (model.Server, error) {
+func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
 	// read settings, if they empty or use cached version
 	settings, err := config.LoadServerSettings(false)
 	if err != nil {
@@ -104,7 +104,7 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		Session: sessionS,
 	}
 
-	server, err := server.NewServer(sc, srvs)
+	server, err := server.NewServer(sc, srvs, restartChan)
 	if err != nil {
 		return nil, err
 	}

@@ -47,13 +47,13 @@ func InitConfigurationStorageFromFlag(configFlag string) (model.ConfigurationSto
 	return configStorage, nil
 }
 
-func NewServerFromFlag(configFlag string) (model.Server, error) {
+func NewServerFromFlag(configFlag string, restartChan chan<- bool) (model.Server, error) {
 	configStorage, err := InitConfigurationStorageFromFlag(configFlag)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to load settings on start with error: %v ", err)
 	}
 
-	srv, err := NewServer(configStorage)
+	srv, err := NewServer(configStorage, restartChan)
 	if err != nil {
 		return nil, fmt.Errorf("Unable to create server with error: %v ", err)
 	}

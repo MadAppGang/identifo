@@ -32,3 +32,4 @@ integrations/aws/identifo lambda/.env
 .devcontainer
 
 .idea
+db3.db

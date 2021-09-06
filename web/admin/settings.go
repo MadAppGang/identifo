@@ -65,6 +65,14 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 			return
 		}
 
+		// if the config storage is not supporting instant reloading - let's force restart it
+		if ar.forceRestart != nil && ar.server.Storages().Config.ForceReloadOnWriteConfig() {
+			go func() {
+				ar.logger.Println("sending server restart")
+				ar.forceRestart <- true
+			}()
+		}
+
 		ar.ServeJSON(w, http.StatusOK, merged)
 	}
 }

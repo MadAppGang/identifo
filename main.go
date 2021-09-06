@@ -20,9 +20,11 @@ func main() {
 	flag.Parse()
 
 	done := make(chan bool)
+	restart := make(chan bool)
 	defer close(done)
+	defer close(restart)
 
-	srv, httpSrv, err := initServer(*configFlag)
+	srv, httpSrv, err := initServer(*configFlag, restart)
 	if err != nil {
 		log.Fatalf("Unable to start Identifo with error: %v ", err)
 	}
@@ -42,21 +44,29 @@ func main() {
 	osch := make(chan os.Signal)
 	signal.Notify(osch, syscall.SIGINT, syscall.SIGTERM)
 
+	restartServer := func() {
+		ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
+		httpSrv.Shutdown(ctx)
+		// srv.Shutdown() TODO: implement gracefull server shutdown
+		srv, httpSrv, err = initServer(*configFlag, restart)
+		if err != nil {
+			log.Fatalf("Unable to start Identifo with error: %v ", err)
+		}
+		go startHTTPServer(httpSrv)
+		log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
+		log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
+		log.Println("Server successfully restarted with new settings ...")
+	}
+
 	for {
 		select {
 		case <-watcher.WatchChan():
 			log.Println("Config file has been changed, restarting ...")
-			ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
-			httpSrv.Shutdown(ctx)
-			// srv.Shutdown() TODO: implement gracefull server shutdown
-			srv, httpSrv, err = initServer(*configFlag)
-			if err != nil {
-				log.Fatalf("Unable to start Identifo with error: %v ", err)
-			}
-			go startHTTPServer(httpSrv)
-			log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
-			log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
-			log.Println("Server successfully restarted with new settings ...")
+			restartServer()
+
+		case <-restart:
+			log.Println("Restart signal have been received, restarting ...")
+			restartServer()
 
 		case err := <-watcher.ErrorChan():
 			log.Printf("Getting error from config watcher: %v", err)
@@ -71,8 +81,8 @@ func main() {
 	}
 }
 
-func initServer(flag string) (model.Server, *http.Server, error) {
-	srv, err := config.NewServerFromFlag(flag)
+func initServer(flag string, restartChan chan<- bool) (model.Server, *http.Server, error) {
+	srv, err := config.NewServerFromFlag(flag, restartChan)
 	if err != nil {
 		return nil, nil, fmt.Errorf("Unable to start Identifo with error: %v ", err)
 	}
