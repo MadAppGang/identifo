@@ -3,24 +3,24 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
 import useProgressBar from '~/hooks/useProgressBar';
-import {
-  updateConfigurationStorageSettings, uploadJWTKeys,
-} from '~/modules/settings/actions';
+import { uploadJWTKeys } from '~/modules/settings/actions';
 import ConfigurationForm from './ServerConfigurationForm';
 import GeneralTab from './ServerGeneralTab';
 import JWTForm from './ServerJWTForm';
+import { getKeyStorageSettings } from '~/modules/settings/selectors';
 
 const GeneralSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const dispatch = useDispatch();
-  const settings = useSelector(s => s.settings.configurationStorage);
+  const settings = useSelector(getKeyStorageSettings);
+
   const { notifySuccess } = useNotifications();
 
   const { progress, setProgress } = useProgressBar();
 
   const handleSubmit = async (nextSettings) => {
     setProgress(70);
-    await dispatch(updateConfigurationStorageSettings(nextSettings));
+    // TODO: Nikita k update settings
 
     const { privateKey, publicKey } = nextSettings;
     if (privateKey && publicKey) {

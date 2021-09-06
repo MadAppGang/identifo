@@ -10,23 +10,9 @@ const INITIAL_STATE = {
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
-  const { type, payload } = action;
+  const { type } = action;
 
   switch (type) {
-    case types.POST_DB_SETTINGS_ATTEMPT:
-      return update(state, 'posting', true);
-    case types.POST_DB_SETTINGS_SUCCESS:
-      return update(state, {
-        error: null,
-        posting: false,
-        config: payload,
-      });
-    case types.POST_DB_SETTINGS_FAILURE:
-      return update(state, {
-        posting: false,
-        fetching: false,
-        error: payload,
-      });
     case types.RESET_DB_SETTINGS_ERROR:
       return update(state, 'error', null);
     default:

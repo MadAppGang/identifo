@@ -15,34 +15,8 @@ const createSettingsService = ({ httpClient }) => {
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
   };
 
-  const fetchExternalServicesSettings = async () => {
-    const url = `${httpClient.getApiUrl()}/settings/services`;
-    const { data } = await httpClient.get(url);
-    return toDeepCase(data, CAMEL_CASE);
-  };
-
-  const updateExternalServicesSettings = async (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/services`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
   const updateSessionStorageSettings = async (settings) => {
     const url = `${httpClient.getApiUrl()}/settings/storage/session`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
-  const updateStaticFilesSettings = async (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/static`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
-  const updateGeneralSettings = async (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/general`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
-  const updateConfigurationStorageSettings = async (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/storage/configuration`;
     return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
   };
 
@@ -63,12 +37,7 @@ const createSettingsService = ({ httpClient }) => {
 
   return {
     updateLoginSettings,
-    fetchExternalServicesSettings,
-    updateExternalServicesSettings,
     updateSessionStorageSettings,
-    updateStaticFilesSettings,
-    updateGeneralSettings,
-    updateConfigurationStorageSettings,
     uploadJWTKeys,
     requestServerRestart,
     fetchServerSettings,

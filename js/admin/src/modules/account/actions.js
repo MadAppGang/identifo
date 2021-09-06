@@ -2,10 +2,6 @@ import actionCreator from '@madappgang/action-creator';
 import { getError } from '~/utils';
 import types from './types';
 
-const fetchSettingsAttempt = actionCreator(types.FETCH_ACCOUNT_SETTINGS_ATTEMPT);
-const fetchSettingsSuccess = actionCreator(types.FETCH_ACCOUNT_SETTINGS_SUCCESS);
-const fetchSettingsFailure = actionCreator(types.FETCH_ACCOUNT_SETTINGS_FAILURE);
-
 const postSettingsAttempt = actionCreator(types.POST_ACCOUNT_SETTINGS_ATTEMPT);
 const postSettingsSuccess = actionCreator(types.POST_ACCOUNT_SETTINGS_SUCCESS);
 const postSettingsFailure = actionCreator(types.POST_ACCOUNT_SETTINGS_FAILURE);

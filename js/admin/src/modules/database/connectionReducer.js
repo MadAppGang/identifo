@@ -29,7 +29,6 @@ const reducer = (state = INITIAL_STATE, { type }) => {
     case types.RESET_CONNECTION_STORE:
       return INITIAL_STATE;
     case types.FETCH_DB_SETTINGS_ATTEMPT:
-    case types.POST_DB_SETTINGS_SUCCESS:
       return update(state, 'state', CONNECTION_TEST_REQUIRED);
     default:
       return state;

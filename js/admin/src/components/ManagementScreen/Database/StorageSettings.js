@@ -11,7 +11,7 @@ import Preview from './Preview';
 
 const StorageSettings = (props) => {
   const {
-    title, description, settings,
+    title, description, settings, activeTabIndex,
     progress, connectionState, postSettings, verifySettings } = props;
   const dispatch = useDispatch();
   const [editing, setEditing] = useState(false);
@@ -45,6 +45,7 @@ const StorageSettings = (props) => {
       <main>
         {editing && (
           <Form
+            key={activeTabIndex}
             posting={!!progress}
             connectionStatus={connectionState}
             settings={settings}

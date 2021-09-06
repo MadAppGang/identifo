@@ -5,20 +5,22 @@ import { Tab, Tabs } from '~/components/shared/Tabs';
 import useNotifications from '~/hooks/useNotifications';
 import useProgressBar from '~/hooks/useProgressBar';
 import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
-import { postSettings, verifyConnection } from '~/modules/database/actions';
+import { verifyConnection } from '~/modules/database/actions';
 import { CONNECTION_SUCCEED } from '~/modules/database/connectionReducer';
-import { fetchServerSetings } from '~/modules/settings/actions';
+import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
+import { getStorageSettings } from '~/modules/settings/selectors';
+
 
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-  const settings = useSelector(state => state.settings.storage);
+  const settings = useSelector(getStorageSettings);
   const error = useSelector(state => state.database.settings.error);
   const connectionState = useSelector(state => state.database.connection.state);
 
@@ -35,13 +37,11 @@ const StoragesSection = () => {
   const saveHandler = async (node, nodeSettings) => {
     setProgress(70);
 
-    const updatedSettings = update(settings, {
+    const updatedSettings = { storage: update(settings, {
       [node]: nodeSettings,
-    });
-
+    }) };
     try {
-      await dispatch(postSettings(updatedSettings));
-
+      dispatch(updateServerSettings(updatedSettings));
       notifySuccess({
         title: 'Saved',
         text: 'Storage settings have been successfully saved',
@@ -107,35 +107,35 @@ const StoragesSection = () => {
         title: 'Application Storage',
         description: 'Setup a connection to the database all the applications are stored in.',
         settings: settings ? settings.appStorage : null,
-        postSettings: handleSettingsSubmit('app_storage'),
+        postSettings: handleSettingsSubmit('appStorage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'User Storage',
         description: 'Setup a connection to the database all the users are stored in.',
         settings: settings ? settings.userStorage : null,
-        postSettings: handleSettingsSubmit('user_storage'),
+        postSettings: handleSettingsSubmit('userStorage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Storage',
         description: 'Setup a connection to the database all the tokens are stored in.',
         settings: settings ? settings.tokenStorage : null,
-        postSettings: handleSettingsSubmit('token_storage'),
+        postSettings: handleSettingsSubmit('tokenStorage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Verification Code Storage',
         description: 'Setup a connection to the database all the verification codes are stored in.',
         settings: settings ? settings.verificationCodeStorage : null,
-        postSettings: handleSettingsSubmit('verification_code_storage'),
+        postSettings: handleSettingsSubmit('verificationCodeStorage'),
         verifySettings: handleSettingsVerification,
       },
       {
         title: 'Token Blacklist Storage',
         description: 'Setup a connection to the database all the blacklisted tokens are stored in.',
         settings: settings ? settings.tokenBlacklist : null,
-        postSettings: handleSettingsSubmit('token_blacklist'),
+        postSettings: handleSettingsSubmit('tokenBlacklist'),
         verifySettings: handleSettingsVerification,
       },
     ][index];
@@ -158,6 +158,7 @@ const StoragesSection = () => {
         <Tab title="Verification Codes" />
         <Tab title="Blacklist" />
         <StorageSettings
+          activeTabIndex={tabIndex}
           connectionState={connectionState}
           progress={!!progress}
           {...storageSettingsProps}

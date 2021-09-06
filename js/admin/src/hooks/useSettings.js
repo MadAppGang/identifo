@@ -4,6 +4,7 @@ import { fetchServerSetings } from '~/modules/settings/actions';
 
 export const useSettings = () => {
   const dispatch = useDispatch();
+
   useEffect(() => {
     const fetch = async () => {
       await dispatch(fetchServerSetings());
