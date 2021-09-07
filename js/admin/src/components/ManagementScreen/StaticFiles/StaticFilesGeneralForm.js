@@ -18,10 +18,9 @@ const StaticFilesGeneralForm = (props) => {
     [LOCAL]: { folder: '' },
     [S3]: { region: '', bucket: '', folder: '' },
     [DYNAMO_DB]: { region: '', endpoint: '' },
-    serveAdminPanel: false,
+    serveAdminPanel: true,
     type: settings.type || LOCAL,
   };
-
   const handleSubmit = (values) => {
     onSubmit(update(settings, values));
   };

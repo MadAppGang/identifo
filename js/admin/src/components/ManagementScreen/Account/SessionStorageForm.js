@@ -7,41 +7,30 @@ import Button from '~/components/shared/Button';
 import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import { Select, Option } from '~/components/shared/Select';
-import { validateSessionStorageForm } from './validationRules';
 import useForm from '~/hooks/useForm';
 
 const MEMORY_STORAGE = 'memory';
 const REDIS_STORAGE = 'redis';
 const DYNAMODB_STORAGE = 'dynamodb';
-const DEFAULT_SESSION_DURATION = 300;
 
+const initialValues = {
+  [REDIS_STORAGE]: { address: '', password: '', db: '' },
+  [DYNAMODB_STORAGE]: { region: '', endpoint: '' },
+  type: '',
+};
 const SessionStorageForm = (props) => {
   const { loading, settings, error, onSubmit } = props;
 
   const handleSubmit = (values) => {
-    onSubmit(update(values, {
-      sessionDuration: value => Number(value) || DEFAULT_SESSION_DURATION,
-      db: value => Number(value) || undefined,
-    }));
+    onSubmit(update(settings, values));
   };
 
-  const form = useForm({
-    type: '',
-    sessionDuration: '',
-    address: '',
-    password: '',
-    db: '',
-    region: '',
-    endpoint: '',
-  }, validateSessionStorageForm, handleSubmit);
+  // TODO: Nikita K add validation
+  const form = useForm(initialValues, null, handleSubmit);
 
   React.useEffect(() => {
     if (!settings) return;
-
-    form.setValues(update(settings, {
-      sessionDuration: value => value === undefined ? '' : value.toString(),
-      db: value => value === undefined ? '' : value.toString(),
-    }));
+    form.setValues(settings);
   }, [settings]);
 
   return (
@@ -64,23 +53,12 @@ const SessionStorageForm = (props) => {
         </Select>
       </Field>
 
-      <Field label="Session Duration">
-        <Input
-          name="sessionDuration"
-          value={form.values.sessionDuration}
-          placeholder="Specify session duration in seconds"
-          onChange={form.handleChange}
-          disabled={loading}
-          errorMessage={form.errors.sessionDuration}
-        />
-      </Field>
-
       {form.values.type === REDIS_STORAGE && (
         <>
           <Field label="Address">
             <Input
-              name="address"
-              value={form.values.address}
+              name="redis.address"
+              value={form.values.redis.address}
               placeholder="Specify address"
               onChange={form.handleChange}
               disabled={loading}
@@ -89,8 +67,8 @@ const SessionStorageForm = (props) => {
           </Field>
           <Field label="Password">
             <Input
-              name="password"
-              value={form.values.password}
+              name="redis.password"
+              value={form.values.redis.password}
               disabled={loading}
               placeholder="Specify password"
               onChange={form.handleChange}
@@ -99,8 +77,8 @@ const SessionStorageForm = (props) => {
           </Field>
           <Field label="DB">
             <Input
-              name="db"
-              value={form.values.db}
+              name="redis.db"
+              value={form.values.redis.db}
               disabled={loading}
               placeholder="Specify DB"
               onChange={form.handleChange}
@@ -114,8 +92,8 @@ const SessionStorageForm = (props) => {
         <>
           <Field label="Region">
             <Input
-              name="region"
-              value={form.values.region}
+              name="dynamodb.region"
+              value={form.values.dynamodb.region}
               placeholder="Specify region"
               disabled={loading}
               onChange={form.handleChange}
@@ -124,8 +102,8 @@ const SessionStorageForm = (props) => {
           </Field>
           <Field label="Endpoint" subtext="Can be figured out automatically from the region">
             <Input
-              name="endpoint"
-              value={form.values.endpoint}
+              name="dynamodb.endpoint"
+              value={form.values.dynamodb.endpoint}
               placeholder="Specify endpoint"
               disabled={loading}
               onChange={form.handleChange}
