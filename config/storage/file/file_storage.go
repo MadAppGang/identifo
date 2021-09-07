@@ -21,6 +21,7 @@ type ConfigurationStorage struct {
 	updateChanClosed bool
 	cache            model.ServerSettings
 	cached           bool
+	config           model.ConfigStorageSettings
 }
 
 func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
@@ -60,6 +61,7 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 	}
 
 	cs := &ConfigurationStorage{
+		config:           config,
 		ServerConfigPath: config.File.FileName,
 		UpdateChan:       make(chan interface{}, 1),
 	}
@@ -111,10 +113,9 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 		return model.ServerSettings{}, fmt.Errorf("Cannot unmarshal server configuration file: %s", err)
 	}
 
-	if err != nil {
-		cs.cache = settings
-		cs.cached = true
-	}
+	settings.Config = cs.config
+	cs.cache = settings
+	cs.cached = true
 
 	return settings, settings.Validate()
 }

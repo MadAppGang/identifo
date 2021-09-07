@@ -6,26 +6,23 @@ import Input from '~/components/shared/Input';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import SaveIcon from '~/components/icons/SaveIcon';
 import { Select, Option } from '~/components/shared/Select';
-import { validateSmsServiceForm } from './validation';
 import useForm from '~/hooks/useForm';
 
-const [TWILIO, MOCK, NEXMO] = ['twilio', 'mock', 'nexmo'];
+const [TWILIO, MOCK, NEXMO, RMOBILE] = ['twilio', 'mock', 'nexmo', 'routemobile'];
 
 const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
   const initialValues = {
     type: settings ? settings.type : '',
-    accountSid: settings ? settings.accoundSid : '',
-    authToken: settings ? settings.authToken : '',
-    serviceSid: settings ? settings.serviceSid : '',
-    apiKey: settings ? settings.apiKey : '',
-    apiSecret: settings ? settings.apiSecret : '',
+    [TWILIO]: { accountSid: '', authToken: '', serviceSid: '' },
+    [NEXMO]: { apiKey: '', apiSecret: '' },
+    [RMOBILE]: { username: '', password: '', source: '', region: '' },
   };
 
   const handleSubmit = (values) => {
     onSubmit(update(settings, values));
   };
-
-  const form = useForm(initialValues, validateSmsServiceForm, handleSubmit);
+  // TODO:Nikita K implement form validation
+  const form = useForm(initialValues, null, handleSubmit);
 
   React.useEffect(() => {
     if (!settings) return;
@@ -45,6 +42,7 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
         >
           <Option value={TWILIO} title="Twilio" />
           <Option value={NEXMO} title="Nexmo" />
+          <Option value={RMOBILE} title="Route Mobile" />
           <Option value={MOCK} title="Mock" />
         </Select>
       </Field>
@@ -53,8 +51,8 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
         <>
           <Field label="Api Key">
             <Input
-              name="apiKey"
-              value={form.values.apiKey}
+              name="nexmo.apiKey"
+              value={form.values.nexmo.apiKey}
               autoComplete="off"
               placeholder="Specify Nexmo api key"
               onChange={form.handleChange}
@@ -66,8 +64,8 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
 
           <Field label="Api Secret">
             <Input
-              name="apiSecret"
-              value={form.values.apiSecret}
+              name="nexmo.apiSecret"
+              value={form.values.nexmo.apiSecret}
               autoComplete="off"
               placeholder="Specify Nexmo api secret"
               onChange={form.handleChange}
@@ -83,8 +81,8 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
         <>
           <Field label="Auth Token">
             <Input
-              name="authToken"
-              value={form.values.authToken}
+              name="twilio.authToken"
+              value={form.values.twilio.authToken}
               autoComplete="off"
               placeholder="Specify Twilio Auth Token"
               onChange={form.handleChange}
@@ -96,8 +94,8 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
 
           <Field label="Account SID">
             <Input
-              name="accountSid"
-              value={form.values.accountSid}
+              name="twilio.accountSid"
+              value={form.values.twilio.accountSid}
               autoComplete="off"
               placeholder="Specify Twilio Account SID"
               onChange={form.handleChange}
@@ -109,10 +107,66 @@ const SmsServiceSettings = ({ settings, loading, onSubmit }) => {
 
           <Field label="Service SID">
             <Input
-              name="serviceSid"
-              value={form.values.serviceSid}
+              name="twilio.serviceSid"
+              value={form.values.twilio.serviceSid}
               autoComplete="off"
               placeholder="Specify Twilio Service SID"
+              onChange={form.handleChange}
+              onBlur={form.handleBlur}
+              disabled={loading}
+              errorMessage={form.errors.serviceSid}
+            />
+          </Field>
+        </>
+      )}
+
+      {form.values.type === RMOBILE && (
+        <>
+          <Field label="Username">
+            <Input
+              name="routemobile.username"
+              value={form.values.routemobile.username}
+              autoComplete="off"
+              placeholder="Specify Route mobile username"
+              onChange={form.handleChange}
+              onBlur={form.handleBlur}
+              disabled={loading}
+              errorMessage={form.errors.serviceSid}
+            />
+          </Field>
+
+          <Field label="Password">
+            <Input
+              name="routemobile.password"
+              value={form.values.routemobile.password}
+              autoComplete="off"
+              placeholder="Enter password"
+              onChange={form.handleChange}
+              onBlur={form.handleBlur}
+              disabled={loading}
+              errorMessage={form.errors.serviceSid}
+            />
+          </Field>
+
+          <Field label="Source">
+            <Input
+              name="routemobile.source"
+              value={form.values.routemobile.source}
+              autoComplete="off"
+              placeholder="Specify Route mobile source"
+              onChange={form.handleChange}
+              onBlur={form.handleBlur}
+              disabled={loading}
+              errorMessage={form.errors.serviceSid}
+            />
+          </Field>
+
+          <Field label="Region">
+            <Input
+              name="routemobile.region"
+              value={form.values.routemobile.region}
+              autoComplete="off"
+              placeholder="Specify Route mobile region"
               onChange={form.handleChange}
               onBlur={form.handleBlur}
               disabled={loading}

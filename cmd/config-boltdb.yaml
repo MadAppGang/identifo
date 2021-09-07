@@ -1,7 +1,7 @@
 general:
-  host: http://localhost:8081
+  host: http://localhost
   port: "8081"
-  issuer: http://localhost:8081
+  issuer: http://localhost
   algorithm: es256
 
 adminAccount:

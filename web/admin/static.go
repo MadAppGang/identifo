@@ -92,56 +92,6 @@ func (ar *Router) UploadADDAFile() http.HandlerFunc {
 	}
 }
 
-// UploadJWTKeys is for uploading public and private keys used for signing JWTs.
-func (ar *Router) UploadJWTKeys() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		r.Body = http.MaxBytesReader(w, r.Body, oneMegabyte)
-
-		if err := r.ParseMultipartForm(oneMegabyte); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Error parsing a request body as multipart/form-data: %s", err.Error()))
-			return
-		}
-
-		formKeys := r.MultipartForm.File["keys"]
-
-		keys := model.JWTKeys{}
-
-		for _, fileHeader := range formKeys {
-			f, err := fileHeader.Open()
-			if err != nil {
-				ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Error uploading key: %s", err.Error()))
-				return
-			}
-			defer f.Close()
-
-			switch fileHeader.Filename {
-			case "private.pem":
-				keys.Private = f
-			case "public.pem":
-				keys.Public = f
-			default:
-				ar.Error(w, fmt.Errorf("Invalid key field name '%s'", fileHeader.Filename), http.StatusBadRequest, "")
-				return
-			}
-		}
-
-		if keys.Private == nil {
-			ar.Error(w, fmt.Errorf("Empty private key"), http.StatusBadRequest, "")
-			return
-		}
-		if keys.Public == nil {
-			ar.Error(w, fmt.Errorf("Empty public key"), http.StatusBadRequest, "")
-			return
-		}
-
-		if err := ar.server.Storages().Key.ReplaceKeys(keys); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
-			return
-		}
-		ar.ServeJSON(w, http.StatusOK, nil)
-	}
-}
-
 func (ar *Router) parseStaticFileFullName(w http.ResponseWriter, r *http.Request) (string, error) {
 	filename := r.URL.Query().Get("name")
 	if len(filename) == 0 {

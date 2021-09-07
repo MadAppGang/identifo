@@ -26,6 +26,22 @@ const fetchFederatedProvidersAttempt = actionCreator(types.FETCH_FEDERATED_PROVI
 const fetchFederatedProviderssSuccess = actionCreator(types.FETCH_FEDERATED_PROVIDERS_SUCCESS);
 const fetchFederatedProviderssFailure = actionCreator(types.FETCH_FEDERATED_PROVIDERS_FAILURE);
 
+export const showSettingsDialog = actionCreator(types.SHOW_SETTINGS_DIALOG);
+export const hideSettingsDialog = actionCreator(types.HIDE_SETTINGS_DIALOG);
+
+export const showSettingsSnack = actionCreator(types.SHOW_SETTINGS_SNACK);
+export const hideSettingsSnack = actionCreator(types.HIDE_SETTINGS_SNACK);
+
+export const handleSettingsDialog = config => async (dispatch) => {
+  return new Promise((resolve) => {
+    const callback = (d) => {
+      dispatch(hideSettingsDialog());
+      resolve(d);
+    };
+    dispatch(showSettingsDialog({ ...config, callback }));
+  });
+};
+
 const fetchApplications = () => async (dispatch, _, services) => {
   dispatch(fetchAttempt());
 

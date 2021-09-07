@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React from 'react';
 import { Provider } from 'react-redux';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
 import LoginScreen from './LoginScreen';
@@ -10,6 +10,7 @@ import { ServicesContext } from '../hooks/useServices';
 import './Root.css';
 
 const Root = ({ store, services }) => {
+  window.__store__ = store;
   return (
     <Provider store={store}>
       <ServicesContext.Provider value={services}>

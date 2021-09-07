@@ -3,7 +3,7 @@ const toSnakeCase = (value) => {
 };
 
 const toCamelCase = (value) => {
-  return value.replace(/_(\w)/, (_, char) => char.toUpperCase());
+  return value.replace(/_(\w)/g, (_, char) => char.toUpperCase());
 };
 
 export const toDeepCase = (input, targetCase) => {

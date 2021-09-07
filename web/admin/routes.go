@@ -104,5 +104,6 @@ func (ar *Router) initRoutes() {
 	static.Path("/template").HandlerFunc(ar.UploadStringifiedFile()).Methods("PUT")
 
 	static.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
+	static.Path("/keys").HandlerFunc(ar.GetJWTKeys()).Methods("GET")
 	static.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadADDAFile()).Methods("POST")
 }
