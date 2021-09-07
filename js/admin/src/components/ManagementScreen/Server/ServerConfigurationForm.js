@@ -7,7 +7,6 @@ import Field from '~/components/shared/Field';
 import Button from '~/components/shared/Button';
 import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
-import { Select, Option } from '~/components/shared/Select';
 
 const storageTypes = {
   FILE: 'file',
@@ -54,16 +53,12 @@ const ServerConfigurationForm = (props) => {
       )}
 
       <Field label="Storage Type">
-        <Select
-          value={storageType}
-          disabled={loading}
-          onChange={setStorageType}
-          placeholder="Select storage type"
-        >
-          <Option value={storageTypes.FILE} title="File" />
-          <Option value={storageTypes.ETCD} title="Etcd" />
-          <Option value={storageTypes.S3} title="S3" />
-        </Select>
+        <Input
+          value={settings.type}
+          autoComplete="off"
+          placeholder="Storage type"
+          disabled
+        />
       </Field>
 
       <Field label="Settings Key" subtext={settingsKeyDescription[storageType]}>
@@ -72,7 +67,7 @@ const ServerConfigurationForm = (props) => {
           autoComplete="off"
           placeholder="Enter settings key"
           onChange={e => setSettingsKey(e.target.value)}
-          disabled={loading}
+          disabled
         />
       </Field>
 

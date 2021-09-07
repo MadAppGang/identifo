@@ -11,8 +11,8 @@ const actions = {
   disgard: 1,
 };
 const config = {
-  content: 'Your settings have been changed, do you want to save it?',
-  buttons: [{ label: 'Save', data: actions.save }, { label: 'Don`t save', data: actions.disgard }],
+  content: 'You have changed server settings, do you want to apply and restart the server?',
+  buttons: [{ label: 'Apply and restart', data: actions.save }, { label: 'Discard all changes', data: actions.disgard }],
 };
 export const SaveChangesSnack = () => {
   const dispatch = useDispatch();

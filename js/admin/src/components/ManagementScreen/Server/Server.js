@@ -7,13 +7,13 @@ import { uploadJWTKeys } from '~/modules/settings/actions';
 import ConfigurationForm from './ServerConfigurationForm';
 import GeneralTab from './ServerGeneralTab';
 import JWTForm from './ServerJWTForm';
-import { getKeyStorageSettings } from '~/modules/settings/selectors';
+import { getKeyStorageSettings, getSettingsConfig } from '~/modules/settings/selectors';
 
 const GeneralSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const dispatch = useDispatch();
   const settings = useSelector(getKeyStorageSettings);
-
+  const configSettings = useSelector(getSettingsConfig);
   const { notifySuccess } = useNotifications();
 
   const { progress, setProgress } = useProgressBar();
@@ -43,6 +43,7 @@ const GeneralSection = () => {
 
       <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
         <Tab title="General" />
+        <Tab title="Token Storage" />
         <Tab title="Token Settings" />
         <Tab title="Configuration Storage" />
 
@@ -57,10 +58,10 @@ const GeneralSection = () => {
             />
           )}
 
-          {tabIndex === 2 && (
+          {tabIndex === 3 && (
             <ConfigurationForm
               loading={!!progress}
-              settings={settings}
+              settings={configSettings}
               onSubmit={handleSubmit}
             />
           )}

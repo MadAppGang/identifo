@@ -33,7 +33,7 @@ const validateJwtForm = (values) => {
 const ServerJWTForm = (props) => {
   const { error, loading, onSubmit } = props;
 
-  const settings = props.settings ? props.settings.keyStorage : null;
+  const settings = props.settings ? props.settings : null;
 
   const initialValues = {
     storageType: settings ? settings.type : '',
@@ -86,7 +86,7 @@ const ServerJWTForm = (props) => {
           onChange={value => form.setValue('storageType', value)}
           placeholder="Select storage type"
         >
-          <Option value={storageTypes.FILE} title="File" />
+          <Option value={storageTypes.FILE} title="Local" />
           <Option value={storageTypes.S3} title="S3" />
         </Select>
       </Field>

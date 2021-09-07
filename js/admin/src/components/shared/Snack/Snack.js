@@ -1,19 +1,29 @@
 import React from 'react';
 import { createPortal } from 'react-dom';
 import PropTypes from 'prop-types';
+import classnames from 'classnames';
+import Button from '~/components/shared/Button';
 import './index.css';
 
-const SnackComponent = ({ content, buttons, callback }) => {
+const SnackComponent = ({ content, buttons, callback, success, error }) => {
+  const snackClasses = classnames('iap-snack', {
+    'iap-snack--success': success,
+    'iap-snack--error': error,
+  });
   return (
-    <div className="iap-snack">
+    <div className={snackClasses}>
       <div className="iap-snack--in">
-        <div className="iap-snack--content">{content}</div>
+        <div className="iap-snack--content"><span>{content}</span></div>
         <div className="iap-snack--controls">
-          {buttons.map((btn) => {
+          {buttons.map((btn, idx) => {
             return (
-              <button className="iap-snack--control-item" key={btn.label} onClick={() => callback(btn.data)}>
+              <Button
+                white
+                outline={idx > 0}
+                onClick={() => callback(btn.data)}
+              >
                 {btn.label}
-              </button>
+              </Button>
             );
           })}
         </div>

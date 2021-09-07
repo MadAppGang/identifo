@@ -2,7 +2,8 @@
     position: fixed;
     bottom: 20px;
     right: 20px;
-    background-color: rgba(0, 0, 0, .7);
+    background-color: var(--main-color);
+    max-width: 400px;
     padding: 24px;
     border-radius: 16px;
     color: #fff;
@@ -10,11 +11,19 @@
     line-height: 24px;
 }
 
+.iap-snack--success {
+    background-color: #65C48D;
+}
+
+.iap-snack--error {
+    background-color: #F27171;
+}
+
 .iap-snack--controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    margin-top: 12px;
+    justify-content: flex-start;
+    margin-top: 24px;
 }
 
 .iap-snack--control-item {
@@ -28,6 +37,6 @@
     line-height: 22px;
 }
 
-.iap-snack--control-item:hover{
+.iap-snack--control-item:hover {
     border-bottom: 1px solid var(--main-color-hover);
 }

@@ -54,6 +54,30 @@
   color: #fff;
 }
 
+.iap-btn.iap-btn--white {
+  background-color: #fff;
+  border-color: transparent;
+  color: var(--main-color);
+  transition: all .2s linear;
+}
+
+.iap-btn.iap-btn--white:hover,
+.iap-btn.iap-btn--white:focus {
+  background-color: #EBF4FD;
+  color: rgba(49, 138, 222, 1);
+}
+
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline {
+  border-color: #fff;
+  color: #fff;
+  background-color: transparent;
+}
+
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline:hover,
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline:focus {
+  background-color: #62ABF0;
+}
+
 .iap-btn.iap-btn--transparent:focus,
 .iap-btn.iap-btn--transparent:hover {
   background-color: #eee;
