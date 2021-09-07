@@ -37,3 +37,11 @@ export const getStaticFilesSettings = (state) => {
 export const getSettingsConfig = (state) => {
   return getCurentSettings(state).config;
 };
+
+export const getAdminAccountSettings = (state) => {
+  return getCurentSettings(state).adminAccount;
+};
+
+export const getSessionStorageSettings = (state) => {
+  return getCurentSettings(state).sessionStorage;
+};

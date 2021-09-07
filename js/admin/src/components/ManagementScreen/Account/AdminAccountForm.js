@@ -4,7 +4,6 @@ import { hasError } from '@dprovodnikov/validation';
 import Field from '~/components/shared/Field';
 import Input from '~/components/shared/Input';
 import Button from '~/components/shared/Button';
-import Toggle from '~/components/shared/Toggle';
 import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
@@ -15,17 +14,17 @@ const DEFAULT_SESSION_DURATION = 300;
 
 const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
   const initialValues = {
-    loginEnvName: settings ? settings.login_env_name : '',
-    passwordEnvName: settings ? settings.password_env_name : '',
+    loginEnvName: settings ? settings.loginEnvName : '',
+    passwordEnvName: settings ? settings.passwordEnvName : '',
     sessionDuration: '',
   };
 
   const handleSubmit = (data) => {
-    //  TODO: Nikita k implement form handler
-    // sessionDuration: value => Number(value) || DEFAULT_SESSION_DURATION,
-    // onSubmit(update(settings, {
-    //   emailName, password: passwordName || undefined,
-    // }));
+    const payload = {
+      ...data,
+      sessionDuration: Number(data.sessionDuration) || DEFAULT_SESSION_DURATION,
+    };
+    onSubmit(update(settings, payload));
   };
 
   const form = useForm(initialValues, validateAccountForm, handleSubmit);
@@ -34,8 +33,8 @@ const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
     if (!settings) return;
 
     form.setValues({
-      loginEnvName: settings.login_env_name || '',
-      passwordEnvName: settings.password_env_name || '',
+      loginEnvName: settings.loginEnvName || '',
+      passwordEnvName: settings.passwordEnvName || '',
       sessionDuration: DEFAULT_SESSION_DURATION.toString(),
     });
   }, [settings]);
