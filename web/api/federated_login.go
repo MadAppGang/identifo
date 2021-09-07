@@ -37,7 +37,6 @@ func init() {
 	keySet = len(key) != 0
 
 	cookieStore := sessions.NewCookieStore([]byte(key))
-	cookieStore.Options.SameSite = http.SameSiteNoneMode
 	cookieStore.Options.HttpOnly = true
 	Store = cookieStore
 	defaultStore = Store
