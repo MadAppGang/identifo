@@ -22,7 +22,7 @@ const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
   const handleSubmit = (data) => {
     const payload = {
       ...data,
-      sessionDuration: Number(data.sessionDuration) || DEFAULT_SESSION_DURATION,
+      sessionDuration: Number(data.sessionDuration),
     };
     onSubmit(update(settings, payload));
   };
@@ -35,7 +35,7 @@ const AdminAccountForm = ({ onSubmit, error, loading, settings }) => {
     form.setValues({
       loginEnvName: settings.loginEnvName || '',
       passwordEnvName: settings.passwordEnvName || '',
-      sessionDuration: DEFAULT_SESSION_DURATION.toString(),
+      sessionDuration: settings.sessionDuration.toString() || DEFAULT_SESSION_DURATION.toString(),
     });
   }, [settings]);
 

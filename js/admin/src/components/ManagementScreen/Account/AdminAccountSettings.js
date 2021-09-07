@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import update from '@madappgang/update-by-path';
 import AccountForm from './AdminAccountForm';
@@ -15,8 +15,14 @@ const AdminAccountSettings = () => {
   const { notifySuccess, notifyFailure } = useNotifications();
 
   const error = useSelector(s => s.account.error);
-  const settings = useSelector(getAdminAccountSettings);
+  const accountSettings = useSelector(getAdminAccountSettings);
   const sessionSettings = useSelector(getSessionStorageSettings);
+  const settings = useMemo(() => {
+    if (accountSettings && sessionSettings) {
+      return { ...accountSettings, sessionDuration: sessionSettings.sessionDuration };
+    }
+    return null;
+  }, [accountSettings, sessionSettings]);
 
   const fetchSettings = async () => {
     setProgress(70);
@@ -29,7 +35,7 @@ const AdminAccountSettings = () => {
     try {
       const { sessionDuration, ...rest } = data;
       const payload = {
-        adminAccount: update(settings, rest),
+        adminAccount: update(accountSettings, rest),
         sessionStorage: update(sessionSettings, { sessionDuration }),
       };
       await dispatch(updateServerSettings(payload));
