@@ -15,5 +15,5 @@ type TestType string
 
 const (
 	TTDatabase   TestType = "database"
-	TTKeyStorage TestType = "key_sotrage"
+	TTKeyStorage TestType = "key_storage"
 )

@@ -29,8 +29,6 @@ type UserStorage interface {
 	UserByID(id string) (User, error)
 	UserByEmail(email string) (User, error)
 	IDByName(name string) (string, error)
-	AttachDeviceToken(id, token string) error
-	DetachDeviceToken(token string) error
 	UserByUsername(username string) (User, error)
 	UserExists(name string) bool
 	UserByFederatedID(provider string, id string) (User, error)
@@ -40,11 +38,20 @@ type UserStorage interface {
 	CheckPassword(id, password string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, int, error)
+	UpdateLoginMetadata(userID string)
 
+	// push device tokens
+	AttachDeviceToken(userID, token string) error
+	DetachDeviceToken(token string) error
+	AllDeviceTokens(userID string) ([]string, error)
+
+	// Scopes
 	RequestScopes(userID string, scopes []string) ([]string, error)
 	Scopes() []string
+
+	// import data
 	ImportJSON(data []byte) error
-	UpdateLoginMetadata(userID string)
+
 	Close()
 }
 

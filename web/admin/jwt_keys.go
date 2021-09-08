@@ -3,6 +3,7 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/madappgang/identifo/model"
 )
@@ -62,6 +63,10 @@ func (ar *Router) GetJWTKeys() http.HandlerFunc {
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
+		}
+		private, ok := r.URL.Query()["include_private_key"]
+		if !ok || len(private) == 0 || strings.ToUpper(private[0]) != "TRUE" {
+			keys.Private = ""
 		}
 
 		ar.ServeJSON(w, http.StatusOK, keys)
