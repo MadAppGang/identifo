@@ -16,6 +16,7 @@ This settings file is subject for changes and extendability.
 | host | Identifo server URL. env variable `HOST_NAME` overrides this value from the config file. The host should have full URL, including scheme, hostname, path and port. |
 | issuer | JWT token issuer, used as `iss` field value in JWT token. [Please refer to RFC7519 Section 4.1.1.](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1) |
 | algorithm | Key signature algorithms for JWT tokens. [Please refer RFC7518 for details.](https://datatracker.ietf.org/doc/html/rfc7518) Supported options are: `es256`, `es256` or `auto`. Auto option will use keys algorithm as an option. |
+| supported\_scopes | An array containing a list of the [OAuth 2.0](https://openid.net/specs/openid-connect-discovery-1_0.html#RFC6749) \[RFC6749\] scope values that this server supports. The server MUST support the `openid` scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [\[OpenID.Core\]](https://openid.net/specs/openid-connect-discovery-1_0.html#OpenID.Core) SHOULD be listed, if supported. |
 
 _Example:_
 
@@ -25,6 +26,13 @@ general:
   host: http://localhost:8081 
   issuer: http://localhost:8081 
   algorithm: es256 
+  supported_scopes:
+    - openid
+    - offline
+    - admin_panel
+    - ios
+    - android
+    - adv_manager
 ```
 
 ## Admin panel 
