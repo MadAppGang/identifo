@@ -169,7 +169,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	}
 
 	payload := make(map[string]interface{})
-	if contains(app.TokenPayload, PayloadName) {
+	if model.SliceContains(app.TokenPayload, PayloadName) {
 		payload[PayloadName] = u.Username
 	}
 
@@ -226,7 +226,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		return nil, ErrInvalidApp
 	}
 	// no offline request
-	if !contains(scopes, model.OfflineScope) {
+	if !model.SliceContains(scopes, model.OfflineScope) {
 		return nil, ErrInvalidOfflineScope
 	}
 
@@ -235,7 +235,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 	}
 
 	payload := make(map[string]interface{})
-	if contains(app.TokenPayload, PayloadName) {
+	if model.SliceContains(app.TokenPayload, PayloadName) {
 		payload[PayloadName] = u.Username
 	}
 	now := ijwt.TimeFunc().Unix()
@@ -478,13 +478,4 @@ func WebCookieTokenLifespan(lifespan int64) func(*JWTokenService) error {
 		ts.webCookieTokenLifespan = lifespan
 		return nil
 	}
-}
-
-func contains(s []string, e string) bool {
-	for _, a := range s {
-		if strings.TrimSpace(strings.ToLower(a)) == strings.TrimSpace(strings.ToLower(e)) {
-			return true
-		}
-	}
-	return false
 }

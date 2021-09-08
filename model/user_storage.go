@@ -45,10 +45,6 @@ type UserStorage interface {
 	DetachDeviceToken(token string) error
 	AllDeviceTokens(userID string) ([]string, error)
 
-	// Scopes
-	RequestScopes(userID string, scopes []string) ([]string, error)
-	Scopes() []string
-
 	// import data
 	ImportJSON(data []byte) error
 
@@ -61,6 +57,7 @@ type User struct {
 	ID              string   `json:"id,omitempty" bson:"_id,omitempty"`
 	Username        string   `json:"username" bson:"username,omitempty"`
 	Email           string   `json:"email" bson:"email,omitempty"`
+	FullName        string   `json:"full_name" bson:"full_name,omitempty"`
 	Phone           string   `json:"phone" bson:"phone,omitempty"`
 	Pswd            string   `json:"pswd,omitempty" bson:"pswd,omitempty"`
 	Active          bool     `json:"active,omitempty" bson:"active,omitempty"`
@@ -70,6 +67,7 @@ type User struct {
 	AccessRole      string   `json:"access_role,omitempty" bson:"access_role,omitempty"`
 	Anonymous       bool     `json:"anonymous,omitempty" bson:"anonymous,omitempty"`
 	FederatedIDs    []string `json:"federated_ids,omitempty" bson:"federated_i_ds,omitempty"`
+	Scopes          []string `json:"scopes,omitempty" bson:"scopes,omitempty"`
 }
 
 func maskLeft(s string, hideFraction int) string {
@@ -158,4 +156,37 @@ func randSeq(n int) string {
 		b[i] = rndPassLetters[rand.Intn(len(rndPassLetters))]
 	}
 	return string(b)
+}
+
+// we have three sets of scopes
+// allowed - the list of scopes allowed for app
+// def - default list of scopes for the new user
+// requested - requested list of scopes for new user
+func MergeScopes(allowed, def, requested []string) []string {
+	// if we are not requesting any scope, just use default set
+	if len(requested) == 0 {
+		return def
+	}
+
+	// if allowed list is empty we accepting anythings
+	if len(allowed) == 0 {
+		return requested
+	}
+
+	// if we requested something, ensure we can use only allowed scopes for the app
+	return SliceIntersect(allowed, requested)
+}
+
+// merge two sets of scopes for requested scope
+// we have three sets of scopes
+// user - the list of scopes user has
+// requested - requested list of scopes for key
+func ReqestedScopesApply(user, requested []string) []string {
+	// if we are requesting nothing, we are gettings nothing
+	if len(requested) == 0 {
+		return []string{}
+	}
+
+	// if we requested something, ensure we can use only allowed scopes for the app
+	return SliceIntersect(user, requested)
 }
