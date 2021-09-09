@@ -17,7 +17,7 @@ type ServerSettings struct {
 	Static         StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
 	Services       ServicesSettings           `yaml:"services,omitempty" json:"external_services,omitempty"`
 	Login          LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
-	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"keyStorage,omitempty"`
+	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
 	Config         ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
 	Logger         LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
 }
@@ -73,10 +73,10 @@ type DynamoDatabaseSettings struct {
 type DatabaseType string
 
 const (
-	DBTypeBoltDB   DatabaseType = "boltdb"   // DBTypeBoltDB is for BoltDB.
-	DBTypeMongoDB  DatabaseType = "mongodb"  // DBTypeMongoDB is for MongoDB.
-	DBTypeDynamoDB DatabaseType = "dynamodb" // DBTypeDynamoDB is for DynamoDB.
-	DBTypeFake     DatabaseType = "fake"     // DBTypeFake is for in-memory storage.
+	DBTypeBoltDB   DatabaseType = "boltdb" // DBTypeBoltDB is for BoltDB.
+	DBTypeMongoDB  DatabaseType = "mongo"  // DBTypeMongoDB is for MongoDB.
+	DBTypeDynamoDB DatabaseType = "dynamo" // DBTypeDynamoDB is for DynamoDB.
+	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
 )
 
 // StaticFilesStorageSettings are settings for static files storage.
@@ -107,7 +107,7 @@ const (
 	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
 	StaticFilesStorageTypeS3 = "s3"
 	// StaticFilesStorageTypeDynamoDB is for storing static files in DynamoDB table.
-	StaticFilesStorageTypeDynamoDB = "dynamodb"
+	StaticFilesStorageTypeDynamoDB = "dynamo"
 )
 
 type ConfigStorageSettings struct {
@@ -148,7 +148,7 @@ const (
 	// SessionStorageRedis means to store sessions in Redis.
 	SessionStorageRedis = "redis"
 	// SessionStorageDynamoDB means to store sessions in DynamoDB.
-	SessionStorageDynamoDB = "dynamodb"
+	SessionStorageDynamoDB = "dynamo"
 )
 
 // RedisDatabaseSettings redis storage settings
