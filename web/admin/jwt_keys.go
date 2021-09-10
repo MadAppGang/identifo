@@ -10,8 +10,9 @@ import (
 )
 
 type keys struct {
-	Private string `json:"private,omitempty"`
-	Public  string `json:"public,omitempty"`
+	Private   string `json:"private,omitempty"`
+	Public    string `json:"public,omitempty"`
+	Algorithm string `json:"alg,omitempty"`
 }
 
 // UploadJWTKeys is for uploading public and private keys used for signing JWTs.
@@ -50,6 +51,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			return
 		}
 		newkeys.Public = publicPEM
+		newkeys.Algorithm = ar.server.Services().Token.Algorithm()
 
 		ar.ServeJSON(w, http.StatusOK, newkeys)
 	}
@@ -77,6 +79,7 @@ func (ar *Router) GetJWTKeys() http.HandlerFunc {
 			}
 			k.Private = privatePEM
 		}
+		k.Algorithm = ar.server.Services().Token.Algorithm()
 
 		ar.ServeJSON(w, http.StatusOK, k)
 	}
@@ -140,6 +143,7 @@ func (ar *Router) GenerateNewSecret() http.HandlerFunc {
 			return
 		}
 		newkeys.Public = publicPEM
+		newkeys.Algorithm = ar.server.Services().Token.Algorithm()
 
 		ar.ServeJSON(w, http.StatusOK, newkeys)
 	}

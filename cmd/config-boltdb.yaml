@@ -2,7 +2,6 @@ general:
   host: http://localhost
   port: "8081"
   issuer: http://localhost
-  algorithm: es256
 
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
@@ -58,4 +57,3 @@ keyStorage:
   type: local
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
-    public_key_path: ./jwt/test_artifacts/public.pem

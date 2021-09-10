@@ -46,9 +46,6 @@ func (gss *GeneralServerSettings) Validate() error {
 	if _, err := url.ParseRequestURI(gss.Host); err != nil {
 		return fmt.Errorf("%s. Host is invalid. %s", subject, err)
 	}
-	if len(gss.Algorithm) == 0 {
-		return fmt.Errorf("%s. Algorithm is not set", subject)
-	}
 	if len(gss.Issuer) == 0 {
 		return fmt.Errorf("%s. Issuer is not set", subject)
 	}

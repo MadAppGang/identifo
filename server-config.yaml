@@ -2,7 +2,6 @@ general: # General server settings.
   port: 8081
   host: http://localhost # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
   issuer: http://localhost # JWT tokens issuer.
-  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
 
 # Names of environment variables that store admin credentials.
 adminAccount:

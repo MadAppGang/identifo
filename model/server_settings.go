@@ -27,7 +27,6 @@ type GeneralServerSettings struct {
 	Host            string   `yaml:"host,omitempty" json:"host,omitempty"`
 	Port            string   `yaml:"port,omitempty" json:"port,omitempty"`
 	Issuer          string   `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm       string   `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
 	SupportedScopes []string `yaml:"supported_scopes,omitempty" json:"supported_scopes,omitempty"`
 }
 
