@@ -138,6 +138,17 @@ func (ts *JWTokenService) PublicKey() interface{} {
 	}
 }
 
+func (ts *JWTokenService) SetPrivateKey(key interface{}) {
+	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!")
+	ts.privateKey = key
+	ts.cachedPublicKey = nil
+	ts.cachedAlgorithm = ""
+}
+
+func (ts *JWTokenService) PrivateKey() interface{} {
+	return ts.privateKey
+}
+
 // KeyID returns public key ID, using SHA-1 fingerprint.
 func (ts *JWTokenService) KeyID() string {
 	pk := ts.PublicKey()

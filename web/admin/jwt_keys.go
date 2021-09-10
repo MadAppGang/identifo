@@ -5,53 +5,41 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/madappgang/identifo/model"
+	jwt "github.com/madappgang/identifo/jwt"
 )
+
+type keys struct {
+	Private string `json:"private,omitempty"`
+	Public  string `json:"public,omitempty"`
+}
 
 // UploadJWTKeys is for uploading public and private keys used for signing JWTs.
 func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		r.Body = http.MaxBytesReader(w, r.Body, oneMegabyte)
+		k := keys{}
 
-		if err := r.ParseMultipartForm(oneMegabyte); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("error parsing a request body as multipart/form-data: %s", err.Error()))
+		if err := ar.mustParseJSON(w, r, &k); err != nil {
+			ar.Error(w, fmt.Errorf("error parsing keys: %v", err), http.StatusBadRequest, "")
 			return
 		}
 
-		keys := model.JWTKeys{}
+		if _, _, err := jwt.LoadPrivateKeyFromString(k.Private); err != nil {
+			ar.Error(w, fmt.Errorf("error decoding private key: %v", err), http.StatusBadRequest, "")
+			return
+		}
 
-		/// private key read
-		_, prHeader, err := r.FormFile("private")
-		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("error parsing parsing private file: %s", err.Error()))
-			return
-		}
-		fp, err := prHeader.Open()
-		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Error getting private key: %s", err.Error()))
-			return
-		}
-		defer fp.Close()
-		keys.Private = fp
-
-		/// public key read
-		_, pubHeader, err := r.FormFile("public")
-		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("error parsing parsing public file: %s", err.Error()))
-			return
-		}
-		fpub, err := pubHeader.Open()
-		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, fmt.Sprintf("Error getting public key: %s", err.Error()))
-			return
-		}
-		defer fpub.Close()
-		keys.Public = fpub
-
-		if err := ar.server.Storages().Key.ReplaceKeys(keys); err != nil {
+		if err := ar.server.Storages().Key.ReplaceKey([]byte(k.Private)); err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
+
+		key, err := ar.server.Storages().Key.LoadPrivateKey()
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.server.Services().Token.SetPrivateKey(key)
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }
@@ -59,16 +47,26 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 // GetJWTKeys returns public and private JWT keys currently used by Identifo
 func (ar *Router) GetJWTKeys() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		public, err := ar.server.Services().Token.PublicKey()
+		k := keys{}
+		public := ar.server.Services().Token.PublicKey()
+		publicPEM, err := jwt.MarshalPublicKeyToPEM(public)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return
 		}
+		k.Public = publicPEM
+
 		private, ok := r.URL.Query()["include_private_key"]
-		if !ok || len(private) == 0 || strings.ToUpper(private[0]) != "TRUE" {
-			keys.Private = ""
+		if ok && len(private) > 0 && strings.ToUpper(private[0]) == "TRUE" {
+			private := ar.server.Services().Token.PrivateKey()
+			privatePEM, err := jwt.MarshalPrivateKeyToPEM(private)
+			if err != nil {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+				return
+			}
+			k.Private = privatePEM
 		}
 
-		ar.ServeJSON(w, http.StatusOK, keys)
+		ar.ServeJSON(w, http.StatusOK, k)
 	}
 }

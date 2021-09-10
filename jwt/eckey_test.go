@@ -8,6 +8,7 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	jwti "github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 )
 
 // SEC 1, ASN.1, DER format
@@ -82,16 +83,16 @@ func TestKeysManualSerializationService(t *testing.T) {
 }
 
 func TestPemMarshalling(t *testing.T) {
-	private, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
-	// private, alg, err := jwti.LoadPrivateKeyFromString(string(privateKeyPEM))
+	// private, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
+	private, alg, err := jwti.LoadPrivateKeyFromString(string(privateKeyPEM))
 	if err != nil {
 		fmt.Println(string(privateKeyPEM))
 		t.Fatalf("Error parsing key from PEM: %v", err)
 	}
 
-	// if alg != model.TokenSignatureAlgorithmES256 {
-	// 	t.Fatalf("wrong algorithm in PEM: %v", alg)
-	// }
+	if alg != model.TokenSignatureAlgorithmES256 {
+		t.Fatalf("wrong algorithm in PEM: %v", alg)
+	}
 
 	result, err := jwti.MarshalPrivateKeyToPEM(private)
 	if err != nil {

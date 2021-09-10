@@ -50,7 +50,6 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   #file/local key storage settings
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
-    public_key_path: ./jwt/test_artifacts/public.pem
 
 static:
   type: local
@@ -102,3 +101,6 @@ services:
     #   password: secret # RouteMobile-related setting.
     #   source: whatever # RouteMobile-related setting.
     #   region: australia # RouteMobile-related setting. Supported values are: uae.
+
+
+

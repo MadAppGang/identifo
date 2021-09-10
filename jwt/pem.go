@@ -5,14 +5,24 @@ import (
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
+	"encoding/pem"
+	"errors"
 	"fmt"
 	"io/ioutil"
 
 	"github.com/madappgang/identifo/model"
 )
 
+var ErrKeyMustBePEMEncoded = errors.New("invalid key: Key must be a PEM encoded PKCS1 or PKCS8 key")
+
 func LoadPrivateKeyFromString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	pp, err := x509.ParsePKCS8PrivateKey([]byte(s))
+	// Parse PEM block
+	var block *pem.Block
+	if block, _ = pem.Decode([]byte(s)); block == nil {
+		return nil, model.TokenSignatureAlgorithmInvalid, ErrKeyMustBePEMEncoded
+	}
+
+	pp, err := x509.ParsePKCS8PrivateKey(block.Bytes)
 	if err != nil {
 		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
@@ -38,7 +48,13 @@ func LoadPrivateKeyFromPEM(file string) (interface{}, model.TokenSignatureAlgori
 
 // LoadPublicKeyFromString loads public key from string.
 func LoadPublicKeyFromString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	pub, err := x509.ParsePKIXPublicKey([]byte(s))
+	// Parse PEM block
+	var block *pem.Block
+	if block, _ = pem.Decode([]byte(s)); block == nil {
+		return nil, model.TokenSignatureAlgorithmInvalid, ErrKeyMustBePEMEncoded
+	}
+
+	pub, err := x509.ParsePKIXPublicKey(block.Bytes)
 	if err != nil {
 		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
@@ -67,8 +83,8 @@ func MarshalPrivateKeyToPEM(key interface{}) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error creating PEM: %v", err)
 	}
-	b64 := []byte(base64.RawStdEncoding.EncodeToString(pk))
-	return fmt.Sprintf("-----BEGIN PRIVATE KEY-----\n%s-----END PRIVATE KEY-----\n", make64ColsString(b64)), nil
+	b64 := []byte(base64.StdEncoding.EncodeToString(pk))
+	return fmt.Sprintf("-----BEGIN PRIVATE KEY-----\n%s-----END PRIVATE KEY-----\n", Make64ColsString(b64)), nil
 }
 
 func MarshalPublicKeyToPEM(key interface{}) (string, error) {
@@ -76,11 +92,11 @@ func MarshalPublicKeyToPEM(key interface{}) (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("error creating PEM: %v", err)
 	}
-	b64 := []byte(base64.RawStdEncoding.EncodeToString(pk))
-	return fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s-----END PUBLIC KEY-----\n", make64ColsString(b64)), nil
+	b64 := []byte(base64.StdEncoding.EncodeToString(pk))
+	return fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s-----END PUBLIC KEY-----\n", Make64ColsString(b64)), nil
 }
 
-func make64ColsString(slice []byte) string {
+func Make64ColsString(slice []byte) string {
 	chunks := chunkSlice(slice, 64)
 
 	result := ""

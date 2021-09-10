@@ -18,6 +18,12 @@ type TokenService interface {
 	Issuer() string
 	Algorithm() string
 	WebCookieTokenLifespan() int64
-	PublicKey() interface{} // we are not using crypto.PublicKey here to avoid dependencies
+
+	// keys management
+	// replace the old private key with a new one
+	SetPrivateKey(key interface{})
+	PrivateKey() interface{}
+	// not using crypto.PublicKey here to avoid dependencies
+	PublicKey() interface{}
 	KeyID() string
 }
