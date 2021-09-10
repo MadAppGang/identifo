@@ -255,9 +255,6 @@ func (kss *KeyStorageSettings) Validate() error {
 		if len(kss.S3.PrivateKeyKey) == 0 {
 			return fmt.Errorf("%s. Private key  key is not set", subject)
 		}
-		if len(kss.S3.PublicKeyKey) == 0 {
-			return fmt.Errorf("%s. Public key  key is not set", subject)
-		}
 	default:
 		return fmt.Errorf("%s. Unknown type '%s'", subject, kss.Type)
 	}

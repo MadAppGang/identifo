@@ -1,6 +1,8 @@
 package service
 
 import (
+	"crypto/ecdsa"
+	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
@@ -43,14 +45,9 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(keys model.JWTKeys, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
-	if keys.Private == nil || keys.Public == nil {
-		return nil, fmt.Errorf("One of the keys is empty, or both")
-	}
-
-	tokenServiceAlg, ok := keys.Algorithm.(model.TokenSignatureAlgorithm)
-	if !ok || tokenServiceAlg == model.TokenSignatureAlgorithmAuto {
-		return nil, fmt.Errorf("Unknown token service algorithm %s ", keys.Algorithm)
+func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
+	if privateKey == nil {
+		return nil, fmt.Errorf("private key is empty")
 	}
 
 	t := &JWTokenService{
@@ -60,9 +57,7 @@ func NewJWTokenService(keys model.JWTKeys, issuer string, tokenStorage model.Tok
 		userStorage:            userStorage,
 		resetTokenLifespan:     int64(2 * 60 * 60),      // 2 hours is a default expiration time for refresh tokens.
 		webCookieTokenLifespan: int64(2 * 24 * 60 * 60), // 2 days is a default default expiration time for access tokens.
-		algorithm:              tokenServiceAlg,
-		privateKey:             keys.Private,
-		publicKey:              keys.Public,
+		privateKey:             privateKey,
 	}
 
 	// Apply options.
@@ -78,14 +73,15 @@ func NewJWTokenService(keys model.JWTKeys, issuer string, tokenStorage model.Tok
 // JWTokenService is a JWT token service.
 type JWTokenService struct {
 	privateKey             interface{} // *ecdsa.PrivateKey, or *rsa.PrivateKey
-	publicKey              interface{} // *ecdsa.PublicKey, or *rsa.PublicKey
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
 	userStorage            model.UserStorage
-	algorithm              model.TokenSignatureAlgorithm
 	issuer                 string
 	resetTokenLifespan     int64
 	webCookieTokenLifespan int64
+
+	cachedAlgorithm string
+	cachedPublicKey interface{} // *ecdsa.PublicKey, or *rsa.PublicKey
 }
 
 // Issuer returns token issuer name.
@@ -95,26 +91,61 @@ func (ts *JWTokenService) Issuer() string {
 
 // Algorithm  returns signature algorithm.
 func (ts *JWTokenService) Algorithm() string {
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		return "ES256"
-	case model.TokenSignatureAlgorithmRS256:
+	if len(ts.cachedAlgorithm) > 0 {
+		return ts.cachedAlgorithm
+	}
+
+	switch ts.privateKey.(type) {
+	case *rsa.PrivateKey:
+		ts.cachedAlgorithm = "RS256"
 		return "RS256"
+	case *ecdsa.PrivateKey:
+		ts.cachedAlgorithm = "ES256"
+		return "ES256"
 	default:
 		return ""
 	}
 }
 
+func (ts *JWTokenService) jwtMethod() jwt.SigningMethod {
+	switch ts.Algorithm() {
+	case "ES256":
+		return jwt.SigningMethodES256
+	case "RS256":
+		return jwt.SigningMethodRS256
+	default:
+		return nil
+	}
+}
+
 // PublicKey returns public key.
 func (ts *JWTokenService) PublicKey() interface{} {
-	return ts.publicKey
+	if ts.cachedPublicKey != nil {
+		return ts.cachedPublicKey
+	}
+
+	switch ts.privateKey.(type) {
+	case *rsa.PrivateKey:
+		pk := ts.privateKey.(*rsa.PrivateKey)
+		ts.cachedPublicKey = pk
+		return pk.Public()
+	case *ecdsa.PrivateKey:
+		pk := ts.privateKey.(*ecdsa.PrivateKey)
+		ts.cachedPublicKey = pk
+		return pk.Public()
+	default:
+		return nil
+	}
 }
 
 // KeyID returns public key ID, using SHA-1 fingerprint.
 func (ts *JWTokenService) KeyID() string {
-	if der, err := x509.MarshalPKIXPublicKey(ts.publicKey); err == nil {
-		s := sha1.Sum(der)
-		return base64.RawURLEncoding.EncodeToString(s[:]) // slice from [20]byte
+	pk := ts.PublicKey()
+	if pk != nil {
+		if der, err := x509.MarshalPKIXPublicKey(pk); err == nil {
+			s := sha1.Sum(der)
+			return base64.RawURLEncoding.EncodeToString(s[:]) // slice from [20]byte
+		}
 	}
 	return ""
 }
@@ -131,7 +162,7 @@ func (ts *JWTokenService) Parse(s string) (model.Token, error) {
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counterpart to verify them.
-		return ts.publicKey, nil
+		return ts.PublicKey(), nil
 	})
 	if err != nil {
 		return nil, err
@@ -203,14 +234,9 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		},
 	}
 
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case model.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
 	}
 
 	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
@@ -258,14 +284,9 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		},
 	}
 
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case model.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
 	}
 
 	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
@@ -354,14 +375,9 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (model.Token, error
 		},
 	}
 
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case model.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
 	}
 
 	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
@@ -388,14 +404,9 @@ func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 		},
 	}
 
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case model.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
 	}
 
 	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
@@ -425,14 +436,9 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 		},
 	}
 
-	var sm jwt.SigningMethod
-	switch ts.algorithm {
-	case model.TokenSignatureAlgorithmES256:
-		sm = jwt.SigningMethodES256
-	case model.TokenSignatureAlgorithmRS256:
-		sm = jwt.SigningMethodRS256
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
 	}
 
 	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)

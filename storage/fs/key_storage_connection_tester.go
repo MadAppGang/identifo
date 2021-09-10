@@ -20,6 +20,6 @@ func (ct *KeyStorageConnectionTester) Connect() error {
 	if err != nil {
 		return err
 	}
-	_, err = ks.LoadKeys(model.TokenSignatureAlgorithmAuto)
+	_, err = ks.LoadPrivateKey()
 	return err
 }

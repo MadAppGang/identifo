@@ -59,7 +59,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 // GetJWTKeys returns public and private JWT keys currently used by Identifo
 func (ar *Router) GetJWTKeys() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		keys, err := ar.server.Storages().Key.GetKeys()
+		public, err := ar.server.Services().Token.PublicKey()
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
 			return

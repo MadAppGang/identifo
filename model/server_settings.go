@@ -173,13 +173,11 @@ type KeyStorageSettings struct {
 
 type KeyStorageFileSettings struct {
 	PrivateKeyPath string `json:"private_key_path,omitempty" yaml:"private_key_path,omitempty"`
-	PublicKeyPath  string `json:"public_key_path,omitempty" yaml:"public_key_path,omitempty"`
 }
 
 type S3KeyStorageSettings struct {
 	Region        string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
 	Bucket        string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
-	PublicKeyKey  string `yaml:"public_key_key,omitempty" json:"public_key_key,omitempty" bson:"public_key_key,omitempty"`
 	PrivateKeyKey string `yaml:"private_key_key,omitempty" json:"private_key_key,omitempty" bson:"private_key_key,omitempty"`
 }
 

@@ -1,114 +1,108 @@
 package jwt
 
 import (
+	"crypto/ecdsa"
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/base64"
+	"fmt"
 	"io/ioutil"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/madappgang/identifo/model"
 )
 
-var supportedSignatureAlgorithms = []model.TokenSignatureAlgorithm{model.TokenSignatureAlgorithmES256, model.TokenSignatureAlgorithmRS256}
+func LoadPrivateKeyFromString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
+	pp, err := x509.ParsePKCS8PrivateKey([]byte(s))
+	if err != nil {
+		return nil, model.TokenSignatureAlgorithmInvalid, err
+	}
+
+	switch private := pp.(type) {
+	case *rsa.PrivateKey:
+		return private, model.TokenSignatureAlgorithmRS256, nil
+	case *ecdsa.PrivateKey:
+		return private, model.TokenSignatureAlgorithmES256, nil
+	default:
+		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T\n", private)
+	}
+}
 
 // LoadPrivateKeyFromPEM loads private key from PEM file.
-func LoadPrivateKeyFromPEM(file string, alg model.TokenSignatureAlgorithm) (interface{}, error) {
+func LoadPrivateKeyFromPEM(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
 	prkb, err := ioutil.ReadFile(file)
 	if err != nil {
-		return nil, err
+		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
-
-	var privateKey interface{}
-	switch alg {
-	case model.TokenSignatureAlgorithmES256:
-		privateKey, err = jwt.ParseECPrivateKeyFromPEM(prkb)
-	case model.TokenSignatureAlgorithmRS256:
-		privateKey, err = jwt.ParseRSAPrivateKeyFromPEM(prkb)
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return privateKey, nil
-}
-
-// LoadPublicKeyFromPEM loads public key from PEM file.
-func LoadPublicKeyFromPEM(file string, alg model.TokenSignatureAlgorithm) (interface{}, error) {
-	if alg == model.TokenSignatureAlgorithmAuto {
-		k, _, e := LoadPublicKeyFromPEMAuto(file)
-		return k, e
-	}
-
-	pkb, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil, err
-	}
-
-	var publicKey interface{}
-	switch alg {
-	case model.TokenSignatureAlgorithmES256:
-		publicKey, err = jwt.ParseECPublicKeyFromPEM(pkb)
-	case model.TokenSignatureAlgorithmRS256:
-		publicKey, err = jwt.ParseRSAPublicKeyFromPEM(pkb)
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
-	}
-
-	if err != nil {
-		return nil, err
-	}
-	return publicKey, nil
-}
-
-// LoadPublicKeyFromPEMAuto loads keys from pem file with key algorithm auto detection
-func LoadPublicKeyFromPEMAuto(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	var err error
-	var key interface{}
-	alg := model.TokenSignatureAlgorithmAuto
-	for _, a := range supportedSignatureAlgorithms {
-		if key, err = LoadPublicKeyFromPEM(file, a); err == nil {
-			alg = a
-			break
-		}
-	}
-	return key, alg, err
+	return LoadPrivateKeyFromString(string(prkb))
 }
 
 // LoadPublicKeyFromString loads public key from string.
-func LoadPublicKeyFromString(s string, alg model.TokenSignatureAlgorithm) (interface{}, error) {
-	if alg == model.TokenSignatureAlgorithmAuto {
-		k, _, e := LoadPublicKeyFromStringAuto(s)
-		return k, e
-	}
-
-	var publicKey interface{}
-	var err error
-
-	switch alg {
-	case model.TokenSignatureAlgorithmES256:
-		publicKey, err = jwt.ParseECPublicKeyFromPEM([]byte(s))
-	case model.TokenSignatureAlgorithmRS256:
-		publicKey, err = jwt.ParseRSAPublicKeyFromPEM([]byte(s))
-	default:
-		return nil, model.ErrWrongSignatureAlgorithm
-	}
-
+func LoadPublicKeyFromString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
+	pub, err := x509.ParsePKIXPublicKey([]byte(s))
 	if err != nil {
-		return nil, err
+		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
-	return publicKey, nil
+	switch pub := pub.(type) {
+	case *rsa.PublicKey:
+		return pub, model.TokenSignatureAlgorithmRS256, nil
+	case *ecdsa.PublicKey:
+		return pub, model.TokenSignatureAlgorithmES256, nil
+	default:
+		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T\n", pub)
+	}
 }
 
-// LoadPublicKeyFromStringAuto loads keys from string with key algorithm auto detection
-func LoadPublicKeyFromStringAuto(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	var err error
-	var key interface{}
-	alg := model.TokenSignatureAlgorithmAuto
-	for _, a := range supportedSignatureAlgorithms {
-		if key, err = LoadPublicKeyFromString(s, a); err == nil {
-			alg = a
-			break
-		}
+// LoadPublicKeyFromPEM loads public key from file
+func LoadPublicKeyFromPEM(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
+	prkb, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
-	return key, alg, err
+
+	return LoadPublicKeyFromString(string(prkb))
+}
+
+func MarshalPrivateKeyToPEM(key interface{}) (string, error) {
+	pk, err := x509.MarshalPKCS8PrivateKey(key)
+	if err != nil {
+		return "", fmt.Errorf("error creating PEM: %v", err)
+	}
+	b64 := []byte(base64.RawStdEncoding.EncodeToString(pk))
+	return fmt.Sprintf("-----BEGIN PRIVATE KEY-----\n%s-----END PRIVATE KEY-----\n", make64ColsString(b64)), nil
+}
+
+func MarshalPublicKeyToPEM(key interface{}) (string, error) {
+	pk, err := x509.MarshalPKIXPublicKey(key)
+	if err != nil {
+		return "", fmt.Errorf("error creating PEM: %v", err)
+	}
+	b64 := []byte(base64.RawStdEncoding.EncodeToString(pk))
+	return fmt.Sprintf("-----BEGIN PUBLIC KEY-----\n%s-----END PUBLIC KEY-----\n", make64ColsString(b64)), nil
+}
+
+func make64ColsString(slice []byte) string {
+	chunks := chunkSlice(slice, 64)
+
+	result := ""
+	for _, line := range chunks {
+		result = result + string(line) + "\n"
+	}
+	return result
+}
+
+// chunkSlice split slices
+func chunkSlice(slice []byte, chunkSize int) [][]byte {
+	var chunks [][]byte
+	for i := 0; i < len(slice); i += chunkSize {
+		end := i + chunkSize
+
+		// necessary check to avoid slicing beyond
+		// slice capacity
+		if end > len(slice) {
+			end = len(slice)
+		}
+		chunks = append(chunks, slice[i:end])
+	}
+
+	return chunks
 }

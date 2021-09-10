@@ -17,9 +17,9 @@ var (
 
 // StrToTokenSignAlg maps string token service algorithm names to values.
 var StrToTokenSignAlg = map[string]TokenSignatureAlgorithm{
-	"es256": TokenSignatureAlgorithmES256,
-	"rs256": TokenSignatureAlgorithmRS256,
-	"auto":  TokenSignatureAlgorithmAuto,
+	"es256":   TokenSignatureAlgorithmES256,
+	"rs256":   TokenSignatureAlgorithmRS256,
+	"invalid": TokenSignatureAlgorithmInvalid,
 }
 
 // TokenSignatureAlgorithm is a signing algorithm used by the token service.
@@ -31,8 +31,8 @@ const (
 	TokenSignatureAlgorithmES256 TokenSignatureAlgorithm = iota + 1
 	// TokenSignatureAlgorithmRS256 is a RS256 signature.
 	TokenSignatureAlgorithmRS256
-	// TokenSignatureAlgorithmAuto tries to detect algorithm on the fly.
-	TokenSignatureAlgorithmAuto
+	// TokenSignatureAlgorithmError indicates invalid or unsupported algorithm
+	TokenSignatureAlgorithmInvalid
 )
 
 // String implements Stringer.
@@ -42,8 +42,8 @@ func (alg TokenSignatureAlgorithm) String() string {
 		return "es256"
 	case TokenSignatureAlgorithmRS256:
 		return "rs256"
-	case TokenSignatureAlgorithmAuto:
-		return "auto"
+	case TokenSignatureAlgorithmInvalid:
+		return "invalid"
 	default:
 		return fmt.Sprintf("TokenSignatureAlgorithm(%d)", alg)
 	}
