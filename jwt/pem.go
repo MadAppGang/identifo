@@ -2,6 +2,8 @@ package jwt
 
 import (
 	"crypto/ecdsa"
+	"crypto/elliptic"
+	"crypto/rand"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/base64"
@@ -121,4 +123,15 @@ func chunkSlice(slice []byte, chunkSize int) [][]byte {
 	}
 
 	return chunks
+}
+
+func GenerateNewPrivateKey(alg model.TokenSignatureAlgorithm) (interface{}, error) {
+	switch alg {
+	case model.TokenSignatureAlgorithmRS256:
+		return rsa.GenerateKey(rand.Reader, 2048)
+	case model.TokenSignatureAlgorithmES256:
+		return ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
+	default:
+		return nil, fmt.Errorf("unable to generate new private key, unsupported algorithm: %s\n", alg)
+	}
 }

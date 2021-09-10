@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	jwt "github.com/madappgang/identifo/jwt"
+	"github.com/madappgang/identifo/model"
 )
 
 type keys struct {
@@ -40,7 +41,17 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 		}
 
 		ar.server.Services().Token.SetPrivateKey(key)
-		ar.ServeJSON(w, http.StatusOK, nil)
+
+		newkeys := keys{}
+		public := ar.server.Services().Token.PublicKey()
+		publicPEM, err := jwt.MarshalPublicKeyToPEM(public)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		newkeys.Public = publicPEM
+
+		ar.ServeJSON(w, http.StatusOK, newkeys)
 	}
 }
 
@@ -68,5 +79,68 @@ func (ar *Router) GetJWTKeys() http.HandlerFunc {
 		}
 
 		ar.ServeJSON(w, http.StatusOK, k)
+	}
+}
+
+// GenerateNewSecret generate new secret key, save it and return new public key
+func (ar *Router) GenerateNewSecret() http.HandlerFunc {
+	type payload struct {
+		Alg string `json:"alg,omitempty"`
+	}
+
+	return func(w http.ResponseWriter, r *http.Request) {
+		p := payload{}
+
+		if err := ar.mustParseJSON(w, r, &p); err != nil {
+			ar.Error(w, fmt.Errorf("error parsing keys: %v", err), http.StatusBadRequest, "")
+			return
+		}
+
+		var alg model.TokenSignatureAlgorithm
+		switch strings.ToLower(p.Alg) {
+		case "es256":
+			alg = model.TokenSignatureAlgorithmES256
+		case "rs256":
+			alg = model.TokenSignatureAlgorithmRS256
+		default:
+			ar.Error(w, fmt.Errorf("unsupported algorithm in payload: %s", p.Alg), http.StatusBadRequest, "")
+			return
+		}
+
+		privateKey, err := jwt.GenerateNewPrivateKey(alg)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		privateKeyPEM, err := jwt.MarshalPrivateKeyToPEM(privateKey)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		if err := ar.server.Storages().Key.ReplaceKey([]byte(privateKeyPEM)); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		key, err := ar.server.Storages().Key.LoadPrivateKey()
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.server.Services().Token.SetPrivateKey(key)
+
+		newkeys := keys{}
+		public := ar.server.Services().Token.PublicKey()
+		publicPEM, err := jwt.MarshalPublicKeyToPEM(public)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+		newkeys.Public = publicPEM
+
+		ar.ServeJSON(w, http.StatusOK, newkeys)
 	}
 }

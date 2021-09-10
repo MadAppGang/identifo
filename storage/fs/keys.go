@@ -30,7 +30,7 @@ func (ks *KeyStorage) ReplaceKey(keyPEM []byte) error {
 	if keyPEM == nil {
 		return fmt.Errorf("Cannot insert empty key")
 	}
-	err := os.WriteFile("file.txt", keyPEM, 0600)
+	err := os.WriteFile(ks.PrivateKeyPath, keyPEM, 0600)
 	if err != nil {
 		return fmt.Errorf("%s cannot written: %v", ks.PrivateKeyPath, err)
 	}

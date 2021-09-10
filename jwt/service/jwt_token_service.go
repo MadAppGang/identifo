@@ -139,7 +139,7 @@ func (ts *JWTokenService) PublicKey() interface{} {
 }
 
 func (ts *JWTokenService) SetPrivateKey(key interface{}) {
-	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!")
+	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!\n")
 	ts.privateKey = key
 	ts.cachedPublicKey = nil
 	ts.cachedAlgorithm = ""

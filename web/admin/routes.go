@@ -80,6 +80,11 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.TestConnection()),
 	)).Methods("POST")
 
+	ar.router.Path("/generate_new_secret").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.GenerateNewSecret()),
+	)).Methods("POST")
+
 	ar.router.Path("/invites").Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchInvites()),
