@@ -127,15 +127,14 @@ func (ts *JWTokenService) PublicKey() interface{} {
 	switch ts.privateKey.(type) {
 	case *rsa.PrivateKey:
 		pk := ts.privateKey.(*rsa.PrivateKey)
-		ts.cachedPublicKey = pk
-		return pk.Public()
+		ts.cachedPublicKey = pk.Public()
 	case *ecdsa.PrivateKey:
 		pk := ts.privateKey.(*ecdsa.PrivateKey)
-		ts.cachedPublicKey = pk
-		return pk.Public()
+		ts.cachedPublicKey = pk.Public()
 	default:
 		return nil
 	}
+	return ts.cachedPublicKey
 }
 
 func (ts *JWTokenService) SetPrivateKey(key interface{}) {
