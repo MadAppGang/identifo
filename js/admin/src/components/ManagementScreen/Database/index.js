@@ -1,27 +1,25 @@
 import update from '@madappgang/update-by-path';
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
-import useNotifications from '~/hooks/useNotifications';
+import { verificationStatuses } from '~/enums';
 import useProgressBar from '~/hooks/useProgressBar';
+import { useVerification } from '~/hooks/useVerification';
 import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
-import { verifyConnection } from '~/modules/database/actions';
-import { CONNECTION_SUCCEED } from '~/modules/database/connectionReducer';
 import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
+import { getStorageSettings } from '~/modules/settings/selectors';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
-import { getStorageSettings } from '~/modules/settings/selectors';
 
 const StoragesSection = () => {
   const dispatch = useDispatch();
   const [tabIndex, setTabIndex] = useState(0);
+  const [verificationStatus, verify, setStatus] = useVerification();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess } = useNotifications();
   const settings = useSelector(getStorageSettings);
   const error = useSelector(state => state.database.settings.error);
-  const connectionState = useSelector(state => state.database.connection.state);
 
   const triggerFetchSettings = async () => {
     setProgress(70);
@@ -40,10 +38,6 @@ const StoragesSection = () => {
     }) };
     try {
       dispatch(updateServerSettings(updatedSettings));
-      notifySuccess({
-        title: 'Saved',
-        text: 'Storage settings have been successfully saved',
-      });
     } finally {
       setProgress(100);
     }
@@ -53,16 +47,16 @@ const StoragesSection = () => {
     setProgress(70);
     try {
       const paylaod = { type: 'database', database: nodeSettings };
-      await dispatch(verifyConnection(paylaod));
+      await dispatch(verify(paylaod));
     } finally {
       setProgress(100);
     }
   };
 
   const handleSettingsSubmit = node => async (nodeSettings) => {
-    if (connectionState !== CONNECTION_SUCCEED) {
+    if (verificationStatus !== verificationStatuses.success) {
       const config = {
-        ...settingsConfig[connectionState],
+        ...settingsConfig[verificationStatus],
         onClose: () => dispatch(hideSettingsDialog()),
       };
       const res = await dispatch(handleSettingsDialog(config));
@@ -88,6 +82,10 @@ const StoragesSection = () => {
   useEffect(() => {
     setProgress(100);
   }, []);
+
+  useEffect(() => {
+    setStatus(verificationStatuses.required);
+  }, [tabIndex]);
 
   if (error) {
     return (
@@ -158,7 +156,8 @@ const StoragesSection = () => {
         <Tab title="Blacklist" />
         <StorageSettings
           activeTabIndex={tabIndex}
-          connectionState={connectionState}
+          connectionState={verificationStatus}
+          onChange={() => setStatus(verificationStatuses.required)}
           progress={!!progress}
           {...storageSettingsProps}
         />

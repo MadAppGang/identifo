@@ -1,18 +1,15 @@
+import update from '@madappgang/update-by-path';
 import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import update from '@madappgang/update-by-path';
-import AccountForm from './AdminAccountForm';
-import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
-import SettingsPlaceholder from './Placeholder';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
+import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
 import { getAdminAccountSettings, getSessionStorageSettings } from '~/modules/settings/selectors';
-
+import AccountForm from './AdminAccountForm';
+import SettingsPlaceholder from './Placeholder';
 
 const AdminAccountSettings = () => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const error = useSelector(s => s.account.error);
   const accountSettings = useSelector(getAdminAccountSettings);
@@ -39,15 +36,6 @@ const AdminAccountSettings = () => {
         sessionStorage: update(sessionSettings, { sessionDuration }),
       };
       await dispatch(updateServerSettings(payload));
-      notifySuccess({
-        title: 'Saved',
-        text: 'Account settings have been successfully saved',
-      });
-    } catch (_) {
-      notifyFailure({
-        title: 'Error',
-        text: 'Account settings could not be saved',
-      });
     } finally {
       setProgress(100);
     }

@@ -45,3 +45,11 @@ export const getAdminAccountSettings = (state) => {
 export const getSessionStorageSettings = (state) => {
   return getCurentSettings(state).sessionStorage;
 };
+
+export const selectJWTKeys = (state) => {
+  return getCurentSettings(state).jwtKeys;
+};
+
+export const getVerificationStatus = (state) => {
+  return state.settings.verificationStatus;
+};

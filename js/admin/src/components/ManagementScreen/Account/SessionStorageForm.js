@@ -11,7 +11,15 @@ import useForm from '~/hooks/useForm';
 
 const MEMORY_STORAGE = 'memory';
 const REDIS_STORAGE = 'redis';
-const DYNAMODB_STORAGE = 'dynamodb';
+const DYNAMODB_STORAGE = 'dynamo';
+
+const validateForm = (values) => {
+  const errors = {};
+  if (values[REDIS_STORAGE].db && Number.isNaN(+values[REDIS_STORAGE].db)) {
+    errors[REDIS_STORAGE] = { db: 'Number only' };
+  }
+  return errors;
+};
 
 const initialValues = {
   [REDIS_STORAGE]: { address: '', password: '', db: '' },
@@ -22,17 +30,19 @@ const SessionStorageForm = (props) => {
   const { loading, settings, error, onSubmit } = props;
 
   const handleSubmit = (values) => {
-    onSubmit(update(settings, values));
+    const payload = values.type === REDIS_STORAGE
+      ? { ...values, [REDIS_STORAGE]: { ...values[REDIS_STORAGE], db: +values[REDIS_STORAGE].db } }
+      : values;
+    onSubmit(update(settings, payload));
   };
 
   // TODO: Nikita K add validation
-  const form = useForm(initialValues, null, handleSubmit);
+  const form = useForm(initialValues, validateForm, handleSubmit);
 
   React.useEffect(() => {
     if (!settings) return;
     form.setValues(settings);
   }, [settings]);
-
   return (
     <form className="iap-settings-form" onSubmit={form.handleSubmit}>
       {!!error && (
@@ -82,7 +92,7 @@ const SessionStorageForm = (props) => {
               disabled={loading}
               placeholder="Specify DB"
               onChange={form.handleChange}
-              errorMessage={form.errors.db}
+              errorMessage={form.errors[REDIS_STORAGE] && form.errors[REDIS_STORAGE].db}
             />
           </Field>
         </>
@@ -92,8 +102,8 @@ const SessionStorageForm = (props) => {
         <>
           <Field label="Region">
             <Input
-              name="dynamodb.region"
-              value={form.values.dynamodb.region}
+              name="dynamo.region"
+              value={form.values.dynamo.region}
               placeholder="Specify region"
               disabled={loading}
               onChange={form.handleChange}
@@ -102,8 +112,8 @@ const SessionStorageForm = (props) => {
           </Field>
           <Field label="Endpoint" subtext="Can be figured out automatically from the region">
             <Input
-              name="dynamodb.endpoint"
-              value={form.values.dynamodb.endpoint}
+              name="dynamo.endpoint"
+              value={form.values.dynamo.endpoint}
               placeholder="Specify endpoint"
               disabled={loading}
               onChange={form.handleChange}

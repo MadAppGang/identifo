@@ -11,7 +11,7 @@ import Preview from './Preview';
 
 const StorageSettings = (props) => {
   const {
-    title, description, settings, activeTabIndex,
+    title, description, settings, activeTabIndex, onChange,
     progress, connectionState, postSettings, verifySettings } = props;
   const dispatch = useDispatch();
   const [editing, setEditing] = useState(false);
@@ -48,6 +48,7 @@ const StorageSettings = (props) => {
             key={activeTabIndex}
             posting={!!progress}
             connectionStatus={connectionState}
+            onChange={onChange}
             settings={settings}
             onSubmit={handlePostClick}
             onCancel={handleEditCancel}

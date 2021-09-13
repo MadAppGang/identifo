@@ -10,30 +10,29 @@ const createSettingsService = ({ httpClient }) => {
     return toDeepCase(data, CAMEL_CASE);
   };
 
-  const postServerSettings = async () => {
+  const postServerSettings = async (settings) => {
     const url = `${httpClient.getApiUrl()}/settings`;
-    const { data } = await httpClient.put(url);
+    const { data } = await httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
     return toDeepCase(data, CAMEL_CASE);
   };
 
-  const updateLoginSettings = (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/login`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
+  const getJWTKeys = async (withPrivate) => {
+    const url = `${httpClient.getApiUrl()}/static/keys?include_private_key=${withPrivate}`;
+
+    const { data } = await httpClient.get(url);
+    return data;
   };
 
-  const updateSessionStorageSettings = async (settings) => {
-    const url = `${httpClient.getApiUrl()}/settings/storage/session`;
-    return httpClient.put(url, toDeepCase(settings, SNAKE_CASE));
-  };
-
-  const uploadJWTKeys = async (pubKey, privKey) => {
+  const uploadJWTKeys = async (privKey) => {
     const url = `${httpClient.getApiUrl()}/static/uploads/keys`;
+    const { data } = await httpClient.post(url, privKey);
+    return toDeepCase(data, CAMEL_CASE);
+  };
 
-    const formData = new FormData();
-    formData.append('keys', pubKey, 'public.pem');
-    formData.append('keys', privKey, 'private.pem');
-
-    return httpClient.post(url, formData);
+  const generateKeys = async (alg) => {
+    const url = `${httpClient.getApiUrl()}/generate_new_secret`;
+    const { data } = await httpClient.post(url, alg);
+    return toDeepCase(data, CAMEL_CASE);
   };
 
   const requestServerRestart = async () => {
@@ -41,13 +40,20 @@ const createSettingsService = ({ httpClient }) => {
     await httpClient.post(url);
   };
 
+  const verifySettings = async (settings) => {
+    const url = `${httpClient.getApiUrl()}/test_connection`;
+    const { data } = await httpClient.post(url, toDeepCase(settings, 'snake'));
+    return data;
+  };
+
   return {
-    updateLoginSettings,
-    updateSessionStorageSettings,
     uploadJWTKeys,
     postServerSettings,
     requestServerRestart,
     fetchServerSettings,
+    getJWTKeys,
+    generateKeys,
+    verifySettings,
   };
 };
 

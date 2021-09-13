@@ -6,7 +6,7 @@ import userListReducer from './users/listReducer';
 import selectedUserReducer from './users/selectedReducer';
 import applicationListReducer from './applications/listReducer';
 import selectedApplicationReducer from './applications/selectedReducer';
-import dialogsApplicationReducer from './applications/dialogsReducer';
+import notificationReducer from './applications/notificationReducer';
 import settingsReducer from './settings/reducer';
 
 import configureStore from './store';
@@ -21,7 +21,7 @@ const rootReducer = combineReducers({
   selectedUser: selectedUserReducer,
   applications: applicationListReducer,
   selectedApplication: selectedApplicationReducer,
-  applicationDialogs: dialogsApplicationReducer,
+  notifications: notificationReducer,
   settings: settingsReducer,
 });
 

@@ -41,11 +41,16 @@
 
 .iap-btn.iap-btn--success {
   background-color: green;
-  border-color: green;
+  border: 2px solid green;
   color: #fff;
   pointer-events: none;
 }
 
+.iap-btn.iap-btn--success:hover, 
+.iap-btn.iap-btn--success:focus{
+  background-color: green;
+  border: 2px solid green;
+}
 .iap-btn.iap-btn--outline:not(:hover) svg path {
   fill: #3CA6F5;
 }

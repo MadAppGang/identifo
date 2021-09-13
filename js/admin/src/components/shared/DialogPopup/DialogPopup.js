@@ -1,12 +1,18 @@
-import React from 'react';
+import React, { useRef } from 'react';
 import { createPortal } from 'react-dom';
 import Button from '~/components/shared/Button';
 import PropTypes from 'prop-types';
 import './index.css';
 
 export const Dialog = ({ title, content, buttons, callback, onClose }) => {
+  const node = useRef();
+  const onOverlayClick = (e) => {
+    if (node.current && e.target === node.current) {
+      onClose();
+    }
+  };
   return (
-    <div className="iap-dialog-popup--overlay" onClick={onClose} role="presentation">
+    <div className="iap-dialog-popup--overlay" onClick={onOverlayClick} ref={node} role="presentation">
       <div className="iap-dialog-popup">
         <div className="iap-dialog-popup--in">
           {title && <h3 className="iap-dialog-popup--title">{title}</h3>}

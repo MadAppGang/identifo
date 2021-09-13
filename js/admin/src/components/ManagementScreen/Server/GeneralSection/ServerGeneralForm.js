@@ -6,9 +6,7 @@ import Field from '~/components/shared/Field';
 import Button from '~/components/shared/Button';
 import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
-import { Select, Option } from '~/components/shared/Select';
 import useForm from '~/hooks/useForm';
-import { domChangeEvent } from '~/utils';
 
 const GeneralForm = (props) => {
   const { error, settings, loading, onSubmit } = props;
@@ -16,7 +14,6 @@ const GeneralForm = (props) => {
   const initialState = {
     host: settings ? settings.host : '',
     issuer: settings ? settings.issuer : '',
-    algorithm: settings ? settings.algorithm : '',
     port: settings ? settings.port : '',
   };
 
@@ -32,7 +29,6 @@ const GeneralForm = (props) => {
     form.setValues({
       host: settings.host,
       issuer: settings.issuer,
-      algorithm: settings.algorithm,
       port: settings.port,
     });
   }, [settings]);
@@ -74,19 +70,6 @@ const GeneralForm = (props) => {
           onChange={form.handleChange}
           disabled={loading}
         />
-      </Field>
-
-      <Field label="Algorithm">
-        <Select
-          value={form.values.algorithm}
-          disabled={loading}
-          onChange={v => form.handleChange(domChangeEvent('algorithm', v))}
-          placeholder="Select Algorithm"
-        >
-          <Option value="auto" title="Auto" />
-          <Option value="rs256" title="rs256" />
-          <Option value="es256" title="es256" />
-        </Select>
       </Field>
 
       <footer className="iap-apps-form__footer">

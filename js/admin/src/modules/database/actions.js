@@ -19,21 +19,9 @@ const testConnection = () => async (dispatch, getState, services) => {
   }
 };
 
-const verifyConnection = settings => async (dispatch, _, services) => {
-  dispatch(testConnectionAttempt());
-  try {
-    await services.database.verifySettings(settings);
-    dispatch(testConnectionSuccess());
-  } catch (err) {
-    dispatch(testConnectionFailure(new Error(getError(err))));
-    throw new Error(getError(err));
-  }
-};
-
 const resetError = actionCreator(types.RESET_DB_SETTINGS_ERROR);
 
 export {
   testConnection,
-  verifyConnection,
   resetError,
 };
