@@ -4,7 +4,7 @@ import types from './types';
 const loginAttempt = actionCreator(types.LOGIN_ATTEMPT);
 const loginFailure = actionCreator(types.LOGIN_FAILURE);
 const logoutAttempt = actionCreator(types.LOGOUT_ATTEMPT);
-const authStateChange = actionCreator(types.AUTH_STATE_CHANGE);
+export const authStateChange = actionCreator(types.AUTH_STATE_CHANGE);
 
 const login = (email, password) => async (dispatch, _, { auth }) => {
   dispatch(loginAttempt());

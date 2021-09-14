@@ -7,7 +7,7 @@ import {
 } from './types';
 import { pause } from '~/utils';
 import { verificationStatuses } from '~/enums';
-import { logout, checkAuthState } from '~/modules/auth/actions';
+import { logout, authStateChange } from '~/modules/auth/actions';
 import { showNotificationSnack } from '~/modules/applications/actions';
 import { notificationStates } from '~/modules/applications/notificationsStates';
 
@@ -61,10 +61,7 @@ export const postServerSettings = () => async (dispatch, getState, services) => 
     const { jwtKeys, ...settings } = getState().settings.current;
     const res = await services.settings.postServerSettings(settings);
     dispatch(setServerSettings(res));
-    // TODO: Nikita K fix logout
-    // await dispatch(showNotificationSnack(notificationStates.success.status));
-    await dispatch(checkAuthState());
-    // await dispatch(logout());
+    dispatch(authStateChange(false));
   } catch (error) {
     await dispatch(showNotificationSnack(notificationStates.error.status));
     throw new Error(error);
