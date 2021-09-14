@@ -112,6 +112,7 @@ func TestLoginWithWrongSignature(t *testing.T) {
 		BodyString(data).
 		Expect(t).
 		// AssertFunc(dumpResponse).
+		Status(400).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
 				"id":      Equal("error.api.request.signature.invalid"),
@@ -120,6 +121,5 @@ func TestLoginWithWrongSignature(t *testing.T) {
 			}))
 			return nil
 		})).
-		Status(400).
 		Done()
 }
