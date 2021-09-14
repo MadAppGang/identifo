@@ -321,13 +321,6 @@ export class IdentifoForm {
         this.appId)))));
   }
   static get is() { return "identifo-form"; }
-  static get encapsulation() { return "shadow"; }
-  static get originalStyleUrls() { return {
-    "$": ["../../styles/identifo-form/main.scss"]
-  }; }
-  static get styleUrls() { return {
-    "$": ["../../styles/identifo-form/main.css"]
-  }; }
   static get assetsDirs() { return ["assets"]; }
   static get properties() { return {
     "route": {

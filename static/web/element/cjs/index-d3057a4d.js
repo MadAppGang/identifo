@@ -22,8 +22,6 @@ function _interopNamespace(e) {
 
 const NAMESPACE = 'identifo';
 
-let scopeId;
-let hostTagName;
 let isSvgMode = false;
 let queuePending = false;
 const win = typeof window !== 'undefined' ? window : {};
@@ -38,15 +36,6 @@ const plt = {
     ce: (eventName, opts) => new CustomEvent(eventName, opts),
 };
 const promiseResolve = (v) => Promise.resolve(v);
-const supportsConstructibleStylesheets = /*@__PURE__*/ (() => {
-        try {
-            new CSSStyleSheet();
-            return typeof (new CSSStyleSheet()).replace === 'function';
-        }
-        catch (e) { }
-        return false;
-    })()
-    ;
 const HYDRATED_CSS = '{visibility:hidden}.hydrated{visibility:inherit}';
 const createTime = (fnName, tagName = '') => {
     {
@@ -62,71 +51,6 @@ const uniqueTime = (key, measureText) => {
         };
     }
 };
-const rootAppliedStyles = new WeakMap();
-const registerStyle = (scopeId, cssText, allowCS) => {
-    let style = styles.get(scopeId);
-    if (supportsConstructibleStylesheets && allowCS) {
-        style = (style || new CSSStyleSheet());
-        style.replace(cssText);
-    }
-    else {
-        style = cssText;
-    }
-    styles.set(scopeId, style);
-};
-const addStyle = (styleContainerNode, cmpMeta, mode, hostElm) => {
-    let scopeId = getScopeId(cmpMeta);
-    let style = styles.get(scopeId);
-    // if an element is NOT connected then getRootNode() will return the wrong root node
-    // so the fallback is to always use the document for the root node in those cases
-    styleContainerNode = styleContainerNode.nodeType === 11 /* DocumentFragment */ ? styleContainerNode : doc;
-    if (style) {
-        if (typeof style === 'string') {
-            styleContainerNode = styleContainerNode.head || styleContainerNode;
-            let appliedStyles = rootAppliedStyles.get(styleContainerNode);
-            let styleElm;
-            if (!appliedStyles) {
-                rootAppliedStyles.set(styleContainerNode, (appliedStyles = new Set()));
-            }
-            if (!appliedStyles.has(scopeId)) {
-                {
-                    {
-                        styleElm = doc.createElement('style');
-                        styleElm.innerHTML = style;
-                    }
-                    styleContainerNode.insertBefore(styleElm, styleContainerNode.querySelector('link'));
-                }
-                if (appliedStyles) {
-                    appliedStyles.add(scopeId);
-                }
-            }
-        }
-        else if (!styleContainerNode.adoptedStyleSheets.includes(style)) {
-            styleContainerNode.adoptedStyleSheets = [...styleContainerNode.adoptedStyleSheets, style];
-        }
-    }
-    return scopeId;
-};
-const attachStyles = (hostRef) => {
-    const cmpMeta = hostRef.$cmpMeta$;
-    const elm = hostRef.$hostElement$;
-    const flags = cmpMeta.$flags$;
-    const endAttachStyles = createTime('attachStyles', cmpMeta.$tagName$);
-    const scopeId = addStyle(elm.shadowRoot ? elm.shadowRoot : elm.getRootNode(), cmpMeta);
-    if (flags & 10 /* needsScopedEncapsulation */) {
-        // only required when we're NOT using native shadow dom (slot)
-        // or this browser doesn't support native shadow dom
-        // and this host element was NOT created with SSR
-        // let's pick out the inner content for slot projection
-        // create a node to represent where the original
-        // content was first placed, which is useful later on
-        // DOM WRITE!!
-        elm['s-sc'] = scopeId;
-        elm.classList.add(scopeId + '-h');
-    }
-    endAttachStyles();
-};
-const getScopeId = (cmp, mode) => 'sc-' + (cmp.$tagName$);
 /**
  * Default style mode id
  */
@@ -135,7 +59,6 @@ const getScopeId = (cmp, mode) => 'sc-' + (cmp.$tagName$);
  * Don't add values to these!!
  */
 const EMPTY_OBJ = {};
-const isDef = (v) => v != null;
 const isComplexType = (o) => {
     // https://jsperf.com/typeof-fn-object/5
     o = typeof o;
@@ -348,11 +271,6 @@ const createElm = (oldParentVNode, newParentVNode, childIndex, parentElm) => {
         {
             updateElement(null, newVNode, isSvgMode);
         }
-        if (isDef(scopeId) && elm['s-si'] !== scopeId) {
-            // if there is a scopeId and this is the initial render
-            // then let's add the scopeId as a css class
-            elm.classList.add((elm['s-si'] = scopeId));
-        }
         if (newVNode.$children$) {
             for (i = 0; i < newVNode.$children$.length; ++i) {
                 // create the node
@@ -370,9 +288,6 @@ const createElm = (oldParentVNode, newParentVNode, childIndex, parentElm) => {
 const addVnodes = (parentElm, before, parentVNode, vnodes, startIdx, endIdx) => {
     let containerElm = (parentElm);
     let childNode;
-    if (containerElm.shadowRoot && containerElm.tagName === hostTagName) {
-        containerElm = containerElm.shadowRoot;
-    }
     for (; startIdx <= endIdx; ++startIdx) {
         if (vnodes[startIdx]) {
             childNode = createElm(null, parentVNode, startIdx);
@@ -510,7 +425,6 @@ const renderVdom = (hostRef, renderFnResults) => {
     const cmpMeta = hostRef.$cmpMeta$;
     const oldVNode = hostRef.$vnode$ || newVNode(null, null);
     const rootVnode = isHost(renderFnResults) ? renderFnResults : h(null, null, renderFnResults);
-    hostTagName = hostElm.tagName;
     if (cmpMeta.$attrsToReflect$) {
         rootVnode.$attrs$ = rootVnode.$attrs$ || {};
         cmpMeta.$attrsToReflect$.map(([propName, attribute]) => (rootVnode.$attrs$[attribute] = hostElm[propName]));
@@ -518,10 +432,7 @@ const renderVdom = (hostRef, renderFnResults) => {
     rootVnode.$tag$ = null;
     rootVnode.$flags$ |= 4 /* isHost */;
     hostRef.$vnode$ = rootVnode;
-    rootVnode.$elm$ = oldVNode.$elm$ = (hostElm.shadowRoot || hostElm );
-    {
-        scopeId = hostElm['s-sc'];
-    }
+    rootVnode.$elm$ = oldVNode.$elm$ = (hostElm);
     // synchronous patch
     patch(oldVNode, rootVnode);
 };
@@ -577,17 +488,13 @@ const dispatchHooks = (hostRef, isInitialLoad) => {
         promise = then(promise, () => safeCall(instance, 'componentWillRender'));
     }
     endSchedule();
-    return then(promise, () => updateComponent(hostRef, instance, isInitialLoad));
+    return then(promise, () => updateComponent(hostRef, instance));
 };
 const updateComponent = async (hostRef, instance, isInitialLoad) => {
     // updateComponent
     const elm = hostRef.$hostElement$;
     const endUpdate = createTime('update', hostRef.$cmpMeta$.$tagName$);
     const rc = elm['s-rc'];
-    if (isInitialLoad) {
-        // DOM WRITE!
-        attachStyles(hostRef);
-    }
     const endRender = createTime('render', hostRef.$cmpMeta$.$tagName$);
     {
         callRender(hostRef, instance);
@@ -831,16 +738,6 @@ const initializeComponent = async (elm, hostRef, cmpMeta, hmrVersionId, Cstr) =>
             }
             endNewInstance();
         }
-        if (Cstr.style) {
-            // this component has styles but we haven't registered them yet
-            let style = Cstr.style;
-            const scopeId = getScopeId(cmpMeta);
-            if (!styles.has(scopeId)) {
-                const endRegisterStyles = createTime('registerStyles', cmpMeta.$tagName$);
-                registerStyle(scopeId, style, !!(cmpMeta.$flags$ & 1 /* shadowDomEncapsulation */));
-                endRegisterStyles();
-            }
-        }
     }
     // we've successfully created a lazy instance
     const ancestorComponent = hostRef.$ancestorComponent$;
@@ -938,17 +835,6 @@ const bootstrapLazy = (lazyBundles, options = {}) => {
                 super(self);
                 self = this;
                 registerHost(self, cmpMeta);
-                if (cmpMeta.$flags$ & 1 /* shadowDomEncapsulation */) {
-                    // this component is using shadow dom
-                    // and this browser supports shadow dom
-                    // add the read-only property "shadowRoot" to the host element
-                    // adding the shadow root build conditionals to minimize runtime
-                    {
-                        {
-                            self.attachShadow({ mode: 'open' });
-                        }
-                    }
-                }
             }
             connectedCallback() {
                 if (appLoadFallback) {
@@ -1037,7 +923,6 @@ const loadModule = (cmpMeta, hostRef, hmrVersionId) => {
         return importedModule[exportName];
     }, consoleError);
 };
-const styles = new Map();
 const queueDomReads = [];
 const queueDomWrites = [];
 const queueTask = (queue, write) => (cb) => {
