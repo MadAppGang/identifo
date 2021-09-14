@@ -18,7 +18,7 @@
     "@dprovodnikov/validation": "^1.2.6",
     "@madappgang/action-creator": "^1.0.6",
     "@madappgang/update-by-path": "^1.1.19",
-    "axios": "^0.21.1",
+    "axios": "^0.21.2",
     "classnames": "^2.2.6",
     "codemirror": "^5.58.2",
     "copy-to-clipboard": "^3.3.1",
