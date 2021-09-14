@@ -1,19 +1,25 @@
-import React from 'react';
+import update from '@madappgang/update-by-path';
+import React, { useMemo } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import AccountForm from './AdminAccountForm';
-import { postAccountSettings } from '~/modules/account/actions';
-import { fetchServerSetings } from '~/modules/settings/actions';
-import SettingsPlaceholder from './Placeholder';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
+import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
+import { getAdminAccountSettings, getSessionStorageSettings } from '~/modules/settings/selectors';
+import AccountForm from './AdminAccountForm';
+import SettingsPlaceholder from './Placeholder';
 
 const AdminAccountSettings = () => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const error = useSelector(s => s.account.error);
-  const settings = useSelector(s => s.settings.adminAccount);
+  const accountSettings = useSelector(getAdminAccountSettings);
+  const sessionSettings = useSelector(getSessionStorageSettings);
+  const settings = useMemo(() => {
+    if (accountSettings && sessionSettings) {
+      return { ...accountSettings, sessionDuration: sessionSettings.sessionDuration };
+    }
+    return null;
+  }, [accountSettings, sessionSettings]);
 
   const fetchSettings = async () => {
     setProgress(70);
@@ -21,19 +27,15 @@ const AdminAccountSettings = () => {
     setProgress(100);
   };
 
-  const handleFormSubmit = async () => {
+  const handleFormSubmit = async (data) => {
     setProgress(70);
     try {
-      await dispatch(postAccountSettings(settings));
-      notifySuccess({
-        title: 'Saved',
-        text: 'Account settings have been successfully saved',
-      });
-    } catch (_) {
-      notifyFailure({
-        title: 'Error',
-        text: 'Account settings could not be saved',
-      });
+      const { sessionDuration, ...rest } = data;
+      const payload = {
+        adminAccount: update(accountSettings, rest),
+        sessionStorage: update(sessionSettings, { sessionDuration }),
+      };
+      await dispatch(updateServerSettings(payload));
     } finally {
       setProgress(100);
     }

@@ -11,6 +11,10 @@
   color: #aaa;
 }
 
+.iap-input-wrapper textarea {
+  resize: none;
+}
+
 .iap-login-form__input {
   padding: 12px 20px;
   border-radius: 7px;
@@ -74,6 +78,6 @@
   align-items: center;
 }
 
-.iap-login-form__input.iap-login-form__input--invalid + .iap-input-btn {
+.iap-login-form__input.iap-login-form__input--invalid+.iap-input-btn {
   top: 16px;
 }

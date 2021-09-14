@@ -1,9 +1,11 @@
-import update from '@madappgang/update-by-path';
 import {
   FETCH_SERVER_SETTINGS,
   UPDATE_SERVER_SETTINGS,
+  FETCH_JWT_KEYS,
+  SET_VERIFICATION_STATUS,
 } from './types';
 import authTypes from '../auth/types';
+import { verificationStatuses } from '~/enums';
 
 const initialSettings = {
   login: {
@@ -25,11 +27,13 @@ const initialSettings = {
   keyStorage: null,
   logger: null,
   storage: null,
+  jwtKeys: null,
 };
 
 const INITIAL_STATE = {
   original: initialSettings,
   current: initialSettings,
+  verificationStatus: verificationStatuses.required,
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
@@ -40,8 +44,16 @@ const reducer = (state = INITIAL_STATE, action) => {
       return { ...state, original: payload, current: payload };
     case UPDATE_SERVER_SETTINGS:
       return { ...state, current: { ...state.current, ...payload } };
+    case FETCH_JWT_KEYS:
+      return {
+        ...state,
+        original: { ...state.current, jwtKeys: payload },
+        current: { ...state.current, jwtKeys: payload },
+      };
+    case SET_VERIFICATION_STATUS:
+      return { ...state, verificationStatus: payload };
     case authTypes.LOGOUT_ATTEMPT:
-      return update(state, 'changed', false);
+      return INITIAL_STATE;
     default:
       return state;
   }

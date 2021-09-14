@@ -1,24 +1,26 @@
-import React, { useMemo, useState } from 'react';
-import PropTypes from 'prop-types';
 import * as Validation from '@dprovodnikov/validation';
-import Input from '~/components/shared/Input';
-import Field from '~/components/shared/Field';
-import Button from '~/components/shared/Button';
-import SaveIcon from '~/components/icons/SaveIcon';
-import LoadingIcon from '~/components/icons/LoadingIcon';
+import PropTypes from 'prop-types';
+import React, { useMemo, useState } from 'react';
 import CheckIcon from '~/components/icons/CheckIcon.svg';
-import databaseFormValidationRules from './validationRules';
+import LoadingIcon from '~/components/icons/LoadingIcon';
+import SaveIcon from '~/components/icons/SaveIcon';
+import Button from '~/components/shared/Button';
+import Field from '~/components/shared/Field';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
-import { Select, Option } from '~/components/shared/Select';
-import { CONNECTION_FAILED, CONNECTION_SUCCEED, CONNECTION_TEST_REQUIRED } from '~/modules/database/connectionReducer';
+import Input from '~/components/shared/Input';
+import { Option, Select } from '~/components/shared/Select';
+import { verificationStatuses } from '~/enums';
+import databaseFormValidationRules from './validationRules';
 
 const MONGO_DB = 'mongo';
-const DYNAMO_DB = 'dynamodb';
+const DYNAMO_DB = 'dynamo';
 const BOLT_DB = 'boltdb';
 const MEMORY = 'fake';
 
 const ConnectionSettingsForm = (props) => {
-  const { posting, error, settings, onCancel, onSubmit, onVerify, connectionStatus } = props;
+  const {
+    posting, error, settings, onCancel,
+    onChange, onSubmit, onVerify, connectionStatus } = props;
   const { type } = settings;
 
   const [dbType, setDbType] = useState(type);
@@ -44,11 +46,13 @@ const ConnectionSettingsForm = (props) => {
   const changeDbType = (value) => {
     setDbType(value);
     Validation.reset(validation);
+    onChange();
   };
 
   const handleInput = ({ target }) => {
     setDbSettings({ ...dbSettings, [target.name]: target.value });
     setValidation({ ...validation, [target.name]: '' });
+    onChange();
   };
 
   const getFieldsToOmitDuringValidation = () => {
@@ -93,6 +97,7 @@ const ConnectionSettingsForm = (props) => {
         : { [dbType]: payload, type: dbType },
     );
   };
+
   return (
     <div className="iap-db-connection-section">
       <form className="iap-db-form" onSubmit={handleSubmit}>
@@ -190,9 +195,9 @@ const ConnectionSettingsForm = (props) => {
             Save Changes
           </Button>
           <Button
-            error={connectionStatus === CONNECTION_FAILED}
-            success={connectionStatus === CONNECTION_SUCCEED}
-            outline={connectionStatus === CONNECTION_TEST_REQUIRED}
+            error={connectionStatus === verificationStatuses.fail}
+            success={connectionStatus === verificationStatuses.success}
+            outline={connectionStatus === verificationStatuses.required}
             type="button"
             onClick={handleVerify}
             Icon={posting ? LoadingIcon : CheckIcon}
@@ -231,6 +236,7 @@ ConnectionSettingsForm.propTypes = {
   }),
   onCancel: PropTypes.func,
   onSubmit: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
   onVerify: PropTypes.func.isRequired,
   error: PropTypes.instanceOf(Error),
   connectionStatus: PropTypes.string.isRequired,

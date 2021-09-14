@@ -19,7 +19,7 @@ const reducer = (state = INITIAL_STATE, { type }) => {
     case types.TEST_CONNECTION_SUCCESS:
       return update(state, {
         checking: false,
-        state: CONNECTION_ESTABLISHED,
+        state: CONNECTION_SUCCEED,
       });
     case types.TEST_CONNECTION_FAILURE:
       return update(state, {
