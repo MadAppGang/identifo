@@ -1,0 +1,36 @@
+.iap-jwt-settings-form {
+    width: 70%;
+}
+
+.iap-jwt-settings-form--field {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.iap-jwt-settings-form--field-btn {
+    width: 46px;
+    height: 46px;
+    background-color: var(--main-color);
+    border-radius: 7px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 12px;
+    flex-shrink: 0;
+    cursor: pointer;
+    transition: background-color .2s linear;
+}
+
+.iap-jwt-settings-form--field-btn:hover {
+    background-color: var(--main-color-hover);
+}
+
+.iap-jwt-settings-form--field button {
+    margin-top: 8px;
+}
+
+.iap-jwt-settings-form--field textarea {
+    height: 150px;
+}

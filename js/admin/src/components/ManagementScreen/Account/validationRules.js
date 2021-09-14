@@ -1,5 +1,5 @@
 import {
-  applyRules, hasError, matches, notEmpty, emailFormat,
+  applyRules, hasError, notEmpty,
 } from '@dprovodnikov/validation';
 
 const onlyDigits = message => (value) => {
@@ -15,16 +15,15 @@ const onlyDigits = message => (value) => {
 };
 
 export const adminAccountFormRules = {
-  email: [
-    notEmpty('Email should not be empty'),
-    emailFormat('Email format is invalid'),
+  loginEnvName: [
+    notEmpty('Login env name should not be empty'),
   ],
-  password: [
-    notEmpty('Password should not be empty'),
+  passwordEnvName: [
+    notEmpty('Password env name should not be empty'),
   ],
-  confirmPassword: [
-    notEmpty('You should confirm password'),
-    matches('password', 'Passwords do not match'),
+  sessionDuration: [
+    notEmpty('You have to specify session duration (in seconds)'),
+    onlyDigits('Duration should be specified in seconds'),
   ],
 };
 
@@ -51,12 +50,7 @@ export const sessionStorageFormRules = {
 
 export const validateAccountForm = (values) => {
   const validate = applyRules(adminAccountFormRules);
-
-  const omitPasswords = !values.password && !values.confirmPassword;
-  const errors = validate('all', values, {
-    omit: omitPasswords ? ['password', 'confirmPassword'] : [],
-  });
-
+  const errors = validate('all', values);
   return hasError(errors) ? errors : {};
 };
 
@@ -68,7 +62,6 @@ export const validateSessionStorageForm = (values) => {
     redis: ['region', 'endpoint'],
     dynamodb: ['address', 'password', 'db'],
   };
-
   const errors = validate('all', values, {
     omit: omitFieldsByStorageType[values.type],
   });

@@ -1,21 +1,26 @@
-import React, { useState } from 'react';
-import PropTypes from 'prop-types';
 import * as Validation from '@dprovodnikov/validation';
-import Input from '~/components/shared/Input';
-import Field from '~/components/shared/Field';
-import Button from '~/components/shared/Button';
-import SaveIcon from '~/components/icons/SaveIcon';
+import PropTypes from 'prop-types';
+import React, { useMemo, useState } from 'react';
+import CheckIcon from '~/components/icons/CheckIcon.svg';
 import LoadingIcon from '~/components/icons/LoadingIcon';
-import databaseFormValidationRules from './validationRules';
+import SaveIcon from '~/components/icons/SaveIcon';
+import Button from '~/components/shared/Button';
+import Field from '~/components/shared/Field';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
-import { Select, Option } from '~/components/shared/Select';
+import Input from '~/components/shared/Input';
+import { Option, Select } from '~/components/shared/Select';
+import { verificationStatuses } from '~/enums';
+import databaseFormValidationRules from './validationRules';
 
-const MONGO_DB = 'mongodb';
-const DYNAMO_DB = 'dynamodb';
+const MONGO_DB = 'mongo';
+const DYNAMO_DB = 'dynamo';
 const BOLT_DB = 'boltdb';
+const MEMORY = 'fake';
 
 const ConnectionSettingsForm = (props) => {
-  const { posting, error, settings, onCancel, onSubmit } = props;
+  const {
+    posting, error, settings, onCancel,
+    onChange, onSubmit, onVerify, connectionStatus } = props;
   const { type } = settings;
 
   const [dbType, setDbType] = useState(type);
@@ -41,11 +46,13 @@ const ConnectionSettingsForm = (props) => {
   const changeDbType = (value) => {
     setDbType(value);
     Validation.reset(validation);
+    onChange();
   };
 
   const handleInput = ({ target }) => {
     setDbSettings({ ...dbSettings, [target.name]: target.value });
     setValidation({ ...validation, [target.name]: '' });
+    onChange();
   };
 
   const getFieldsToOmitDuringValidation = () => {
@@ -57,21 +64,21 @@ const ConnectionSettingsForm = (props) => {
     }
   };
 
+  const payload = useMemo(() => {
+    switch (dbType) {
+      case DYNAMO_DB:
+        return { region: dbSettings.region, endpoint: dbSettings.endpoint };
+      case MONGO_DB:
+        return { database: dbSettings.database, connection: dbSettings.connection };
+      case BOLT_DB:
+        return { path: dbSettings.path };
+      default:
+        return {};
+    }
+  }, [dbType, dbSettings]);
+
   const handleSubmit = (e) => {
     e.preventDefault();
-
-    const payload = () => {
-      switch (dbType) {
-        case DYNAMO_DB:
-          return { region: dbSettings.region, endpoint: dbSettings.endpoint };
-        case MONGO_DB:
-          return { database: dbSettings.database, connection: dbSettings.connection };
-        case BOLT_DB:
-          return { path: dbSettings.path };
-        default:
-          return {};
-      }
-    };
 
     const validationReport = validate('all', dbSettings, { omit: getFieldsToOmitDuringValidation() });
 
@@ -80,10 +87,14 @@ const ConnectionSettingsForm = (props) => {
       return;
     }
 
-    onSubmit(
-      dbType === MONGO_DB
-        ? { ...settings, mongo: payload(), type: dbType }
-        : { ...settings, [dbType]: payload(), type: dbType },
+    onSubmit({ ...settings, [dbType]: payload, type: dbType });
+  };
+
+  const handleVerify = () => {
+    onVerify(
+      dbType === MEMORY
+        ? { type: dbType }
+        : { [dbType]: payload, type: dbType },
     );
   };
 
@@ -105,6 +116,7 @@ const ConnectionSettingsForm = (props) => {
             <Option value={BOLT_DB} title="Bolt DB" />
             <Option value={MONGO_DB} title="Mongo DB" />
             <Option value={DYNAMO_DB} title="Dynamo DB" />
+            <Option value={MEMORY} title="Memory" />
           </Select>
         </Field>
 
@@ -151,7 +163,7 @@ const ConnectionSettingsForm = (props) => {
                 name="connection"
                 value={dbSettings.connection}
                 autoComplete="off"
-                placeholder="e.g. identifo"
+                placeholder="e.g. mongodb://localhost:27017"
                 disabled={posting}
                 onChange={handleInput}
                 errorMessage={validation.connection}
@@ -181,6 +193,17 @@ const ConnectionSettingsForm = (props) => {
             disabled={posting}
           >
             Save Changes
+          </Button>
+          <Button
+            error={connectionStatus === verificationStatuses.fail}
+            success={connectionStatus === verificationStatuses.success}
+            outline={connectionStatus === verificationStatuses.required}
+            type="button"
+            onClick={handleVerify}
+            Icon={posting ? LoadingIcon : CheckIcon}
+            disabled={posting}
+          >
+            Verify
           </Button>
           <Button
             transparent
@@ -213,7 +236,10 @@ ConnectionSettingsForm.propTypes = {
   }),
   onCancel: PropTypes.func,
   onSubmit: PropTypes.func.isRequired,
+  onChange: PropTypes.func.isRequired,
+  onVerify: PropTypes.func.isRequired,
   error: PropTypes.instanceOf(Error),
+  connectionStatus: PropTypes.string.isRequired,
 };
 
 ConnectionSettingsForm.defaultProps = {

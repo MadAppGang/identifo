@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"flag"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
+	"time"
 
 	"github.com/madappgang/identifo/config"
 	"github.com/madappgang/identifo/model"
@@ -17,50 +19,82 @@ func main() {
 	configFlag := flag.String("config", "", "The location of a server configuration file (local file, s3 or etcd)")
 	flag.Parse()
 
-	// ignore error to fall back to default if needed
-	settings, fileErr := model.ConfigStorageSettingsFromString(*configFlag)
-	configStorage, err := config.InitConfigurationStorage(settings)
-	if err != nil || fileErr != nil || *configFlag == "" {
-		log.Printf("Unable to init config using\n\tconfig string: %s\n\twith error: %v\n",
-			*configFlag,
-			err,
-		)
-		// Trying to fall back to default settings:
-		log.Printf("Trying to load default settings from env variable 'SERVER_CONFIG_PATH' or default pathes.\n")
-		configStorage, err = config.DefaultStorage()
+	done := make(chan bool)
+	restart := make(chan bool)
+	defer close(done)
+	defer close(restart)
+
+	srv, httpSrv, err := initServer(*configFlag, restart)
+	if err != nil {
+		log.Fatalf("Unable to start Identifo with error: %v ", err)
+	}
+	go startHTTPServer(httpSrv)
+	log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
+	log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
+
+	watcher, err := config.NewConfigWatcher(srv.Settings().Config)
+	if err != nil {
+		log.Fatalf("Unable to start Identifo with error: %v ", err)
+	}
+	go func() {
+		time.Sleep(time.Second)
+		watcher.Watch()
+	}()
+
+	osch := make(chan os.Signal)
+	signal.Notify(osch, syscall.SIGINT, syscall.SIGTERM)
+
+	restartServer := func() {
+		ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
+		httpSrv.Shutdown(ctx)
+		// srv.Shutdown() TODO: implement gracefull server shutdown
+		srv, httpSrv, err = initServer(*configFlag, restart)
 		if err != nil {
-			log.Fatalf("Unable to load default config with error: %v", err)
+			log.Fatalf("Unable to start Identifo with error: %v ", err)
+		}
+		go startHTTPServer(httpSrv)
+		log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
+		log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
+		log.Println("Server successfully restarted with new settings ...")
+	}
+
+	for {
+		select {
+		case <-watcher.WatchChan():
+			log.Println("Config file has been changed, restarting ...")
+			restartServer()
+
+		case <-restart:
+			log.Println("Restart signal have been received, restarting ...")
+			restartServer()
+
+		case err := <-watcher.ErrorChan():
+			log.Printf("Getting error from config watcher: %v", err)
+
+		case <-osch:
+			log.Println("Received termination signal, shutting down the server ⤵️...")
+			ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
+			httpSrv.Shutdown(ctx)
+			log.Println("The server is down, good bye 👋👋👋.")
+			return
 		}
 	}
+}
 
-	srv, err := config.NewServer(configStorage)
+func initServer(flag string, restartChan chan<- bool) (model.Server, *http.Server, error) {
+	srv, err := config.NewServerFromFlag(flag, restartChan)
 	if err != nil {
-		log.Fatalf("error creating server: %v", err)
+		return nil, nil, fmt.Errorf("Unable to start Identifo with error: %v ", err)
 	}
-
 	httpSrv := &http.Server{
 		Addr:    srv.Settings().GetPort(),
 		Handler: srv.Router(),
 	}
-
-	go startHTTPServer(httpSrv)
-
-	log.Printf("Started the server on host: %s", srv.Settings().General.Host)
-	// Handle SIGINT and SIGTERM.
-	ch := make(chan os.Signal)
-	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
-	log.Println(<-ch)
-	log.Println("shutting down the service ⤵️")
-
-	// Stop the service gracefully.
-	// TODO: implement gracefull server shutdown
-	// srv.Shutdown()
-	httpSrv.Shutdown(context.Background())
-	log.Println("the server is gracefully stopped, bye 👋")
+	return srv, httpSrv, nil
 }
 
-func startHTTPServer(httpSrv *http.Server) {
-	if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-		log.Fatalf("ListenAndServe(): %s", err)
+func startHTTPServer(server *http.Server) {
+	if err := server.ListenAndServe(); err != http.ErrServerClosed {
+		log.Fatalf("ListenAndServe() error: %v", err)
 	}
 }

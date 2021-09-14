@@ -1,126 +1,71 @@
+import actionCreator from '@madappgang/action-creator';
 import {
-  RECEIVE_LOGIN_SETTINGS,
-  RECEIVE_EXTERNAL_SETTINGS,
-  RECEIVE_SESSION_STORAGE_SETTINGS,
-  RECEIVE_STATIC_FILES_SETTINGS,
-  RECEIVE_GENERAL_SETTINGS,
-  RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
-  SETTINGS_CHANGED,
+  FETCH_SERVER_SETTINGS,
+  UPDATE_SERVER_SETTINGS,
+  FETCH_JWT_KEYS,
+  SET_VERIFICATION_STATUS,
 } from './types';
-
-import { logout } from '../auth/actions';
 import { pause } from '~/utils';
+import { verificationStatuses } from '~/enums';
+import { logout, authStateChange } from '~/modules/auth/actions';
+import { showNotificationSnack } from '~/modules/applications/actions';
+import { notificationStates } from '~/modules/applications/notificationsStates';
 
-export const fetchLoginSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchLoginSettings();
-  dispatch({
-    type: RECEIVE_LOGIN_SETTINGS,
-    payload: settings,
-  });
+const setServerSettings = actionCreator(FETCH_SERVER_SETTINGS);
+export const updateServerSettings = actionCreator(UPDATE_SERVER_SETTINGS);
+export const setJWTKeys = actionCreator(FETCH_JWT_KEYS);
+export const setVerificationStatus = actionCreator(SET_VERIFICATION_STATUS);
+
+export const getJWTKeys = withPrivate => async (dispatch, _, services) => {
+  try {
+    const keys = await services.settings.getJWTKeys(withPrivate);
+    dispatch(setJWTKeys(keys));
+  } catch (error) {
+    await dispatch(showNotificationSnack(notificationStates.error.status));
+    throw new Error(error);
+  }
 };
 
-export const updateLoginSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateLoginSettings(settings);
-  dispatch({
-    type: RECEIVE_LOGIN_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
+export const uploadJWTKeys = payload => async (dispatch, getState, services) => {
+  try {
+    const keys = await services.settings.uploadJWTKeys(payload);
+    await dispatch(setJWTKeys(keys));
+  } catch (error) {
+    throw new Error(error);
+  }
 };
 
-export const fetchExternalServicesSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchExternalServicesSettings();
-  dispatch({
-    type: RECEIVE_EXTERNAL_SETTINGS,
-    payload: settings,
-  });
+export const generateKeys = alg => async (dispatch, _, services) => {
+  try {
+    const res = await services.settings.generateKeys({ alg });
+    dispatch(setJWTKeys(res));
+  } catch (error) {
+    await dispatch(showNotificationSnack(notificationStates.error.status));
+    throw new Error(error);
+  }
 };
 
-export const updateExternalServicesSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateExternalServicesSettings(settings);
-  dispatch({
-    type: RECEIVE_EXTERNAL_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
+export const fetchServerSetings = () => async (dispatch, _, services) => {
+  try {
+    const settings = await services.settings.fetchServerSettings();
+    dispatch(setServerSettings(settings));
+    await dispatch(getJWTKeys(false));
+  } catch (error) {
+    await dispatch(showNotificationSnack(notificationStates.error.status));
+    throw new Error(error);
+  }
 };
 
-export const fetchSessionStorageSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchSessionStorageSettings();
-  dispatch({
-    type: RECEIVE_SESSION_STORAGE_SETTINGS,
-    payload: settings,
-  });
-};
-
-export const updateSessionStorageSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateSessionStorageSettings(settings);
-  dispatch({
-    type: RECEIVE_SESSION_STORAGE_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchStaticFilesSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchStaticFilesSettings();
-  dispatch({
-    type: RECEIVE_STATIC_FILES_SETTINGS,
-    payload: settings,
-  });
-};
-
-export const updateStaticFilesSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateStaticFilesSettings(settings);
-  dispatch({
-    type: RECEIVE_STATIC_FILES_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchGeneralSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchGeneralSettings();
-  dispatch({
-    type: RECEIVE_GENERAL_SETTINGS,
-    payload: settings,
-  });
-};
-
-export const updateGeneralSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateGeneralSettings(settings);
-  dispatch({
-    type: RECEIVE_GENERAL_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const fetchConfigurationStorageSettings = () => async (dispatch, _, services) => {
-  const settings = await services.settings.fetchConfigurationStorageSettings();
-  dispatch({
-    type: RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
-    payload: settings,
-  });
-};
-
-export const updateConfigurationStorageSettings = settings => async (dispatch, _, services) => {
-  await services.settings.updateConfigurationStorageSettings(settings);
-  dispatch({
-    type: RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
-    payload: settings,
-  });
-
-  dispatch({ type: SETTINGS_CHANGED });
-};
-
-export const uploadJWTKeys = (pubKey, privKey) => async (dispatch, _, services) => {
-  await services.settings.uploadJWTKeys(pubKey, privKey);
+export const postServerSettings = () => async (dispatch, getState, services) => {
+  try {
+    const { jwtKeys, ...settings } = getState().settings.current;
+    const res = await services.settings.postServerSettings(settings);
+    dispatch(setServerSettings(res));
+    dispatch(authStateChange(false));
+  } catch (error) {
+    await dispatch(showNotificationSnack(notificationStates.error.status));
+    throw new Error(error);
+  }
 };
 
 export const restartServer = () => async (dispatch, _, services) => {
@@ -128,4 +73,15 @@ export const restartServer = () => async (dispatch, _, services) => {
   await pause(1000);
 
   dispatch(logout());
+};
+
+export const verifyConnection = settings => async (dispatch, _, services) => {
+  dispatch(setVerificationStatus(verificationStatuses.loading));
+  try {
+    await services.settings.verifySettings(settings);
+    dispatch(setVerificationStatus(verificationStatuses.success));
+  } catch (err) {
+    dispatch(setVerificationStatus(verificationStatuses.fail));
+    throw new Error(err);
+  }
 };

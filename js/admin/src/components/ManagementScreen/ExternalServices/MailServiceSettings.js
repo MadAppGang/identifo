@@ -8,30 +8,34 @@ import SaveIcon from '~/components/icons/SaveIcon';
 import { Select, Option } from '~/components/shared/Select';
 import useForm from '~/hooks/useForm';
 
-const [MOCK, AWS_SES, MAILGUN] = ['mock', 'aws ses', 'mailgun'];
+const [MOCK, AWS_SES, MAILGUN] = ['mock', 'ses', 'mailgun'];
 
 const MailServiceSettings = (props) => {
   const { loading, settings, onSubmit } = props;
 
   const initialValues = {
-    type: settings ? settings.type : '',
-    domain: settings ? settings.domain : '',
-    privateKey: settings ? settings.privateKey : '',
-    publicKey: settings ? settings.publicKey : '',
-    sender: settings ? settings.sender : '',
-    region: settings ? settings.region : '',
+    type: '',
+    domain: '',
+    privateKey: '',
+    publicKey: '',
+    sender: '',
+    region: '',
   };
 
   const handleSubmit = (values) => {
-    onSubmit(update(settings, values));
+    const { type, ...rest } = values;
+    const payload = update(settings, type, rest);
+    onSubmit(update(settings, { ...payload, type }));
   };
 
   const form = useForm(initialValues, null, handleSubmit);
+  const handleSelect = (type) => {
+    form.setValues({ type, ...settings[type] });
+  };
 
   React.useEffect(() => {
     if (!settings) return;
-
-    form.setValues(settings);
+    form.setValues({ type: settings.type, ...settings[settings.type] });
   }, [settings]);
 
   return (
@@ -40,7 +44,7 @@ const MailServiceSettings = (props) => {
         <Select
           value={form.values.type}
           disabled={loading}
-          onChange={value => form.setValue('type', value)}
+          onChange={handleSelect}
           placeholder="Select Supported Service"
         >
           <Option value={MAILGUN} title="Mailgun" />

@@ -1,68 +1,59 @@
-general: # General server settings.
-  port: 8081
-  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
-  issuer: http://localhost:8081 # JWT tokens issuer.
-  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+general:
+  host: http://localhost
+  port: "8081"
+  issuer: http://localhost
 
-# Names of environment variables that store admin credentials.
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
-# Storage settings holds together all storage settings.
-# All settings for particular database engine (i.e, filepaths for BoltDB,
-# endpoints and regions for DynamoDB etc.) are assumed to be the same across
-# all storages. If they are not the same, the latest option in this file will be applied.
-# For example, if there are two MongoDB-backed storages, appStorage and tokenStorage,
-# and endpoint for appStorage is localhost:27017, while tokenStorage's endpoint is localhost:27018,
-# server will connect both storages to localhost:27018.
+
 storage:
-  appStorage: &storage_settings
+  appStorage:
+    type: boltdb
+    boltdb:
+      path: ./db.db 
+  userStorage:
     type: boltdb
     boltdb:
       path: ./db.db
-  userStorage: *storage_settings
-  tokenStorage: *storage_settings
-  tokenBlacklist: *storage_settings
-  verificationCodeStorage: *storage_settings
-  inviteStorage: *storage_settings
-
-# Storage for admin sessions.
+  tokenStorage:
+    type: boltdb
+    boltdb:
+      path: ./db.db
+  tokenBlacklist:
+    type: boltdb
+    boltdb:
+      path: ./db.db
+  verificationCodeStorage:
+    type: boltdb
+    boltdb:
+      path: ./db.db
+  inviteStorage:
+    type: boltdb
+    boltdb:
+      path: ./db.db
 sessionStorage:
-  type: memory # Supported values are "memory", "redis", and "dynamodb".
-  # Admin session duration in seconds.
-  # This value specifies the maximum time of inactivity in the admin panel before asking to relogin.
+  type: memory
   sessionDuration: 300
-  address: # Redis-related setting.
-  password: # Redis-related setting.
-  db: # Redis-related setting.
-  region: # DynamoDB-related setting.
-  endpoint: # DynamoDB-related setting. Can be figured out automatically from the region.
-
-keyStorage: # Storage for keys used for signing and verifying JWTs.
-  type: local # Key storage type. Supported values are "local" and "s3".
-  #file/local key storage settings
-  file:
-    private_key_path: ./jwt/test_artifacts/private.pem
-    public_key_path: ./jwt/test_artifacts/public.pem
-
 static:
   type: local
   local:
     folder: ./static
   serveAdminPanel: true
-
-login: # Supported login ways.
-  loginWith:
-    phone: true
-    username: true
-    federated: true
-  # Type of two-factor authentication, if application enables it.
-  # Supported values are: "app" (like Google Authenticator), "sms", "email".
-  tfaType: app
-
 services:
   email:
     type: mock
   sms:
     type: mock
+login:
+  loginWith:
+    username: true
+    phone: true
+    email: false
+    federated: true
+  tfaType: app
+keyStorage:
+  type: local
+  file:
+    private_key_path: ./jwt/test_artifacts/private.pem

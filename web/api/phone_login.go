@@ -109,10 +109,20 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		scopes, err := ar.server.Storages().User.RequestScopes(user.ID, authData.Scopes)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "PhoneLogin.RequestScopes")
+		// if app requires scope, we need to check user has at leas one scope
+		if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
+			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, "user does not have required scope for the app", "PhoneLogin.Authorizer")
 			return
+		}
+
+		// Do login flow.
+		scopes := []string{}
+		// if we requested any scope, let's provide all the scopes user has and requested
+		if len(authData.Scopes) > 0 {
+			scopes = model.SliceIntersect(authData.Scopes, user.Scopes)
+		}
+		if model.SliceContains(authData.Scopes, "offline") && app.Offline {
+			scopes = append(scopes, "offline")
 		}
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)

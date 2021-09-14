@@ -1,37 +1,21 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import SessionStorageForm from './SessionStorageForm';
-import {
-  fetchSessionStorageSettings, updateSessionStorageSettings,
-} from '~/modules/settings/actions';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
+import { updateServerSettings } from '../../../modules/settings/actions';
+import { getSessionStorageSettings } from '~/modules/settings/selectors';
 
 const SessionStorageSettings = ({ error }) => {
   const dispatch = useDispatch();
-  const { notifySuccess } = useNotifications();
-  const { progress, setProgress } = useProgressBar();
-  const settings = useSelector(state => state.settings.sessionStorage);
-
-  const fetchSettings = async () => {
-    setProgress(70);
-    await dispatch(fetchSessionStorageSettings());
-    setProgress(100);
-  };
-
-  React.useEffect(() => {
-    fetchSettings();
-  }, []);
+  const { progress } = useProgressBar();
+  const settings = useSelector(getSessionStorageSettings);
 
   const handleSubmit = async (data) => {
-    setProgress(70);
-    await dispatch(updateSessionStorageSettings(data));
-    setProgress(100);
-
-    notifySuccess({
-      title: 'Updated',
-      text: 'Settings have been updated successfully',
-    });
+    try {
+      await dispatch(updateServerSettings({ sessionStorage: data }));
+    } catch (e) {
+      console.log(e);
+    }
   };
 
   return (

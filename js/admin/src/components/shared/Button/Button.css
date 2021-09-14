@@ -33,6 +33,56 @@
   color: #aaa;
 }
 
+.iap-btn.iap-btn--outline {
+  background-color: transparent;
+  border-color: #3CA6F5;
+  color: #3CA6F5;
+}
+
+.iap-btn.iap-btn--success {
+  background-color: green;
+  border: 2px solid green;
+  color: #fff;
+  pointer-events: none;
+}
+
+.iap-btn.iap-btn--success:hover, 
+.iap-btn.iap-btn--success:focus{
+  background-color: green;
+  border: 2px solid green;
+}
+.iap-btn.iap-btn--outline:not(:hover) svg path {
+  fill: #3CA6F5;
+}
+
+.iap-btn.iap-btn--outline:hover {
+  color: #fff;
+}
+
+.iap-btn.iap-btn--white {
+  background-color: #fff;
+  border-color: transparent;
+  color: var(--main-color);
+  transition: all .2s linear;
+}
+
+.iap-btn.iap-btn--white:hover,
+.iap-btn.iap-btn--white:focus {
+  background-color: #EBF4FD;
+  color: rgba(49, 138, 222, 1);
+}
+
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline {
+  border-color: #fff;
+  color: #fff;
+  background-color: transparent;
+}
+
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline:hover,
+.iap-btn.iap-btn--white.iap-btn.iap-btn--outline:focus {
+  background-color: #62ABF0;
+}
+
 .iap-btn.iap-btn--transparent:focus,
 .iap-btn.iap-btn--transparent:hover {
   background-color: #eee;
@@ -60,11 +110,13 @@
 .iap-btn.iap-btn--error:hover {
   background-color: #d66363;
   border-color: #d66363;
+  color: #fff;
 }
 
 .iap-btn.iap-btn--error:focus {
   background-color: #d66363;
   border-color: #c94c4c;
+  color: #fff;
 }
 
 .iap-btn.iap-btn--error:active {

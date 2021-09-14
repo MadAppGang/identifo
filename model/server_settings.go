@@ -17,17 +17,17 @@ type ServerSettings struct {
 	Static         StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
 	Services       ServicesSettings           `yaml:"services,omitempty" json:"external_services,omitempty"`
 	Login          LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
-	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"keyStorage,omitempty"`
+	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
 	Config         ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
 	Logger         LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
 }
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
-	Host      string `yaml:"host,omitempty" json:"host,omitempty"`
-	Port      string `yaml:"port,omitempty" json:"port,omitempty"`
-	Issuer    string `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	Algorithm string `yaml:"algorithm,omitempty" json:"algorithm,omitempty"`
+	Host            string   `yaml:"host,omitempty" json:"host,omitempty"`
+	Port            string   `yaml:"port,omitempty" json:"port,omitempty"`
+	Issuer          string   `yaml:"issuer,omitempty" json:"issuer,omitempty"`
+	SupportedScopes []string `yaml:"supported_scopes,omitempty" json:"supported_scopes,omitempty"`
 }
 
 // AdminAccountSettings are names of environment variables that store admin credentials.
@@ -72,10 +72,10 @@ type DynamoDatabaseSettings struct {
 type DatabaseType string
 
 const (
-	DBTypeBoltDB   DatabaseType = "boltdb"   // DBTypeBoltDB is for BoltDB.
-	DBTypeMongoDB  DatabaseType = "mongodb"  // DBTypeMongoDB is for MongoDB.
-	DBTypeDynamoDB DatabaseType = "dynamodb" // DBTypeDynamoDB is for DynamoDB.
-	DBTypeFake     DatabaseType = "fake"     // DBTypeFake is for in-memory storage.
+	DBTypeBoltDB   DatabaseType = "boltdb" // DBTypeBoltDB is for BoltDB.
+	DBTypeMongoDB  DatabaseType = "mongo"  // DBTypeMongoDB is for MongoDB.
+	DBTypeDynamoDB DatabaseType = "dynamo" // DBTypeDynamoDB is for DynamoDB.
+	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
 )
 
 // StaticFilesStorageSettings are settings for static files storage.
@@ -106,7 +106,7 @@ const (
 	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
 	StaticFilesStorageTypeS3 = "s3"
 	// StaticFilesStorageTypeDynamoDB is for storing static files in DynamoDB table.
-	StaticFilesStorageTypeDynamoDB = "dynamodb"
+	StaticFilesStorageTypeDynamoDB = "dynamo"
 )
 
 type ConfigStorageSettings struct {
@@ -147,7 +147,7 @@ const (
 	// SessionStorageRedis means to store sessions in Redis.
 	SessionStorageRedis = "redis"
 	// SessionStorageDynamoDB means to store sessions in DynamoDB.
-	SessionStorageDynamoDB = "dynamodb"
+	SessionStorageDynamoDB = "dynamo"
 )
 
 // RedisDatabaseSettings redis storage settings
@@ -172,13 +172,11 @@ type KeyStorageSettings struct {
 
 type KeyStorageFileSettings struct {
 	PrivateKeyPath string `json:"private_key_path,omitempty" yaml:"private_key_path,omitempty"`
-	PublicKeyPath  string `json:"public_key_path,omitempty" yaml:"public_key_path,omitempty"`
 }
 
 type S3KeyStorageSettings struct {
 	Region        string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
 	Bucket        string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
-	PublicKeyKey  string `yaml:"public_key_key,omitempty" json:"public_key_key,omitempty" bson:"public_key_key,omitempty"`
 	PrivateKeyKey string `yaml:"private_key_key,omitempty" json:"private_key_key,omitempty" bson:"private_key_key,omitempty"`
 }
 
@@ -381,35 +379,3 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 		},
 	}, nil
 }
-
-// TODO: implement ETCD storage
-// func ConfigStorageSettingsFromStringEtcd(config string) (ConfigStorageSettings, error) {
-// 	result := ConfigStorageSettings{
-// 		Type:      ConfigStorageTypeEtcd,
-// 		RawString: config,
-// 		Etcd: &EtcdStorageSettings{
-// 			Key: defaultEtcdKey,
-// 		},
-// 	}
-// 	var es string
-// 	components := strings.Split(config[7:], "@")
-// 	if len(components) > 1 {
-// 		es = components[1]
-// 		creds := strings.Split(components[0], ":")
-// 		if len(creds) == 2 {
-// 			result.Etcd.Username = creds[0]
-// 			result.Etcd.Password = creds[1]
-// 		}
-// 	} else if len(components) == 1 {
-// 		es = components[0]
-// 	} else {
-// 		return ConfigStorageSettings{}, fmt.Errorf("could not get etcd endpoints from config: %s", config)
-// 	}
-
-// 	components = strings.Split(es, "|")
-// 	if len(components) > 1 {
-// 		result.Etcd.Key = components[1]
-// 	}
-// 	result.Etcd.Endpoints = strings.Split(components[0], ",")
-// 	return result, nil
-// }

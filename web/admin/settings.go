@@ -3,260 +3,157 @@ package admin
 import (
 	"fmt"
 	"net/http"
-	"os"
 
 	"github.com/madappgang/identifo/model"
 )
 
-// FetchServerSettings returns server settings.
-func (ar *Router) FetchServerSettings() http.HandlerFunc {
+type ServerSettingsAPI struct {
+	General        *model.GeneralServerSettings      `json:"general,omitempty"`
+	AdminAccount   *model.AdminAccountSettings       `json:"admin_account,omitempty"`
+	Storage        *StorageSettingsAPI               `json:"storage,omitempty"`
+	SessionStorage *model.SessionStorageSettings     `json:"session_storage,omitempty"`
+	Static         *model.StaticFilesStorageSettings `json:"static_files_storage,omitempty"`
+	Services       *model.ServicesSettings           `json:"external_services,omitempty"`
+	Login          *model.LoginSettings              `json:"login,omitempty"`
+	KeyStorage     *model.KeyStorageSettings         `json:"keyStorage,omitempty"`
+	Config         *model.ConfigStorageSettings      `json:"config,omitempty"`
+	Logger         *model.LoggerSettings             `json:"logger,omitempty"`
+}
+
+type StorageSettingsAPI struct {
+	AppStorage              *model.DatabaseSettings `json:"app_storage,omitempty"`
+	UserStorage             *model.DatabaseSettings `json:"user_storage,omitempty"`
+	TokenStorage            *model.DatabaseSettings `json:"token_storage,omitempty"`
+	TokenBlacklist          *model.DatabaseSettings `json:"token_blacklist,omitempty"`
+	VerificationCodeStorage *model.DatabaseSettings `json:"verification_code_storage,omitempty"`
+	InviteStorage           *model.DatabaseSettings `json:"invite_storage,omitempty"`
+}
+
+// FetchSettings returns server settings.
+func (ar *Router) FetchSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings())
+		s := ar.server.Settings()
+		ar.ServeJSON(w, http.StatusOK, s)
 	}
 }
 
-// FetchAccountSettings returns admin account settings.
-func (ar *Router) FetchAccountSettings() http.HandlerFunc {
+// UpdateSettings handles the request to update server settings.
+func (ar *Router) UpdateSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		conf := new(adminLoginData)
-		if ar.getAdminAccountSettings(w, conf) != nil {
-			return
-		}
-		ar.ServeJSON(w, http.StatusOK, conf)
-	}
-}
+		s := ar.server.Settings()
 
-// UpdateAccountSettings updates admin account settings.
-func (ar *Router) UpdateAccountSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		adminDataUpdate := new(adminLoginData)
-
-		if ar.mustParseJSON(w, r, adminDataUpdate) != nil {
+		us := ServerSettingsAPI{}
+		if err := ar.mustParseJSON(w, r, &us); err != nil {
+			ar.Error(w, fmt.Errorf("error parsing api settings: %v", err), http.StatusBadRequest, "")
 			return
 		}
 
-		if adminDataUpdate.Password != "" {
-			if err := ar.validateAdminPassword(adminDataUpdate.Password, w); err != nil {
-				return
-			}
-		}
-
-		adminData := new(adminLoginData)
-		if err := ar.getAdminAccountSettings(w, adminData); err != nil {
+		merged, changed := mergeSettings(s, us)
+		if changed == false {
+			ar.Error(w, fmt.Errorf("no settings has been changed, skipping the update"), http.StatusBadRequest, "")
 			return
 		}
 
-		namesDidNotChange := adminDataUpdate.LoginEnvName == adminData.LoginEnvName && adminDataUpdate.PasswordEnvName == adminData.PasswordEnvName
-		valuesDidNotChange := adminDataUpdate.Login == adminData.Login && adminDataUpdate.Password == adminData.Password
-
-		if namesDidNotChange && valuesDidNotChange {
-			ar.ServeJSON(w, http.StatusOK, nil)
+		if err := merged.Validate(); err != nil {
+			ar.Error(w, fmt.Errorf("settings validation failed with error: %v", err), http.StatusBadRequest, "")
 			return
 		}
 
-		if len(adminDataUpdate.Login) > 0 {
-			adminData.Login = adminDataUpdate.Login
-		}
-		if len(adminDataUpdate.LoginEnvName) > 0 {
-			adminData.LoginEnvName = adminDataUpdate.LoginEnvName
-		} else {
-			adminData.LoginEnvName = ar.server.Settings().AdminAccount.LoginEnvName
-		}
-
-		if len(adminDataUpdate.Password) > 0 {
-			adminData.Password = adminDataUpdate.Password
-		}
-		if len(adminDataUpdate.PasswordEnvName) > 0 {
-			adminData.PasswordEnvName = adminDataUpdate.PasswordEnvName
-		} else {
-			adminData.PasswordEnvName = ar.server.Settings().AdminAccount.PasswordEnvName
-		}
-
-		if ar.updateAdminAccountSettings(w, adminData) != nil {
-			return
-		}
-
-		ar.ServeJSON(w, http.StatusOK, adminData)
-	}
-}
-
-// FetchGeneralSettings fetches server's general settings.
-func (ar *Router) FetchGeneralSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().General)
-	}
-}
-
-// UpdateGeneralSettings changes server's general settings.
-func (ar *Router) UpdateGeneralSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var generalSettingsUpdate model.GeneralServerSettings
-
-		if ar.mustParseJSON(w, r, &generalSettingsUpdate) != nil {
-			return
-		}
-		if err := generalSettingsUpdate.Validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		ar.newSettings.General = generalSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.General)
-	}
-}
-
-// FetchStorageSettings fetches server's general settings.
-func (ar *Router) FetchStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Storage)
-	}
-}
-
-// UpdateStorageSettings changes storage connection settings.
-func (ar *Router) UpdateStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var storageSettingsUpdate model.StorageSettings
-
-		if ar.mustParseJSON(w, r, &storageSettingsUpdate) != nil {
-			return
-		}
-		if err := storageSettingsUpdate.Validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		ar.newSettings.Storage = storageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.SessionStorage)
-	}
-}
-
-// FetchSessionStorageSettings fetches session storage settings.
-func (ar *Router) FetchSessionStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().SessionStorage)
-	}
-}
-
-// UpdateSessionStorageSettings changes admin session storage connection settings.
-func (ar *Router) UpdateSessionStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var sessionStorageSettingsUpdate model.SessionStorageSettings
-
-		if ar.mustParseJSON(w, r, &sessionStorageSettingsUpdate) != nil {
-			return
-		}
-		if err := sessionStorageSettingsUpdate.Validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
-			return
-		}
-
-		ar.newSettings.SessionStorage = sessionStorageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.SessionStorage)
-	}
-}
-
-// FetchConfigurationStorageSettings fetches configuration storage settings.
-func (ar *Router) FetchConfigurationStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Config)
-	}
-}
-
-// RestartServer restarts server with new settings.
-func (ar *Router) RestartServer() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		if err := ar.server.Storages().Config.WriteConfig(*ar.newSettings); err != nil {
+		if err := ar.server.Storages().Config.WriteConfig(merged); err != nil {
 			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
-			ar.Error(w, err, http.StatusInternalServerError, "")
-			return
-		}
-		ar.ServeJSON(w, http.StatusOK, nil)
-	}
-}
-
-// UpdateConfigurationStorageSettings changes storage connection settings.
-func (ar *Router) UpdateConfigurationStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var configurationStorageSettingsUpdate model.ConfigStorageSettings
-
-		if ar.mustParseJSON(w, r, &configurationStorageSettingsUpdate) != nil {
-			return
-		}
-		if err := configurationStorageSettingsUpdate.Validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			ar.Error(w, fmt.Errorf("error saving new config: %v", err), http.StatusInternalServerError, "")
 			return
 		}
 
-		ar.newSettings.Config = configurationStorageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Config)
-	}
-}
-
-// FetchStaticFilesStorageSettings fetches static files settings.
-func (ar *Router) FetchStaticFilesStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Static)
-	}
-}
-
-// UpdateStaticFilesStorageSettings changes static files settings.
-func (ar *Router) UpdateStaticFilesStorageSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var staticFilesStorageSettingsUpdate model.StaticFilesStorageSettings
-
-		if ar.mustParseJSON(w, r, &staticFilesStorageSettingsUpdate) != nil {
-			return
+		// if the config storage is not supporting instant reloading - let's force restart it
+		if ar.forceRestart != nil && ar.server.Storages().Config.ForceReloadOnWriteConfig() {
+			go func() {
+				ar.logger.Println("sending server restart")
+				ar.forceRestart <- true
+			}()
 		}
 
-		ar.newSettings.Static = staticFilesStorageSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Static)
+		ar.ServeJSON(w, http.StatusOK, merged)
 	}
 }
 
-// FetchLoginSettings fetches app's login settings.
-func (ar *Router) FetchLoginSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Login)
+// mergeSettings merges updatedSettings with settings and produces the new setttings
+func mergeSettings(settings model.ServerSettings, updatedSettings ServerSettingsAPI) (model.ServerSettings, bool) {
+	changed := false
+	if updatedSettings.General != nil {
+		settings.General = *updatedSettings.General
+		changed = true
 	}
-}
 
-// UpdateLoginSettings changes app's login settings.
-func (ar *Router) UpdateLoginSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var loginSettingsUpdate model.LoginSettings
+	if updatedSettings.AdminAccount != nil {
+		settings.AdminAccount = *updatedSettings.AdminAccount
+		changed = true
+	}
 
-		if ar.mustParseJSON(w, r, &loginSettingsUpdate) != nil {
-			return
+	if updatedSettings.Storage != nil {
+		if updatedSettings.Storage.AppStorage != nil {
+			settings.Storage.AppStorage = *updatedSettings.Storage.AppStorage
+			changed = true
 		}
-
-		ar.newSettings.Login = loginSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Login)
-	}
-}
-
-// FetchExternalServicesSettings fetches settings for external services.
-func (ar *Router) FetchExternalServicesSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, ar.server.Settings().Services)
-	}
-}
-
-// UpdateExternalServicesSettings changes settings for external services.
-func (ar *Router) UpdateExternalServicesSettings() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		var servicesSettingsUpdate model.ServicesSettings
-
-		if ar.mustParseJSON(w, r, &servicesSettingsUpdate) != nil {
-			return
+		if updatedSettings.Storage.UserStorage != nil {
+			settings.Storage.UserStorage = *updatedSettings.Storage.UserStorage
+			changed = true
 		}
-		if err := servicesSettingsUpdate.Validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
-			return
+		if updatedSettings.Storage.TokenStorage != nil {
+			settings.Storage.TokenStorage = *updatedSettings.Storage.TokenStorage
+			changed = true
 		}
-
-		ar.newSettings.Services = servicesSettingsUpdate
-		ar.ServeJSON(w, http.StatusOK, ar.newSettings.Services)
+		if updatedSettings.Storage.TokenBlacklist != nil {
+			settings.Storage.TokenBlacklist = *updatedSettings.Storage.TokenBlacklist
+			changed = true
+		}
+		if updatedSettings.Storage.VerificationCodeStorage != nil {
+			settings.Storage.VerificationCodeStorage = *updatedSettings.Storage.VerificationCodeStorage
+			changed = true
+		}
+		if updatedSettings.Storage.InviteStorage != nil {
+			settings.Storage.InviteStorage = *updatedSettings.Storage.InviteStorage
+			changed = true
+		}
 	}
+
+	if updatedSettings.SessionStorage != nil {
+		settings.SessionStorage = *updatedSettings.SessionStorage
+		changed = true
+	}
+
+	if updatedSettings.Static != nil {
+		settings.Static = *updatedSettings.Static
+		changed = true
+	}
+
+	if updatedSettings.Services != nil {
+		settings.Services = *updatedSettings.Services
+		changed = true
+	}
+
+	if updatedSettings.Login != nil {
+		settings.Login = *updatedSettings.Login
+		changed = true
+	}
+
+	if updatedSettings.KeyStorage != nil {
+		settings.KeyStorage = *updatedSettings.KeyStorage
+		changed = true
+	}
+
+	if updatedSettings.Config != nil {
+		settings.Config = *updatedSettings.Config
+		changed = true
+	}
+
+	if updatedSettings.Logger != nil {
+		settings.Logger = *updatedSettings.Logger
+		changed = true
+	}
+
+	// we need to go section by section and check nee settings
+	return settings, changed
 }
 
 // TestDatabaseConnection tests database connection.
@@ -268,74 +165,4 @@ func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 			ar.ServeJSON(w, http.StatusOK, nil)
 		}
 	}
-}
-
-// getAdminAccountSettings admin account settings and parses them to adminData struct.
-func (ar *Router) getAdminAccountSettings(w http.ResponseWriter, ald *adminLoginData) error {
-	adminLogin := os.Getenv(ar.server.Settings().AdminAccount.LoginEnvName)
-	if len(adminLogin) == 0 {
-		err := fmt.Errorf("Admin login not set")
-		ar.Error(w, err, http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	adminPassword := os.Getenv(ar.server.Settings().AdminAccount.PasswordEnvName)
-	if len(adminPassword) == 0 {
-		err := fmt.Errorf("Admin password not set")
-		ar.Error(w, err, http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	ald.Login = adminLogin
-	ald.LoginEnvName = ar.server.Settings().AdminAccount.LoginEnvName
-	ald.Password = adminPassword
-	ald.PasswordEnvName = ar.server.Settings().AdminAccount.PasswordEnvName
-
-	return nil
-}
-
-func (ar *Router) updateAdminAccountSettings(w http.ResponseWriter, newAdminData *adminLoginData) error {
-	var needChangeConfig bool
-
-	loginEnvName := ar.server.Settings().AdminAccount.LoginEnvName
-	if newAdminData.LoginEnvName != loginEnvName {
-		loginEnvName = newAdminData.LoginEnvName
-		needChangeConfig = true
-	}
-	if err := os.Setenv(loginEnvName, newAdminData.Login); err != nil {
-		err = fmt.Errorf("Cannot save new admin login: %s", err)
-		ar.Error(w, err, http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	passwordEnvName := ar.server.Settings().AdminAccount.PasswordEnvName
-	if newAdminData.PasswordEnvName != passwordEnvName {
-		passwordEnvName = newAdminData.PasswordEnvName
-		needChangeConfig = true
-	}
-	if err := os.Setenv(passwordEnvName, newAdminData.Password); err != nil {
-		err = fmt.Errorf("Cannot save new admin password: %s", err)
-		ar.Error(w, err, http.StatusInternalServerError, err.Error())
-		return err
-	}
-
-	if !needChangeConfig {
-		return nil
-	}
-
-	newSettings := ar.server.Settings()
-	newSettings.AdminAccount.LoginEnvName = loginEnvName
-	newSettings.AdminAccount.PasswordEnvName = passwordEnvName
-
-	ar.newSettings = &newSettings
-	return nil
-}
-
-func (ar *Router) validateAdminPassword(pswd string, w http.ResponseWriter) error {
-	if pswdLen := len(pswd); pswdLen < 6 || pswdLen > 130 {
-		err := fmt.Errorf("Incorrect password length %d, expecting number between 6 and 130", pswdLen)
-		ar.Error(w, err, http.StatusBadRequest, err.Error())
-		return err
-	}
-	return nil
 }

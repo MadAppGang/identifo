@@ -19,7 +19,7 @@ var defaultCors = model.CorsOptions{
 }
 
 // NewServer creates backend service.
-func NewServer(storages model.ServerStorageCollection, services model.ServerServices, options ...func(*Server) error) (model.Server, error) {
+func NewServer(storages model.ServerStorageCollection, services model.ServerServices, restartChan chan<- bool, options ...func(*Server) error) (model.Server, error) {
 	if storages.Config == nil {
 		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}
@@ -71,9 +71,8 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		},
 		AdminRouterSettings: []func(*admin.Router) error{
 			admin.HostOption(hostName),
-			// admin.ServerConfigPathOption(settings.StaticFilesStorage.ServerConfigPath),
-			// admin.ServerSettingsOption(&settings),
 			admin.CorsOption(defaultCors, originChecker),
+			admin.ForceRestartOption(restartChan),
 		},
 		LoggerSettings: settings.Logger,
 	}

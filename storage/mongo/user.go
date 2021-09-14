@@ -149,6 +149,11 @@ func (us *UserStorage) DetachDeviceToken(token string) error {
 	return model.ErrorNotImplemented
 }
 
+// TODO: implement get all device tokens logic
+func (us *UserStorage) AllDeviceTokens(userID string) ([]string, error) {
+	return nil, nil
+}
+
 // RequestScopes for now returns requested scope
 // TODO: implement scope logic
 func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, error) {

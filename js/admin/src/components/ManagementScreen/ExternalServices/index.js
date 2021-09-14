@@ -4,25 +4,17 @@ import { useDispatch, useSelector } from 'react-redux';
 import { Tabs, Tab } from '~/components/shared/Tabs';
 import MailServiceSettings from './MailServiceSettings';
 import SmsServiceSettings from './SmsServiceSettings';
-import {
-  fetchExternalServicesSettings, updateExternalServicesSettings,
-} from '~/modules/settings/actions';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+import { getExternalServicesSettings } from '~/modules/settings/selectors';
+import { updateServerSettings } from '../../../modules/settings/actions';
 
 const ExternalServicesSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const dispatch = useDispatch();
-  const settings = useSelector(state => state.settings.externalServices);
+  const settings = useSelector(getExternalServicesSettings);
   const { progress, setProgress } = useProgressBar();
   const { notifySuccess } = useNotifications();
-
-  useEffect(() => {
-    if (!settings) {
-      setProgress(70);
-      dispatch(fetchExternalServicesSettings());
-    }
-  }, []);
 
   useEffect(() => {
     if (settings && progress) {
@@ -33,12 +25,11 @@ const ExternalServicesSection = () => {
   const handleSubmit = async (service, value) => {
     setProgress(70);
 
-    const nextSettings = update(settings, {
+    const nextSettings = { externalServices: update(settings, {
       [service]: value,
-    });
+    }) };
 
-    await dispatch(updateExternalServicesSettings(nextSettings));
-
+    await dispatch(updateServerSettings(nextSettings));
     notifySuccess({
       title: 'Updated',
       text: 'Settings have been updated successfully',

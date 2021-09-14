@@ -61,7 +61,7 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 			ar.oidcConfiguration = &OIDCConfiguration{
 				Issuer:                 ar.server.Services().Token.Issuer(),
 				JwksURI:                ar.server.Services().Token.Issuer() + "/.well-known/jwks.json",
-				ScopesSupported:        ar.server.Storages().User.Scopes(),
+				ScopesSupported:        ar.server.Settings().General.SupportedScopes,
 				SupportedIDSigningAlgs: []string{ar.server.Services().Token.Algorithm()},
 			}
 		}

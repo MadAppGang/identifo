@@ -1,16 +1,13 @@
-import update from '@madappgang/update-by-path';
 import {
-  RECEIVE_LOGIN_SETTINGS,
-  RECEIVE_EXTERNAL_SETTINGS,
-  RECEIVE_SESSION_STORAGE_SETTINGS,
-  RECEIVE_STATIC_FILES_SETTINGS,
-  RECEIVE_GENERAL_SETTINGS,
-  RECEIVE_CONFIGURATION_STORAGE_SETTINGS,
-  SETTINGS_CHANGED,
+  FETCH_SERVER_SETTINGS,
+  UPDATE_SERVER_SETTINGS,
+  FETCH_JWT_KEYS,
+  SET_VERIFICATION_STATUS,
 } from './types';
 import authTypes from '../auth/types';
+import { verificationStatuses } from '~/enums';
 
-const INITIAL_STATE = {
+const initialSettings = {
   login: {
     loginWith: {
       username: false,
@@ -20,33 +17,43 @@ const INITIAL_STATE = {
     tfaType: 'app',
   },
   configurationStorage: null,
-  externalServices: null,
   sessionStorage: null,
-  staticFiles: null,
+  staticFilesStorage: null,
   general: null,
   changed: false,
+  adminAccount: null,
+  config: null,
+  externalServices: null,
+  keyStorage: null,
+  logger: null,
+  storage: null,
+  jwtKeys: null,
+};
+
+const INITIAL_STATE = {
+  original: initialSettings,
+  current: initialSettings,
+  verificationStatus: verificationStatuses.required,
 };
 
 const reducer = (state = INITIAL_STATE, action) => {
   const { type, payload } = action;
 
   switch (type) {
-    case RECEIVE_LOGIN_SETTINGS:
-      return update(state, 'login', payload);
-    case RECEIVE_EXTERNAL_SETTINGS:
-      return update(state, 'externalServices', payload);
-    case RECEIVE_SESSION_STORAGE_SETTINGS:
-      return update(state, 'sessionStorage', payload);
-    case RECEIVE_STATIC_FILES_SETTINGS:
-      return update(state, 'staticFiles', payload);
-    case RECEIVE_GENERAL_SETTINGS:
-      return update(state, 'general', payload);
-    case RECEIVE_CONFIGURATION_STORAGE_SETTINGS:
-      return update(state, 'configurationStorage', payload);
-    case SETTINGS_CHANGED:
-      return update(state, 'changed', true);
+    case FETCH_SERVER_SETTINGS:
+      return { ...state, original: payload, current: payload };
+    case UPDATE_SERVER_SETTINGS:
+      return { ...state, current: { ...state.current, ...payload } };
+    case FETCH_JWT_KEYS:
+      return {
+        ...state,
+        original: { ...state.current, jwtKeys: payload },
+        current: { ...state.current, jwtKeys: payload },
+      };
+    case SET_VERIFICATION_STATUS:
+      return { ...state, verificationStatus: payload };
     case authTypes.LOGOUT_ATTEMPT:
-      return update(state, 'changed', false);
+      return INITIAL_STATE;
     default:
       return state;
   }

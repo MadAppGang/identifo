@@ -32,7 +32,7 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 
 	s3client, err := NewS3Client(config.S3.Region)
 	if err != nil {
-		log.Fatalf("Cannot initialize S3 client: %s.", err)
+		return nil, fmt.Errorf("Cannot initialize S3 client: %s.", err)
 	}
 
 	cs := &ConfigurationStorage{
@@ -72,6 +72,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 		return model.ServerSettings{}, fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
 	}
 
+	settings.Config = cs.config
 	cs.cache = settings
 	cs.cached = true
 
@@ -122,6 +123,10 @@ func (cs *ConfigurationStorage) GetUpdateChan() chan interface{} {
 func (cs *ConfigurationStorage) CloseUpdateChan() {
 	close(cs.UpdateChan)
 	cs.updateChanClosed = true
+}
+
+func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
+	return true
 }
 
 // NewS3Client creates and returns new S3 client.

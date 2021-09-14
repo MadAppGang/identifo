@@ -173,11 +173,13 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		// Issue new access, and, if requested, refresh token, and then invalidate the old one.
-		scopes, err := ar.server.Storages().User.RequestScopes(user.ID, d.Scopes)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.RequestScopes")
-			return
+		scopes := []string{}
+		// if we requested any scope, let's provide all the scopes user has and requested
+		if len(d.Scopes) > 0 {
+			scopes = model.SliceIntersect(d.Scopes, user.Scopes)
+		}
+		if model.SliceContains(d.Scopes, "offline") && app.Offline {
+			scopes = append(scopes, "offline")
 		}
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
@@ -186,8 +188,8 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		offline := contains(scopes, model.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, d.Scopes, app, offline, false, tokenPayload)
+		createRefreshToken := contains(scopes, model.OfflineScope)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, createRefreshToken, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FinalizeTFA.loginUser")
 			return
