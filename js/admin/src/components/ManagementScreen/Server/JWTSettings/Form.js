@@ -1,9 +1,11 @@
 /* eslint-disable max-len */
 import copy from 'copy-to-clipboard';
 import React, { useEffect } from 'react';
+import CopyIcon from '~/components/icons/CopyIcon';
 import KeyIcon from '~/components/icons/Key';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import SaveIcon from '~/components/icons/SaveIcon';
+import PaswordIcon from '~/components/icons/ShowPassword';
 import Button from '~/components/shared/Button';
 import { CollapseItem, CollapseLinks } from '~/components/shared/CollapseLink/CollapseLink';
 import Field from '~/components/shared/Field';
@@ -52,7 +54,7 @@ export const JWTSettingsForm = ({
       {!!error && (
       <FormErrorMessage error={error} />
       )}
-      <Field label="Private key">
+      <Field label="Private key" subtext="Please paste pkcs8 pem private key">
         <div className="iap-jwt-settings-form--field">
           <Input
             className="iap-login-form__input iap-login-form__input--textarea"
@@ -65,7 +67,7 @@ export const JWTSettingsForm = ({
             errorMessage={form.errors.private}
             disabled={!form.values.private}
           />
-          <Button onClick={showPasswordHandler}>Reveal</Button>
+          <PaswordIcon className="iap-jwt-settings-form-action-btn" onClick={showPasswordHandler} />
         </div>
       </Field>
       <Field label="Public key">
@@ -79,7 +81,7 @@ export const JWTSettingsForm = ({
             autoComplete="off"
             disabled
           />
-          <Button onClick={() => copy(settings.public)}>Copy</Button>
+          <CopyIcon className="iap-jwt-settings-form-action-btn" onClick={() => copy(settings.public)} />
         </div>
       </Field>
       <Field label="Algorithm">
@@ -93,7 +95,7 @@ export const JWTSettingsForm = ({
           <Option value="ES256" title="ES256" />
         </Select>
       </Field>
-      <CollapseLinks accordion>
+      <CollapseLinks accordion activeTitle>
         <CollapseItem title="How to generate RS256 private key (widely supported by all framwroks)">
           <p>Paste it in your terminal:</p>
           <p>ssh-keygen -t rsa -b 2048 -m PEM -f private.pem -C &quot;identifo@madappgang.com&quot; -N &quot;&quot;</p>

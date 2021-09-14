@@ -17,7 +17,8 @@ const phoneNumberRule = message => (value) => {
 };
 
 const rules = {
-  username: [notEmpty('Username should not be empty')],
+  username: [notEmpty('User name should not be empty')],
+  fullname: [notEmpty('Full name should not be empty')],
   email: [
     notEmpty('Email should not be empty'),
     emailFormat('Email format is invalid'),

@@ -3,7 +3,8 @@ import {
 } from '@dprovodnikov/validation';
 
 const rules = {
-  username: [notEmpty('Username should not be empty')],
+  username: [notEmpty('User name should not be empty')],
+  fullName: [notEmpty('Full name should not be empty')],
   password: [
     notEmpty('Password should not be empty'),
     longerThan(6, 'Password should have length of at least six characters'),
