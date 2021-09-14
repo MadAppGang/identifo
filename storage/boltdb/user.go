@@ -359,6 +359,8 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 		ID:         xid.New().String(),
 		Active:     true,
 		Username:   user.Username,
+		FullName:   user.FullName,
+		Scopes:     user.Scopes,
 		Phone:      user.Phone,
 		Email:      user.Email,
 		AccessRole: role,

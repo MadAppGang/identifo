@@ -236,6 +236,8 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 		Active:     true,
 		Username:   user.Username,
 		Phone:      user.Phone,
+		FullName:   user.FullName,
+		Scopes:     user.Scopes,
 		Email:      user.Email,
 		AccessRole: role,
 		Anonymous:  isAnonymous,
