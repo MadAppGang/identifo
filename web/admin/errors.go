@@ -23,4 +23,9 @@ const (
 	ErrorAPIInviteNotFound = Error("Specified invite not found.")
 	// ErrorAPIInviteUnableToInvalidate is when invite cannot be invalidated.
 	ErrorAPIInviteUnableToInvalidate = Error("Unable to invalidate invite. Try again or contact support team")
+
+	// ErrorAdminAccountIsNotSet is when not env variables for admin email or/and password are set
+	ErrorAdminAccountIsNotSet = Error("Environment variabels for admin account (email and password) is not set")
+	// ErrorAdminAccountNoEmailAndPassword when no admin email or/and password are set
+	ErrorAdminAccountNoEmailAndPassword = Error("Admin email and/or password are empty and could not be used for security reason")
 )

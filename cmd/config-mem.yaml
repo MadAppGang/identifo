@@ -1,8 +1,7 @@
 general: # General server settings.
   port: 8081
-  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
-  issuer: http://localhost:8081 # JWT tokens issuer.
-  algorithm: es256 # Algorithm for the token service. Supported values are: "rs256", "es256" and "auto".
+  host: http://localhost # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
+  issuer: http://localhost # JWT tokens issuer.
 
 # Names of environment variables that store admin credentials.
 adminAccount:
@@ -32,7 +31,6 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   type: local # Key storage type. Supported values are "local" and "s3".
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
-    public_key_path: ./jwt/test_artifacts/public.pem
 
 static:
   type: local

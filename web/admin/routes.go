@@ -25,10 +25,6 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.Logout()),
 	)).Methods("POST")
 
-	ar.router.Path("/restart").Handler(negroni.New(
-		negroni.WrapFunc(ar.RestartServer()),
-	)).Methods("POST")
-
 	ar.router.Path("/apps").Handler(negroni.New(
 		ar.Session(),
 		negroni.WrapFunc(ar.FetchApps()),
@@ -71,39 +67,23 @@ func (ar *Router) initRoutes() {
 
 	ar.router.Path("/settings").Handler(negroni.New(
 		ar.Session(),
-		negroni.WrapFunc(ar.FetchServerSettings()),
+		negroni.WrapFunc(ar.FetchSettings()),
 	)).Methods("GET")
 
-	settings := mux.NewRouter().PathPrefix("/settings").Subrouter()
-	ar.router.PathPrefix("/settings").Handler(negroni.New(
+	ar.router.Path("/settings").Handler(negroni.New(
 		ar.Session(),
-		negroni.Wrap(settings),
-	))
+		negroni.WrapFunc(ar.UpdateSettings()),
+	)).Methods("PUT")
 
-	settings.Path("/general").HandlerFunc(ar.FetchGeneralSettings()).Methods("GET")
-	settings.Path("/general").HandlerFunc(ar.UpdateGeneralSettings()).Methods("PUT")
+	ar.router.Path("/test_connection").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.TestConnection()),
+	)).Methods("POST")
 
-	settings.Path("/account").HandlerFunc(ar.FetchAccountSettings()).Methods("GET")
-	settings.Path("/account").HandlerFunc(ar.UpdateAccountSettings()).Methods("PATCH")
-
-	settings.Path("/storage").HandlerFunc(ar.FetchStorageSettings()).Methods("GET")
-	settings.Path("/storage").HandlerFunc(ar.UpdateStorageSettings()).Methods("PUT")
-	settings.Path("/storage/test").HandlerFunc(ar.TestDatabaseConnection()).Methods("POST")
-
-	settings.Path("/storage/session").HandlerFunc(ar.FetchSessionStorageSettings()).Methods("GET")
-	settings.Path("/storage/session").HandlerFunc(ar.UpdateSessionStorageSettings()).Methods("PUT")
-
-	settings.Path("/storage/configuration").HandlerFunc(ar.FetchConfigurationStorageSettings()).Methods("GET")
-	settings.Path("/storage/configuration").HandlerFunc(ar.UpdateConfigurationStorageSettings()).Methods("PUT")
-
-	settings.Path("/static").HandlerFunc(ar.FetchStaticFilesStorageSettings()).Methods("GET")
-	settings.Path("/static").HandlerFunc(ar.UpdateStaticFilesStorageSettings()).Methods("PUT")
-
-	settings.Path("/login").HandlerFunc(ar.FetchLoginSettings()).Methods("GET")
-	settings.Path("/login").HandlerFunc(ar.UpdateLoginSettings()).Methods("PUT")
-
-	settings.Path("/services").HandlerFunc(ar.FetchExternalServicesSettings()).Methods("GET")
-	settings.Path("/services").HandlerFunc(ar.UpdateExternalServicesSettings()).Methods("PUT")
+	ar.router.Path("/generate_new_secret").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.GenerateNewSecret()),
+	)).Methods("POST")
 
 	ar.router.Path("/invites").Handler(negroni.New(
 		ar.Session(),
@@ -129,5 +109,6 @@ func (ar *Router) initRoutes() {
 	static.Path("/template").HandlerFunc(ar.UploadStringifiedFile()).Methods("PUT")
 
 	static.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
+	static.Path("/keys").HandlerFunc(ar.GetJWTKeys()).Methods("GET")
 	static.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadADDAFile()).Methods("POST")
 }

@@ -13,6 +13,7 @@ type registrationData struct {
 	Username  string   `json:"username,omitempty"`
 	Phone     string   `json:"phone,omitempty"`
 	Email     string   `json:"email,omitempty"`
+	FullName  string   `json:"full_name,omitempty"`
 	Password  string   `json:"password,omitempty"`
 	Scopes    []string `json:"scopes,omitempty"`
 	Anonymous bool     `json:"anonymous,omitempty"`
@@ -114,8 +115,19 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// merge scopes for user
+		scopes := model.MergeScopes(app.Scopes, app.NewUserDefaultScopes, rd.Scopes)
+
 		// Create new user.
-		user, err := ar.server.Storages().User.AddUserWithPassword(model.User{Username: rd.Username, Email: rd.Email, Phone: rd.Phone}, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
+		um := model.User{
+			Username: rd.Username,
+			Email:    rd.Email,
+			Phone:    rd.Phone,
+			FullName: rd.FullName,
+			Scopes:   scopes,
+		}
+
+		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserWithPassword")
 			return

@@ -98,9 +98,9 @@ func NewValidatorWithConfig(c Config) (Validator, error) {
 	var err error = nil
 	if len(c.PubKeyEnvName) > 0 {
 		pk := os.Getenv(c.PubKeyEnvName)
-		key, _, err = jwt.LoadPublicKeyFromStringAuto(pk)
+		key, _, err = jwt.LoadPublicKeyFromString(pk)
 	} else if len(c.PubKeyFileName) > 0 {
-		key, _, err = jwt.LoadPublicKeyFromPEMAuto(c.PubKeyFileName)
+		key, _, err = jwt.LoadPublicKeyFromPEM(c.PubKeyFileName)
 	}
 
 	return &validator{

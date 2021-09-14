@@ -1,38 +1,26 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
+import useNotifications from '~/hooks/useNotifications';
+import useProgressBar from '~/hooks/useProgressBar';
+import { uploadJWTKeys } from '~/modules/settings/actions';
+import ConfigurationForm from './ServerConfigurationForm';
 import GeneralTab from './ServerGeneralTab';
 import JWTForm from './ServerJWTForm';
-import ConfigurationForm from './ServerConfigurationForm';
-import useProgressBar from '~/hooks/useProgressBar';
-import {
-  uploadJWTKeys,
-  fetchConfigurationStorageSettings,
-  updateConfigurationStorageSettings,
-} from '~/modules/settings/actions';
-import useNotifications from '~/hooks/useNotifications';
+import { getKeyStorageSettings } from '~/modules/settings/selectors';
 
 const GeneralSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
   const dispatch = useDispatch();
-  const settings = useSelector(s => s.settings.configurationStorage);
+  const settings = useSelector(getKeyStorageSettings);
+
   const { notifySuccess } = useNotifications();
 
   const { progress, setProgress } = useProgressBar();
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      setProgress(70);
-      await dispatch(fetchConfigurationStorageSettings());
-      setProgress(100);
-    };
-
-    fetchSettings();
-  }, []);
-
   const handleSubmit = async (nextSettings) => {
     setProgress(70);
-    await dispatch(updateConfigurationStorageSettings(nextSettings));
+    // TODO: Nikita k update settings
 
     const { privateKey, publicKey } = nextSettings;
     if (privateKey && publicKey) {

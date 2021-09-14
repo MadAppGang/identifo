@@ -17,7 +17,6 @@ type TokenBlacklist interface {
 
 // JWTKeys are keys used for signing and verifying JSON web tokens.
 type JWTKeys struct {
-	Public    interface{}
-	Private   interface{}
-	Algorithm interface{}
+	Public  interface{}
+	Private interface{}
 }

@@ -111,15 +111,12 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		user, err := ar.server.Storages().User.UserByEmail(ld.Email)
 		if len(ld.Email) > 0 {
 			user, err = ar.server.Storages().User.UserByEmail(ld.Email)
-
 		}
 		if len(ld.Phone) > 0 {
 			user, err = ar.server.Storages().User.UserByPhone(ld.Phone)
-
 		}
 		if len(ld.Username) > 0 {
 			user, err = ar.server.Storages().User.UserByUsername(ld.Username)
-
 		}
 
 		if err != nil {
@@ -232,29 +229,29 @@ func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map
 
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
-func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool, tokenPayload map[string]interface{}) (accessTokenString, refreshTokenString string, err error) {
+func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool, tokenPayload map[string]interface{}) (string, string, error) {
 	token, err := ar.server.Services().Token.NewAccessToken(user, scopes, app, require2FA, tokenPayload)
 	if err != nil {
-		return
+		return "", "", err
 	}
 
-	accessTokenString, err = ar.server.Services().Token.String(token)
+	accessTokenString, err := ar.server.Services().Token.String(token)
 	if err != nil {
-		return
+		return "", "", err
 	}
 	if !createRefreshToken || require2FA {
-		return
+		return accessTokenString, "", nil
 	}
 
 	refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
-		return
+		return "", "", err
 	}
-	refreshTokenString, err = ar.server.Services().Token.String(refresh)
+	refreshTokenString, err := ar.server.Services().Token.String(refresh)
 	if err != nil {
-		return
+		return "", "", err
 	}
-	return
+	return accessTokenString, refreshTokenString, nil
 }
 
 // check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
@@ -314,11 +311,21 @@ func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
 	return nil
 }
 
-func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string) (AuthResponse, error) {
+func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes []string) (AuthResponse, error) {
+	// check if the user has the scope, that allows to login to the app
+	// user has to have at least one scope app expecting
+	if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
+		return AuthResponse{}, errors.New("user does not have required scope for the app")
+	}
+
 	// Do login flow.
-	scopes, err := ar.server.Storages().User.RequestScopes(user.ID, scopes)
-	if err != nil {
-		return AuthResponse{}, err
+	scopes := []string{}
+	// if we requested any scope, let's provide all the scopes user has and requested
+	if len(requestedScopes) > 0 {
+		scopes = model.SliceIntersect(requestedScopes, user.Scopes)
+	}
+	if model.SliceContains(requestedScopes, "offline") && app.Offline {
+		scopes = append(scopes, "offline")
 	}
 
 	// Check if we should require user to authenticate with 2FA.
@@ -328,7 +335,6 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, scopes []string)
 	}
 
 	offline := contains(scopes, model.OfflineScope)
-
 	tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 	if err != nil {
 		return AuthResponse{}, err

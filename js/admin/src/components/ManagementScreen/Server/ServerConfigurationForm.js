@@ -125,7 +125,7 @@ const ServerConfigurationForm = (props) => {
       </footer>
     </form>
   );
-}
+};
 
 ServerConfigurationForm.defaultProps = {
   settings: {},

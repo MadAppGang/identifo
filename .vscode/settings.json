@@ -3,10 +3,11 @@
         "boltdb",
         "bson",
         "dynamodb",
+        "fsnotify",
         "hotp",
         "identifo",
         "mongodb",
         "nexmo",
         "twilio"
-    ]
+    ],
 }

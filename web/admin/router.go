@@ -22,10 +22,10 @@ type Router struct {
 	originChecker *originchecker.OriginChecker
 	logger        *log.Logger
 	router        *mux.Router
-	newSettings   *model.ServerSettings
 	RedirectURL   string
 	PathPrefix    string
 	Host          string
+	forceRestart  chan<- bool
 }
 
 func defaultOptions() []func(*Router) error {
@@ -59,22 +59,13 @@ func CorsOption(corsOptions model.CorsOptions, originChecker *originchecker.Orig
 	}
 }
 
-// // ServerConfigPathOption sets path to configuration file with admin server settings.
-// func ServerConfigPathOption(configPath string) func(*Router) error {
-// 	return func(r *Router) error {
-// 		r.ServerConfigPath = configPath
-// 		return nil
-// 	}
-// }
-
-// // ServerSettingsOption sets path to configuration file with server settings.
-// func ServerSettingsOption(settings *model.ServerSettings) func(*Router) error {
-// 	return func(r *Router) error {
-// 		r.ServerSettings = settings
-// 		r.newSettings = settings
-// 		return nil
-// 	}
-// }
+// ForceRestartOption sets channel to send force restart command
+func ForceRestartOption(restartChan chan<- bool) func(*Router) error {
+	return func(r *Router) error {
+		r.forceRestart = restartChan
+		return nil
+	}
+}
 
 // RedirectURLOption sets redirect url value.
 func RedirectURLOption(redirectURL string) func(*Router) error {

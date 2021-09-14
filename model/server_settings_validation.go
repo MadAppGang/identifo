@@ -46,9 +46,6 @@ func (gss *GeneralServerSettings) Validate() error {
 	if _, err := url.ParseRequestURI(gss.Host); err != nil {
 		return fmt.Errorf("%s. Host is invalid. %s", subject, err)
 	}
-	if len(gss.Algorithm) == 0 {
-		return fmt.Errorf("%s. Algorithm is not set", subject)
-	}
 	if len(gss.Issuer) == 0 {
 		return fmt.Errorf("%s. Issuer is not set", subject)
 	}
@@ -254,9 +251,6 @@ func (kss *KeyStorageSettings) Validate() error {
 		}
 		if len(kss.S3.PrivateKeyKey) == 0 {
 			return fmt.Errorf("%s. Private key  key is not set", subject)
-		}
-		if len(kss.S3.PublicKeyKey) == 0 {
-			return fmt.Errorf("%s. Public key  key is not set", subject)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type '%s'", subject, kss.Type)

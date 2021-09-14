@@ -25,8 +25,10 @@ import (
 const SessionName = "_federated_session"
 
 // Store can/should be set by applications using gothic. The default is a cookie store.
-var Store sessions.Store
-var defaultStore sessions.Store
+var (
+	Store        sessions.Store
+	defaultStore sessions.Store
+)
 
 var keySet = false
 
@@ -87,7 +89,6 @@ var getState = func(req *http.Request) string {
 func (ar *Router) FederatedLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		app, err := getApp(r)
-
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "AppId not set", "FederatedLogin.AppFromFormOrSession")
 			return
@@ -112,14 +113,12 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 		fmt.Println(url)
 
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
-
 	}
 }
 
 func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		app, err := getApp(r)
-
 		if err != nil {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "AppId not set", "FederatedLogin.AppFromFormOrSession")
 			return
@@ -163,8 +162,12 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			}
 
 			if err == model.ErrUserNotFound && !app.RegistrationForbidden {
+				scopes := model.MergeScopes(app.Scopes, app.NewUserDefaultScopes, nil)
+
 				user, err = ar.server.Storages().User.AddUserWithFederatedID(model.User{
-					Email: gothUser.Email,
+					Email:    gothUser.Email,
+					FullName: gothUser.FirstName + " " + gothUser.LastName,
+					Scopes:   scopes,
 				}, providerName, gothUser.UserID, app.NewUserDefaultRole)
 				if err != nil {
 					ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")

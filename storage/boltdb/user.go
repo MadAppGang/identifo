@@ -230,6 +230,11 @@ func (us *UserStorage) Scopes() []string {
 	return []string{"offline", "user"}
 }
 
+// TODO: implement get all device tokens logic
+func (us *UserStorage) AllDeviceTokens(userID string) ([]string, error) {
+	return nil, nil
+}
+
 // UserByPhone fetches user by phone number.
 func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	var res model.User

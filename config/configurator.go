@@ -1,8 +1,6 @@
 package config
 
 import (
-	"fmt"
-
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/services/mail"
@@ -13,7 +11,7 @@ import (
 )
 
 // NewServer creates new server instance from ServerSettings
-func NewServer(config model.ConfigurationStorage) (model.Server, error) {
+func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
 	// read settings, if they empty or use cached version
 	settings, err := config.LoadServerSettings(false)
 	if err != nil {
@@ -104,7 +102,7 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 		Session: sessionS,
 	}
 
-	server, err := server.NewServer(sc, srvs)
+	server, err := server.NewServer(sc, srvs, restartChan)
 	if err != nil {
 		return nil, err
 	}
@@ -113,18 +111,13 @@ func NewServer(config model.ConfigurationStorage) (model.Server, error) {
 }
 
 func NewTokenService(settings model.GeneralServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
-	tokenServiceAlg, ok := model.StrToTokenSignAlg[settings.Algorithm]
-	if !ok {
-		return nil, fmt.Errorf("Unknown token service algorithm %s", settings.Algorithm)
-	}
-
-	keys, err := storages.Key.LoadKeys(tokenServiceAlg)
+	key, err := storages.Key.LoadPrivateKey()
 	if err != nil {
 		return nil, err
 	}
 
 	tokenService, err := jwt.NewJWTokenService(
-		keys,
+		key,
 		settings.Issuer,
 		storages.Token,
 		storages.App,
