@@ -32,7 +32,7 @@ const GeneralForm = (props) => {
       host: settings.host,
       issuer: settings.issuer,
       port: settings.port,
-      supportedScopes: settings.supportedScopes,
+      supportedScopes: settings.supportedScopes || [],
     });
   }, [settings]);
 

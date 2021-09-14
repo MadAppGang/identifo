@@ -36,6 +36,8 @@ const ApplicationGeneralSettingsForm = (props) => {
   const [active, setActive] = useState(application.active || false);
   const [debugTfaCode, setDebugTfaCode] = useState(application.debug_tfa_code || '');
   const [scopes, setScopes] = useState(application.scopes || []);
+  const [userDefaultScopes, setUserDefaultScopes] = useState(application.new_user_default_scopes || []);
+  const [userDefaultRole, setUserDefaultRole] = useState(application.new_user_default_role || '');
   const [federatedLoginSettings, setFederatedLoginSettings] = useState(application.federated_login_settings || {});
 
   const [validation, setValidation] = useState({
@@ -57,6 +59,8 @@ const ApplicationGeneralSettingsForm = (props) => {
     if (application.active) setActive(application.active);
     if (application.debug_tfa_code) setDebugTfaCode(application.debug_tfa_code);
     if (application.scopes) setScopes(application.scopes);
+    if (application.new_user_default_scopes) setUserDefaultScopes(application.new_user_default_scopes);
+    if (application.new_user_default_role) setUserDefaultRole(application.new_user_default_role);
     if (application.federated_login_settings) setFederatedLoginSettings(application.federated_login_settings);
     setAllowRegistration(!application.registration_forbidden);
     setAllowAnonymousRegistration(application.anonymous_registration_allowed);
@@ -103,6 +107,8 @@ const ApplicationGeneralSettingsForm = (props) => {
       anonymous_registration_allowed: allowAnonymousRegistration,
       debug_tfa_code: debugTfaCode || undefined,
       federated_login_settings: federatedLoginSettings,
+      new_user_default_scopes: userDefaultScopes,
+      new_user_default_role: userDefaultRole,
     });
   };
 
@@ -165,6 +171,28 @@ const ApplicationGeneralSettingsForm = (props) => {
             onChange={setScopes}
           />
         </Field>
+      )}
+
+      {!isExcluded('newUserDefaultScopes') && (
+      <Field label="New user default scopes">
+        <MultipleInput
+          values={userDefaultScopes}
+          placeholder="Hit Enter to add scope"
+          onChange={setUserDefaultScopes}
+        />
+      </Field>
+      )}
+
+      {!isExcluded('newUserDefaultRole') && (
+      <Field label="New user default role">
+        <Input
+          value={userDefaultRole}
+          autoComplete="off"
+          placeholder="Enter new user default role"
+          onChange={extractValue(v => handleInput('userDefaultRole', v, setUserDefaultRole))}
+          disabled={loading}
+        />
+      </Field>
       )}
 
       {!isExcluded('tfaStatus') && (

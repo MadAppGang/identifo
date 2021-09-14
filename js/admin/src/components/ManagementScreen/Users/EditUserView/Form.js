@@ -59,7 +59,7 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
       editPassword: form.values.editPassword,
       password: form.values.password,
       confirmPassword: form.values.confirmPassword,
-      scopes: user.scopes,
+      scopes: user.scopes || [],
     });
   }, [user]);
 
