@@ -1,69 +1,28 @@
 import React, { useState } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
-import useNotifications from '~/hooks/useNotifications';
-import useProgressBar from '~/hooks/useProgressBar';
-import { uploadJWTKeys } from '~/modules/settings/actions';
-import ConfigurationForm from './ServerConfigurationForm';
-import GeneralTab from './ServerGeneralTab';
-import JWTForm from './ServerJWTForm';
-import { getKeyStorageSettings } from '~/modules/settings/selectors';
+import GeneralTab from './GeneralSection/ServerGeneralTab';
+import { JWTSettingsSection } from './JWTSettings/JWTSettingsSection';
+import { JWTStorageSection } from './JWTStorage/JWTStorageSection';
+import ServerConfigurationForm from './ServerConfiguration/ServerConfigurationForm';
 
 const GeneralSection = () => {
   const [tabIndex, setTabIndex] = useState(0);
-  const dispatch = useDispatch();
-  const settings = useSelector(getKeyStorageSettings);
-
-  const { notifySuccess } = useNotifications();
-
-  const { progress, setProgress } = useProgressBar();
-
-  const handleSubmit = async (nextSettings) => {
-    setProgress(70);
-    // TODO: Nikita k update settings
-
-    const { privateKey, publicKey } = nextSettings;
-    if (privateKey && publicKey) {
-      await dispatch(uploadJWTKeys(publicKey, privateKey));
-    }
-
-    setProgress(100);
-
-    notifySuccess({
-      title: 'Updated',
-      text: 'Server settings have been updated successfully',
-    });
-  };
 
   return (
     <section className="iap-management-section">
       <p className="iap-management-section__title">
         Server Settings
       </p>
-
       <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
         <Tab title="General" />
+        <Tab title="Token Storage" />
         <Tab title="Token Settings" />
         <Tab title="Configuration Storage" />
-
         <>
           {tabIndex === 0 && <GeneralTab />}
-
-          {tabIndex === 1 && (
-            <JWTForm
-              loading={!!progress}
-              settings={settings}
-              onSubmit={handleSubmit}
-            />
-          )}
-
-          {tabIndex === 2 && (
-            <ConfigurationForm
-              loading={!!progress}
-              settings={settings}
-              onSubmit={handleSubmit}
-            />
-          )}
+          {tabIndex === 1 && <JWTStorageSection />}
+          {tabIndex === 2 && <JWTSettingsSection />}
+          {tabIndex === 3 && <ServerConfigurationForm />}
         </>
       </Tabs>
     </section>

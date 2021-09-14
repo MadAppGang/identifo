@@ -1,0 +1,42 @@
+.iap-snack {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--main-color);
+    max-width: 400px;
+    padding: 24px;
+    border-radius: 16px;
+    color: #fff;
+    font-size: 16px;
+    line-height: 24px;
+}
+
+.iap-snack--success {
+    background-color: #65C48D;
+}
+
+.iap-snack--error {
+    background-color: #F27171;
+}
+
+.iap-snack--controls {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    margin-top: 24px;
+}
+
+.iap-snack--control-item {
+    background-color: transparent;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    border-bottom: 1px solid transparent;
+    transition: border .2s linear;
+    font-size: 14px;
+    line-height: 22px;
+}
+
+.iap-snack--control-item:hover {
+    border-bottom: 1px solid var(--main-color-hover);
+}

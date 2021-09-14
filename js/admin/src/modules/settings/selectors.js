@@ -33,3 +33,23 @@ export const getExternalServicesSettings = (state) => {
 export const getStaticFilesSettings = (state) => {
   return getCurentSettings(state).staticFilesStorage;
 };
+
+export const getSettingsConfig = (state) => {
+  return getCurentSettings(state).config;
+};
+
+export const getAdminAccountSettings = (state) => {
+  return getCurentSettings(state).adminAccount;
+};
+
+export const getSessionStorageSettings = (state) => {
+  return getCurentSettings(state).sessionStorage;
+};
+
+export const selectJWTKeys = (state) => {
+  return getCurentSettings(state).jwtKeys;
+};
+
+export const getVerificationStatus = (state) => {
+  return state.settings.verificationStatus;
+};

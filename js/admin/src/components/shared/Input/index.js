@@ -4,7 +4,7 @@ import classnames from 'classnames';
 import './Input.css';
 
 const Input = React.forwardRef((props, ref) => {
-  const { Icon, errorMessage, renderButton, onChange, onValue, ...restProps } = props;
+  const { Icon, errorMessage, renderButton, onChange, onValue, as, ...restProps } = props;
 
   const className = classnames({
     'iap-login-form__input': true,
@@ -22,14 +22,37 @@ const Input = React.forwardRef((props, ref) => {
       {!!Icon && (
         <Icon className="iap-input-icon" />
       )}
-      <input
+      {
+        as === 'textarea'
+          ? (
+            <textarea
+              ref={ref}
+              {...restProps}
+              spellCheck={false}
+              autoComplete="off"
+              className={className}
+              onChange={handleChange}
+            />
+          )
+          : (
+            <input
+              ref={ref}
+              {...restProps}
+              spellCheck={false}
+              autoComplete="off"
+              className={className}
+              onChange={handleChange}
+            />
+          )
+      }
+      {/* <input
         ref={ref}
         {...restProps}
         spellCheck={false}
         autoComplete="off"
         className={className}
         onChange={handleChange}
-      />
+      /> */}
 
       {!!renderButton && (
         <div className="iap-input-btn">
@@ -54,6 +77,7 @@ Input.propTypes = {
   errorMessage: PropTypes.string,
   Icon: PropTypes.func,
   onValue: PropTypes.func,
+  as: PropTypes.string,
 };
 
 Input.defaultProps = {
@@ -62,6 +86,7 @@ Input.defaultProps = {
   placeholder: '',
   value: '',
   errorMessage: '',
+  as: 'input',
   Icon: null,
   onChange: () => {},
   onValue: () => {},

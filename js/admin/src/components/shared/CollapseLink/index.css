@@ -1,0 +1,42 @@
+.iap-collapse-link--title {
+    transition: color 200ms linear;
+    cursor: pointer;
+    font-weight: 400;
+    font-size: 16px;
+    line-height: 24px;
+    display: flex;
+    align-items: center;
+    position: relative;
+}
+
+.iap-collapse-link--title:hover {
+    color: var(--main-color-hover);
+    -moz-user-select: none;
+    -webkit-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.iap-collapse-link--content {
+    padding-left: 10px;
+}
+
+.iap-collapse-link--icon {
+    height: 22px;
+    width: 22px;
+    padding: 5px;
+    cursor: pointer;
+    transition: all 200ms linear;
+    position: absolute;
+    top: 0;
+    right: 0;
+}
+.iap-collapse-link--icon-opened{
+    transform: rotate(180deg);
+}
+.iap-collapse-link--title:hover .iap-collapse-link--icon {
+    fill: var(--main-color);
+}
+
+.ReactCollapse--collapse {
+    transition: height 200ms;
+}

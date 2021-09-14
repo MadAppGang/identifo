@@ -1,12 +1,12 @@
-import React, { useEffect } from 'react';
 import update from '@madappgang/update-by-path';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { updateLoginSettings } from '~/modules/settings/actions';
-import LoginTypesTable from './LoginTypesTable';
 import Field from '~/components/shared/Field';
-import { Select, Option } from '~/components/shared/Select';
+import { Option, Select } from '~/components/shared/Select';
 import useProgressBar from '~/hooks/useProgressBar';
+import { updateServerSettings } from '~/modules/settings/actions';
 import { getLoginSettings } from '~/modules/settings/selectors';
+import LoginTypesTable from './LoginTypesTable';
 
 const LoginTypesSection = () => {
   const dispatch = useDispatch();
@@ -20,12 +20,12 @@ const LoginTypesSection = () => {
 
   const handleChange = (type, enabled) => {
     const nextSettings = update(settings, `loginWith.${type}`, enabled);
-    dispatch(updateLoginSettings(nextSettings));
+    dispatch(updateServerSettings({ login: nextSettings }));
   };
 
   const handleTfaTypeChange = (value) => {
     const nextSettings = update(settings, { tfaType: value });
-    dispatch(updateLoginSettings(nextSettings));
+    dispatch(updateServerSettings({ login: nextSettings }));
   };
 
   return (
