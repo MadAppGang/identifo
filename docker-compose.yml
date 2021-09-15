@@ -6,8 +6,6 @@ services:
     environment:
       - IDENTIFO_ADMIN_LOGIN=admin@admin.com
       - IDENTIFO_ADMIN_PASSWORD=password
-    env_file:
-      - .env
     ports:
       - "8081:8081"
     networks:

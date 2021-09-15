@@ -2,6 +2,7 @@ general: # General server settings.
   port: 8081
   host: http://localhost # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
   issuer: http://localhost # JWT tokens issuer.
+  algorithm: "auto"
 
 # Names of environment variables that store admin credentials.
 adminAccount:
@@ -49,6 +50,7 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   #file/local key storage settings
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
+    public_key_path: ./jwt/test_artifacts/public.pem
 
 static:
   type: local
@@ -100,6 +102,3 @@ services:
     #   password: secret # RouteMobile-related setting.
     #   source: whatever # RouteMobile-related setting.
     #   region: australia # RouteMobile-related setting. Supported values are: uae.
-
-
-
