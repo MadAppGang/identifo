@@ -20,6 +20,8 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
     username: '',
     password: '',
     fullName: '',
+    email: '',
+    phone: '',
     scopes: [],
     confirmPassword: '',
     tfaEnabled: false,
@@ -33,6 +35,8 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
       fullName: values.fullName,
       scopes: values.scopes,
       accessRole: values.role,
+      email: values.email,
+      phone: values.phone,
       tfaInfo: {
         isEnabled: values.tfaEnabled,
       },
@@ -65,6 +69,25 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
         />
       </Field>
 
+      <Field label="Email">
+        <Input
+          name="email"
+          value={form.values.email}
+          placeholder="Enter user email"
+          onChange={form.handleChange}
+          errorMessage={form.errors.email}
+        />
+      </Field>
+
+      <Field label="Phone">
+        <Input
+          name="phone"
+          value={form.values.phone}
+          placeholder="Enter user phone number"
+          onChange={form.handleChange}
+          errorMessage={form.errors.phone}
+        />
+      </Field>
 
       <Field label="Access Role">
         <Input
