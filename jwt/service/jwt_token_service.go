@@ -124,7 +124,7 @@ func (ts *JWTokenService) PublicKey() interface{} {
 		return ts.cachedPublicKey
 	}
 
-	switch ts.privateKey.(type) {
+	switch t := ts.privateKey.(type) {
 	case *rsa.PrivateKey:
 		pk := ts.privateKey.(*rsa.PrivateKey)
 		ts.cachedPublicKey = pk.Public()
@@ -132,6 +132,7 @@ func (ts *JWTokenService) PublicKey() interface{} {
 		pk := ts.privateKey.(*ecdsa.PrivateKey)
 		ts.cachedPublicKey = pk.Public()
 	default:
+		fmt.Printf("unable to get public key from private key of type: %v", t)
 		return nil
 	}
 	return ts.cachedPublicKey

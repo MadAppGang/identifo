@@ -105,7 +105,7 @@ func printByte(s []byte) {
 }
 
 func TestRSAPemMarshalling(t *testing.T) {
-	private, alg, err := jwti.LoadPrivateKeyFromString(string(privateRSAKeyPEM))
+	private, alg, err := jwti.LoadPrivateKeyFromPEMString(string(privateRSAKeyPEM))
 	if err != nil {
 		fmt.Println(string(privateRSAKeyPEM))
 		t.Fatalf("Error parsing key from PEM: %v", err)
