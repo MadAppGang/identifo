@@ -26,7 +26,7 @@ const CreateApplicationView = ({ history }) => {
     setProgress(70);
 
     try {
-      await dispatch(postApplication(data));
+      await dispatch(postApplication({ ...data, active: true }));
 
       notifySuccess({
         title: 'Created',

@@ -138,7 +138,7 @@ const EditApplicationView = ({ match, history }) => {
                   application={application}
                   onCancel={handleCancel}
                   onSubmit={handleSubmit}
-                  excludeFields={['newUserDefaultRole', 'newUserDefaultScopes']}
+                  excludeFields={['newUserDefaultRole', 'newUserDefaultScopes', 'allowRegistration', 'allowAnonymousRegistration']}
                 />
               )}
               {tabIndex === 1 && (
