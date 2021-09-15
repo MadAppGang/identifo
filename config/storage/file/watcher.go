@@ -51,7 +51,8 @@ func (w *Watcher) runWatch() {
 				return
 			}
 			log.Println("file watcher event:", event)
-			if event.Op&fsnotify.Write == fsnotify.Write {
+			if (event.Op&fsnotify.Write == fsnotify.Write) ||
+				(event.Op&fsnotify.Create == fsnotify.Create) {
 				log.Println("file watched handled modified file:", event.Name)
 				w.change <- true
 			}

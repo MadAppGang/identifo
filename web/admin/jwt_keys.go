@@ -25,7 +25,7 @@ func (ar *Router) UploadJWTKeys() http.HandlerFunc {
 			return
 		}
 
-		if _, _, err := jwt.LoadPrivateKeyFromString(k.Private); err != nil {
+		if _, _, err := jwt.LoadPrivateKeyFromPEMString(k.Private); err != nil {
 			ar.Error(w, fmt.Errorf("error decoding private key: %v", err), http.StatusBadRequest, "")
 			return
 		}

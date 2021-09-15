@@ -8,9 +8,12 @@ export const CollapseItem = (props) => {
   const iconClass = classnames('iap-collapse-link--icon', {
     'iap-collapse-link--icon-opened': props.isOpen,
   });
+  const titleClass = classnames('iap-collapse-link--title', {
+    'iap-collapse-link--title-active': props.isOpen && props.activeTitle,
+  });
   return (
     <div className="iap-collapse-link">
-      <div className="iap-collapse-link--title" onClick={() => props.handleOpen(props.data)} role="presentation">
+      <div className={titleClass} onClick={() => props.handleOpen(props.data)} role="presentation">
         <span>{props.title}</span>
         <DropdownIcon className={iconClass} />
       </div>
@@ -23,7 +26,7 @@ export const CollapseItem = (props) => {
   );
 };
 
-export const CollapseLinks = ({ collapse, children }) => {
+export const CollapseLinks = ({ collapse, activeTitle, children }) => {
   const [opened, setOpened] = useState([]);
   const isOpen = idx => opened.includes(idx);
 
@@ -36,9 +39,14 @@ export const CollapseLinks = ({ collapse, children }) => {
     }
   };
   return (
-    <div>
+    <div className="iap-collapse-links">
       {React.Children.map(children, (child, idx) => (
-        React.cloneElement(child, { handleOpen: onItemClick, isOpen: isOpen(idx), data: idx })
+        React.cloneElement(child, {
+          handleOpen: onItemClick,
+          isOpen: isOpen(idx),
+          data: idx,
+          activeTitle,
+        })
       ))}
     </div>
   );

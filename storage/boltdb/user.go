@@ -359,6 +359,8 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 		ID:         xid.New().String(),
 		Active:     true,
 		Username:   user.Username,
+		FullName:   user.FullName,
+		Scopes:     user.Scopes,
 		Phone:      user.Phone,
 		Email:      user.Email,
 		AccessRole: role,
@@ -564,6 +566,11 @@ func (us *UserStorage) Close() {
 	}
 }
 
+// update all user mappings for all available buckets
+// username -> userID
+// email -> userID
+// phone -> userID
+// []federatedIDs --->> userID
 func (us *UserStorage) UpdateUserBuckets(tx *bolt.Tx, user model.User) error {
 	if user.Username != "" {
 		unpb := tx.Bucket([]byte(UserByUsername))

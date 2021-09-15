@@ -8,6 +8,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 )
 
@@ -68,10 +69,15 @@ func (ks *KeyStorage) LoadPrivateKey() (interface{}, error) {
 	}
 	defer resp.Body.Close()
 
-	key, err := ioutil.ReadAll(resp.Body)
+	keyData, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
 	}
 
-	return key, nil
+	privateKey, _, err := jwt.LoadPrivateKeyFromPEMString(string(keyData))
+	if err != nil {
+		return nil, fmt.Errorf("cannot load private key: %s", err)
+	}
+
+	return privateKey, nil
 }

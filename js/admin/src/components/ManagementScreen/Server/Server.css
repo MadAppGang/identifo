@@ -7,6 +7,21 @@
     flex-direction: column;
     align-items: flex-start;
     justify-content: flex-start;
+    position: relative;
+}
+
+.iap-jwt-settings-form-action-btn {
+    position: absolute;
+    cursor: pointer;
+    top: 14px;
+    right: 20px;
+}
+.iap-jwt-settings-form-pass-icon path{
+    transition: all .2s linear;
+
+}
+.iap-jwt-settings-form-pass-icon:hover path {
+    stroke: var(--main-color-hover);
 }
 
 .iap-jwt-settings-form--field-btn {

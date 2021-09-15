@@ -16,6 +16,7 @@ import ApplicationTokenSettings from './TokenSettingsForm';
 import ApplicationFederatedLoginSettings from './FederatedLoginSettingsForm';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+import { RegistrationSettingsForm } from './RegistrationSettingsForm';
 
 const goBackPath = '/management/applications';
 
@@ -124,6 +125,7 @@ const EditApplicationView = ({ match, history }) => {
         <div className="iap-management-section__tabs">
           <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
             <Tab title="General" />
+            <Tab title="Registration" />
             <Tab title="Authorization" />
             <Tab title="Tokens" />
             <Tab title="Federated Login" />
@@ -136,10 +138,19 @@ const EditApplicationView = ({ match, history }) => {
                   application={application}
                   onCancel={handleCancel}
                   onSubmit={handleSubmit}
+                  excludeFields={['newUserDefaultRole', 'newUserDefaultScopes', 'allowRegistration', 'allowAnonymousRegistration']}
                 />
               )}
-
               {tabIndex === 1 && (
+              <RegistrationSettingsForm
+                error={error}
+                loading={!!progress}
+                application={application}
+                onCancel={handleCancel}
+                onSubmit={handleSubmit}
+              />
+              )}
+              {tabIndex === 2 && (
                 <ApplicationAuthSettings
                   loading={!!progress}
                   application={application}
@@ -148,7 +159,7 @@ const EditApplicationView = ({ match, history }) => {
                 />
               )}
 
-              {tabIndex === 2 && (
+              {tabIndex === 3 && (
                 <ApplicationTokenSettings
                   loading={!!progress}
                   application={application}
@@ -157,7 +168,7 @@ const EditApplicationView = ({ match, history }) => {
                 />
               )}
 
-              {tabIndex === 3 && (
+              {tabIndex === 4 && (
                 <ApplicationFederatedLoginSettings
                   federatedProviders={federatedProviders}
                   loading={!!progress}

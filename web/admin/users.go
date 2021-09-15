@@ -18,7 +18,7 @@ type registrationData struct {
 	Email      string        `json:"email,omitempty"`
 	FullName   string        `json:"full_name,omitempty"`
 	Phone      string        `json:"phone,omitempty"`
-	Password   string        `json:"password,omitempty"`
+	Password   string        `json:"pswd,omitempty"`
 	AccessRole string        `json:"access_role,omitempty"`
 	Scopes     []string      `json:"scopes,omitempty"`
 	TFAInfo    model.TFAInfo `json:"tfa_info,omitempty"`

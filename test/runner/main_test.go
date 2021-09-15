@@ -71,7 +71,7 @@ func runServer() (model.Server, http.Server) {
 		log.Fatalf("Unable to load config with error: %v", err)
 	}
 
-	srv, err := config.NewServer(configStorage)
+	srv, err := config.NewServer(configStorage, nil)
 	if err != nil {
 		log.Fatalf("error creating server: %v", err)
 	}

@@ -50,7 +50,7 @@ func (ks *KeyStorage) LoadPrivateKey() (interface{}, error) {
 		return nil, fmt.Errorf("Error while checking private key existence. %s", err)
 	}
 
-	privateKey, _, err := jwt.LoadPrivateKeyFromPEM(ks.PrivateKeyPath)
+	privateKey, _, err := jwt.LoadPrivateKeyFromPEMFile(ks.PrivateKeyPath)
 	if err != nil {
 		return nil, fmt.Errorf("cannot load private key: %s", err)
 	}

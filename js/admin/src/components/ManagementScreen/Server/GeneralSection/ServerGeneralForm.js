@@ -7,6 +7,7 @@ import Button from '~/components/shared/Button';
 import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import useForm from '~/hooks/useForm';
+import MultipleInput from '~/components/shared/MultipleInput';
 
 const GeneralForm = (props) => {
   const { error, settings, loading, onSubmit } = props;
@@ -15,6 +16,7 @@ const GeneralForm = (props) => {
     host: settings ? settings.host : '',
     issuer: settings ? settings.issuer : '',
     port: settings ? settings.port : '',
+    supportedScopes: settings ? settings.supportedScopes : [],
   };
 
   const handleSubmit = (values) => {
@@ -30,6 +32,7 @@ const GeneralForm = (props) => {
       host: settings.host,
       issuer: settings.issuer,
       port: settings.port,
+      supportedScopes: settings.supportedScopes || [],
     });
   }, [settings]);
 
@@ -69,6 +72,14 @@ const GeneralForm = (props) => {
           placeholder="Enter port"
           onChange={form.handleChange}
           disabled={loading}
+        />
+      </Field>
+
+      <Field label="supported scopes">
+        <MultipleInput
+          values={form.values.supportedScopes}
+          placeholder="Hit Enter to add scope"
+          onChange={s => form.setValue('supportedScopes', s)}
         />
       </Field>
 

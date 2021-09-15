@@ -10,11 +10,13 @@ import { validateUserForm } from './validation';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
 import useForm from '~/hooks/useForm';
 import { toDeepCase } from '~/utils/apiMapper';
+import MultipleInput from '~/components/shared/MultipleInput';
 
 const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
   const initialValues = {
     email: '',
     username: '',
+    fullname: '',
     password: '',
     confirmPassword: '',
     tfaEnabled: false,
@@ -22,6 +24,7 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
     phone: '',
     active: false,
     editPassword: false,
+    scopes: [],
   };
 
   const handleSubmit = (values) => {
@@ -29,12 +32,14 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
       email: values.email,
       username: values.username,
       password: values.editPassword ? values.password : '',
+      fullName: values.fullname,
       tfaInfo: {
         isEnabled: values.tfaEnabled,
       },
       accessRole: values.role,
       phone: values.phone,
       active: values.active,
+      scopes: values.scopes,
     }, 'snake'));
   };
 
@@ -46,6 +51,7 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
     form.setValues({
       email: user.email,
       username: user.username,
+      fullname: user.full_name,
       tfaEnabled: user.tfa_info ? user.tfa_info.is_enabled : false,
       role: user.access_role || '',
       active: user.active || false,
@@ -53,6 +59,7 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
       editPassword: form.values.editPassword,
       password: form.values.password,
       confirmPassword: form.values.confirmPassword,
+      scopes: user.scopes || [],
     });
   }, [user]);
 
@@ -71,12 +78,13 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
         />
       </Field>
 
-      <Field label="Access Role">
+      <Field label="Full name">
         <Input
-          name="role"
-          value={form.values.role}
-          placeholder="Enter access role"
+          name="fullname"
+          value={form.values.fullname}
+          placeholder="Enter full name"
           onChange={form.handleChange}
+          errorMessage={form.errors.fullname}
           disabled={loading}
         />
       </Field>
@@ -100,6 +108,24 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
           onChange={form.handleChange}
           errorMessage={form.errors.phone}
           disabled={loading}
+        />
+      </Field>
+
+      <Field label="Access Role">
+        <Input
+          name="role"
+          value={form.values.role}
+          placeholder="Enter access role"
+          onChange={form.handleChange}
+          disabled={loading}
+        />
+      </Field>
+
+      <Field label="user scopes">
+        <MultipleInput
+          values={form.values.scopes}
+          placeholder="Hit Enter to add scope"
+          onChange={s => form.setValue('scopes', s)}
         />
       </Field>
 

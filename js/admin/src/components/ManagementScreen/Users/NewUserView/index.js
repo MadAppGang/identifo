@@ -22,6 +22,12 @@ const NewUserView = ({ history }) => {
     }
   }, [user, progress]);
 
+  React.useEffect(() => {
+    return () => {
+      dispatch(resetUserError());
+    };
+  }, []);
+
   const handleSubmit = async (data) => {
     setProgress(70);
 

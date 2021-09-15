@@ -84,7 +84,7 @@ func TestKeysManualSerializationService(t *testing.T) {
 
 func TestPemMarshalling(t *testing.T) {
 	// private, err := jwt.ParseECPrivateKeyFromPEM(privateKeyPEM)
-	private, alg, err := jwti.LoadPrivateKeyFromString(string(privateKeyPEM))
+	private, alg, err := jwti.LoadPrivateKeyFromPEMString(string(privateKeyPEM))
 	if err != nil {
 		fmt.Println(string(privateKeyPEM))
 		t.Fatalf("Error parsing key from PEM: %v", err)

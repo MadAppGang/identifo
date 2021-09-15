@@ -108,14 +108,14 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.server.Storages().User.UserByEmail(ld.Email)
+		var err error
+		user := model.User{}
+
 		if len(ld.Email) > 0 {
 			user, err = ar.server.Storages().User.UserByEmail(ld.Email)
-		}
-		if len(ld.Phone) > 0 {
+		} else if len(ld.Phone) > 0 {
 			user, err = ar.server.Storages().User.UserByPhone(ld.Phone)
-		}
-		if len(ld.Username) > 0 {
+		} else if len(ld.Username) > 0 {
 			user, err = ar.server.Storages().User.UserByUsername(ld.Username)
 		}
 

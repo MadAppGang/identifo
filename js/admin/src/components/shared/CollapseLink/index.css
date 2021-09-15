@@ -1,3 +1,7 @@
+.iap-collapse-link+.iap-collapse-link {
+    margin-top: 24px;
+}
+
 .iap-collapse-link--title {
     transition: color 200ms linear;
     cursor: pointer;
@@ -9,6 +13,10 @@
     position: relative;
 }
 
+.iap-collapse-link--title-active {
+    color: var(--main-color);
+}
+
 .iap-collapse-link--title:hover {
     color: var(--main-color-hover);
     -moz-user-select: none;
@@ -16,6 +24,7 @@
     -ms-user-select: none;
     user-select: none;
 }
+
 .iap-collapse-link--content {
     padding-left: 10px;
 }
@@ -30,10 +39,16 @@
     top: 0;
     right: 0;
 }
-.iap-collapse-link--icon-opened{
+
+.iap-collapse-link--icon-opened {
     transform: rotate(180deg);
 }
+
 .iap-collapse-link--title:hover .iap-collapse-link--icon {
+    fill: var(--main-color);
+}
+
+.iap-collapse-link--title-active .iap-collapse-link--icon {
     fill: var(--main-color);
 }
 

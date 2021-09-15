@@ -1,23 +1,28 @@
-import React from 'react';
 import { hasError } from '@dprovodnikov/validation';
 import PropTypes from 'prop-types';
-import Input from '~/components/shared/Input';
-import Field from '~/components/shared/Field';
-import Button from '~/components/shared/Button';
-import SaveIcon from '~/components/icons/SaveIcon';
+import React from 'react';
 import LoadingIcon from '~/components/icons/LoadingIcon';
-import Toggle from '~/components/shared/Toggle';
+import SaveIcon from '~/components/icons/SaveIcon';
+import Button from '~/components/shared/Button';
+import Field from '~/components/shared/Field';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
+import Input from '~/components/shared/Input';
+import MultipleInput from '~/components/shared/MultipleInput';
+import Toggle from '~/components/shared/Toggle';
 import useForm from '~/hooks/useForm';
-import { validateUserForm } from './validation';
 import { toDeepCase } from '~/utils/apiMapper';
-
 import './UserForm.css';
+import { validateUserForm } from './validation';
+
 
 const UserForm = ({ saving, error, onCancel, onSubmit }) => {
   const initialValues = {
     username: '',
     password: '',
+    fullName: '',
+    email: '',
+    phone: '',
+    scopes: [],
     confirmPassword: '',
     tfaEnabled: false,
     role: '',
@@ -27,7 +32,11 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
     onSubmit(toDeepCase({
       username: values.username,
       password: values.password,
+      fullName: values.fullName,
+      scopes: values.scopes,
       accessRole: values.role,
+      email: values.email,
+      phone: values.phone,
       tfaInfo: {
         isEnabled: values.tfaEnabled,
       },
@@ -50,12 +59,50 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
         />
       </Field>
 
+      <Field label="Full name">
+        <Input
+          name="fullName"
+          value={form.values.fullName}
+          placeholder="Enter full name"
+          onChange={form.handleChange}
+          errorMessage={form.errors.fullName}
+        />
+      </Field>
+
+      <Field label="Email">
+        <Input
+          name="email"
+          value={form.values.email}
+          placeholder="Enter user email"
+          onChange={form.handleChange}
+          errorMessage={form.errors.email}
+        />
+      </Field>
+
+      <Field label="Phone">
+        <Input
+          name="phone"
+          value={form.values.phone}
+          placeholder="Enter user phone number"
+          onChange={form.handleChange}
+          errorMessage={form.errors.phone}
+        />
+      </Field>
+
       <Field label="Access Role">
         <Input
           name="role"
           value={form.values.role}
           placeholder="Enter access role"
           onChange={form.handleChange}
+        />
+      </Field>
+
+      <Field label="user scopes">
+        <MultipleInput
+          values={form.values.scopes}
+          placeholder="Hit Enter to add scope"
+          onChange={s => form.setValue('scopes', s)}
         />
       </Field>
 
