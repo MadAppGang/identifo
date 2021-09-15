@@ -17,7 +17,7 @@ import (
 
 var ErrKeyMustBePEMEncoded = errors.New("invalid key: Key must be a PEM encoded PKCS1 or PKCS8 key")
 
-func LoadPrivateKeyFromString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
+func LoadPrivateKeyFromPEMString(s string) (interface{}, model.TokenSignatureAlgorithm, error) {
 	// Parse PEM block
 	var block *pem.Block
 	if block, _ = pem.Decode([]byte(s)); block == nil {
@@ -40,12 +40,12 @@ func LoadPrivateKeyFromString(s string) (interface{}, model.TokenSignatureAlgori
 }
 
 // LoadPrivateKeyFromPEM loads private key from PEM file.
-func LoadPrivateKeyFromPEM(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
+func LoadPrivateKeyFromPEMFile(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
 	prkb, err := ioutil.ReadFile(file)
 	if err != nil {
 		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
-	return LoadPrivateKeyFromString(string(prkb))
+	return LoadPrivateKeyFromPEMString(string(prkb))
 }
 
 // LoadPublicKeyFromString loads public key from string.
