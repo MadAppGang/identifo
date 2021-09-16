@@ -31,8 +31,18 @@ func LoadPrivateKeyFromPEMString(s string) (interface{}, model.TokenSignatureAlg
 
 	switch private := pp.(type) {
 	case *rsa.PrivateKey:
+		if private.Size() != 256 {
+			return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("rsa private key size is unsupported, expecting 256, got: %d", private.Size())
+		}
 		return private, model.TokenSignatureAlgorithmRS256, nil
 	case *ecdsa.PrivateKey:
+		// check curve bits size and type
+		if private.Curve.Params().BitSize != 256 {
+			return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("ecdsa private key bit size is unsupported, expecting 256, got: %d", private.Curve.Params().BitSize)
+		}
+		if private.Curve.Params().Name != "P-256" {
+			return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("ecdsa private key curve name us unsupported, expecting curve P-256, got: %s", private.Curve.Params().Name)
+		}
 		return private, model.TokenSignatureAlgorithmES256, nil
 	default:
 		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T\n", private)
@@ -130,7 +140,7 @@ func GenerateNewPrivateKey(alg model.TokenSignatureAlgorithm) (interface{}, erro
 	case model.TokenSignatureAlgorithmRS256:
 		return rsa.GenerateKey(rand.Reader, 2048)
 	case model.TokenSignatureAlgorithmES256:
-		return ecdsa.GenerateKey(elliptic.P224(), rand.Reader)
+		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	default:
 		return nil, fmt.Errorf("unable to generate new private key, unsupported algorithm: %s\n", alg)
 	}
