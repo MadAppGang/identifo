@@ -110,20 +110,13 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			Email:    rd.Email,
 			Phone:    rd.Phone,
 			FullName: rd.FullName,
+			TFAInfo:  rd.TFAInfo,
 			Scopes:   rd.Scopes, // we are creating user from admin panel - we can set any scopes we want
 		}
 
 		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, rd.AccessRole, false)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
-			return
-		}
-
-		user.TFAInfo = rd.TFAInfo
-
-		user, err = ar.server.Storages().User.UpdateUser(user.ID, user)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "Setting TFA data")
 			return
 		}
 
@@ -154,6 +147,11 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// update password if password is part of update process
 		if len(u.Pswd) > 0 {
+			if err := model.StrongPswd(u.Pswd); err != nil {
+				ar.Error(w, err, http.StatusBadRequest, "")
+				return
+			}
+
 			err := ar.server.Storages().User.ResetPassword(userID, u.Pswd)
 			if err != nil {
 				ar.Error(w, err, http.StatusInternalServerError, "")
