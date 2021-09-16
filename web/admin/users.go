@@ -152,6 +152,16 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			u.TFAInfo = existing.TFAInfo
 		}
 
+		// update password if password is part of update process
+		if len(u.Pswd) > 0 {
+			err := ar.server.Storages().User.ResetPassword(userID, u.Pswd)
+			if err != nil {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+				return
+			}
+			u.Pswd = ""
+		}
+
 		user, err := ar.server.Storages().User.UpdateUser(userID, u)
 		if err != nil {
 			ar.Error(w, err, http.StatusInternalServerError, "")
