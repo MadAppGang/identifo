@@ -20,6 +20,7 @@ const types = {
   DELETE_USER_BY_ID_FAILURE: 'DELETE_USER_BY_ID_FAILURE',
 
   RESET_USER_ERROR: 'RESET_USER_ERROR',
+  RESET_USER_BY_ID: 'RESET_USER_BY_ID',
 };
 
 export default types;

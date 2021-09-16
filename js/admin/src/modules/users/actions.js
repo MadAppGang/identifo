@@ -23,6 +23,7 @@ const deleteSuccess = actionCreator(types.DELETE_USER_BY_ID_SUCCESS);
 const deleteFailure = actionCreator(types.DELETE_USER_BY_ID_FAILURE);
 
 const resetUserError = actionCreator(types.RESET_USER_ERROR);
+const resetUserById = actionCreator(types.RESET_USER_BY_ID);
 
 const fetchUsers = filters => async (dispatch, _, services) => {
   dispatch(fetchAttempt());
@@ -43,6 +44,7 @@ const postUser = user => async (dispatch, _, services) => {
     dispatch(postSuccess(result));
   } catch (err) {
     dispatch(postFailure(getError(err)));
+    throw new Error(err);
   }
 };
 
@@ -86,4 +88,5 @@ export {
   fetchUserById,
   deleteUserById,
   resetUserError,
+  resetUserById,
 };
