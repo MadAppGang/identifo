@@ -23,10 +23,7 @@ const rules = {
     longerThan(6, 'Password should have length of at least six characters'),
     hasUpperLetter('Password should contain at least one uppercase letter'),
   ],
-  email: [
-    notEmpty('Email should not be empty'),
-    emailFormat('Email format is invalid'),
-  ],
+  email: [],
   confirmPassword: [
     notEmpty('You should confirm password'),
     matches('password', 'Passwords do not match'),

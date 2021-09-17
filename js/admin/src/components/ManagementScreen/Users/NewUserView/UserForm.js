@@ -31,7 +31,7 @@ const UserForm = ({ saving, error, onCancel, onSubmit }) => {
   const handleSubmit = (values) => {
     onSubmit(toDeepCase({
       username: values.username,
-      password: values.password,
+      pswd: values.password,
       fullName: values.fullName,
       scopes: values.scopes,
       accessRole: values.role,

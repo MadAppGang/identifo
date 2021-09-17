@@ -31,7 +31,7 @@ const EditUserForm = ({ user, error, loading, onSubmit, onCancel }) => {
     onSubmit(toDeepCase({
       email: values.email,
       username: values.username,
-      password: values.editPassword ? values.password : '',
+      pswd: values.editPassword ? values.password : '',
       fullName: values.fullname,
       tfaInfo: {
         isEnabled: values.tfaEnabled,

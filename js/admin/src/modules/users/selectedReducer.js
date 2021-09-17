@@ -72,6 +72,8 @@ const reducer = (state = INITIAL_STATE, action) => {
       });
     case types.RESET_USER_ERROR:
       return update(state, 'error', null);
+    case types.RESET_USER_BY_ID:
+      return update(state, { user: null });
     default:
       return state;
   }

@@ -8,9 +8,10 @@ import ActionsButton from '~/components/shared/ActionsButton';
 import DropdownIcon from '~/components/icons/DropdownIcon';
 import {
   fetchUserById, alterUser, deleteUserById, resetUserError,
-} from '~/modules/users/actions';
+  resetUserById } from '~/modules/users/actions';
 import useProgressBar from '~/hooks/useProgressBar';
 import useNotifications from '~/hooks/useNotifications';
+
 
 const goBackPath = '/management/users';
 
@@ -41,6 +42,9 @@ const EditUserView = ({ match, history }) => {
 
   React.useEffect(() => {
     fetchData();
+    return () => {
+      dispatch(resetUserById());
+    };
   }, []);
 
   const handleDeleteClick = async () => {
