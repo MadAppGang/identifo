@@ -57,6 +57,25 @@
       },
       "args": ["--config=file://./cmd/config-boltdb.yaml"],
       "showLog": true
+    },
+    {
+      "name": "MongoDB",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "remotePath": "",
+      "port": 2345,
+      "host": "127.0.0.1",
+      "program": "${workspaceFolder}/main.go",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password"
+      },
+      "args": ["--config=file://./cmd/config-mongodb.yaml"],
+      "showLog": true
     }
+
   ]
 }
