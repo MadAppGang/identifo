@@ -269,6 +269,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	}
 
 	newUser.Email = strings.ToLower(newUser.Email)
+	newUser.Username = strings.ToLower(newUser.Username)
 	// use ID from the request
 	newUser.ID = userID
 

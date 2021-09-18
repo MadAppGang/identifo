@@ -10,7 +10,7 @@ adminAccount:
 
 storage:
   appStorage: &storage_settings
-    type: mongodb
+    type: mongo
     mongo:
       database: identifo-test
       connection: mongodb://localhost:27017
