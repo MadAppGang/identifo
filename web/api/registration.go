@@ -10,13 +10,13 @@ import (
 )
 
 type registrationData struct {
-	Username  string   `json:"username,omitempty"`
-	Phone     string   `json:"phone,omitempty"`
-	Email     string   `json:"email,omitempty"`
-	FullName  string   `json:"full_name,omitempty"`
-	Password  string   `json:"password,omitempty"`
-	Scopes    []string `json:"scopes,omitempty"`
-	Anonymous bool     `json:"anonymous,omitempty"`
+	Username  string   `json:"username"`
+	Phone     string   `json:"phone"`
+	Email     string   `json:"email"`
+	FullName  string   `json:"full_name"`
+	Password  string   `json:"password"`
+	Scopes    []string `json:"scopes"`
+	Anonymous bool     `json:"anonymous"`
 }
 
 func (rd *registrationData) validate() error {
@@ -24,30 +24,28 @@ func (rd *registrationData) validate() error {
 	phoneLen := len(rd.Phone)
 	usernameLen := len(rd.Username)
 	pswdLen := len(rd.Password)
+
 	if emailLen > 0 {
-		if phoneLen > 0 || usernameLen > 0 {
-			return fmt.Errorf("don't use phone or username when login with email")
-		}
 		if !model.EmailRegexp.MatchString(rd.Email) {
 			return fmt.Errorf("invalid email")
 		}
 	}
 	if phoneLen > 0 {
-		if emailLen > 0 || usernameLen > 0 {
-			return fmt.Errorf("don't use email or username when login with phone")
-		}
-		if !model.PhoneRegexp.MatchString(rd.Email) {
+		if !model.PhoneRegexp.MatchString(rd.Phone) {
 			return fmt.Errorf("invalid phone")
 		}
 	}
+
 	if usernameLen > 0 {
-		if phoneLen > 0 || emailLen > 0 {
-			return fmt.Errorf("don't use phone or email when login with username")
-		}
 		if usernameLen < 6 || usernameLen > 130 {
 			return fmt.Errorf("incorrect username length %d, expected a number between 6 and 130", usernameLen)
 		}
 	}
+
+	if emailLen == 0 && phoneLen == 0 && usernameLen == 0 {
+		return fmt.Errorf("username, phone or/and email are quired for registration")
+	}
+
 	if pswdLen < 6 || pswdLen > 50 {
 		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 130", pswdLen)
 	}
@@ -129,7 +127,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
-			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserWithPassword")
+			ar.Error(w, ErrorAPIUsernameEmailOrPhoneTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserWithPassword")
 			return
 		}
 		if err != nil {
