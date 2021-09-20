@@ -10,16 +10,18 @@ const defaultEtcdKey = "identifo"
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General        GeneralServerSettings      `yaml:"general,omitempty" json:"general,omitempty"`
-	AdminAccount   AdminAccountSettings       `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	Storage        StorageSettings            `yaml:"storage,omitempty" json:"storage,omitempty"`
-	SessionStorage SessionStorageSettings     `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	Static         StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
-	Services       ServicesSettings           `yaml:"services,omitempty" json:"external_services,omitempty"`
-	Login          LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
-	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
-	Config         ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
-	Logger         LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
+	General        GeneralServerSettings  `yaml:"general,omitempty" json:"general,omitempty"`
+	AdminAccount   AdminAccountSettings   `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
+	Storage        StorageSettings        `yaml:"storage,omitempty" json:"storage,omitempty"`
+	SessionStorage SessionStorageSettings `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
+	Services       ServicesSettings       `yaml:"services,omitempty" json:"external_services,omitempty"`
+	Login          LoginSettings          `yaml:"login,omitempty" json:"login,omitempty"`
+	KeyStorage     KeyStorageSettings     `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
+	Config         ConfigStorageSettings  `yaml:"config,omitempty" json:"config,omitempty"`
+	Logger         LoggerSettings         `yaml:"logger,omitempty" json:"logger,omitempty"`
+	LoginWebApp    LoginWebAppSettings    `yaml:"loginWebApp" json:"login_web_app"`
+	// deprecated
+	Static StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -76,6 +78,20 @@ const (
 	DBTypeMongoDB  DatabaseType = "mongo"  // DBTypeMongoDB is for MongoDB.
 	DBTypeDynamoDB DatabaseType = "dynamo" // DBTypeDynamoDB is for DynamoDB.
 	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
+)
+
+type LoginWebAppSettings struct {
+	Type  LoginWebAppType                 `yaml:"type" json:"type"`
+	Local LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
+	S3    S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
+}
+
+type LoginWebAppType string
+
+const (
+	LoginWebAppTypeNone  LoginWebAppType = "none"
+	LoginWebAppTypeLocal LoginWebAppType = "local"
+	LoginWebAppTypeS3    LoginWebAppType = "s3"
 )
 
 // StaticFilesStorageSettings are settings for static files storage.
