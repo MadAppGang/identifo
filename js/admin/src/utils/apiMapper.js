@@ -13,7 +13,7 @@ export const toDeepCase = (input, targetCase) => {
     .map((entry) => {
       const [key, value] = entry;
 
-      if (typeof value === 'object' && !Array.isArray(value)) {
+      if (typeof value === 'object' && !Array.isArray(value) && value) {
         return [transformCase(key), toDeepCase(value, targetCase)];
       }
 

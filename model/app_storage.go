@@ -18,40 +18,40 @@ type AppStorage interface {
 
 // AppData represents Application data information.
 type AppData struct {
-	ID           string    `bson:"_id,omitempty" json:"id,omitempty"` // TODO: use string?
-	Secret       string    `bson:"secret,omitempty" json:"secret,omitempty"`
-	Active       bool      `bson:"active,omitempty" json:"active,omitempty"`
-	Name         string    `bson:"name,omitempty" json:"name,omitempty"`
-	Description  string    `bson:"description,omitempty" json:"description,omitempty"`
-	Scopes       []string  `bson:"scopes,omitempty" json:"scopes,omitempty"`   // Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
-	Offline      bool      `bson:"offline,omitempty" json:"offline,omitempty"` // Offline is a boolean value that indicates whether on not the app supports refresh tokens. Do not use refresh tokens with apps that does not have secure storage.
-	Type         AppType   `bson:"type,omitempty" json:"type,omitempty"`
-	RedirectURLs []string  `bson:"redirect_urls,omitempty" json:"redirect_urls,omitempty"` // RedirectURLs is the list of allowed urls where user will be redirected after successfull login. Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
-	TFAStatus    TFAStatus `bson:"tfa_status,omitempty" json:"tfa_status,omitempty"`
-	DebugTFACode string    `bson:"debug_tfa_code,omitempty" json:"debug_tfa_code,omitempty"`
+	ID           string    `bson:"_id" json:"id"` // TODO: use string?
+	Secret       string    `bson:"secret" json:"secret"`
+	Active       bool      `bson:"active" json:"active"`
+	Name         string    `bson:"name" json:"name"`
+	Description  string    `bson:"description" json:"description"`
+	Scopes       []string  `bson:"scopes" json:"scopes"`   // Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
+	Offline      bool      `bson:"offline" json:"offline"` // Offline is a boolean value that indicates whether on not the app supports refresh tokens. Do not use refresh tokens with apps that does not have secure storage.
+	Type         AppType   `bson:"type" json:"type"`
+	RedirectURLs []string  `bson:"redirect_urls" json:"redirect_urls"` // RedirectURLs is the list of allowed urls where user will be redirected after successfull login. Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
+	TFAStatus    TFAStatus `bson:"tfa_status" json:"tfa_status"`
+	DebugTFACode string    `bson:"debug_tfa_code" json:"debug_tfa_code"`
 
 	// Authorization
-	AuthzWay       AuthorizationWay `bson:"authorization_way,omitempty" json:"authorization_way,omitempty"`
-	AuthzModel     string           `bson:"authorization_model,omitempty" json:"authorization_model,omitempty"`
-	AuthzPolicy    string           `bson:"authorization_policy,omitempty" json:"authorization_policy,omitempty"`
-	RolesWhitelist []string         `bson:"roles_whitelist,omitempty" json:"roles_whitelist,omitempty"`
-	RolesBlacklist []string         `bson:"roles_blacklist,omitempty" json:"roles_blacklist,omitempty"`
+	AuthzWay       AuthorizationWay `bson:"authorization_way" json:"authorization_way"`
+	AuthzModel     string           `bson:"authorization_model" json:"authorization_model"`
+	AuthzPolicy    string           `bson:"authorization_policy" json:"authorization_policy"`
+	RolesWhitelist []string         `bson:"roles_whitelist" json:"roles_whitelist"`
+	RolesBlacklist []string         `bson:"roles_blacklist" json:"roles_blacklist"`
 
 	// Token settings
-	TokenLifespan                     int64                                `bson:"refresh_token_lifespan,omitempty" json:"refresh_token_lifespan,omitempty"` // TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
-	InviteTokenLifespan               int64                                `bson:"invite_token_lifespan,omitempty" json:"invite_token_lifespan,omitempty"`   // InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
-	RefreshTokenLifespan              int64                                `bson:"token_lifespan,omitempty" json:"token_lifespan,omitempty"`                 // RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
-	TokenPayload                      []string                             `bson:"token_payload,omitempty" json:"token_payload,omitempty"`                   // Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
-	TokenPayloadService               TokenPayloadServiceType              `json:"token_payload_service,omitempty" bson:"token_payload_service,omitempty"`
-	TokenPayloadServicePluginSettings TokenPayloadServicePluginSettings    `json:"token_payload_service_plugin_settings,omitempty" bson:"token_payload_service_plugin_settings,omitempty"`
-	TokenPayloadServiceHttpSettings   TokenPayloadServiceHttpSettings      `json:"token_payload_service_http_settings,omitempty" bson:"token_payload_service_http_settings,omitempty"`
-	FederatedProviders                map[string]FederatedProviderSettings `json:"federated_login_settings,omitempty" bson:"federated_login_settings,omitempty"`
+	TokenLifespan                     int64                                `bson:"refresh_token_lifespan" json:"refresh_token_lifespan"` // TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
+	InviteTokenLifespan               int64                                `bson:"invite_token_lifespan" json:"invite_token_lifespan"`   // InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
+	RefreshTokenLifespan              int64                                `bson:"token_lifespan" json:"token_lifespan"`                 // RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
+	TokenPayload                      []string                             `bson:"token_payload" json:"token_payload"`                   // Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
+	TokenPayloadService               TokenPayloadServiceType              `json:"token_payload_service" bson:"token_payload_service"`
+	TokenPayloadServicePluginSettings TokenPayloadServicePluginSettings    `json:"token_payload_service_plugin_settings" bson:"token_payload_service_plugin_settings"`
+	TokenPayloadServiceHttpSettings   TokenPayloadServiceHttpSettings      `json:"token_payload_service_http_settings" bson:"token_payload_service_http_settings"`
+	FederatedProviders                map[string]FederatedProviderSettings `json:"federated_login_settings" bson:"federated_login_settings"`
 
 	// registration settings
-	RegistrationForbidden        bool     `bson:"registration_forbidden,omitempty" json:"registration_forbidden,omitempty"`
-	AnonymousRegistrationAllowed bool     `bson:"anonymous_registration_allowed,omitempty" json:"anonymous_registration_allowed,omitempty"`
-	NewUserDefaultRole           string   `bson:"new_user_default_role,omitempty" json:"new_user_default_role,omitempty"`
-	NewUserDefaultScopes         []string `bson:"new_user_default_scopes,omitempty" json:"new_user_default_scopes,omitempty"`
+	RegistrationForbidden        bool     `bson:"registration_forbidden" json:"registration_forbidden"`
+	AnonymousRegistrationAllowed bool     `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
+	NewUserDefaultRole           string   `bson:"new_user_default_role" json:"new_user_default_role"`
+	NewUserDefaultScopes         []string `bson:"new_user_default_scopes" json:"new_user_default_scopes"`
 }
 
 // AppType is a type of application.

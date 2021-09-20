@@ -76,5 +76,6 @@
       "args": ["--config=file://./cmd/config-mongodb.yaml"],
       "showLog": true
     }
+
   ]
 }

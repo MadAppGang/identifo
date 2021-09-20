@@ -41,8 +41,10 @@ const SessionStorageForm = (props) => {
 
   React.useEffect(() => {
     if (!settings) return;
+
     form.setValues(settings);
   }, [settings]);
+
   return (
     <form className="iap-settings-form" onSubmit={form.handleSubmit}>
       {!!error && (

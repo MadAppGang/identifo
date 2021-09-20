@@ -13,10 +13,10 @@ const GeneralForm = (props) => {
   const { error, settings, loading, onSubmit } = props;
 
   const initialState = {
-    host: settings ? settings.host : '',
-    issuer: settings ? settings.issuer : '',
-    port: settings ? settings.port : '',
-    supportedScopes: settings ? settings.supportedScopes : [],
+    host: '',
+    issuer: '',
+    port: '',
+    supportedScopes: [],
   };
 
   const handleSubmit = (values) => {
