@@ -107,9 +107,9 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		// Create new user.
 		um := model.User{
 			Username: rd.Username,
+			FullName: rd.FullName,
 			Email:    rd.Email,
 			Phone:    rd.Phone,
-			FullName: rd.FullName,
 			TFAInfo:  rd.TFAInfo,
 			Scopes:   rd.Scopes, // we are creating user from admin panel - we can set any scopes we want
 		}

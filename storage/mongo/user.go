@@ -269,6 +269,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	}
 
 	newUser.Email = strings.ToLower(newUser.Email)
+	newUser.Username = strings.ToLower(newUser.Username)
 	// use ID from the request
 	newUser.ID = userID
 
@@ -371,7 +372,10 @@ func (us *UserStorage) DeleteUser(id string) error {
 // FetchUsers fetches users which name satisfies provided filterString.
 // Supports pagination.
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
-	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: filterString, Options: "i"}}}
+	q := bson.D{}
+	if len(filterString) > 0 {
+		q = bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: filterString, Options: "i"}}}
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*us.timeout)
 	defer cancel()

@@ -14,6 +14,7 @@ var messages = map[MessageID]string{
 	ErrorAPIVerificationCodeInvalid:          "Sorry, the code you entered is invalid or has expired. Please get a new one.",
 	ErrorAPIUserNotFound:                     "Specified user not found",
 	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
+	ErrorAPIUsernameEmailOrPhoneTaken:        "Username, email or/and phone is taken. Try to choose another one",
 	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
 	ErrorAPIInviteTokenServerError:           "Unable to create invite token. Try again or contact support team",
 	ErrorAPIInviteUnableToInvalidate:         "Unable to invalidate invite. Try again or contact support team",
@@ -65,6 +66,8 @@ const (
 	ErrorAPIUserNotFound = "error.api.user.not_found"
 	// ErrorAPIUsernameTaken is when username is already taken.
 	ErrorAPIUsernameTaken = "error.api.username.taken"
+	// ErrorAPIUsernameEmailOrPhoneTaken is when username or email or phone is already taken.
+	ErrorAPIUsernameEmailOrPhoneTaken = "error.api.username_phone_email.taken"
 	// ErrorAPIEmailTaken is when email is already taken.
 	ErrorAPIEmailTaken = "error.api.email.taken"
 	// ErrorAPIInviteTokenServerError is for invite token creation issues.
