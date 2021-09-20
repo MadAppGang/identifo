@@ -365,6 +365,7 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 		Email:      user.Email,
 		AccessRole: role,
 		Anonymous:  isAnonymous,
+		TFAInfo:    user.TFAInfo,
 	}
 
 	return us.AddNewUser(u, password)
