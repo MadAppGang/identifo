@@ -61,3 +61,7 @@
 .iap-select-icon:hover {
   background-color: #eee;
 }
+
+.iap-select-icon--disabled{
+  pointer-events: none;
+}
