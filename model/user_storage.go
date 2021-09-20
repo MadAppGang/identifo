@@ -54,20 +54,20 @@ type UserStorage interface {
 // User is an abstract representation of the user in auth layer.
 // Everything can be User, we do not depend on any particular implementation.
 type User struct {
-	ID              string   `json:"id,omitempty" bson:"_id,omitempty"`
-	Username        string   `json:"username" bson:"username,omitempty"`
-	Email           string   `json:"email" bson:"email,omitempty"`
-	FullName        string   `json:"full_name" bson:"full_name,omitempty"`
-	Phone           string   `json:"phone" bson:"phone,omitempty"`
-	Pswd            string   `json:"pswd,omitempty" bson:"pswd,omitempty"`
-	Active          bool     `json:"active,omitempty" bson:"active,omitempty"`
-	TFAInfo         TFAInfo  `json:"tfa_info,omitempty" bson:"tfa_info,omitempty"`
-	NumOfLogins     int      `json:"num_of_logins,omitempty" bson:"num_of_logins,omitempty"`
-	LatestLoginTime int64    `json:"latest_login_time,omitempty" bson:"latest_login_time,omitempty"`
-	AccessRole      string   `json:"access_role,omitempty" bson:"access_role,omitempty"`
-	Anonymous       bool     `json:"anonymous,omitempty" bson:"anonymous,omitempty"`
-	FederatedIDs    []string `json:"federated_ids,omitempty" bson:"federated_i_ds,omitempty"`
-	Scopes          []string `json:"scopes,omitempty" bson:"scopes,omitempty"`
+	ID              string   `json:"id" bson:"_id"`
+	Username        string   `json:"username" bson:"username"`
+	Email           string   `json:"email" bson:"email"`
+	FullName        string   `json:"full_name" bson:"full_name"`
+	Phone           string   `json:"phone" bson:"phone"`
+	Pswd            string   `json:"pswd" bson:"pswd"`
+	Active          bool     `json:"active" bson:"active"`
+	TFAInfo         TFAInfo  `json:"tfa_info" bson:"tfa_info"`
+	NumOfLogins     int      `json:"num_of_logins" bson:"num_of_logins"`
+	LatestLoginTime int64    `json:"latest_login_time" bson:"latest_login_time"`
+	AccessRole      string   `json:"access_role" bson:"access_role"`
+	Anonymous       bool     `json:"anonymous" bson:"anonymous"`
+	FederatedIDs    []string `json:"federated_ids" bson:"federated_i_ds"`
+	Scopes          []string `json:"scopes" bson:"scopes"`
 }
 
 func maskLeft(s string, hideFraction int) string {
@@ -120,10 +120,10 @@ func (u User) Deanonimized() User {
 
 // TFAInfo encapsulates two-factor authentication user info.
 type TFAInfo struct {
-	IsEnabled     bool      `json:"is_enabled,omitempty" bson:"is_enabled,omitempty"`
-	HOTPCounter   int       `json:"hotp_counter,omitempty" bson:"hotp_counter,omitempty"`
-	HOTPExpiredAt time.Time `json:"hotp_expired_at,omitempty" bson:"hotp_expired_at,omitempty"`
-	Secret        string    `json:"secret,omitempty" bson:"secret,omitempty"`
+	IsEnabled     bool      `json:"is_enabled" bson:"is_enabled"`
+	HOTPCounter   int       `json:"hotp_counter" bson:"hotp_counter"`
+	HOTPExpiredAt time.Time `json:"hotp_expired_at" bson:"hotp_expired_at"`
+	Secret        string    `json:"secret" bson:"secret"`
 }
 
 // UserFromJSON deserialize user data from JSON.

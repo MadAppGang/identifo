@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import Input from '~/components/shared/Input';
 import Field from '~/components/shared/Field';
 import Button from '~/components/shared/Button';
@@ -10,24 +10,23 @@ import SecretField from './SecretField';
 import { Select, Option } from '~/components/shared/Select';
 
 
-const isValidUrl = string => {
+const isValidUrl = (string) => {
   try {
     new URL(string);
   } catch (_) {
-    return false;  
+    return false;
   }
   return true;
-}
+};
 
 const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
-  
   const initialValues = {
     tokenLifespan: application.token_lifespan || '',
     refreshTokenLifespan: application.refresh_token_lifespan || '',
     inviteTokenLifespan: application.invite_token_lifespan || '',
     tokenPayload: application.token_payload || [],
     tokenPayloadService: application.token_payload_service || 'none',
-    tokenPayloadServiceHttpSetting: application.token_payload_service_http_settings || {url:'', secret:''}
+    tokenPayloadServiceHttpSetting: application.token_payload_service_http_settings || { url: '', secret: '' },
   };
 
   const [validation, setValidation] = useState({
@@ -36,8 +35,8 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
 
   const handleSubmit = (values) => {
     if ((values.tokenPayloadService == 'http') && !isValidUrl(values.tokenPayloadServiceHttpSetting.url)) {
-        setValidation({...validation, url: 'Invalid URL for service, service URL is required for http service'})
-        return;
+      setValidation({ ...validation, url: 'Invalid URL for service, service URL is required for http service' });
+      return;
     }
 
     onSubmit({
@@ -47,7 +46,7 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
       invite_token_lifespan: Number(values.inviteTokenLifespan) || undefined,
       token_payload: values.tokenPayload,
       token_payload_service: values.tokenPayloadService || 'none',
-      token_payload_service_http_settings: values.tokenPayloadServiceHttpSetting || {}
+      token_payload_service_http_settings: values.tokenPayloadServiceHttpSetting || {},
     });
   };
 
@@ -60,14 +59,13 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
       tokenLifespan: application.token_lifespan,
       refreshTokenLifespan: application.refresh_token_lifespan,
       inviteTokenLifespan: application.invite_token_lifespan,
-      tokenPayload: application.token_payload,
+      tokenPayload: application.token_payload || [],
       tokenPayloadService: application.token_payload_service,
-      tokenPayloadServiceHttpSetting: application.token_payload_service_http_settings  
+      tokenPayloadServiceHttpSetting: application.token_payload_service_http_settings,
     });
   }, [application]);
 
 
-  
   return (
     <form className="iap-apps-form" onSubmit={form.handleSubmit}>
       <Field label="Access Token Lifespan">
@@ -129,25 +127,25 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
 
       {form.values.tokenPayloadService === 'http' && (
         <Field label="URL">
-          <Input 
+          <Input
             value={form.values.tokenPayloadServiceHttpSetting.url || ''}
             autoComplete="off"
             placeholder="Service URL"
             disabled={loading}
             errorMessage={validation.url}
-            onValue={value => {
-              form.setValue('tokenPayloadServiceHttpSetting', {...form.values.tokenPayloadServiceHttpSetting, url: value});
-              setValidation({...validation, url: ''});
+            onValue={(value) => {
+              form.setValue('tokenPayloadServiceHttpSetting', { ...form.values.tokenPayloadServiceHttpSetting, url: value });
+              setValidation({ ...validation, url: '' });
             }}
           />
         </Field>
       )}
 
       {form.values.tokenPayloadService === 'http' && (
-        <SecretField 
+        <SecretField
           label="Signature secret"
           value={form.values.tokenPayloadServiceHttpSetting.secret || ''}
-          onChange={value => form.setValue('tokenPayloadServiceHttpSetting', {...form.values.tokenPayloadServiceHttpSetting, secret: value})}
+          onChange={value => form.setValue('tokenPayloadServiceHttpSetting', { ...form.values.tokenPayloadServiceHttpSetting, secret: value })}
         />
       )}
 

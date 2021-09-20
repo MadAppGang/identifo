@@ -10,62 +10,62 @@ const defaultEtcdKey = "identifo"
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General        GeneralServerSettings      `yaml:"general,omitempty" json:"general,omitempty"`
-	AdminAccount   AdminAccountSettings       `yaml:"adminAccount,omitempty" json:"admin_account,omitempty"`
-	Storage        StorageSettings            `yaml:"storage,omitempty" json:"storage,omitempty"`
-	SessionStorage SessionStorageSettings     `yaml:"sessionStorage,omitempty" json:"session_storage,omitempty"`
-	Static         StaticFilesStorageSettings `yaml:"static,omitempty" json:"static_files_storage,omitempty"`
-	Services       ServicesSettings           `yaml:"services,omitempty" json:"external_services,omitempty"`
-	Login          LoginSettings              `yaml:"login,omitempty" json:"login,omitempty"`
-	KeyStorage     KeyStorageSettings         `yaml:"keyStorage,omitempty" json:"key_storage,omitempty"`
-	Config         ConfigStorageSettings      `yaml:"config,omitempty" json:"config,omitempty"`
-	Logger         LoggerSettings             `yaml:"logger,omitempty" json:"logger,omitempty"`
+	General        GeneralServerSettings      `yaml:"general" json:"general"`
+	AdminAccount   AdminAccountSettings       `yaml:"adminAccount" json:"admin_account"`
+	Storage        StorageSettings            `yaml:"storage" json:"storage"`
+	SessionStorage SessionStorageSettings     `yaml:"sessionStorage" json:"session_storage"`
+	Static         StaticFilesStorageSettings `yaml:"static" json:"static_files_storage"`
+	Services       ServicesSettings           `yaml:"services" json:"external_services"`
+	Login          LoginSettings              `yaml:"login" json:"login"`
+	KeyStorage     KeyStorageSettings         `yaml:"keyStorage" json:"key_storage"`
+	Config         ConfigStorageSettings      `yaml:"-" json:"config"`
+	Logger         LoggerSettings             `yaml:"logger" json:"logger"`
 }
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
-	Host            string   `yaml:"host,omitempty" json:"host,omitempty"`
-	Port            string   `yaml:"port,omitempty" json:"port,omitempty"`
-	Issuer          string   `yaml:"issuer,omitempty" json:"issuer,omitempty"`
-	SupportedScopes []string `yaml:"supported_scopes,omitempty" json:"supported_scopes,omitempty"`
+	Host            string   `yaml:"host" json:"host"`
+	Port            string   `yaml:"port" json:"port"`
+	Issuer          string   `yaml:"issuer" json:"issuer"`
+	SupportedScopes []string `yaml:"supported_scopes" json:"supported_scopes"`
 }
 
 // AdminAccountSettings are names of environment variables that store admin credentials.
 type AdminAccountSettings struct {
-	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name,omitempty"`
-	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name,omitempty"`
+	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name"`
+	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name"`
 }
 
 // StorageSettings holds together storage settings for different services.
 type StorageSettings struct {
-	AppStorage              DatabaseSettings `yaml:"appStorage,omitempty" json:"app_storage,omitempty"`
-	UserStorage             DatabaseSettings `yaml:"userStorage,omitempty" json:"user_storage,omitempty"`
-	TokenStorage            DatabaseSettings `yaml:"tokenStorage,omitempty" json:"token_storage,omitempty"`
-	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist,omitempty" json:"token_blacklist,omitempty"`
-	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage,omitempty" json:"verification_code_storage,omitempty"`
-	InviteStorage           DatabaseSettings `yaml:"inviteStorage,omitempty" json:"invite_storage,omitempty"`
+	AppStorage              DatabaseSettings `yaml:"appStorage" json:"app_storage"`
+	UserStorage             DatabaseSettings `yaml:"userStorage" json:"user_storage"`
+	TokenStorage            DatabaseSettings `yaml:"tokenStorage" json:"token_storage"`
+	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist" json:"token_blacklist"`
+	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage" json:"verification_code_storage"`
+	InviteStorage           DatabaseSettings `yaml:"inviteStorage" json:"invite_storage"`
 }
 
 // DatabaseSettings holds together all settings applicable to a particular database.
 type DatabaseSettings struct {
-	Type   DatabaseType           `yaml:"type,omitempty" json:"type,omitempty"`
-	BoltDB BoltDBDatabaseSettings `yaml:"boltdb,omitempty" json:"boltdb,omitempty"`
-	Mongo  MongodDatabaseSettings `yaml:"mongo,omitempty" json:"mongo,omitempty"`
-	Dynamo DynamoDatabaseSettings `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
+	Type   DatabaseType           `yaml:"type" json:"type"`
+	BoltDB BoltDBDatabaseSettings `yaml:"boltdb" json:"boltdb"`
+	Mongo  MongodDatabaseSettings `yaml:"mongo" json:"mongo"`
+	Dynamo DynamoDatabaseSettings `yaml:"dynamo" json:"dynamo"`
 }
 
 type BoltDBDatabaseSettings struct {
-	Path string `yaml:"path,omitempty" json:"path,omitempty"`
+	Path string `yaml:"path" json:"path"`
 }
 
 type MongodDatabaseSettings struct {
-	ConnectionString string `yaml:"connection,omitempty" json:"connection,omitempty"`
-	DatabaseName     string `yaml:"database,omitempty" json:"database,omitempty"`
+	ConnectionString string `yaml:"connection" json:"connection"`
+	DatabaseName     string `yaml:"database" json:"database"`
 }
 
 type DynamoDatabaseSettings struct {
-	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
-	Endpoint string `yaml:"endpoint,omitempty" json:"endpoint,omitempty"`
+	Region   string `yaml:"region" json:"region"`
+	Endpoint string `yaml:"endpoint" json:"endpoint"`
 }
 
 // DatabaseType is a type of database.
@@ -80,21 +80,21 @@ const (
 
 // StaticFilesStorageSettings are settings for static files storage.
 type StaticFilesStorageSettings struct {
-	Type            StaticFilesStorageType          `yaml:"type,omitempty" json:"type,omitempty"`
-	Dynamo          DynamoDatabaseSettings          `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
-	Local           LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
-	S3              S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
-	ServeAdminPanel bool                            `yaml:"serveAdminPanel,omitempty" json:"serve_admin_panel,omitempty"`
+	Type            StaticFilesStorageType          `yaml:"type" json:"type"`
+	Dynamo          DynamoDatabaseSettings          `yaml:"dynamo" json:"dynamo"`
+	Local           LocalStaticFilesStorageSettings `yaml:"local" json:"local"`
+	S3              S3StaticFilesStorageSettings    `yaml:"s3" json:"s3"`
+	ServeAdminPanel bool                            `yaml:"serveAdminPanel" json:"serve_admin_panel"`
 }
 
 type S3StaticFilesStorageSettings struct {
-	Region string `yaml:"region,omitempty" json:"region,omitempty"`
-	Bucket string `yaml:"bucket,omitempty" json:"bucket,omitempty"`
-	Folder string `yaml:"folder,omitempty" json:"folder,omitempty"`
+	Region string `yaml:"region" json:"region"`
+	Bucket string `yaml:"bucket" json:"bucket"`
+	Folder string `yaml:"folder" json:"folder"`
 }
 
 type LocalStaticFilesStorageSettings struct {
-	FolderPath string `yaml:"folder,omitempty" json:"folder,omitempty"`
+	FolderPath string `yaml:"folder" json:"folder"`
 }
 
 // StaticFilesStorageType is a type of static files storage.
@@ -110,11 +110,11 @@ const (
 )
 
 type ConfigStorageSettings struct {
-	Type      ConfigStorageType    `json:"type,omitempty" yaml:"type,omitempty"`
-	RawString string               `json:"raw_string,omitempty" yaml:"raw_string,omitempty"`
-	S3        *S3StorageSettings   `json:"s3,omitempty" yaml:"s3,omitempty"`
-	File      *FileStorageSettings `json:"file,omitempty" yaml:"file,omitempty"`
-	Etcd      *EtcdStorageSettings `json:"etcd,omitempty" yaml:"etcd,omitempty"`
+	Type      ConfigStorageType    `json:"type"`
+	RawString string               `json:"raw_string"`
+	S3        *S3StorageSettings   `json:"s3"`
+	File      *FileStorageSettings `json:"file"`
+	Etcd      *EtcdStorageSettings `json:"etcd"`
 }
 
 // ConfigStorageType describes type of configuration storage.
@@ -132,10 +132,10 @@ const (
 
 // SessionStorageSettings holds together session storage settings.
 type SessionStorageSettings struct {
-	Type            SessionStorageType     `yaml:"type,omitempty" json:"type,omitempty"`
-	SessionDuration SessionDuration        `yaml:"sessionDuration,omitempty" json:"session_duration,omitempty"`
-	Redis           RedisDatabaseSettings  `yaml:"redis,omitempty" json:"redis,omitempty"`
-	Dynamo          DynamoDatabaseSettings `yaml:"dynamo,omitempty" json:"dynamo,omitempty"`
+	Type            SessionStorageType     `yaml:"type" json:"type"`
+	SessionDuration SessionDuration        `yaml:"sessionDuration" json:"session_duration"`
+	Redis           RedisDatabaseSettings  `yaml:"redis" json:"redis"`
+	Dynamo          DynamoDatabaseSettings `yaml:"dynamo" json:"dynamo"`
 }
 
 // SessionStorageType - where to store admin sessions.
@@ -153,31 +153,31 @@ const (
 // RedisDatabaseSettings redis storage settings
 type RedisDatabaseSettings struct {
 	// host:port address.
-	Address string `yaml:"address,omitempty" json:"address,omitempty"`
+	Address string `yaml:"address" json:"address"`
 	// Optional password. Must match the password specified in the
 	// requirepass server configuration option.
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
+	Password string `yaml:"password" json:"password"`
 	// Database to be selected after connecting to the server.
-	DB int `yaml:"db,omitempty" json:"db,omitempty"`
+	DB int `yaml:"db" json:"db"`
 }
 
 type DynamoDBSessionStorageSettings struct{}
 
 // KeyStorageSettings are settings for the key storage.
 type KeyStorageSettings struct {
-	Type KeyStorageType         `yaml:"type,omitempty" json:"type,omitempty"`
-	S3   S3KeyStorageSettings   `yaml:"s3,omitempty" json:"s3,omitempty"`
-	File KeyStorageFileSettings `yaml:"file,omitempty" json:"file,omitempty"`
+	Type KeyStorageType         `yaml:"type" json:"type"`
+	S3   S3KeyStorageSettings   `yaml:"s3" json:"s3"`
+	File KeyStorageFileSettings `yaml:"file" json:"file"`
 }
 
 type KeyStorageFileSettings struct {
-	PrivateKeyPath string `json:"private_key_path,omitempty" yaml:"private_key_path,omitempty"`
+	PrivateKeyPath string `json:"private_key_path" yaml:"private_key_path"`
 }
 
 type S3KeyStorageSettings struct {
-	Region        string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
-	Bucket        string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
-	PrivateKeyKey string `yaml:"private_key_key,omitempty" json:"private_key_key,omitempty" bson:"private_key_key,omitempty"`
+	Region        string `yaml:"region" json:"region,omitempty" bson:"region"`
+	Bucket        string `yaml:"bucket" json:"bucket,omitempty" bson:"bucket"`
+	PrivateKeyKey string `yaml:"private_key_key" json:"private_key_key" bson:"private_key_key"`
 }
 
 // KeyStorageType is a type of the key storage.
@@ -192,8 +192,8 @@ const (
 
 // ServicesSettings are settings for external services.
 type ServicesSettings struct {
-	Email EmailServiceSettings `yaml:"email,omitempty" json:"email_service,omitempty"`
-	SMS   SMSServiceSettings   `yaml:"sms,omitempty" json:"sms_service,omitempty"`
+	Email EmailServiceSettings `yaml:"email" json:"email_service"`
+	SMS   SMSServiceSettings   `yaml:"sms" json:"sms_service"`
 }
 
 // EmailServiceType - how to send email to clients.
@@ -210,29 +210,29 @@ const (
 
 // EmailServiceSettings holds together settings for the email service.
 type EmailServiceSettings struct {
-	Type    EmailServiceType            `yaml:"type,omitempty" json:"type,omitempty"`
-	Mailgun MailgunEmailServiceSettings `yaml:"mailgun,omitempty" json:"mailgun,omitempty"`
-	SES     SESEmailServiceSettings     `yaml:"ses,omitempty" json:"ses,omitempty"`
+	Type    EmailServiceType            `yaml:"type" json:"type"`
+	Mailgun MailgunEmailServiceSettings `yaml:"mailgun" json:"mailgun"`
+	SES     SESEmailServiceSettings     `yaml:"ses" json:"ses"`
 }
 
 type MailgunEmailServiceSettings struct {
-	Domain     string `yaml:"domain,omitempty" json:"domain,omitempty"`
-	PrivateKey string `yaml:"privateKey,omitempty" json:"private_key,omitempty"`
-	PublicKey  string `yaml:"publicKey,omitempty" json:"public_key,omitempty"`
-	Sender     string `yaml:"sender,omitempty" json:"sender,omitempty"`
+	Domain     string `yaml:"domain" json:"domain"`
+	PrivateKey string `yaml:"privateKey" json:"private_key"`
+	PublicKey  string `yaml:"publicKey" json:"public_key"`
+	Sender     string `yaml:"sender" json:"sender"`
 }
 
 type SESEmailServiceSettings struct {
-	Region string `yaml:"region,omitempty" json:"region,omitempty"`
-	Sender string `yaml:"sender,omitempty" json:"sender,omitempty"`
+	Region string `yaml:"region" json:"region"`
+	Sender string `yaml:"sender" json:"sender"`
 }
 
 // SMSServiceSettings holds together settings for SMS service.
 type SMSServiceSettings struct {
-	Type        SMSServiceType             `yaml:"type,omitempty" json:"type,omitempty"`
-	Twilio      TwilioServiceSettings      `yaml:"twilio,omitempty" json:"twilio,omitempty"`
-	Nexmo       NexmoServiceSettings       `yaml:"nexmo,omitempty" json:"nexmo,omitempty"`
-	Routemobile RouteMobileServiceSettings `yaml:"routemobile,omitempty" json:"routemobile,omitempty"`
+	Type        SMSServiceType             `yaml:"type" json:"type"`
+	Twilio      TwilioServiceSettings      `yaml:"twilio" json:"twilio"`
+	Nexmo       NexmoServiceSettings       `yaml:"nexmo" json:"nexmo"`
+	Routemobile RouteMobileServiceSettings `yaml:"routemobile" json:"routemobile"`
 }
 
 // SMSServiceType - service for sending sms messages.
@@ -247,37 +247,37 @@ const (
 
 type TwilioServiceSettings struct {
 	// Twilio related config.
-	AccountSid string `yaml:"accountSid,omitempty" json:"account_sid,omitempty"`
-	AuthToken  string `yaml:"authToken,omitempty" json:"auth_token,omitempty"`
-	ServiceSid string `yaml:"serviceSid,omitempty" json:"service_sid,omitempty"`
+	AccountSid string `yaml:"accountSid" json:"account_sid"`
+	AuthToken  string `yaml:"authToken" json:"auth_token"`
+	ServiceSid string `yaml:"serviceSid" json:"service_sid"`
 }
 
 type NexmoServiceSettings struct {
 	// Nexmo related config.
-	APIKey    string `yaml:"apiKey,omitempty" json:"api_key,omitempty"`
-	APISecret string `yaml:"apiSecret,omitempty" json:"api_secret,omitempty"`
+	APIKey    string `yaml:"apiKey" json:"api_key"`
+	APISecret string `yaml:"apiSecret" json:"api_secret"`
 }
 
 type RouteMobileServiceSettings struct {
 	// RouteMobile related config.
-	Username string `yaml:"username,omitempty" json:"username,omitempty"`
-	Password string `yaml:"password,omitempty" json:"password,omitempty"`
-	Source   string `yaml:"source,omitempty" json:"source,omitempty"`
-	Region   string `yaml:"region,omitempty" json:"region,omitempty"`
+	Username string `yaml:"username" json:"username"`
+	Password string `yaml:"password" json:"password"`
+	Source   string `yaml:"source" json:"source"`
+	Region   string `yaml:"region" json:"region"`
 }
 
 // LoginSettings are settings of login.
 type LoginSettings struct {
-	LoginWith LoginWith `yaml:"loginWith,omitempty" json:"login_with,omitempty"`
-	TFAType   TFAType   `yaml:"tfaType,omitempty" json:"tfa_type,omitempty"`
+	LoginWith LoginWith `yaml:"loginWith" json:"login_with"`
+	TFAType   TFAType   `yaml:"tfaType" json:"tfa_type"`
 }
 
 // LoginWith is a type for configuring supported login ways.
 type LoginWith struct {
-	Username  bool `yaml:"username" json:"username,omitempty"`
-	Phone     bool `yaml:"phone" json:"phone,omitempty"`
-	Email     bool `yaml:"email" json:"email,omitempty"`
-	Federated bool `yaml:"federated" json:"federated,omitempty"`
+	Username  bool `yaml:"username" json:"username"`
+	Phone     bool `yaml:"phone" json:"phone"`
+	Email     bool `yaml:"email" json:"email"`
+	Federated bool `yaml:"federated" json:"federated"`
 }
 
 // TFAType is a type of two-factor authentication for apps that support it.
@@ -299,25 +299,25 @@ func (ss ServerSettings) GetPort() string {
 }
 
 type LoggerSettings struct {
-	DumpRequest bool `yaml:"dumpRequest,omitempty" json:"dumpRequest,omitempty"`
+	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
 }
 
 type FileStorageSettings struct {
 	// just a file name
-	FileName string `yaml:"file_name,omitempty" json:"file_name,omitempty" bson:"file_name,omitempty"`
+	FileName string `yaml:"file_name" json:"file_name" bson:"file_name"`
 }
 
 type S3StorageSettings struct {
-	Region string `yaml:"region,omitempty" json:"region,omitempty" bson:"region,omitempty"`
-	Bucket string `yaml:"bucket,omitempty" json:"bucket,omitempty" bson:"bucket,omitempty"`
-	Key    string `yaml:"key,omitempty" json:"key,omitempty" bson:"key,omitempty"`
+	Region string `yaml:"region" json:"region" bson:"region"`
+	Bucket string `yaml:"bucket" json:"bucket" bson:"bucket"`
+	Key    string `yaml:"key" json:"key" bson:"key"`
 }
 
 type EtcdStorageSettings struct {
-	Endpoints []string `json:"endpoints,omitempty" yaml:"endpoints,omitempty"`
-	Key       string   `json:"key,omitempty" yaml:"key,omitempty"`
-	Username  string   `json:"username,omitempty" yaml:"username,omitempty"`
-	Password  string   `json:"password,omitempty" yaml:"password,omitempty"`
+	Endpoints []string `json:"endpoints" yaml:"endpoints"`
+	Key       string   `json:"key" yaml:"key"`
+	Username  string   `json:"username" yaml:"username"`
+	Password  string   `json:"password" yaml:"password"`
 }
 
 func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, error) {
