@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { Option, Select } from '~/components/shared/Select';
 import { dialogActions } from '~/modules/applications/dialogsConfigs';
