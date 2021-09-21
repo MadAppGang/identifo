@@ -4,7 +4,7 @@ import Button from '~/components/shared/Button';
 import PropTypes from 'prop-types';
 import './index.css';
 
-export const Dialog = ({ title, content, buttons, callback, onClose }) => {
+const Dialog = ({ title, content, buttons, children, callback, onClose }) => {
   const node = useRef();
   const onOverlayClick = (e) => {
     if (node.current && e.target === node.current) {
@@ -16,13 +16,19 @@ export const Dialog = ({ title, content, buttons, callback, onClose }) => {
       <div className="iap-dialog-popup">
         <div className="iap-dialog-popup--in">
           {title && <h3 className="iap-dialog-popup--title">{title}</h3>}
-          <div className="iap-dialog-popup--content">{content}</div>
+          <div className="iap-dialog-popup--content">
+            <span>{content}</span>
+            <div className="iap-dialog-popup--content-children">{children}</div>
+          </div>
           <div className="iap-dialog-popup--controls">
             {buttons.map((btn) => {
               return (
                 <Button
                   key={btn.label}
                   onClick={() => callback(btn.data)}
+                  error={!!btn.error}
+                  outline={!!btn.outline}
+                  disabled={!!btn.disabled}
                 >
                   {btn.label}
                 </Button>

@@ -42,13 +42,17 @@
 .iap-dialog-popup--title {
   width: 100%;
   text-align: center;
-  margin-bottom: 12px;
+  margin-bottom: 8px;
 }
 
 .iap-dialog-popup--content {
   width: 100%;
   text-align: center;
   margin-bottom: 34px;
+}
+
+.iap-dialog-popup--content-children {
+  margin-top: 28px;
 }
 
 .iap-dialog-popup--controls {
