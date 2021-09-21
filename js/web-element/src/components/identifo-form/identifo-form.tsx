@@ -19,6 +19,7 @@ const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\
 
 @Component({
   tag: 'identifo-form',
+  styleUrl: '../../styles/identifo-form/main.scss',
   assetsDirs: ['assets'],
   shadow: false,
 })
@@ -49,7 +50,7 @@ export class IdentifoForm {
   @State() registrationForbidden: boolean;
   @State() tfaCode: string;
   @State() tfaType: TFAType;
-  @State() federatedProviders: string[];
+  @State() federatedProviders: string[] = [];
   @State() tfaMandatory: boolean;
   @State() provisioningURI: string;
   @State() provisioningQR: string;
@@ -70,6 +71,8 @@ export class IdentifoForm {
   //   return format(this.first, this.middle, this.last);
   // }
   processError(e: ApiError) {
+    e.detailedMessage = e.detailedMessage.trim();
+    e.message = e.message.trim();
     this.lastError = e;
     this.error.emit(e);
   }
@@ -99,6 +102,9 @@ export class IdentifoForm {
     throw data;
   };
   async signIn() {
+    if (!this.validateEmail(this.email)) {
+      return;
+    }
     await this.auth.api
       .login(this.email, this.password, '', this.scopes.split(','))
       .then(this.afterLoginRedirect)
@@ -192,7 +198,7 @@ export class IdentifoForm {
   }
   validateEmail(email: string) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
+      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
       return false;
     }
     return true;
@@ -534,9 +540,7 @@ export class IdentifoForm {
 
   async componentWillLoad() {
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-
     this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
-
     try {
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
@@ -553,7 +557,6 @@ export class IdentifoForm {
       const u = new URL(window.location.href);
       const sp = new URLSearchParams();
       const appId = href.searchParams.get('appId');
-
       sp.set('appId', appId);
       window.history.replaceState({}, document.title, `${u.pathname}?${sp.toString()}`);
       this.route = 'loading';

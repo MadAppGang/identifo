@@ -1,0 +1,32 @@
+.upload-photo {
+  &__field {
+    display: none;
+  }
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 48px;
+
+  &__label {
+    cursor: pointer;
+    color: var(--blue-text);
+    font-size: 16px;
+    line-height: 24px;
+  }
+
+  &__label:first-of-type {
+    margin-right: 16px;
+  }
+
+  &__avatar {
+    height: 64px;
+    width: 64px;
+    border-radius: 50%;
+    background-color: var(--upload-photo);
+  }
+
+  @include for-phone-only {
+    margin-bottom: 32px;
+  }
+}

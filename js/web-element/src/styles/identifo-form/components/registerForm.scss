@@ -1,0 +1,54 @@
+.register-form {
+  width: var(--content-width);
+  padding: 64px 0 44px;
+
+  .form-control:not(:last-of-type) {
+    margin-bottom: 32px;
+  }
+
+  &__buttons {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    margin-top: 48px;
+  }
+
+  &__buttons_mt-32 {
+    margin-top: 32px;
+  }
+
+  &__log-in {
+    color: var(--blue-text);
+    font-size: 16px;
+    line-height: 24px;
+    cursor: pointer;
+  }
+
+  .primary-button {
+    margin-right: 32px;
+  }
+
+  .error {
+    margin-top: 12px;
+  }
+
+  @include for-phone-only {
+    width: 100%;
+    max-width: var(--content-width);
+    padding: 48px 24px 32px;
+
+    .form-control {
+      margin-bottom: 24px;
+    }
+
+    .primary-button {
+      margin-right: 0;
+      margin-bottom: 36px;
+    }
+
+    &__buttons {
+      flex-direction: column;
+      margin-top: 32px;
+    }
+  }
+}

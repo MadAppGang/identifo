@@ -1,0 +1,25 @@
+.wrapper, .wrapper-dark {
+  --content-width: 416px;
+}
+
+.wrapper {
+  --main-background: #f7f7f7;
+  --blue-text: #6163f6;
+  --field-background: #fff;
+  --gray-line: #e0e0e0;
+  --social-button: #1b1b1b;
+  --text: #1b1b1b;
+  --upload-photo: #e0e0e0;
+  --content-width: 416px;
+}
+
+.wrapper-dark {
+  --main-background: #1b1b1b;
+  --blue-text: #8b8dfa;
+  --field-background: #423f3f;
+  --gray-line: #423f3f;
+  --social-button: #423f3f;
+  --text: #fff;
+  --upload-photo: #423f3f;
+  --content-width: 416px;
+}

@@ -17,18 +17,22 @@
   "scripts": {
     "build": "stencil build --docs",
     "start": "stencil build --dev --watch --serve",
-    "test": "stencil test --spec --e2e",
-    "test.watch": "stencil test --spec --e2e --watchAll",
+    "test": "stencil test --spec --e2e --screenshot --port=3000 --maxWorkers=1",
+    "test.watch": "stencil test --spec --e2e --watchAll --screenshot --port=3000 --maxWorkers=1",
     "generate": "stencil generate"
   },
   "dependencies": {
-    "@identifo/identifo-auth-js": "git+https://github.com/madappgang/identifo.js.git",
-    "@stencil/core": "^2.0.1"
+    "@identifo/identifo-auth-js": "file:../identifo.js",
+    "@stencil/core": "^2.8.1"
   },
   "license": "MIT",
   "devDependencies": {
     "@stencil/sass": "^1.4.1",
     "@types/jest": "^26.0.23",
-    "@types/node": "^15.9.0"
+    "@types/node": "^15.9.0",
+    "@types/puppeteer": "^5.4.3",
+    "jest": "^26.6.3",
+    "jest-cli": "^26.6.3",
+    "puppeteer": "^5.5.0"
   }
 }

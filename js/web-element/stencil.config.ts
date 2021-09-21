@@ -6,6 +6,10 @@ export const config: Config = {
   buildEs5: true,
   hashFileNames: false,
   bundles: [{ components: ['identifo-form'] }],
+  devServer: {
+    reloadStrategy: 'pageReload',
+    port: 44000,
+  },
   outputTargets: [
     {
       type: 'dist',

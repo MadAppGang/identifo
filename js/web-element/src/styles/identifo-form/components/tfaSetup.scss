@@ -1,0 +1,53 @@
+.tfa-setup {
+  padding: 48px 0 80px;
+  width: var(--content-width);
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  &__text {
+    font-size: 24px;
+    line-height: 32px;
+    color: var(--text);
+    text-align: center;
+    max-width: 260px;
+    width: 100%;
+  }
+
+  .error {
+    margin-top: 12px;
+  }
+
+  &__form {
+    width: 100%;
+
+    .primary-button {
+      margin: 48px auto 0;
+    }
+
+    .primary-button-mt-32 {
+      margin-top: 32px;
+    }
+  }
+
+  &__subtitle {
+    text-align: center;
+    font-size: 16px;
+    line-height: 24px;
+    color: #828282;
+    max-width: 270px;
+    text-align: center;
+    margin: 16px auto 48px;
+  }
+
+  .info-card {
+    margin-top: 48px;
+  }
+
+  @include for-phone-only {
+    width: 100%;
+    max-width: var(--content-width);
+    padding: 38px 24px 36px;
+  }
+}
