@@ -4,7 +4,7 @@ import { verificationStatuses } from '~/enums';
 import useProgressBar from '~/hooks/useProgressBar';
 import { useVerification } from '~/hooks/useVerification';
 import { handleSettingsDialog, hideSettingsDialog } from '~/modules/applications/actions';
-import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
+import { dialogActions, settingsConfig } from '~/modules/applications/dialogsConfigs';
 import { updateServerSettings } from '~/modules/settings/actions';
 import { getKeyStorageSettings } from '~/modules/settings/selectors';
 import JWTForm from './Form';
@@ -29,10 +29,10 @@ export const JWTStorageSection = () => {
       };
       const action = await dispatch(handleSettingsDialog(config));
       switch (action) {
-        case settingsActionsEnum.save:
+        case dialogActions.submit:
           dispatch(updateServerSettings({ keyStorage: nextSettings }));
           break;
-        case settingsActionsEnum.verify:
+        case dialogActions.verify:
           await handleSettingsVerification(nextSettings);
           break;
         default:

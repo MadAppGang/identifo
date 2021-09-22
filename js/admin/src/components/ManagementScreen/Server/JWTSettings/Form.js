@@ -1,6 +1,5 @@
-/* eslint-disable max-len */
 import copy from 'copy-to-clipboard';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import CopyIcon from '~/components/icons/CopyIcon';
 import KeyIcon from '~/components/icons/Key';
 import LoadingIcon from '~/components/icons/LoadingIcon';
@@ -11,9 +10,10 @@ import { CollapseItem, CollapseLinks } from '~/components/shared/CollapseLink/Co
 import Field from '~/components/shared/Field';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
 import Input from '~/components/shared/Input';
-import { Option, Select } from '~/components/shared/Select';
 import useForm from '~/hooks/useForm';
-import { domChangeEvent } from '~/utils';
+import Markdown from 'markdown-to-jsx';
+import { mardownNames } from '~/markdowns/markdownNames';
+import EditIcon from '~/components/icons/EditIcon';
 
 const validationSchema = (values) => {
   const errors = {};
@@ -22,16 +22,68 @@ const validationSchema = (values) => {
   }
   return errors;
 };
+
 const initialValues = {
   private: '',
   public: '',
   alg: '',
 };
+
+const FormFooter = ({ changing, loading, error, onGenerateKey, onEdit, onCancel }) => {
+  if (!changing) {
+    return (
+      <Button
+        onClick={onEdit}
+        Icon={loading ? LoadingIcon : EditIcon}
+        disabled={loading}
+        error={!loading && !!error}
+        key="edit"
+      >
+          Edit
+      </Button>
+    );
+  }
+  return (
+    <>
+      <Button
+        type="submit"
+        Icon={loading ? LoadingIcon : SaveIcon}
+        disabled={loading}
+        error={!loading && !!error}
+        key="submit"
+      >
+          Save Changes
+      </Button>
+      <Button
+        type="button"
+        onClick={onGenerateKey}
+        Icon={loading ? LoadingIcon : KeyIcon}
+        disabled={loading}
+        key="generate"
+        error
+      >
+          Generate Key
+      </Button>
+      <Button
+        type="button"
+        onClick={onCancel}
+        disabled={loading}
+        key="cancel"
+        transparent
+      >
+          Cancel
+      </Button>
+    </>
+  );
+};
+
 export const JWTSettingsForm = ({
   error, loading, settings, onShowPassword,
   onGenerateKey, onSubmit,
 }) => {
   const form = useForm(initialValues, validationSchema, onSubmit);
+  const [keysInstr, setKeysInstr] = useState('');
+  const [changing, setChanging] = useState(false);
 
   const showPasswordHandler = async () => {
     if (!settings.private) {
@@ -43,29 +95,40 @@ export const JWTSettingsForm = ({
     }
   };
 
+  const cancelHandelr = () => {
+    setChanging(false);
+    form.setValues({ ...settings, private: '' });
+  };
+
   useEffect(() => {
     if (settings) {
       form.setValues(settings);
     }
   }, [settings]);
 
+  useEffect(() => {
+    fetch(mardownNames.generateKeys)
+      .then(res => res.text())
+      .then(r => setKeysInstr(r));
+  }, []);
+
   return (
     <form className="iap-apps-form iap-jwt-settings-form" onSubmit={form.handleSubmit}>
       {!!error && (
-      <FormErrorMessage error={error} />
+        <FormErrorMessage error={error} />
       )}
       <Field label="Private key" subtext="Please paste pkcs8 pem private key">
         <div className="iap-jwt-settings-form--field">
           <Input
             className="iap-login-form__input iap-login-form__input--textarea"
             name="private"
-            as="textarea"
+            as={form.values.private ? 'textarea' : 'input'}
             placeholder="Click reveal to show private key"
             value={form.values.private}
             onChange={form.handleChange}
             autoComplete="off"
             errorMessage={form.errors.private}
-            disabled={!form.values.private}
+            disabled={!form.values.private || !changing}
           />
           <PaswordIcon className="iap-jwt-settings-form-action-btn" onClick={showPasswordHandler} />
         </div>
@@ -85,49 +148,29 @@ export const JWTSettingsForm = ({
         </div>
       </Field>
       <Field label="Algorithm">
-        <Select
+        <Input
+          name="private"
+          placeholder="Selected algorithm"
           value={form.values.alg}
-          disabled={loading}
-          onChange={v => form.handleChange(domChangeEvent('alg', v))}
-          placeholder="Select Algorithm"
-        >
-          <Option value="RS256" title="RS256" />
-          <Option value="ES256" title="ES256" />
-        </Select>
+          onChange={form.handleChange}
+          autoComplete="off"
+          disabled
+        />
       </Field>
       <CollapseLinks accordion activeTitle>
-        <CollapseItem title="How to generate RS256 private key (widely supported by all framwroks)">
-          <p>Paste it in your terminal:</p>
-          <p>ssh-keygen -t rsa -b 2048 -m PEM -f private.pem -C &quot;identifo@madappgang.com&quot; -N &quot;&quot;</p>
-          <p>rm private.pem.pub</p>
-          <p>openssl rsa -in private.pem -pubout -outform PEM -out public.pem</p>
-        </CollapseItem>
-        <CollapseItem title="How to generate EC secp256k1  private key (RECOMMENDED)">
-          <p>Paste it in your terminal:</p>
-          <p>openssl ecparam -name prime256v1 -genkey -noout -out private_ec.pem</p>
-          <p>openssl pkcs8 -topk8 -nocrypt -inform PEM -outform PEM -in private_ec.pem -out private.pem</p>
-          <p>rm private_ec.pem</p>
-          <p>openssl ec -in private.pem -pubout -out public.pem</p>
+        <CollapseItem title="How to generate private key with openssl">
+          <Markdown>{keysInstr}</Markdown>
         </CollapseItem>
       </CollapseLinks>
       <footer className="iap-apps-form__footer">
-        <Button
-          type="submit"
-          Icon={loading ? LoadingIcon : SaveIcon}
-          disabled={loading}
-          error={!loading && !!error}
-        >
-          Save Changes
-        </Button>
-        <Button
-          type="button"
-          onClick={() => onGenerateKey(form.values.alg)}
-          Icon={loading ? LoadingIcon : KeyIcon}
-          disabled={loading}
-          error
-        >
-          Generate Key
-        </Button>
+        <FormFooter
+          changing={changing}
+          onGenerateKey={onGenerateKey}
+          onEdit={() => setChanging(true)}
+          onCancel={cancelHandelr}
+          loading={loading}
+          error={error}
+        />
       </footer>
     </form>
   );

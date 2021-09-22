@@ -5,7 +5,7 @@ import { Tab, Tabs } from '~/components/shared/Tabs';
 import { verificationStatuses } from '~/enums';
 import useProgressBar from '~/hooks/useProgressBar';
 import { useVerification } from '~/hooks/useVerification';
-import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
+import { dialogActions, settingsConfig } from '~/modules/applications/dialogsConfigs';
 import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
 import { getStorageSettings } from '~/modules/settings/selectors';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
@@ -61,15 +61,12 @@ const StoragesSection = () => {
       };
       const res = await dispatch(handleSettingsDialog(config));
       switch (res) {
-        case settingsActionsEnum.save:
+        case dialogActions.submit:
           await saveHandler(node, nodeSettings);
           break;
-        case settingsActionsEnum.verify:
+        case dialogActions.verify:
           await handleSettingsVerification(nodeSettings);
           await saveHandler(node, nodeSettings);
-          break;
-        case settingsActionsEnum.close:
-          dispatch(hideSettingsDialog());
           break;
         default:
           dispatch(hideSettingsDialog());

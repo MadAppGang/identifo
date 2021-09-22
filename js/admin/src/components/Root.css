@@ -2,9 +2,10 @@
 @import './fonts.css';
 
 :root {
-  --main-color: #3CA6F5; 
+  --main-color: #3CA6F5;
   --main-color-hover: #1B9CFC;
   --main-font: 'Nunito';
+  --danger-color: #E46E61;
 }
 
 * {
@@ -14,8 +15,23 @@
   box-sizing: border-box;
 }
 
+pre {
+  font-size: 14px;
+  line-height: 22px;
+  border: 1px solid #D5E5F2;
+  box-sizing: border-box;
+  border-radius: 6px;
+  padding: 16px;
+  background: #FCFEFF;
+  overflow-x: auto;
+}
+
+pre code {
+  font-family: monospace;
+}
+
 /* react router dom link */
-.rrdl { 
+.rrdl {
   text-decoration: none;
   color: inherit;
 }

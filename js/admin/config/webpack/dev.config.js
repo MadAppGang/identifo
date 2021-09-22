@@ -63,7 +63,9 @@ module.exports = {
     }),
     new CopyPlugin([{
       from: 'src/config.json',
-    }]),
+    },
+    { from: 'src/markdowns', to: 'src/markdowns' },
+    ]),
     new webpack.DefinePlugin({
       'process.env': JSON.stringify(env),
     }),

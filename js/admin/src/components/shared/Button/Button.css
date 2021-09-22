@@ -1,7 +1,7 @@
 .iap-btn {
   background-color: #3CA6F5;
   color: #fff;
-  border-radius: 5px;
+  border-radius: 6px;
   border: none;
   font-size: 16px;
   padding: 8px 18px;
@@ -13,6 +13,7 @@
   justify-content: center;
   position: relative;
   margin-right: 5px;
+  transition: all .2s ease-in-out;
 }
 
 .iap-btn:last-of-type {
@@ -46,11 +47,12 @@
   pointer-events: none;
 }
 
-.iap-btn.iap-btn--success:hover, 
-.iap-btn.iap-btn--success:focus{
+.iap-btn.iap-btn--success:hover,
+.iap-btn.iap-btn--success:focus {
   background-color: green;
   border: 2px solid green;
 }
+
 .iap-btn.iap-btn--outline:not(:hover) svg path {
   fill: #3CA6F5;
 }
@@ -63,7 +65,6 @@
   background-color: #fff;
   border-color: transparent;
   color: var(--main-color);
-  transition: all .2s linear;
 }
 
 .iap-btn.iap-btn--white:hover,
@@ -81,6 +82,12 @@
 .iap-btn.iap-btn--white.iap-btn.iap-btn--outline:hover,
 .iap-btn.iap-btn--white.iap-btn.iap-btn--outline:focus {
   background-color: #62ABF0;
+}
+
+.iap-btn.iap-btn--white.iap-btn.iap-btn--error {
+  background-color: #fff !important;
+  color: #AF4545 !important;
+  border-color: #fff !important;
 }
 
 .iap-btn.iap-btn--transparent:focus,
@@ -103,25 +110,26 @@
 }
 
 .iap-btn.iap-btn--error {
-  background-color: #d15555;
-  border-color: #d15555;
+  background-color: #D14A3B;
+  border-color: #D14A3B;
+  color: #fff !important;
 }
 
 .iap-btn.iap-btn--error:hover {
-  background-color: #d66363;
-  border-color: #d66363;
-  color: #fff;
+  background-color: #cd2815;
+  border-color: #cd2815;
+  color: #fff !important;
 }
 
 .iap-btn.iap-btn--error:focus {
-  background-color: #d66363;
-  border-color: #c94c4c;
-  color: #fff;
+  background-color: #cd2815;
+  border-color: #cd2815;
+  color: #fff !important;
 }
 
 .iap-btn.iap-btn--error:active {
-  border-color: #c94c4c !important;
-  background-color: #c94c4c !important;
+  border-color: #cd2815 !important;
+  background-color: #cd2815 !important;
 }
 
 .iap-btn.iap-btn--error:disabled:hover {
