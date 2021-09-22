@@ -24,18 +24,22 @@ import StaticFilesSection from './StaticFiles';
 import UsersSection from './Users';
 import { SaveChangesSnack } from '~/components/shared/SaveChangesSnack/SaveChangesSnack';
 import { Snack } from '~/components/shared/Snack/Snack';
+import { notificationStatuses } from '~/enums';
 
 const ManagementScreen = () => {
   const dialogConfig = useSelector(s => s.notifications.settingsDialog);
-  const snackConfig = useSelector(s => s.notifications.notificationSnack);
+  const notificationSnack = useSelector(s => s.notifications.notificationSnack);
   useSettings();
 
   return (
     <div className="iap-management-layout">
+      {/* iap-notifications is needed to render portal snack */}
+      <div id="iap-notifications" className="iap-notifications" />
       {dialogConfig.show && <DialogPopup {...dialogConfig.config} />}
-      {snackConfig.show && <Snack {...snackConfig.config} />}
-      <SaveChangesSnack />
+      {notificationSnack.status !== notificationStatuses.idle
+        && <Snack content={notificationSnack.message} status={notificationSnack.status} />}
       <ProgressBar>
+        <SaveChangesSnack />
         <NotificationContainer>
           <Header />
           <div className="iap-management-content">

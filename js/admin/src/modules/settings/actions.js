@@ -8,8 +8,10 @@ import {
 import { pause } from '~/utils';
 import { verificationStatuses } from '~/enums';
 import { logout, authStateChange } from '~/modules/auth/actions';
-import { showNotificationSnack } from '~/modules/applications/actions';
-import { notificationStates } from '~/modules/applications/notificationsStates';
+import { commonAsyncHandler } from '~/utils/commonAsynсHandler';
+import { showSuccessNotificationSnack } from '~/modules/applications/notification-actions';
+import { successSnackMessages } from '~/modules/applications/constants';
+
 
 const setServerSettings = actionCreator(FETCH_SERVER_SETTINGS);
 export const updateServerSettings = actionCreator(UPDATE_SERVER_SETTINGS);
@@ -17,55 +19,43 @@ export const setJWTKeys = actionCreator(FETCH_JWT_KEYS);
 export const setVerificationStatus = actionCreator(SET_VERIFICATION_STATUS);
 
 export const getJWTKeys = withPrivate => async (dispatch, _, services) => {
-  try {
+  await commonAsyncHandler(async () => {
     const keys = await services.settings.getJWTKeys(withPrivate);
     dispatch(setJWTKeys(keys));
-  } catch (error) {
-    await dispatch(showNotificationSnack(notificationStates.error.status));
-    throw new Error(error);
-  }
+  }, dispatch);
 };
 
 export const uploadJWTKeys = payload => async (dispatch, getState, services) => {
-  try {
+  await commonAsyncHandler(async () => {
     const keys = await services.settings.uploadJWTKeys(payload);
-    await dispatch(setJWTKeys(keys));
-  } catch (error) {
-    throw new Error(error);
-  }
+    dispatch(setJWTKeys(keys));
+    dispatch(showSuccessNotificationSnack(successSnackMessages.uploadKey));
+  }, dispatch);
 };
 
 export const generateKeys = alg => async (dispatch, _, services) => {
-  try {
+  await commonAsyncHandler(async () => {
     const res = await services.settings.generateKeys({ alg });
     dispatch(setJWTKeys(res));
-  } catch (error) {
-    await dispatch(showNotificationSnack(notificationStates.error.status));
-    throw new Error(error);
-  }
+    dispatch(showSuccessNotificationSnack(successSnackMessages.generateKeys));
+  }, dispatch);
 };
 
 export const fetchServerSetings = () => async (dispatch, _, services) => {
-  try {
+  commonAsyncHandler(async () => {
     const settings = await services.settings.fetchServerSettings();
     dispatch(setServerSettings(settings));
     await dispatch(getJWTKeys(false));
-  } catch (error) {
-    await dispatch(showNotificationSnack(notificationStates.error.status));
-    throw new Error(error);
-  }
+  }, dispatch);
 };
 
 export const postServerSettings = () => async (dispatch, getState, services) => {
-  try {
+  await commonAsyncHandler(async () => {
     const { jwtKeys, ...settings } = getState().settings.current;
     const res = await services.settings.postServerSettings(settings);
     dispatch(setServerSettings(res));
     dispatch(authStateChange(false));
-  } catch (error) {
-    await dispatch(showNotificationSnack(notificationStates.error.status));
-    throw new Error(error);
-  }
+  }, dispatch);
 };
 
 export const restartServer = () => async (dispatch, _, services) => {
@@ -77,11 +67,11 @@ export const restartServer = () => async (dispatch, _, services) => {
 
 export const verifyConnection = settings => async (dispatch, _, services) => {
   dispatch(setVerificationStatus(verificationStatuses.loading));
-  try {
+  await commonAsyncHandler(async () => {
     await services.settings.verifySettings(settings);
     dispatch(setVerificationStatus(verificationStatuses.success));
-  } catch (err) {
-    dispatch(setVerificationStatus(verificationStatuses.fail));
-    throw new Error(err);
-  }
+  }, dispatch, true)
+    .catch(() => {
+      dispatch(setVerificationStatus(verificationStatuses.fail));
+    });
 };

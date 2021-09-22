@@ -1,21 +1,23 @@
+import classnames from 'classnames';
+import PropTypes from 'prop-types';
 import React, { useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import PropTypes from 'prop-types';
-import classnames from 'classnames';
-import Button from '~/components/shared/Button';
-import './index.css';
 import { useDispatch } from 'react-redux';
-import { hideNotificationSnack } from '../../../modules/applications/actions';
+import Button from '~/components/shared/Button';
+import { hideNotificationSnack } from '~/modules/applications/notification-actions';
+import './index.css';
+import { notificationStatuses } from '~/enums';
 
 const SnackComponent = ({ content, buttons, callback, status }) => {
   const dispatch = useDispatch();
   const snackClasses = classnames('iap-snack', {
-    'iap-snack--success': status === 'success',
-    'iap-snack--error': status === 'error' || status === 'rejected',
+    'iap-snack--success': status === notificationStatuses.success,
+    'iap-snack--error': status === notificationStatuses.error,
+    'iap-snack--changes': status === notificationStatuses.changed,
   });
 
   useEffect(() => {
-    if (status !== 'changed') {
+    if (status !== notificationStatuses.changed) {
       setTimeout(() => {
         dispatch(hideNotificationSnack());
       }, 3000);
@@ -49,7 +51,7 @@ const SnackComponent = ({ content, buttons, callback, status }) => {
 };
 
 export const Snack = (props) => {
-  const Root = document.getElementById('root');
+  const Root = document.getElementById('iap-notifications');
   if (Root) {
     return createPortal(<SnackComponent {...props} />, Root);
   }
@@ -63,11 +65,10 @@ Snack.propTypes = {
     label: PropTypes.string.isRequired,
     data: PropTypes.any.isRequired,
   })),
-  status: PropTypes.string,
+  status: PropTypes.number.isRequired,
 };
 
 Snack.defaultProps = {
   buttons: undefined,
   callback: undefined,
-  status: '',
 };

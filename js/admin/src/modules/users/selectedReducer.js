@@ -23,11 +23,6 @@ const reducer = (state = INITIAL_STATE, action) => {
         fetching: false,
         user: payload,
       });
-    case types.FETCH_USER_BY_ID_FAILURE:
-      return update(state, {
-        fetching: false,
-        error: payload,
-      });
     case types.POST_USER_ATTEMPT:
       return update(state, {
         saving: true,
@@ -37,11 +32,6 @@ const reducer = (state = INITIAL_STATE, action) => {
         error: null,
         saving: false,
         user: payload,
-      });
-    case types.POST_USER_FAILURE:
-      return update(state, {
-        saving: false,
-        error: payload,
       });
     case types.ALTER_USER_ATTEMPT:
       return update(state, {
@@ -53,22 +43,12 @@ const reducer = (state = INITIAL_STATE, action) => {
         user: payload,
         error: null,
       });
-    case types.ALTER_USER_FAILURE:
-      return update(state, {
-        saving: false,
-        error: payload,
-      });
     case types.DELETE_USER_BY_ID_ATTEMPT:
       return update(state, 'saving', true);
     case types.DELETE_USER_BY_ID_SUCCESS:
       return update(state, {
         saving: false,
         user: null,
-      });
-    case types.DELETE_USER_BY_ID_FAILURE:
-      return update(state, {
-        saving: false,
-        error: payload,
       });
     case types.RESET_USER_ERROR:
       return update(state, 'error', null);

@@ -23,7 +23,6 @@ const StoragesSection = () => {
 
   const triggerFetchSettings = async () => {
     setProgress(70);
-
     try {
       await dispatch(fetchServerSetings());
     } finally {
@@ -32,15 +31,10 @@ const StoragesSection = () => {
   };
 
   const saveHandler = async (node, nodeSettings) => {
-    setProgress(70);
     const updatedSettings = { storage: update(settings, {
       [node]: nodeSettings,
     }) };
-    try {
-      dispatch(updateServerSettings(updatedSettings));
-    } finally {
-      setProgress(100);
-    }
+    dispatch(updateServerSettings(updatedSettings));
   };
 
   const handleSettingsVerification = async (nodeSettings) => {
@@ -75,10 +69,6 @@ const StoragesSection = () => {
       await saveHandler(node, nodeSettings);
     }
   };
-
-  useEffect(() => {
-    setProgress(100);
-  }, []);
 
   useEffect(() => {
     setStatus(verificationStatuses.required);

@@ -4,14 +4,12 @@ import { Link } from 'react-router-dom';
 import UserForm from './UserForm';
 import { postUser, resetUserError } from '~/modules/users/actions';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
 
 const goBackPath = '/management/users';
 
 const NewUserView = ({ history }) => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const user = useSelector(s => s.selectedUser.user);
   const error = useSelector(s => s.selectedUser.error);
@@ -30,19 +28,8 @@ const NewUserView = ({ history }) => {
 
   const handleSubmit = async (data) => {
     setProgress(70);
-
     try {
       await dispatch(postUser(data));
-
-      notifySuccess({
-        title: 'Created',
-        text: 'User has been created successfully',
-      });
-    } catch (_) {
-      notifyFailure({
-        title: 'Error',
-        text: 'User could not be created',
-      });
     } finally {
       setProgress(100);
     }

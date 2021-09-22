@@ -41,16 +41,16 @@
 }
 
 .iap-btn.iap-btn--success {
-  background-color: green;
-  border: 2px solid green;
+  background-color: var(--green-color);
+  border: 2px solid var(--green-color);
   color: #fff;
   pointer-events: none;
 }
 
-.iap-btn.iap-btn--success:hover,
-.iap-btn.iap-btn--success:focus {
-  background-color: green;
-  border: 2px solid green;
+.iap-btn.iap-btn--success:hover, 
+.iap-btn.iap-btn--success:focus{
+  background-color: var(--green-color);
+  border: 2px solid var(--green-color);
 }
 
 .iap-btn.iap-btn--outline:not(:hover) svg path {

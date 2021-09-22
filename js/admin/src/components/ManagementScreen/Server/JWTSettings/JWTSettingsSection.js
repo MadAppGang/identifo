@@ -19,7 +19,7 @@ export const JWTSettingsSection = () => {
   const [generateKeyDialogShown, setGenerateKeyDialogShown] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
 
-  const { progress } = useProgressBar();
+  const { progress, setProgress } = useProgressBar();
 
   const getPrivateKey = async () => {
     const config = {
@@ -59,6 +59,7 @@ export const JWTSettingsSection = () => {
       switch (res) {
         case dialogActions.submit:
           await dispatch(uploadJWTKeys(nextSettings));
+          setProgress(100);
           break;
         case dialogActions.cancel:
           dispatch(hideSettingsDialog());

@@ -10,8 +10,6 @@ import {
   fetchUserById, alterUser, deleteUserById, resetUserError,
   resetUserById } from '~/modules/users/actions';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
-
 
 const goBackPath = '/management/users';
 
@@ -25,7 +23,6 @@ const EditUserView = ({ match, history }) => {
   const [isIdsShown, setIdsShown] = useState(false);
 
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const federatedIds = useMemo(() => {
     if (user && user.federated_ids) {
@@ -52,16 +49,7 @@ const EditUserView = ({ match, history }) => {
 
     try {
       await dispatch(deleteUserById(id));
-      notifySuccess({
-        title: 'Deleted',
-        text: 'User has been deleted successfully',
-      });
       history.push(goBackPath);
-    } catch (_) {
-      notifyFailure({
-        title: 'Something went wrong',
-        text: 'User could not be updated',
-      });
     } finally {
       setProgress(100);
     }
@@ -72,16 +60,7 @@ const EditUserView = ({ match, history }) => {
 
     try {
       await dispatch(alterUser(id, data));
-      notifySuccess({
-        title: 'Updated',
-        text: 'User has been updated successfully',
-      });
       history.push(goBackPath);
-    } catch (_) {
-      notifyFailure({
-        title: 'Something went wrong',
-        text: 'User could not be updated',
-      });
     } finally {
       setProgress(100);
     }

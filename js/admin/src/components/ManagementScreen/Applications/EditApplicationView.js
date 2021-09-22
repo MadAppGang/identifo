@@ -15,15 +15,15 @@ import ApplicationAuthSettings from './AuthSettingsForm';
 import ApplicationTokenSettings from './TokenSettingsForm';
 import ApplicationFederatedLoginSettings from './FederatedLoginSettingsForm';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
 import { RegistrationSettingsForm } from './RegistrationSettingsForm';
+import { showErrorNotificationSnack } from '~/modules/applications/notification-actions';
+import { errorSnackMessages } from '~/modules/applications/constants';
 
 const goBackPath = '/management/applications';
 
 const EditApplicationView = ({ match, history }) => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const id = match.params.appid;
 
@@ -47,15 +47,6 @@ const EditApplicationView = ({ match, history }) => {
     setProgress(70);
     try {
       await dispatch(alterApplication(id, data));
-      notifySuccess({
-        title: 'Updated',
-        text: 'Application has been updated successfully',
-      });
-    } catch (_) {
-      notifyFailure({
-        title: 'Something went wrong',
-        text: 'Application could not be updated',
-      });
     } finally {
       setProgress(100);
     }
@@ -70,16 +61,7 @@ const EditApplicationView = ({ match, history }) => {
     setProgress(70);
     try {
       await dispatch(deleteApplicationById(id));
-      notifySuccess({
-        title: 'Deleted',
-        text: 'Application has been deleted successfully',
-      });
       history.push(goBackPath);
-    } catch (_) {
-      notifyFailure({
-        title: 'Something went wrong',
-        text: 'Application could not be deleted',
-      });
     } finally {
       setProgress(100);
     }
@@ -91,11 +73,7 @@ const EditApplicationView = ({ match, history }) => {
   }], [id, handleDeleteClick]);
 
   if (progress > 70 && !application) {
-    notifyFailure({
-      title: 'Something went wrong',
-      text: `Can't find application with id ${id}`,
-    });
-
+    dispatch(showErrorNotificationSnack(`${errorSnackMessages.appNotFound} ${id}`));
     dispatch(resetApplicationError());
 
     return <Redirect to={goBackPath} />;
