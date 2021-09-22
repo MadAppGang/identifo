@@ -1,6 +1,7 @@
 describe('simple login', () => {
   beforeEach(() => {
-    cy.disable2fa();
+    cy.addTestUser();
+    cy.appSet({ tfa_status: 'disabled' });
     cy.visitLogin();
   });
   it('login by email', () => {
@@ -9,6 +10,5 @@ describe('simple login', () => {
     cy.screenshot();
     cy.contains('Login').click();
     cy.contains('Success');
-    cy.contains('test@test.com');
   });
 });

@@ -1,9 +1,14 @@
-describe('simple forbidden', () => {
+describe('simple forgot', () => {
   beforeEach(() => {
-    cy.disable2fa();
+    cy.addTestUser();
+    cy.appSet({ tfa_status: 'disabled' });
     cy.visitLogin();
   });
-  it('forbidden by email', () => {
+  it('have back button', () => {
+    cy.contains('Forgot password').click();
+    cy.contains('Go back to login');
+  });
+  it('forgot by email', () => {
     cy.contains('Forgot password').click();
     cy.get('#email').click().type('test@test.com');
     cy.contains('Send the link').click();

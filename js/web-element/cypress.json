@@ -1,5 +1,8 @@
 {
   "projectId": "9g4zv8",
+  "video": false,
+  "viewportHeight": 800,
+  "viewportWidth": 600,
   "appId": "c3vqpr2se6nhtg9v1nu0",
   "serverUrl": "https://identifo.organaza.ru",
   "baseUrl": "http://localhost:44000",

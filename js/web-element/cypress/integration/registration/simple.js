@@ -1,7 +1,12 @@
 describe('simple registration', () => {
   beforeEach(() => {
+    cy.appSet({});
     cy.deleteTestUser();
     cy.visitLogin();
+  });
+  it('have back button', () => {
+    cy.contains('Sign Up').click();
+    cy.contains('Go back to login');
   });
   it('open signup and register test email', () => {
     cy.contains('Sign Up').click();
@@ -12,6 +17,5 @@ describe('simple registration', () => {
     cy.screenshot();
     cy.contains('Continue').click();
     cy.contains('Success');
-    cy.contains('test@test.com');
   });
 });

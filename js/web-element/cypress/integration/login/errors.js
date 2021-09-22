@@ -1,6 +1,5 @@
 describe('login errors', () => {
   beforeEach(() => {
-    cy.disable2fa();
     cy.visitLogin();
   });
   it('login button disabled when empty user or password', () => {

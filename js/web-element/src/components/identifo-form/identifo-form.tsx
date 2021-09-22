@@ -28,7 +28,7 @@ export class IdentifoForm {
   @Prop() token: string;
   @Prop({ reflect: true }) appId: string;
   @Prop({ reflect: true }) url: string;
-  @Prop() theme: 'dark' | 'light' = 'light';
+  @Prop() theme: 'dark' | 'light' | 'auto' = 'auto';
   @Prop() scopes: string = '';
 
   // This url will be preserved when federated login will be completed
@@ -40,6 +40,8 @@ export class IdentifoForm {
   @Prop() postLogoutRedirectUri: string;
 
   @Prop() debug: boolean;
+
+  @State() selectedTheme: 'dark' | 'light' = 'light';
 
   @State() auth: IdentifoAuth;
 
@@ -71,8 +73,8 @@ export class IdentifoForm {
   //   return format(this.first, this.middle, this.last);
   // }
   processError(e: ApiError) {
-    e.detailedMessage = e.detailedMessage.trim();
-    e.message = e.message.trim();
+    e.detailedMessage = e.detailedMessage?.trim();
+    e.message = e.message?.trim();
     this.lastError = e;
     this.error.emit(e);
   }
@@ -237,7 +239,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -254,17 +256,17 @@ export class IdentifoForm {
                 <p class="social-buttons__text">or continue with</p>
                 <div class="social-buttons__social-medias">
                   {this.federatedProviders.indexOf('apple') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('apple')}>
+                    <div class="social-buttons__media social-buttons__apple" onClick={() => this.loginWith('apple')}>
                       <img src={getAssetPath(`assets/images/${'apple.svg'}`)} class="social-buttons__image" alt="login via apple" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('google') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('google')}>
+                    <div class="social-buttons__media social-buttons__google" onClick={() => this.loginWith('google')}>
                       <img src={getAssetPath(`assets/images/${'google.svg'}`)} class="social-buttons__image" alt="login via google" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('facebook') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('facebook')}>
+                    <div class="social-buttons__media social-buttons__facebook" onClick={() => this.loginWith('facebook')}>
                       <img src={getAssetPath(`assets/images/${'fb.svg'}`)} class="social-buttons__image" alt="login via facebook" />
                     </div>
                   )}
@@ -297,7 +299,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -305,7 +307,7 @@ export class IdentifoForm {
               <button onClick={() => this.signUp()} class="primary-button" disabled={!this.email || !this.password}>
                 Continue
               </button>
-              <a onClick={() => this.openRoute('login')} class="register-form__log-in">
+              <a onClick={() => this.openRoute('login')} class="register-form__login">
                 Go back to login
               </a>
             </div>
@@ -331,17 +333,17 @@ export class IdentifoForm {
                 <p class="social-buttons__text">or continue with</p>
                 <div class="social-buttons__social-medias">
                   {this.federatedProviders.indexOf('apple') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('apple')}>
+                    <div class="social-buttons__media social-buttons__apple" onClick={() => this.loginWith('apple')}>
                       <img src={getAssetPath(`assets/images/${'apple.svg'}`)} class="social-buttons__image" alt="login via apple" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('google') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('google')}>
+                    <div class="social-buttons__media social-buttons__google" onClick={() => this.loginWith('google')}>
                       <img src={getAssetPath(`assets/images/${'google.svg'}`)} class="social-buttons__image" alt="login via google" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('facebook') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('facebook')}>
+                    <div class="social-buttons__media social-buttons__facebook" onClick={() => this.loginWith('facebook')}>
                       <img src={getAssetPath(`assets/images/${'fb.svg'}`)} class="social-buttons__image" alt="login via facebook" />
                     </div>
                   )}
@@ -392,7 +394,7 @@ export class IdentifoForm {
 
                 {!!this.lastError && (
                   <div class="error" role="alert">
-                    {this.lastError?.detailedMessage}
+                    {this.lastError?.detailedMessage || this.lastError?.message}
                   </div>
                 )}
 
@@ -438,7 +440,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -464,20 +466,23 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
             <button type="button" class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.email} onClick={() => this.restorePassword()}>
               Send the link
             </button>
+            <a onClick={() => this.openRoute('login')} class="forgot-password__login">
+              Go back to login
+            </a>
           </div>
         );
       case 'password/forgot/success':
         return (
           <div class="forgot-password-success">
-            {this.theme === 'dark' && <img src={getAssetPath(`./assets/images/${'email-dark.svg'}`)} alt="email" class="forgot-password-success__image" />}
-            {this.theme === 'light' && <img src={getAssetPath(`./assets/images/${'email.svg'}`)} alt="email" class="forgot-password-success__image" />}
+            {this.selectedTheme === 'dark' && <img src={getAssetPath(`./assets/images/${'email-dark.svg'}`)} alt="email" class="forgot-password-success__image" />}
+            {this.selectedTheme === 'light' && <img src={getAssetPath(`./assets/images/${'email.svg'}`)} alt="email" class="forgot-password-success__image" />}
             <p class="forgot-password-success__text">We sent you an email with a link to create a new password</p>
           </div>
         );
@@ -498,7 +503,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -577,6 +582,18 @@ export class IdentifoForm {
         .then(route => this.openRoute(route))
         .catch(e => this.processError(e));
     }
+    // Auto theme select
+    this.selectedTheme = 'light';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      if (this.theme === 'auto') {
+        this.selectedTheme = 'dark';
+      }
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (this.theme === 'auto') {
+        this.selectedTheme = e.matches ? 'dark' : 'light';
+      }
+    });
   }
 
   componentWillRender() {
@@ -594,7 +611,7 @@ export class IdentifoForm {
   render() {
     return (
       <Host>
-        <div class={{ 'wrapper': this.theme === 'light', 'wrapper-dark': this.theme === 'dark' }}>{this.renderRoute(this.route)}</div>
+        <div class={{ 'wrapper': this.selectedTheme === 'light', 'wrapper-dark': this.selectedTheme === 'dark' }}>{this.renderRoute(this.route)}</div>
         <div class="error-view">
           {this.debug && (
             <div>
