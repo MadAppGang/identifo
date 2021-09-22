@@ -210,9 +210,8 @@ export class IdentifoForm {
           <div class="login-form">
             {!this.registrationForbidden && (
               <p class="login-form__register-text">
-                Don't have an account?
+                Don't have an account?&nbsp;
                 <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                  {' '}
                   Sign Up
                 </a>
               </p>
@@ -220,7 +219,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingInput"
+              id="login"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -229,7 +228,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -280,7 +279,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingInput"
+              id="login"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -289,7 +288,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -317,14 +316,13 @@ export class IdentifoForm {
           <div class="otp-login">
             {!this.registrationForbidden && (
               <p class="otp-login__register-text">
-                Don't have an account?
+                Don't have an account?&nbsp;
                 <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                  {' '}
                   Sign Up
                 </a>
               </p>
             )}
-            <input type="phone" class="form-control" id="floatingInput" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
+            <input type="phone" class="form-control" id="login" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
             <button onClick={() => this.openRoute('tfa/verify')} class="primary-button" disabled={!this.phone}>
               Continue
             </button>
@@ -385,7 +383,7 @@ export class IdentifoForm {
                 <input
                   type="phone"
                   class={`form-control ${this.lastError && 'form-control-danger'}`}
-                  id="floatingInput"
+                  id="login"
                   value={this.phone}
                   placeholder="Phone"
                   onInput={event => this.phoneChange(event as InputEvent)}
@@ -431,7 +429,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingCode"
+              id="tfaCode"
               value={this.tfaCode}
               placeholder="Verify code"
               onInput={event => this.tfaCodeChange(event as InputEvent)}
@@ -457,7 +455,7 @@ export class IdentifoForm {
             <input
               type="email"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingEmail"
+              id="email"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -491,7 +489,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -540,8 +538,20 @@ export class IdentifoForm {
 
   async componentWillLoad() {
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-    this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
+    if (!this.appId) {
+      this.lastError = { message: 'app-id param is empty', name: 'app-id empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
+    if (!this.url) {
+      this.lastError = { message: 'url param is empty', name: 'url empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
     try {
+      this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
       this.tfaType = settings.tfaType;

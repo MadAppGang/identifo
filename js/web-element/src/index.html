@@ -42,21 +42,22 @@
   <body>
     <div class="login-holder">
       <div class="logo">identifo</div>
-      <identifo-form app-id="c3vqpr2se6nhtg9v1nu0" url="https://identifo.organaza.ru" theme="dark"> </identifo-form>
+      <identifo-form debug="true"></identifo-form>
     </div>
     <script>
-      const token = new URLSearchParams(window.location.search).get('token');
+      // const token = new URLSearchParams(window.location.search).get('token');
       const identifoForm = document.getElementsByTagName('identifo-form')[0];
-      identifoForm.route = 'login';
+      identifoForm.appId = new URLSearchParams(location.search).get('appId');
+      identifoForm.url = new URLSearchParams(location.search).get('url');
 
-      identifoForm.addEventListener('complete', event => {
-        window.alert(event.detail);
-      });
+      // identifoForm.addEventListener('complete', event => {
+      //   window.alert(event.detail);
+      // });
 
-      if (token) {
-        identifoForm.token = token;
-        identifoForm.route = 'password/reset';
-      }
+      // if (token) {
+      //   identifoForm.token = token;
+      //   identifoForm.route = 'password/reset';
+      // }
     </script>
   </body>
 </html>
