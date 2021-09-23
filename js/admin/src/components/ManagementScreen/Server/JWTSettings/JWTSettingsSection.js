@@ -28,7 +28,9 @@ export const JWTSettingsSection = () => {
     };
     const res = await dispatch(handleSettingsDialog(config));
     if (!keys.private && res === dialogActions.submit) {
+      setProgress(50);
       await dispatch(getJWTKeys(true));
+      setProgress(100);
     } else {
       dispatch(hideSettingsDialog());
     }
