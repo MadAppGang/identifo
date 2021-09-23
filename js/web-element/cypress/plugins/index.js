@@ -20,9 +20,10 @@
 // const del = require('del');
 const { renameSync } = require('fs');
 module.exports = (on, config) => {
-  on('after:screenshot', ({ path }) => {
-    renameSync(path, path.replace(/ \(\d*\)/i, ''));
-  });
+  // on('after:screenshot', ({ path }) => {
+  //   console.log(path, path.replace(/([^)])\.png/gi, '$1 (0).png'));
+  //   renameSync(path, path.replace(/([^)])\.png/gi, '$1 (0).png'));
+  // });
   // on('after:spec', (spec, results) => {
   //   if (results && results.video) {
   //     // Do we have failures for any retry attempts?

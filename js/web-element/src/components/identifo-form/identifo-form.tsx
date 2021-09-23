@@ -385,7 +385,7 @@ export class IdentifoForm {
                 <input
                   type="phone"
                   class={`form-control ${this.lastError && 'form-control-danger'}`}
-                  id="login"
+                  id="phone"
                   value={this.phone}
                   placeholder="Phone"
                   onInput={event => this.phoneChange(event as InputEvent)}

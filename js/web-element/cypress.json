@@ -3,8 +3,8 @@
   "video": false,
   "viewportHeight": 800,
   "viewportWidth": 600,
-  "appId": "c3vqpr2se6nhtg9v1nu0",
-  "serverUrl": "https://identifo.organaza.ru",
+  "appId": "c4n73frbgvj2kp65bq00",
+  "serverUrl": "http://localhost:8081",
   "baseUrl": "http://localhost:44000",
   "chromeWebSecurity": false
 }

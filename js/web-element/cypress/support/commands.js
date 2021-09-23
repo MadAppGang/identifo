@@ -1,7 +1,10 @@
-import { app } from './app';
+import user from '../fixtures/user.json';
+import app from '../fixtures/app.json';
+import server from '../fixtures/server.json';
 let testUser = {};
+const adminUrl = `${Cypress.config('serverUrl')}/admin`;
 const login = () => {
-  return fetch('https://identifo.organaza.ru/admin/login', {
+  return fetch(`${adminUrl}/login`, {
     body: '{"email":"admin@admin.com","password":"password"}',
     method: 'POST',
     mode: 'cors',
@@ -9,7 +12,7 @@ const login = () => {
   });
 };
 const deleteTestUser = async () => {
-  const testUser = await fetch('https://identifo.organaza.ru/admin/users?search=test', {
+  const testUser = await fetch(`${adminUrl}/users?search=test`, {
     body: null,
     method: 'GET',
     mode: 'cors',
@@ -18,7 +21,7 @@ const deleteTestUser = async () => {
     .then(r => r.json())
     .then(result => result.users[0]);
   if (testUser) {
-    return fetch(`https://identifo.organaza.ru/admin/users/${testUser.id}`, {
+    return fetch(`${adminUrl}/users/${testUser.id}`, {
       body: null,
       method: 'DELETE',
       mode: 'cors',
@@ -28,10 +31,21 @@ const deleteTestUser = async () => {
 };
 Cypress.Commands.add('appSet', async data => {
   await login();
-  await fetch(`https://identifo.organaza.ru/admin/apps/${Cypress.config('appId')}`, {
+  await fetch(`${adminUrl}/apps/${Cypress.config('appId')}`, {
     body: JSON.stringify({
       ...app,
       ...data,
+    }),
+    method: 'PUT',
+    mode: 'cors',
+    credentials: 'include',
+  });
+});
+Cypress.Commands.add('serverSetLoginOptions', async data => {
+  await login();
+  await fetch(`${adminUrl}/settings`, {
+    body: JSON.stringify({
+      login: { ...server.login, ...data },
     }),
     method: 'PUT',
     mode: 'cors',
@@ -44,34 +58,26 @@ Cypress.Commands.add('deleteTestUser', async () => {
   await deleteTestUser();
 });
 
-Cypress.Commands.add('addTestUser', async (tfa = false) => {
+Cypress.Commands.add('addTestUser', async data => {
   await login();
   await deleteTestUser();
-  testUser = await fetch(`https://identifo.organaza.ru/admin/users/`, {
-    body: JSON.stringify({
-      username: 'test@test.com',
-      password: 'Password',
-      access_role: '',
-    }),
+  testUser = await fetch(`${adminUrl}/users/`, {
+    body: JSON.stringify({ ...user, ...data }),
     method: 'POST',
     mode: 'cors',
     credentials: 'include',
-  }).then(r => r.json());
-  testUser = await fetch(`https://identifo.organaza.ru/admin/users/${testUser.id}`, {
-    body: JSON.stringify({
-      id: testUser.id,
-      username: 'test@test.com',
-      email: 'test@test.com',
-      phone: '+123456789',
-      active: true,
-      tfa_info: {
-        is_enabled: tfa,
-      },
-    }),
-    method: 'PUT',
-    mode: 'cors',
-    credentials: 'include',
-  }).then(r => r.json());
+  }); //.then(r => r.json());
+  // testUser = await fetch(`${adminUrl}/users/${testUser.id}`, {
+  //   body: JSON.stringify({
+  //     ...user,
+  //     tfa_info: {
+  //       is_enabled: tfa,
+  //     },
+  //   }),
+  //   method: 'PUT',
+  //   mode: 'cors',
+  //   credentials: 'include',
+  // }).then(r => r.json());
 });
 
 Cypress.Commands.add('visitLogin', (orig, url, options) => {
