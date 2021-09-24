@@ -16,6 +16,7 @@ describe('simple forgot', () => {
     cy.screenshot();
     cy.contains('Send the link').click();
     cy.contains('We sent you an email with a link to create a new password');
+    cy.contains('Go back to login');
     cy.screenshot();
   });
 });

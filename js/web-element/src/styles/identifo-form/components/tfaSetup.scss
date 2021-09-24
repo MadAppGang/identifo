@@ -44,10 +44,21 @@
   .info-card {
     margin-top: 48px;
   }
+  &__qr-wrapper {
+    text-align: center;
+  }
+
+  &__qr-code {
+    width: 200px;
+    height: 200px;
+  }
 
   @include for-phone-only {
     width: 100%;
     max-width: var(--content-width);
     padding: 38px 24px 36px;
+
+    &__qr-code {
+    }
   }
 }

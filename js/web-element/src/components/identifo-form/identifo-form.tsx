@@ -4,8 +4,14 @@ import { Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State } fr
 export type Routes =
   | 'login'
   | 'register'
-  | 'tfa/verify'
-  | 'tfa/setup'
+  | 'tfa/verify/sms'
+  | 'tfa/verify/email'
+  | 'tfa/verify/app'
+  | 'tfa/verify/select'
+  | 'tfa/setup/sms'
+  | 'tfa/setup/email'
+  | 'tfa/setup/app'
+  | 'tfa/setup/select'
   | 'password/reset'
   | 'password/forgot'
   | 'callback'
@@ -14,7 +20,8 @@ export type Routes =
   | 'password/forgot/success'
   | 'logout'
   | 'loading';
-
+export type TFASetupRoutes = 'tfa/setup/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app';
+export type TFAVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
 const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 @Component({
@@ -51,7 +58,7 @@ export class IdentifoForm {
   @State() email: string;
   @State() registrationForbidden: boolean;
   @State() tfaCode: string;
-  @State() tfaType: TFAType;
+  @State() tfaTypes: TFAType[];
   @State() federatedProviders: string[] = [];
   @State() tfaMandatory: boolean;
   @State() provisioningURI: string;
@@ -78,16 +85,30 @@ export class IdentifoForm {
     this.lastError = e;
     this.error.emit(e);
   }
+  redirectTfaSetup(): TFASetupRoutes {
+    if (this.tfaTypes.length === 1) {
+      return `tfa/setup/${this.tfaTypes[0]}` as TFASetupRoutes;
+    } else {
+      return `tfa/setup/select`;
+    }
+  }
+  redirectTfaVerify(): TFAVerifyRoutes {
+    if (this.tfaTypes.length === 1) {
+      return `tfa/verify/${this.tfaTypes[0]}` as TFAVerifyRoutes;
+    } else {
+      return `tfa/verify/select`;
+    }
+  }
   afterLoginRedirect = (e: LoginResponse) => {
     this.phone = e.user.phone || '';
     this.email = e.user.email || '';
     this.lastResponse = e;
     if (e.require_2fa) {
       if (!e.enabled_2fa) {
-        return 'tfa/setup';
+        return this.redirectTfaSetup();
       }
       if (e.enabled_2fa) {
-        return 'tfa/verify';
+        return this.redirectTfaVerify();
       }
     }
     if (e.access_token && e.refresh_token) {
@@ -97,9 +118,9 @@ export class IdentifoForm {
       return 'callback';
     }
   };
-  loginCatchRedirect = (data: ApiError): 'tfa/setup' => {
+  loginCatchRedirect = (data: ApiError): TFASetupRoutes => {
     if (data.id === APIErrorCodes.PleaseEnableTFA) {
-      return 'tfa/setup';
+      return this.redirectTfaSetup();
     }
     throw data;
   };
@@ -136,26 +157,28 @@ export class IdentifoForm {
       .then(() => this.openRoute('callback'))
       .catch(e => this.processError(e));
   }
-  async setupTFA() {
-    if (this.tfaType == TFAType.TFATypeSMS) {
-      try {
-        await this.auth.api.updateUser({ new_phone: this.phone });
-      } catch (e) {
-        this.processError(e);
-        return;
-      }
-    }
+  async selectTFA(type: TFAType) {
+    this.openRoute(`tfa/setup/${type}` as TFASetupRoutes);
+  }
+  async setupTFA(type: TFAType) {
+    switch (type) {
+      case TFAType.TFATypeApp:
+        break;
+      case TFAType.TFATypeEmail:
+        await this.auth.api.enableTFA();
+        break;
+      case TFAType.TFATypeSMS:
+        try {
+          await this.auth.api.updateUser({ new_phone: this.phone });
+        } catch (e) {
+          this.processError(e);
+          return;
+        }
+        await this.auth.api.enableTFA();
 
-    await this.auth.api.enableTFA().then(r => {
-      if (!r.provisioning_uri) {
-        this.openRoute('tfa/verify');
-      }
-      if (r.provisioning_uri) {
-        this.provisioningURI = r.provisioning_uri;
-        this.provisioningQR = r.provisioning_qr;
-        this.openRoute('tfa/verify');
-      }
-    });
+        break;
+    }
+    this.openRoute(`tfa/verify/${type}` as TFAVerifyRoutes);
   }
   restorePassword() {
     this.auth.api
@@ -204,6 +227,13 @@ export class IdentifoForm {
       return false;
     }
     return true;
+  }
+  renderBackToLogin() {
+    return (
+      <a onClick={() => this.openRoute('login')} class="forgot-password__login">
+        Go back to login
+      </a>
+    );
   }
   renderRoute(route: Routes) {
     switch (route) {
@@ -307,9 +337,7 @@ export class IdentifoForm {
               <button onClick={() => this.signUp()} class="primary-button" disabled={!this.email || !this.password}>
                 Continue
               </button>
-              <a onClick={() => this.openRoute('login')} class="register-form__login">
-                Go back to login
-              </a>
+              {this.renderBackToLogin()}
             </div>
           </div>
         );
@@ -325,7 +353,7 @@ export class IdentifoForm {
               </p>
             )}
             <input type="phone" class="form-control" id="login" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
-            <button onClick={() => this.openRoute('tfa/verify')} class="primary-button" disabled={!this.phone}>
+            <button onClick={() => this.openRoute(this.redirectTfaVerify())} class="primary-button" disabled={!this.phone}>
               Continue
             </button>
             {this.federatedProviders.length > 0 && (
@@ -352,26 +380,29 @@ export class IdentifoForm {
             )}
           </div>
         );
-      case 'tfa/setup':
+      case 'tfa/verify/select':
+      case 'tfa/setup/select':
         return (
           <div class="tfa-setup">
-            <p class="tfa-setup__text">Protect your account with 2-step verification</p>
-            {this.tfaType === TFAType.TFATypeApp && (
+            {this.route === 'tfa/verify/select' && <p class="tfa-setup__text">Select 2-step verification method</p>}
+            {this.route === 'tfa/setup/select' && <p class="tfa-setup__text">Protect your account with 2-step verification</p>}
+
+            {this.tfaTypes.includes(TFAType.TFATypeApp) && (
               <div class="info-card">
                 <div class="info-card__controls">
                   <p class="info-card__title">Authenticator app</p>
-                  <button type="button" class="info-card__button" onClick={() => this.setupTFA()}>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeApp)}>
                     Setup
                   </button>
                 </div>
                 <p class="info-card__text">Use the Authenticator app to get free verification codes, even when your phone is offline. Available for Android and iPhone.</p>
               </div>
             )}
-            {this.tfaType === TFAType.TFATypeEmail && (
+            {this.tfaTypes.includes(TFAType.TFATypeEmail) && (
               <div class="info-card">
                 <div class="info-card__controls">
                   <p class="info-card__title">Email</p>
-                  <button type="button" class="info-card__button" onClick={() => this.setupTFA()}>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeEmail)}>
                     Setup
                   </button>
                 </div>
@@ -379,7 +410,63 @@ export class IdentifoForm {
                 <p class="info-card__text"> Use email as 2fa, please check your email, we will send confirmation code to this email.</p>
               </div>
             )}
-            {this.tfaType === TFAType.TFATypeSMS && (
+            {this.tfaTypes.includes(TFAType.TFATypeSMS) && (
+              <div class="info-card">
+                <div class="info-card__controls">
+                  <p class="info-card__title">SMS</p>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeSMS)}>
+                    Setup
+                  </button>
+                </div>
+                <p class="info-card__subtitle">{this.email}</p>
+                <p class="info-card__text"> Use phone as 2fa, please check your phone, we will send confirmation code to this phone</p>
+              </div>
+            )}
+            {this.renderBackToLogin()}
+          </div>
+        );
+      case 'tfa/setup/email':
+      case 'tfa/setup/sms':
+      case 'tfa/setup/app':
+        return (
+          <div class="tfa-setup">
+            <p class="tfa-setup__text">Protect your account with 2-step verification</p>
+            {this.route === 'tfa/setup/app' && (
+              <div class="tfa-setup__form">
+                <p class="tfa-setup__subtitle">Please scan QR-code with the app and click Continue</p>
+                <div class="tfa-setup__qr-wrapper">
+                  {!!this.provisioningURI && <img src={`data:image/png;base64, ${this.provisioningQR}`} alt={this.provisioningURI} class="tfa-setup__qr-code" />}
+                </div>
+                <button onClick={() => this.setupTFA(TFAType.TFATypeApp)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`}>
+                  Continue
+                </button>
+              </div>
+            )}
+            {this.route === 'tfa/setup/email' && (
+              <div class="tfa-setup__form">
+                <p class="tfa-setup__subtitle"> Use email as 2fa, please check your enail bellow, we will send confirmation code to this email</p>
+                <input
+                  type="email"
+                  class={`form-control ${this.lastError && 'form-control-danger'}`}
+                  id="email"
+                  value={this.email}
+                  placeholder="Email"
+                  onInput={event => this.emailChange(event as InputEvent)}
+                  onKeyPress={e => !!(e.key === 'Enter' && this.email) && this.setupTFA(TFAType.TFATypeEmail)}
+                />
+
+                {!!this.lastError && (
+                  <div class="error" role="alert">
+                    {this.lastError?.detailedMessage || this.lastError?.message}
+                  </div>
+                )}
+
+                <button onClick={() => this.setupTFA(TFAType.TFATypeEmail)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.email}>
+                  Setup email
+                </button>
+              </div>
+            )}
+            {this.route === 'tfa/setup/sms' && (
               <div class="tfa-setup__form">
                 <p class="tfa-setup__subtitle"> Use phone as 2fa, please check your phone bellow, we will send confirmation code to this phone</p>
                 <input
@@ -389,7 +476,7 @@ export class IdentifoForm {
                   value={this.phone}
                   placeholder="Phone"
                   onInput={event => this.phoneChange(event as InputEvent)}
-                  onKeyPress={e => !!(e.key === 'Enter' && this.phone) && this.setupTFA()}
+                  onKeyPress={e => !!(e.key === 'Enter' && this.phone) && this.setupTFA(TFAType.TFATypeSMS)}
                 />
 
                 {!!this.lastError && (
@@ -398,31 +485,32 @@ export class IdentifoForm {
                   </div>
                 )}
 
-                <button onClick={() => this.setupTFA()} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.phone}>
+                <button onClick={() => this.setupTFA(TFAType.TFATypeSMS)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.phone}>
                   Setup phone
                 </button>
               </div>
             )}
+            {this.renderBackToLogin()}
           </div>
         );
-      case 'tfa/verify':
+      case 'tfa/verify/app':
+      case 'tfa/verify/email':
+      case 'tfa/verify/sms':
         return (
           <div class="tfa-verify">
-            {!!(this.tfaType === TFAType.TFATypeApp) && (
+            {this.route === 'tfa/verify/app' && (
               <div class="tfa-verify__title-wrapper">
-                <h2 class={this.provisioningURI ? 'tfa-verify__title' : 'tfa-verify__title_mb-40'}>
-                  {!!this.provisioningURI ? 'Please scan QR-code with the app' : 'Use GoogleAuth as 2fa'}
-                </h2>
-                {!!this.provisioningURI && <img src={`data:image/png;base64, ${this.provisioningQR}`} alt={this.provisioningURI} class="tfa-verify__qr-code" />}
+                <h2 class="tfa-verify__title">Enter the code from authenticator app</h2>
+                <p class="tfa-verify__subtitle">Code will be generated by app</p>
               </div>
             )}
-            {!!(this.tfaType === TFAType.TFATypeSMS) && (
+            {this.route === 'tfa/verify/sms' && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your phone number</h2>
                 <p class="tfa-verify__subtitle">The code has been sent to {this.phone}</p>
               </div>
             )}
-            {!!(this.tfaType === TFAType.TFATypeEmail) && (
+            {this.route === 'tfa/verify/email' && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your email address</h2>
                 <p class="tfa-verify__subtitle">The email has been sent to {this.email}</p>
@@ -447,6 +535,7 @@ export class IdentifoForm {
             <button type="button" class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.tfaCode} onClick={() => this.verifyTFA()}>
               Confirm
             </button>
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/forgot':
@@ -473,9 +562,7 @@ export class IdentifoForm {
             <button type="button" class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.email} onClick={() => this.restorePassword()}>
               Send the link
             </button>
-            <a onClick={() => this.openRoute('login')} class="forgot-password__login">
-              Go back to login
-            </a>
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/forgot/success':
@@ -484,6 +571,8 @@ export class IdentifoForm {
             {this.selectedTheme === 'dark' && <img src={getAssetPath(`./assets/images/${'email-dark.svg'}`)} alt="email" class="forgot-password-success__image" />}
             {this.selectedTheme === 'light' && <img src={getAssetPath(`./assets/images/${'email.svg'}`)} alt="email" class="forgot-password-success__image" />}
             <p class="forgot-password-success__text">We sent you an email with a link to create a new password</p>
+
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/reset':
@@ -559,7 +648,7 @@ export class IdentifoForm {
       this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
-      this.tfaType = settings.tfaType;
+      this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
       this.federatedProviders = settings.federatedProviders;
     } catch (err) {
       this.route = 'error';
@@ -605,6 +694,14 @@ export class IdentifoForm {
     }
     if (this.route === 'logout') {
       this.complete.emit();
+    }
+    if (this.route === 'tfa/setup/app') {
+      this.auth.api.enableTFA().then(r => {
+        if (r.provisioning_uri) {
+          this.provisioningURI = r.provisioning_uri;
+          this.provisioningQR = r.provisioning_qr;
+        }
+      });
     }
   }
 

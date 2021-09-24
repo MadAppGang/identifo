@@ -5,14 +5,14 @@ describe('2fa mandatory email', () => {
     cy.appSet({ tfa_status: 'mandatory' });
     cy.visitLogin();
   });
-  it('2fa flow with email', () => {
+  it('2fa flow disabled with email', () => {
     cy.get('#login').click().type('test@test.com');
     cy.get('#password').click().type('Password');
     cy.screenshot();
     cy.contains('Login').click();
     cy.contains('Use email as 2fa');
     cy.screenshot();
-    cy.contains('Setup').click();
+    cy.get('button').contains('Setup email').click();
     cy.get('#tfaCode').click().type('0000');
     cy.screenshot();
     cy.contains('Confirm').click();
