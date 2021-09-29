@@ -11,6 +11,7 @@ import {
   ApiError,
   APIErrorCodes,
   FederatedLoginProvider,
+  TokenResponse,
 } from './model';
 
 const APP_ID_HEADER_KEY = 'X-Identifo-Clientid';
@@ -231,7 +232,7 @@ export class Api {
       {
         headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` },
       },
-    );
+    ).then((r) => this.storeToken(r));
   }
 
   async verifyTFA(code: string, scopes: string[]): Promise<LoginResponse> {
@@ -262,7 +263,7 @@ export class Api {
     );
   }
 
-  storeToken(response: LoginResponse): LoginResponse {
+  storeToken<T extends TokenResponse>(response: T): T {
     if (response.access_token) {
       this.tokenService.saveToken(response.access_token, 'access');
     }

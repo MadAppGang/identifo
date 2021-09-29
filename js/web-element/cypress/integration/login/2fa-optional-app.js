@@ -6,11 +6,24 @@ describe('2fa optional', () => {
     cy.addTestUser();
     cy.visitLogin();
   });
-  it('ask for setup 2fa with skip avaible', () => {
-    cy.get('#login').click().type('test@test.com');
-    cy.get('#password').click().type('Password');
+  it('ask for setup 2fa and setup app 2fa', () => {
+    cy.loginWithEmail();
+    cy.contains('Authenticator app');
     cy.screenshot();
-    cy.contains('Login').click();
-    cy.contains('Skip');
+    cy.get('button').contains('Setup').click();
+    cy.get('button').contains('Continue');
+    cy.screenshot();
+    cy.get('button').contains('Continue').click();
+    cy.verifyTfa();
+    cy.contains('Success');
+    cy.screenshot();
+  });
+  it('ask for setup 2fa and skip', () => {
+    cy.loginWithEmail();
+    cy.contains('Setup next time');
+    cy.screenshot();
+    cy.contains('Setup next time').click();
+    cy.contains('Success');
+    cy.screenshot();
   });
 });

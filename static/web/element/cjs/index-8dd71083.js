@@ -29,13 +29,22 @@ const doc = win.document || { head: {} };
 const plt = {
     $flags$: 0,
     $resourcesUrl$: '',
-    jmp: h => h(),
-    raf: h => requestAnimationFrame(h),
+    jmp: (h) => h(),
+    raf: (h) => requestAnimationFrame(h),
     ael: (el, eventName, listener, opts) => el.addEventListener(eventName, listener, opts),
     rel: (el, eventName, listener, opts) => el.removeEventListener(eventName, listener, opts),
     ce: (eventName, opts) => new CustomEvent(eventName, opts),
 };
 const promiseResolve = (v) => Promise.resolve(v);
+const supportsConstructibleStylesheets = /*@__PURE__*/ (() => {
+        try {
+            new CSSStyleSheet();
+            return typeof new CSSStyleSheet().replace === 'function';
+        }
+        catch (e) { }
+        return false;
+    })()
+    ;
 const HYDRATED_CSS = '{visibility:hidden}.hydrated{visibility:inherit}';
 const createTime = (fnName, tagName = '') => {
     {
@@ -51,6 +60,59 @@ const uniqueTime = (key, measureText) => {
         };
     }
 };
+const rootAppliedStyles = new WeakMap();
+const registerStyle = (scopeId, cssText, allowCS) => {
+    let style = styles.get(scopeId);
+    if (supportsConstructibleStylesheets && allowCS) {
+        style = (style || new CSSStyleSheet());
+        style.replace(cssText);
+    }
+    else {
+        style = cssText;
+    }
+    styles.set(scopeId, style);
+};
+const addStyle = (styleContainerNode, cmpMeta, mode, hostElm) => {
+    let scopeId = getScopeId(cmpMeta);
+    let style = styles.get(scopeId);
+    // if an element is NOT connected then getRootNode() will return the wrong root node
+    // so the fallback is to always use the document for the root node in those cases
+    styleContainerNode = styleContainerNode.nodeType === 11 /* DocumentFragment */ ? styleContainerNode : doc;
+    if (style) {
+        if (typeof style === 'string') {
+            styleContainerNode = styleContainerNode.head || styleContainerNode;
+            let appliedStyles = rootAppliedStyles.get(styleContainerNode);
+            let styleElm;
+            if (!appliedStyles) {
+                rootAppliedStyles.set(styleContainerNode, (appliedStyles = new Set()));
+            }
+            if (!appliedStyles.has(scopeId)) {
+                {
+                    {
+                        styleElm = doc.createElement('style');
+                        styleElm.innerHTML = style;
+                    }
+                    styleContainerNode.insertBefore(styleElm, styleContainerNode.querySelector('link'));
+                }
+                if (appliedStyles) {
+                    appliedStyles.add(scopeId);
+                }
+            }
+        }
+        else if (!styleContainerNode.adoptedStyleSheets.includes(style)) {
+            styleContainerNode.adoptedStyleSheets = [...styleContainerNode.adoptedStyleSheets, style];
+        }
+    }
+    return scopeId;
+};
+const attachStyles = (hostRef) => {
+    const cmpMeta = hostRef.$cmpMeta$;
+    const elm = hostRef.$hostElement$;
+    const endAttachStyles = createTime('attachStyles', cmpMeta.$tagName$);
+    addStyle(elm.getRootNode(), cmpMeta);
+    endAttachStyles();
+};
+const getScopeId = (cmp, mode) => 'sc-' + (cmp.$tagName$);
 /**
  * Default style mode id
  */
@@ -111,7 +173,7 @@ const h = (nodeName, vnodeData, ...children) => {
                     typeof classData !== 'object'
                         ? classData
                         : Object.keys(classData)
-                            .filter(k => classData[k])
+                            .filter((k) => classData[k])
                             .join(' ');
             }
         }
@@ -154,10 +216,12 @@ const setAccessor = (elm, memberName, oldValue, newValue, isSvg, flags) => {
             const classList = elm.classList;
             const oldClasses = parseClassList(oldValue);
             const newClasses = parseClassList(newValue);
-            classList.remove(...oldClasses.filter(c => c && !newClasses.includes(c)));
-            classList.add(...newClasses.filter(c => c && !oldClasses.includes(c)));
+            classList.remove(...oldClasses.filter((c) => c && !newClasses.includes(c)));
+            classList.add(...newClasses.filter((c) => c && !oldClasses.includes(c)));
         }
-        else if ((!isProp ) && memberName[0] === 'o' && memberName[1] === 'n') {
+        else if ((!isProp ) &&
+            memberName[0] === 'o' &&
+            memberName[1] === 'n') {
             // Event Handlers
             // so if the member name starts with "on" and the 3rd characters is
             // a capital letter, and it's not already a member on the element,
@@ -238,7 +302,9 @@ const updateElement = (oldVnode, newVnode, isSvgMode, memberName) => {
     // if the element passed in is a shadow root, which is a document fragment
     // then we want to be adding attrs/props to the shadow root's "host" element
     // if it's not a shadow root, then we add attrs/props to the same element
-    const elm = newVnode.$elm$.nodeType === 11 /* DocumentFragment */ && newVnode.$elm$.host ? newVnode.$elm$.host : newVnode.$elm$;
+    const elm = newVnode.$elm$.nodeType === 11 /* DocumentFragment */ && newVnode.$elm$.host
+        ? newVnode.$elm$.host
+        : newVnode.$elm$;
     const oldVnodeAttrs = (oldVnode && oldVnode.$attrs$) || EMPTY_OBJ;
     const newVnodeAttrs = newVnode.$attrs$ || EMPTY_OBJ;
     {
@@ -450,6 +516,13 @@ const createEvent = (ref, name, flags) => {
         },
     };
 };
+/**
+ * Helper function to create & dispatch a custom Event on a provided target
+ * @param elm the target of the Event
+ * @param name the name to give the custom Event
+ * @param opts options for configuring a custom Event
+ * @returns the custom Event
+ */
 const emitEvent = (elm, name, opts) => {
     const ev = plt.ce(name, opts);
     elm.dispatchEvent(ev);
@@ -457,7 +530,7 @@ const emitEvent = (elm, name, opts) => {
 };
 const attachToAncestor = (hostRef, ancestorComponent) => {
     if (ancestorComponent && !hostRef.$onRenderResolve$ && ancestorComponent['s-p']) {
-        ancestorComponent['s-p'].push(new Promise(r => (hostRef.$onRenderResolve$ = r)));
+        ancestorComponent['s-p'].push(new Promise((r) => (hostRef.$onRenderResolve$ = r)));
     }
 };
 const scheduleUpdate = (hostRef, isInitialLoad) => {
@@ -488,13 +561,17 @@ const dispatchHooks = (hostRef, isInitialLoad) => {
         promise = then(promise, () => safeCall(instance, 'componentWillRender'));
     }
     endSchedule();
-    return then(promise, () => updateComponent(hostRef, instance));
+    return then(promise, () => updateComponent(hostRef, instance, isInitialLoad));
 };
 const updateComponent = async (hostRef, instance, isInitialLoad) => {
     // updateComponent
     const elm = hostRef.$hostElement$;
     const endUpdate = createTime('update', hostRef.$cmpMeta$.$tagName$);
     const rc = elm['s-rc'];
+    if (isInitialLoad) {
+        // DOM WRITE!
+        attachStyles(hostRef);
+    }
     const endRender = createTime('render', hostRef.$cmpMeta$.$tagName$);
     {
         callRender(hostRef, instance);
@@ -503,7 +580,7 @@ const updateComponent = async (hostRef, instance, isInitialLoad) => {
         // ok, so turns out there are some child host elements
         // waiting on this parent element to load
         // let's fire off all update callbacks waiting
-        rc.map(cb => cb());
+        rc.map((cb) => cb());
         elm['s-rc'] = undefined;
     }
     endRender();
@@ -606,7 +683,8 @@ const safeCall = (instance, method, arg) => {
 const then = (promise, thenFn) => {
     return promise && promise.then ? promise.then(thenFn) : thenFn();
 };
-const addHydratedFlag = (elm) => (elm.classList.add('hydrated') );
+const addHydratedFlag = (elm) => elm.classList.add('hydrated')
+    ;
 const parsePropertyValue = (propValue, propType) => {
     // ensure this value is of the correct prop type
     if (propValue != null && !isComplexType(propValue)) {
@@ -656,7 +734,8 @@ const proxyComponent = (Cstr, cmpMeta, flags) => {
         const members = Object.entries(cmpMeta.$members$);
         const prototype = Cstr.prototype;
         members.map(([memberName, [memberFlags]]) => {
-            if ((memberFlags & 31 /* Prop */ || ((flags & 2 /* proxyState */) && memberFlags & 32 /* State */))) {
+            if ((memberFlags & 31 /* Prop */ ||
+                    ((flags & 2 /* proxyState */) && memberFlags & 32 /* State */))) {
                 // proxyComponent - prop
                 Object.defineProperty(prototype, memberName, {
                     get() {
@@ -677,6 +756,43 @@ const proxyComponent = (Cstr, cmpMeta, flags) => {
             prototype.attributeChangedCallback = function (attrName, _oldValue, newValue) {
                 plt.jmp(() => {
                     const propName = attrNameToPropName.get(attrName);
+                    //  In a webcomponent lifecyle the attributeChangedCallback runs prior to connectedCallback
+                    //  in the case where an attribute was set inline.
+                    //  ```html
+                    //    <my-component some-attribute="some-value"></my-component>
+                    //  ```
+                    //
+                    //  There is an edge case where a developer sets the attribute inline on a custom element and then programatically
+                    //  changes it before it has been upgraded as shown below:
+                    //
+                    //  ```html
+                    //    <!-- this component has _not_ been upgraded yet -->
+                    //    <my-component id="test" some-attribute="some-value"></my-component>
+                    //    <script>
+                    //      // grab non-upgraded component
+                    //      el = document.querySelector("#test");
+                    //      el.someAttribute = "another-value";
+                    //      // upgrade component
+                    //      cutsomElements.define('my-component', MyComponent);
+                    //    </script>
+                    //  ```
+                    //  In this case if we do not unshadow here and use the value of the shadowing property, attributeChangedCallback
+                    //  will be called with `newValue = "some-value"` and will set the shadowed property (this.someAttribute = "another-value")
+                    //  to the value that was set inline i.e. "some-value" from above example. When
+                    //  the connectedCallback attempts to unshadow it will use "some-value" as the intial value rather than "another-value"
+                    //
+                    //  The case where the attribute was NOT set inline but was not set programmatically shall be handled/unshadowed
+                    //  by connectedCallback as this attributeChangedCallback will not fire.
+                    //
+                    //  https://developers.google.com/web/fundamentals/web-components/best-practices#lazy-properties
+                    //
+                    //  TODO(STENCIL-16) we should think about whether or not we actually want to be reflecting the attributes to
+                    //  properties here given that this goes against best practices outlined here
+                    //  https://developers.google.com/web/fundamentals/web-components/best-practices#avoid-reentrancy
+                    if (this.hasOwnProperty(propName)) {
+                        newValue = this[propName];
+                        delete this[propName];
+                    }
                     this[propName] = newValue === null && typeof this[propName] === 'boolean' ? false : newValue;
                 });
             };
@@ -737,6 +853,16 @@ const initializeComponent = async (elm, hostRef, cmpMeta, hmrVersionId, Cstr) =>
                 hostRef.$flags$ &= ~8 /* isConstructingInstance */;
             }
             endNewInstance();
+        }
+        if (Cstr.style) {
+            // this component has styles but we haven't registered them yet
+            let style = Cstr.style;
+            const scopeId = getScopeId(cmpMeta);
+            if (!styles.has(scopeId)) {
+                const endRegisterStyles = createTime('registerStyles', cmpMeta.$tagName$);
+                registerStyle(scopeId, style, !!(cmpMeta.$flags$ & 1 /* shadowDomEncapsulation */));
+                endRegisterStyles();
+            }
         }
     }
     // we've successfully created a lazy instance
@@ -814,7 +940,7 @@ const bootstrapLazy = (lazyBundles, options = {}) => {
     let isBootstrapping = true;
     Object.assign(plt, options);
     plt.$resourcesUrl$ = new URL(options.resourcesUrl || './', doc.baseURI).href;
-    lazyBundles.map(lazyBundle => lazyBundle[1].map(compactMeta => {
+    lazyBundles.map((lazyBundle) => lazyBundle[1].map((compactMeta) => {
         const cmpMeta = {
             $flags$: compactMeta[0],
             $tagName$: compactMeta[1],
@@ -870,7 +996,7 @@ const bootstrapLazy = (lazyBundles, options = {}) => {
     // Process deferred connectedCallbacks now all components have been registered
     isBootstrapping = false;
     if (deferredConnectedCallbacks.length) {
-        deferredConnectedCallbacks.map(host => host.connectedCallback());
+        deferredConnectedCallbacks.map((host) => host.connectedCallback());
     }
     else {
         {
@@ -895,7 +1021,7 @@ const registerHost = (elm, cmpMeta) => {
         $instanceValues$: new Map(),
     };
     {
-        hostRef.$onReadyPromise$ = new Promise(r => (hostRef.$onReadyResolve$ = r));
+        hostRef.$onReadyPromise$ = new Promise((r) => (hostRef.$onReadyResolve$ = r));
         elm['s-p'] = [];
         elm['s-rc'] = [];
     }
@@ -916,13 +1042,14 @@ const loadModule = (cmpMeta, hostRef, hmrVersionId) => {
     /* webpackInclude: /\.entry\.js$/ */
     /* webpackExclude: /\.system\.entry\.js$/ */
     /* webpackMode: "lazy" */
-    `./${bundleId}.entry.js${''}`)); }).then(importedModule => {
+    `./${bundleId}.entry.js${''}`)); }).then((importedModule) => {
         {
             cmpModules.set(bundleId, importedModule);
         }
         return importedModule[exportName];
     }, consoleError);
 };
+const styles = new Map();
 const queueDomReads = [];
 const queueDomWrites = [];
 const queueTask = (queue, write) => (cb) => {

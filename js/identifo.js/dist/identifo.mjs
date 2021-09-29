@@ -9,6 +9,12 @@ var TFAType;
   TFAType2["TFATypeSMS"] = "sms";
   TFAType2["TFATypeEmail"] = "email";
 })(TFAType || (TFAType = {}));
+var TFAStatus;
+(function(TFAStatus2) {
+  TFAStatus2["DISABLED"] = "disabled";
+  TFAStatus2["OPTIONAL"] = "optional";
+  TFAStatus2["MANDATORY"] = "mandatory";
+})(TFAStatus || (TFAStatus = {}));
 class ApiError extends Error {
   constructor(error) {
     super((error == null ? void 0 : error.message) || "Unknown API error");
@@ -235,7 +241,7 @@ class Api {
       }
       return this.put("/auth/tfa/enable", {}, {
         headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` }
-      });
+      }).then((r) => this.storeToken(r));
     });
   }
   verifyTFA(code, scopes) {
@@ -609,5 +615,5 @@ class IdentifoAuth {
   }
 }
 
-export { APIErrorCodes, ApiError, CookieStorage as CookieStorageManager, IdentifoAuth, LocalStorage as LocalStorageManager, SessionStorage as SessionStorageManager, TFAType };
+export { APIErrorCodes, ApiError, CookieStorage as CookieStorageManager, IdentifoAuth, LocalStorage as LocalStorageManager, SessionStorage as SessionStorageManager, TFAStatus, TFAType };
 //# sourceMappingURL=identifo.mjs.map

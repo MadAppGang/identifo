@@ -6,19 +6,14 @@ describe('simple login by email', () => {
   });
   it('login by email disabled', () => {
     cy.visitLogin();
-    cy.get('#login').click().type('test@test.com');
-    cy.get('#password').click().type('Password');
-    cy.contains('Login').click();
-    cy.screenshot();
+    cy.loginWithEmail();
     cy.contains('Application does not support login with email');
+    cy.screenshot();
   });
   it('enable login by email', () => {
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
     cy.visitLogin();
-    cy.get('#login').click().type('test@test.com');
-    cy.get('#password').click().type('Password');
-    cy.screenshot();
-    cy.contains('Login').click();
+    cy.loginWithEmail();
     cy.contains('Success');
     cy.screenshot();
   });

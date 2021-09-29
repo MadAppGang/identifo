@@ -98,6 +98,18 @@ Cypress.Commands.add('getResetTokenURL', async () => {
 Cypress.Commands.add('visitLogin', (orig, url, options) => {
   return cy.visit(`${Cypress.config('baseUrl')}/login/?appId=${Cypress.config('appId')}&url=${Cypress.config('serverUrl')}`);
 });
+Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password') => {
+  cy.get('[placeholder=Email]').click().type(email);
+  cy.get('[placeholder=Password]').click().type(password);
+  cy.screenshot();
+  cy.get('button').contains('Login').click();
+});
+Cypress.Commands.add('verifyTfa', (code = '0000') => {
+  cy.get('[placeholder="Verify code"]').click().type('0000');
+  cy.contains('Go back to login');
+  cy.screenshot();
+  cy.contains('Confirm').click();
+});
 //
 //
 // -- This is a child command --

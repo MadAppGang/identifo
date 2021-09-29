@@ -34,6 +34,11 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
 		}
 
+		// TODO: Check 2fa when reset password, return
+		// access_token: 2fa access token
+		// enabled_2fa: user.enabletfa
+		// require_2fa: false
+
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")

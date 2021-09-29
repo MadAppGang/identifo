@@ -13,6 +13,12 @@ exports.TFAType = void 0;
   TFAType2["TFATypeSMS"] = "sms";
   TFAType2["TFATypeEmail"] = "email";
 })(exports.TFAType || (exports.TFAType = {}));
+exports.TFAStatus = void 0;
+(function(TFAStatus2) {
+  TFAStatus2["DISABLED"] = "disabled";
+  TFAStatus2["OPTIONAL"] = "optional";
+  TFAStatus2["MANDATORY"] = "mandatory";
+})(exports.TFAStatus || (exports.TFAStatus = {}));
 class ApiError extends Error {
   constructor(error) {
     super((error == null ? void 0 : error.message) || "Unknown API error");
@@ -239,7 +245,7 @@ class Api {
       }
       return this.put("/auth/tfa/enable", {}, {
         headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` }
-      });
+      }).then((r) => this.storeToken(r));
     });
   }
   verifyTFA(code, scopes) {

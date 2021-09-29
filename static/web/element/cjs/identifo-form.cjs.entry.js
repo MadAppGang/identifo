@@ -2,7 +2,7 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
-const index = require('./index-d3057a4d.js');
+const index = require('./index-8dd71083.js');
 
 var APIErrorCodes;
 (function(APIErrorCodes2) {
@@ -15,6 +15,12 @@ var TFAType;
   TFAType2["TFATypeSMS"] = "sms";
   TFAType2["TFATypeEmail"] = "email";
 })(TFAType || (TFAType = {}));
+var TFAStatus;
+(function(TFAStatus2) {
+  TFAStatus2["DISABLED"] = "disabled";
+  TFAStatus2["OPTIONAL"] = "optional";
+  TFAStatus2["MANDATORY"] = "mandatory";
+})(TFAStatus || (TFAStatus = {}));
 class ApiError extends Error {
   constructor(error) {
     super((error == null ? void 0 : error.message) || "Unknown API error");
@@ -241,7 +247,7 @@ class Api {
       }
       return this.put("/auth/tfa/enable", {}, {
         headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` }
-      });
+      }).then((r) => this.storeToken(r));
     });
   }
   verifyTFA(code, scopes) {
@@ -595,6 +601,8 @@ class IdentifoAuth {
   }
 }
 
+const mainCss = ".wrapper,.wrapper-dark{--content-width:416px}.wrapper{--main-background:#f7f7f7;--blue-text:#6163f6;--field-background:#fff;--gray-line:#e0e0e0;--social-button:#1b1b1b;--text:#1b1b1b;--upload-photo:#e0e0e0;--content-width:416px}.wrapper-dark{--main-background:#1b1b1b;--blue-text:#8b8dfa;--field-background:#423f3f;--gray-line:#423f3f;--social-button:#423f3f;--text:#fff;--upload-photo:#423f3f;--content-width:416px}*{margin:0;padding:0;-webkit-box-sizing:border-box;box-sizing:border-box;font-family:inherit}.wrapper,.wrapper-dark{display:-ms-flexbox;display:flex;-ms-flex-pack:center;justify-content:center;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center}.social-buttons{width:100%;position:relative}.social-buttons__text{font-size:14px;line-height:21px;color:#828282;padding:4px 8px;margin-bottom:39px;text-align:center;position:static}.social-buttons__text::before{content:\"\";position:absolute;height:1px;width:36%;left:0;top:14px;background-color:var(--gray-line)}.social-buttons__text::after{content:\"\";position:absolute;height:1px;width:36%;right:0;top:14px;background-color:var(--gray-line)}.social-buttons__social-medias{display:-ms-flexbox;display:flex;-ms-flex-pack:center;justify-content:center;-ms-flex-align:center;align-items:center}.social-buttons__media{width:56px;height:56px;border-radius:50%;background-color:var(--social-button);display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;cursor:pointer}.social-buttons__media:not(:last-of-type){margin-right:24px}@media (max-width: 599px){.social-buttons__media{width:44px;height:44px}.social-buttons__text{margin-bottom:36px}.social-buttons__text::before{width:26%}.social-buttons__text::after{width:26%}.social-buttons__image{width:16px;height:16px}}.primary-button{background-color:#6163f6;border:none;outline:none;display:-ms-flexbox;display:flex;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;width:192px;height:64px;border-radius:8px;cursor:pointer;color:#fff;font-size:18px;line-height:26px;-webkit-transition:all 0.4s;transition:all 0.4s}.primary-button:active{-webkit-transform:translateY(-4px);transform:translateY(-4px)}.primary-button:hover{opacity:0.8}.primary-button:disabled{cursor:initial;opacity:0.3}@media (max-width: 599px){.primary-button{width:100%}}.info-card{border:1px solid var(--gray-line);border-radius:8px;padding:24px}.info-card__controls{display:-ms-flexbox;display:flex;-ms-flex-pack:justify;justify-content:space-between}.info-card__title{color:var(--text);font-size:18px;line-height:26px;font-weight:700}.info-card__button{color:var(--blue-text);background:none;border:none;cursor:pointer;font-size:18px;line-height:26px}.info-card__text{color:#828282;font-size:16px;line-height:24px;margin-top:8px}.info-card__subtitle{color:var(--text);font-size:16px;line-height:24px;margin:4px 0 12px}@media (max-width: 599px){.info-card__text{font-size:14px;line-height:21px}}.form-control{width:100%;max-width:var(--content-width);height:72px;background-color:var(--field-background);-webkit-box-shadow:0px 11px 15px rgba(0, 0, 0, 0.04);box-shadow:0px 11px 15px rgba(0, 0, 0, 0.04);border-radius:8px;border:none;outline:none;font-size:18px;line-height:26px;color:var(--text);padding:23px 24px}.form-control::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.form-control::-webkit-input-placeholder{font-size:18px;line-height:26px;color:#828282}.form-control::-moz-placeholder{font-size:18px;line-height:26px;color:#828282}.form-control:-ms-input-placeholder{font-size:18px;line-height:26px;color:#828282}.form-control::-ms-input-placeholder{font-size:18px;line-height:26px;color:#828282}.form-control::placeholder{font-size:18px;line-height:26px;color:#828282}.form-control-danger{border:1px solid #F66161}@media (max-width: 599px){.form-control{height:64px}}.upload-photo{display:-ms-flexbox;display:flex;-ms-flex-pack:center;justify-content:center;-ms-flex-align:center;align-items:center;margin-bottom:48px}.upload-photo__field{display:none}.upload-photo__label{cursor:pointer;color:var(--blue-text);font-size:16px;line-height:24px}.upload-photo__label:first-of-type{margin-right:16px}.upload-photo__avatar{height:64px;width:64px;border-radius:50%;background-color:var(--upload-photo)}@media (max-width: 599px){.upload-photo{margin-bottom:32px}}.error{min-height:21px;width:100%;font-size:14px;line-height:21px;color:#FF5160}.login-form{display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;width:var(--content-width)}.login-form__register-text{margin-bottom:32px;font-weight:400;font-size:14px;line-height:24px;color:#828282}.login-form__register-link{color:var(--blue-text);cursor:pointer}.login-form .form-control:first-of-type{margin-bottom:32px}.login-form__buttons{margin-top:48px;display:-ms-flexbox;display:flex;width:100%;-ms-flex-align:center;align-items:center;margin-bottom:36px}.login-form__buttons_mt-32{margin-top:32px}.login-form__forgot-pass{color:var(--blue-text);font-size:16px;line-height:24px;cursor:pointer}.login-form .primary-button{margin-right:32px}.login-form .error{margin-top:12px}@media (max-width: 599px){.login-form{width:100%;max-width:var(--content-width);padding:0 24px}.login-form__register-text{font-size:16px}.login-form .form-control:first-of-type{margin-bottom:24px}.login-form__buttons{margin-top:32px;-ms-flex-direction:column;flex-direction:column}.login-form .primary-button{margin-right:0;margin-bottom:36px}}.register-form{width:var(--content-width);padding:64px 0 44px}.register-form .form-control:not(:last-of-type){margin-bottom:32px}.register-form__buttons{display:-ms-flexbox;display:flex;width:100%;-ms-flex-align:center;align-items:center;margin-top:48px}.register-form__buttons_mt-32{margin-top:32px}.register-form__login{color:var(--blue-text);font-size:16px;line-height:24px;cursor:pointer}.register-form .primary-button{margin-right:32px}.register-form .error{margin-top:12px}@media (max-width: 599px){.register-form{width:100%;max-width:var(--content-width);padding:48px 24px 32px}.register-form .form-control{margin-bottom:24px}.register-form .primary-button{margin-right:0;margin-bottom:36px}.register-form__buttons{-ms-flex-direction:column;flex-direction:column;margin-top:32px}}.tfa-setup{padding:48px 0 80px;width:var(--content-width);display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center}.tfa-setup__text{font-size:24px;line-height:32px;color:var(--text);text-align:center;max-width:260px;width:100%}.tfa-setup .error{margin-top:12px}.tfa-setup__form{width:100%}.tfa-setup__form .primary-button{margin:48px auto 0}.tfa-setup__form .primary-button-mt-32{margin-top:32px}.tfa-setup__subtitle{text-align:center;font-size:16px;line-height:24px;color:#828282;max-width:270px;text-align:center;margin:16px auto 48px}.tfa-setup .info-card{margin-top:48px}.tfa-setup__qr-wrapper{text-align:center}.tfa-setup__qr-code{width:200px;height:200px}@media (max-width: 599px){.tfa-setup{width:100%;max-width:var(--content-width);padding:38px 24px 36px}}.tfa-verify{padding:48px 0 52px;width:var(--content-width);display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center}.tfa-verify .error{margin-top:12px}.tfa-verify__title-wrapper{width:100%;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center}.tfa-verify__title,.tfa-verify__title_mb-40{color:var(--text);font-size:24px;line-height:32px;max-width:280px;text-align:center;font-weight:400;margin-bottom:16px}.tfa-verify__title_mb-40{margin-bottom:40px}.tfa-verify__app-button{font-size:18px;line-height:26px;background:none;border:none;color:var(--blue-text);margin-bottom:40px}.tfa-verify .primary-button{margin-top:48px}.tfa-verify .primary-button-mt-32{margin-top:32px}.tfa-verify__back{font-size:16px;line-height:24px;color:var(--blue-text)}.tfa-verify__subtitle{font-size:16px;line-height:24px;margin-bottom:48px;color:#828282;max-width:189px;text-align:center}.tfa-verify__qr-code{width:160px;height:160px;margin-bottom:64px}@media (max-width: 599px){.tfa-verify{padding:102px 24px 41px;width:100%;max-width:var(--content-width)}.tfa-verify .primary-button{margin-top:32px}.tfa-verify__qr-code{margin-bottom:48px}}.otp-login{display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center;-ms-flex-pack:center;justify-content:center;padding:44px 24px 102px;width:100%;max-width:var(--content-width)}.otp-login__register-text{margin-bottom:32px;font-weight:400;font-size:14px;line-height:24px;color:#828282}.otp-login .form-control{margin-bottom:48px}.otp-login .primary-button{margin-bottom:36px}.error-view{width:100%;max-width:var(--content-width);padding:0 24px;display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center;word-break:break-all}.error-view__message{color:var(--text);font-size:24px;line-height:32px;text-align:center;margin-bottom:16px}.error-view__details{color:#828282;font-size:16px;line-height:24px;text-align:center}.error-view .primary-button{margin-top:64px}.forgot-password{width:var(--content-width)}.forgot-password__title{text-align:center;margin-bottom:16px;font-size:24px;line-height:32px;font-weight:400;color:var(--text)}.forgot-password__subtitle{text-align:center;font-size:16px;line-height:24px;color:#828282;max-width:189px;text-align:center;margin:0 auto 48px}.forgot-password__login{text-align:center;display:block;margin-top:16px;color:var(--blue-text);font-size:16px;line-height:24px;cursor:pointer}.forgot-password .error{margin-top:12px}.forgot-password .primary-button{margin:48px auto 0}.forgot-password .primary-button-mt-32{margin-top:32px}@media (max-width: 599px){.forgot-password{width:100%;max-width:var(--content-width);padding:0 24px}.forgot-password .primary-button{margin-top:32px}}.forgot-password-success{display:-ms-flexbox;display:flex;-ms-flex-direction:column;flex-direction:column;-ms-flex-align:center;align-items:center;padding:0 16px}.forgot-password-success__text{width:100%;max-width:367px;font-size:24px;line-height:32px;text-align:center;color:var(--text)}.forgot-password-success__image{margin-bottom:56px}.reset-password{width:var(--content-width)}.reset-password__title{text-align:center;font-size:24px;line-height:32px;font-weight:400;color:var(--text);max-width:270px;margin:0 auto 16px}.reset-password__subtitle{text-align:center;font-size:16px;line-height:24px;color:#828282;max-width:189px;text-align:center;margin:0 auto 48px}.reset-password .error{margin-top:12px}.reset-password .primary-button{margin:48px auto 0}.reset-password .primary-button-mt-32{margin-top:32px}@media (max-width: 599px){.reset-password{width:100%;max-width:var(--content-width);padding:0 24px}.reset-password .primary-button{margin-top:32px}}";
+
 const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 const IdentifoForm = class {
   constructor(hostRef) {
@@ -602,19 +610,24 @@ const IdentifoForm = class {
     this.complete = index.createEvent(this, "complete", 7);
     this.error = index.createEvent(this, "error", 7);
     this.route = 'login';
-    this.theme = 'light';
+    this.theme = 'auto';
     this.scopes = '';
+    this.selectedTheme = 'light';
+    this.federatedProviders = [];
     this.afterLoginRedirect = (e) => {
       this.phone = e.user.phone || '';
       this.email = e.user.email || '';
       this.lastResponse = e;
       if (e.require_2fa) {
         if (!e.enabled_2fa) {
-          return 'tfa/setup';
+          return this.redirectTfaSetup();
         }
         if (e.enabled_2fa) {
-          return 'tfa/verify';
+          return this.redirectTfaVerify();
         }
+      }
+      if (this.tfaStatus === TFAStatus.OPTIONAL) {
+        return `tfa/setup/select`;
       }
       if (e.access_token && e.refresh_token) {
         return 'callback';
@@ -625,7 +638,7 @@ const IdentifoForm = class {
     };
     this.loginCatchRedirect = (data) => {
       if (data.id === APIErrorCodes.PleaseEnableTFA) {
-        return 'tfa/setup';
+        return this.redirectTfaSetup();
       }
       throw data;
     };
@@ -638,10 +651,32 @@ const IdentifoForm = class {
   //   return format(this.first, this.middle, this.last);
   // }
   processError(e) {
+    var _a, _b;
+    e.detailedMessage = (_a = e.detailedMessage) === null || _a === void 0 ? void 0 : _a.trim();
+    e.message = (_b = e.message) === null || _b === void 0 ? void 0 : _b.trim();
     this.lastError = e;
     this.error.emit(e);
   }
+  redirectTfaSetup() {
+    if (this.tfaTypes.length === 1) {
+      return `tfa/setup/${this.tfaTypes[0]}`;
+    }
+    else {
+      return `tfa/setup/select`;
+    }
+  }
+  redirectTfaVerify() {
+    if (this.tfaTypes.length === 1) {
+      return `tfa/verify/${this.tfaTypes[0]}`;
+    }
+    else {
+      return `tfa/verify/select`;
+    }
+  }
   async signIn() {
+    if (!this.validateEmail(this.email)) {
+      return;
+    }
     await this.auth.api
       .login(this.email, this.password, '', this.scopes.split(','))
       .then(this.afterLoginRedirect)
@@ -671,26 +706,28 @@ const IdentifoForm = class {
       .then(() => this.openRoute('callback'))
       .catch(e => this.processError(e));
   }
-  async setupTFA() {
-    if (this.tfaType == TFAType.TFATypeSMS) {
-      try {
-        await this.auth.api.updateUser({ new_phone: this.phone });
-      }
-      catch (e) {
-        this.processError(e);
-        return;
-      }
+  async selectTFA(type) {
+    this.openRoute(`tfa/setup/${type}`);
+  }
+  async setupTFA(type) {
+    switch (type) {
+      case TFAType.TFATypeApp:
+        break;
+      case TFAType.TFATypeEmail:
+        await this.auth.api.enableTFA();
+        break;
+      case TFAType.TFATypeSMS:
+        try {
+          await this.auth.api.updateUser({ new_phone: this.phone });
+        }
+        catch (e) {
+          this.processError(e);
+          return;
+        }
+        await this.auth.api.enableTFA();
+        break;
     }
-    await this.auth.api.enableTFA().then(r => {
-      if (!r.provisioning_uri) {
-        this.openRoute('tfa/verify');
-      }
-      if (r.provisioning_uri) {
-        this.provisioningURI = r.provisioning_uri;
-        this.provisioningQR = r.provisioning_qr;
-        this.openRoute('tfa/verify');
-      }
-    });
+    this.openRoute(`tfa/verify/${type}`);
   }
   restorePassword() {
     this.auth.api
@@ -735,30 +772,40 @@ const IdentifoForm = class {
   }
   validateEmail(email) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
+      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
       return false;
     }
     return true;
   }
+  renderBackToLogin() {
+    return (index.h("a", { onClick: () => this.openRoute('login'), class: "forgot-password__login" }, "Go back to login"));
+  }
   renderRoute(route) {
-    var _a, _b, _c, _d, _e, _f;
+    var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     switch (route) {
       case 'login':
-        return (index.h("div", { class: "login-form" }, !this.registrationForbidden && (index.h("p", { class: "login-form__register-text" }, "Don't have an account?", index.h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, ' ', "Sign Up"))), index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingInput", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingPassword", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_a = this.lastError) === null || _a === void 0 ? void 0 : _a.detailedMessage)), index.h("div", { class: `login-form__buttons ${!!this.lastError ? 'login-form__buttons_mt-32' : ''}` }, index.h("button", { onClick: () => this.signIn(), class: "primary-button", disabled: !this.email || !this.password }, "Login"), index.h("a", { onClick: () => this.openRoute('password/forgot'), class: "login-form__forgot-pass" }, "Forgot password")), this.federatedProviders.length > 0 && (index.h("div", { class: "social-buttons" }, index.h("p", { class: "social-buttons__text" }, "or continue with"), index.h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('apple') }, index.h("img", { src: index.getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('google') }, index.h("img", { src: index.getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('facebook') }, index.h("img", { src: index.getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
+        return (index.h("div", { class: "login-form" }, !this.registrationForbidden && (index.h("p", { class: "login-form__register-text" }, "Don't have an account?\u00A0", index.h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))), index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_a = this.lastError) === null || _a === void 0 ? void 0 : _a.detailedMessage) || ((_b = this.lastError) === null || _b === void 0 ? void 0 : _b.message))), index.h("div", { class: `login-form__buttons ${!!this.lastError ? 'login-form__buttons_mt-32' : ''}` }, index.h("button", { onClick: () => this.signIn(), class: "primary-button", disabled: !this.email || !this.password }, "Login"), index.h("a", { onClick: () => this.openRoute('password/forgot'), class: "login-form__forgot-pass" }, "Forgot password")), this.federatedProviders.length > 0 && (index.h("div", { class: "social-buttons" }, index.h("p", { class: "social-buttons__text" }, "or continue with"), index.h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__apple", onClick: () => this.loginWith('apple') }, index.h("img", { src: index.getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__google", onClick: () => this.loginWith('google') }, index.h("img", { src: index.getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__facebook", onClick: () => this.loginWith('facebook') }, index.h("img", { src: index.getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
       case 'register':
-        return (index.h("div", { class: "register-form" }, index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingInput", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingPassword", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_b = this.lastError) === null || _b === void 0 ? void 0 : _b.detailedMessage)), index.h("div", { class: `register-form__buttons ${!!this.lastError ? 'register-form__buttons_mt-32' : ''}` }, index.h("button", { onClick: () => this.signUp(), class: "primary-button", disabled: !this.email || !this.password }, "Continue"), index.h("a", { onClick: () => this.openRoute('login'), class: "register-form__log-in" }, "Go back to login"))));
+        return (index.h("div", { class: "register-form" }, index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_c = this.lastError) === null || _c === void 0 ? void 0 : _c.detailedMessage) || ((_d = this.lastError) === null || _d === void 0 ? void 0 : _d.message))), index.h("div", { class: `register-form__buttons ${!!this.lastError ? 'register-form__buttons_mt-32' : ''}` }, index.h("button", { onClick: () => this.signUp(), class: "primary-button", disabled: !this.email || !this.password }, "Continue"), this.renderBackToLogin())));
       case 'otp/login':
-        return (index.h("div", { class: "otp-login" }, !this.registrationForbidden && (index.h("p", { class: "otp-login__register-text" }, "Don't have an account?", index.h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, ' ', "Sign Up"))), index.h("input", { type: "phone", class: "form-control", id: "floatingInput", value: this.phone, placeholder: "Phone number", onInput: event => this.phoneChange(event) }), index.h("button", { onClick: () => this.openRoute('tfa/verify'), class: "primary-button", disabled: !this.phone }, "Continue"), this.federatedProviders.length > 0 && (index.h("div", { class: "social-buttons" }, index.h("p", { class: "social-buttons__text" }, "or continue with"), index.h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('apple') }, index.h("img", { src: index.getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('google') }, index.h("img", { src: index.getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (index.h("div", { class: "social-buttons__media", onClick: () => this.loginWith('facebook') }, index.h("img", { src: index.getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
-      case 'tfa/setup':
-        return (index.h("div", { class: "tfa-setup" }, index.h("p", { class: "tfa-setup__text" }, "Protect your account with 2-step verification"), this.tfaType === TFAType.TFATypeApp && (index.h("div", { class: "info-card" }, index.h("div", { class: "info-card__controls" }, index.h("p", { class: "info-card__title" }, "Authenticator app"), index.h("button", { type: "button", class: "info-card__button", onClick: () => this.setupTFA() }, "Setup")), index.h("p", { class: "info-card__text" }, "Use the Authenticator app to get free verification codes, even when your phone is offline. Available for Android and iPhone."))), this.tfaType === TFAType.TFATypeEmail && (index.h("div", { class: "info-card" }, index.h("div", { class: "info-card__controls" }, index.h("p", { class: "info-card__title" }, "Email"), index.h("button", { type: "button", class: "info-card__button", onClick: () => this.setupTFA() }, "Setup")), index.h("p", { class: "info-card__subtitle" }, this.email), index.h("p", { class: "info-card__text" }, " Use email as 2fa, please check your email, we will send confirmation code to this email."))), this.tfaType === TFAType.TFATypeSMS && (index.h("div", { class: "tfa-setup__form" }, index.h("p", { class: "tfa-setup__subtitle" }, " Use phone as 2fa, please check your phone bellow, we will send confirmation code to this phone"), index.h("input", { type: "phone", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingInput", value: this.phone, placeholder: "Phone", onInput: event => this.phoneChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.phone) && this.setupTFA() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_c = this.lastError) === null || _c === void 0 ? void 0 : _c.detailedMessage)), index.h("button", { onClick: () => this.setupTFA(), class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.phone }, "Setup phone")))));
-      case 'tfa/verify':
-        return (index.h("div", { class: "tfa-verify" }, !!(this.tfaType === TFAType.TFATypeApp) && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: this.provisioningURI ? 'tfa-verify__title' : 'tfa-verify__title_mb-40' }, !!this.provisioningURI ? 'Please scan QR-code with the app' : 'Use GoogleAuth as 2fa'), !!this.provisioningURI && index.h("img", { src: `data:image/png;base64, ${this.provisioningQR}`, alt: this.provisioningURI, class: "tfa-verify__qr-code" }))), !!(this.tfaType === TFAType.TFATypeSMS) && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your phone number"), index.h("p", { class: "tfa-verify__subtitle" }, "The code has been sent to ", this.phone))), !!(this.tfaType === TFAType.TFATypeEmail) && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your email address"), index.h("p", { class: "tfa-verify__subtitle" }, "The email has been sent to ", this.email))), index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingCode", value: this.tfaCode, placeholder: "Verify code", onInput: event => this.tfaCodeChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.tfaCode) && this.verifyTFA() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_d = this.lastError) === null || _d === void 0 ? void 0 : _d.detailedMessage)), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.tfaCode, onClick: () => this.verifyTFA() }, "Confirm")));
+        return (index.h("div", { class: "otp-login" }, !this.registrationForbidden && (index.h("p", { class: "otp-login__register-text" }, "Don't have an account?\u00A0", index.h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))), index.h("input", { type: "phone", class: "form-control", id: "login", value: this.phone, placeholder: "Phone number", onInput: event => this.phoneChange(event) }), index.h("button", { onClick: () => this.openRoute(this.redirectTfaVerify()), class: "primary-button", disabled: !this.phone }, "Continue"), this.federatedProviders.length > 0 && (index.h("div", { class: "social-buttons" }, index.h("p", { class: "social-buttons__text" }, "or continue with"), index.h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__apple", onClick: () => this.loginWith('apple') }, index.h("img", { src: index.getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__google", onClick: () => this.loginWith('google') }, index.h("img", { src: index.getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (index.h("div", { class: "social-buttons__media social-buttons__facebook", onClick: () => this.loginWith('facebook') }, index.h("img", { src: index.getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
+      case 'tfa/verify/select':
+      case 'tfa/setup/select':
+        return (index.h("div", { class: "tfa-setup" }, this.route === 'tfa/verify/select' && index.h("p", { class: "tfa-setup__text" }, "Select 2-step verification method"), this.route === 'tfa/setup/select' && index.h("p", { class: "tfa-setup__text" }, "Protect your account with 2-step verification"), this.tfaTypes.includes(TFAType.TFATypeApp) && (index.h("div", { class: "info-card info-card-app" }, index.h("div", { class: "info-card__controls" }, index.h("p", { class: "info-card__title" }, "Authenticator app"), index.h("button", { type: "button", class: "info-card__button", onClick: () => this.selectTFA(TFAType.TFATypeApp) }, "Setup")), index.h("p", { class: "info-card__text" }, "Use the Authenticator app to get free verification codes, even when your phone is offline. Available for Android and iPhone."))), this.tfaTypes.includes(TFAType.TFATypeEmail) && (index.h("div", { class: "info-card info-card-email" }, index.h("div", { class: "info-card__controls" }, index.h("p", { class: "info-card__title" }, "Email"), index.h("button", { type: "button", class: "info-card__button", onClick: () => this.selectTFA(TFAType.TFATypeEmail) }, "Setup")), index.h("p", { class: "info-card__subtitle" }, this.email), index.h("p", { class: "info-card__text" }, " Use email as 2fa, please check your email, we will send confirmation code to this email."))), this.tfaTypes.includes(TFAType.TFATypeSMS) && (index.h("div", { class: "info-card info-card-sms" }, index.h("div", { class: "info-card__controls" }, index.h("p", { class: "info-card__title" }, "SMS"), index.h("button", { type: "button", class: "info-card__button", onClick: () => this.selectTFA(TFAType.TFATypeSMS) }, "Setup")), index.h("p", { class: "info-card__subtitle" }, this.phone), index.h("p", { class: "info-card__text" }, " Use phone as 2fa, please check your phone, we will send confirmation code to this phone"))), this.route === 'tfa/setup/select' && this.tfaStatus === TFAStatus.OPTIONAL && (index.h("a", { onClick: () => this.openRoute('callback'), class: "forgot-password__login" }, "Setup next time")), this.tfaStatus !== TFAStatus.OPTIONAL && this.renderBackToLogin()));
+      case 'tfa/setup/email':
+      case 'tfa/setup/sms':
+      case 'tfa/setup/app':
+        return (index.h("div", { class: "tfa-setup" }, index.h("p", { class: "tfa-setup__text" }, "Protect your account with 2-step verification"), this.route === 'tfa/setup/app' && (index.h("div", { class: "tfa-setup__form" }, index.h("p", { class: "tfa-setup__subtitle" }, "Please scan QR-code with the app and click Continue"), index.h("div", { class: "tfa-setup__qr-wrapper" }, !!this.provisioningURI && index.h("img", { src: `data:image/png;base64, ${this.provisioningQR}`, alt: this.provisioningURI, class: "tfa-setup__qr-code" })), index.h("button", { onClick: () => this.setupTFA(TFAType.TFATypeApp), class: `primary-button ${this.lastError && 'primary-button-mt-32'}` }, "Continue"))), this.route === 'tfa/setup/email' && (index.h("div", { class: "tfa-setup__form" }, index.h("p", { class: "tfa-setup__subtitle" }, " Use email as 2fa, please check your enail bellow, we will send confirmation code to this email"), index.h("input", { type: "email", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "email", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email) && this.setupTFA(TFAType.TFATypeEmail) }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_e = this.lastError) === null || _e === void 0 ? void 0 : _e.detailedMessage) || ((_f = this.lastError) === null || _f === void 0 ? void 0 : _f.message))), index.h("button", { onClick: () => this.setupTFA(TFAType.TFATypeEmail), class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.email }, "Setup email"))), this.route === 'tfa/setup/sms' && (index.h("div", { class: "tfa-setup__form" }, index.h("p", { class: "tfa-setup__subtitle" }, " Use phone as 2fa, please check your phone bellow, we will send confirmation code to this phone"), index.h("input", { type: "phone", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "phone", value: this.phone, placeholder: "Phone", onInput: event => this.phoneChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.phone) && this.setupTFA(TFAType.TFATypeSMS) }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_g = this.lastError) === null || _g === void 0 ? void 0 : _g.detailedMessage) || ((_h = this.lastError) === null || _h === void 0 ? void 0 : _h.message))), index.h("button", { onClick: () => this.setupTFA(TFAType.TFATypeSMS), class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.phone }, "Setup phone"))), this.renderBackToLogin()));
+      case 'tfa/verify/app':
+      case 'tfa/verify/email':
+      case 'tfa/verify/sms':
+        return (index.h("div", { class: "tfa-verify" }, this.route === 'tfa/verify/app' && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: "tfa-verify__title" }, "Enter the code from authenticator app"), index.h("p", { class: "tfa-verify__subtitle" }, "Code will be generated by app"))), this.route === 'tfa/verify/sms' && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your phone number"), index.h("p", { class: "tfa-verify__subtitle" }, "The code has been sent to ", this.phone))), this.route === 'tfa/verify/email' && (index.h("div", { class: "tfa-verify__title-wrapper" }, index.h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your email address"), index.h("p", { class: "tfa-verify__subtitle" }, "The email has been sent to ", this.email))), index.h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "tfaCode", value: this.tfaCode, placeholder: "Verify code", onInput: event => this.tfaCodeChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.tfaCode) && this.verifyTFA() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_j = this.lastError) === null || _j === void 0 ? void 0 : _j.detailedMessage) || ((_k = this.lastError) === null || _k === void 0 ? void 0 : _k.message))), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.tfaCode, onClick: () => this.verifyTFA() }, "Confirm"), this.renderBackToLogin()));
       case 'password/forgot':
-        return (index.h("div", { class: "forgot-password" }, index.h("h2", { class: "forgot-password__title" }, "Enter the email you gave when you registered"), index.h("p", { class: "forgot-password__subtitle" }, "We will send you a link to create a new password on email"), index.h("input", { type: "email", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingEmail", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email) && this.restorePassword() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_e = this.lastError) === null || _e === void 0 ? void 0 : _e.detailedMessage)), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.email, onClick: () => this.restorePassword() }, "Send the link")));
+        return (index.h("div", { class: "forgot-password" }, index.h("h2", { class: "forgot-password__title" }, "Enter the email you gave when you registered"), index.h("p", { class: "forgot-password__subtitle" }, "We will send you a link to create a new password on email"), index.h("input", { type: "email", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "email", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email) && this.restorePassword() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_l = this.lastError) === null || _l === void 0 ? void 0 : _l.detailedMessage) || ((_m = this.lastError) === null || _m === void 0 ? void 0 : _m.message))), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.email, onClick: () => this.restorePassword() }, "Send the link"), this.renderBackToLogin()));
       case 'password/forgot/success':
-        return (index.h("div", { class: "forgot-password-success" }, this.theme === 'dark' && index.h("img", { src: index.getAssetPath(`./assets/images/${'email-dark.svg'}`), alt: "email", class: "forgot-password-success__image" }), this.theme === 'light' && index.h("img", { src: index.getAssetPath(`./assets/images/${'email.svg'}`), alt: "email", class: "forgot-password-success__image" }), index.h("p", { class: "forgot-password-success__text" }, "We sent you an email with a link to create a new password")));
+        return (index.h("div", { class: "forgot-password-success" }, this.selectedTheme === 'dark' && index.h("img", { src: index.getAssetPath(`./assets/images/${'email-dark.svg'}`), alt: "email", class: "forgot-password-success__image" }), this.selectedTheme === 'light' && index.h("img", { src: index.getAssetPath(`./assets/images/${'email.svg'}`), alt: "email", class: "forgot-password-success__image" }), index.h("p", { class: "forgot-password-success__text" }, "We sent you an email with a link to create a new password"), this.renderBackToLogin()));
       case 'password/reset':
-        return (index.h("div", { class: "reset-password" }, index.h("h2", { class: "reset-password__title" }, "Set up a new password to log in to the website"), index.h("p", { class: "reset-password__subtitle" }, "Memorize your password and do not give it to anyone."), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "floatingPassword", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password) && this.setNewPassword() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, (_f = this.lastError) === null || _f === void 0 ? void 0 : _f.detailedMessage)), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.password, onClick: () => this.setNewPassword() }, "Save password")));
+        return (index.h("div", { class: "reset-password" }, index.h("h2", { class: "reset-password__title" }, "Set up a new password to log in to the website"), index.h("p", { class: "reset-password__subtitle" }, "Memorize your password and do not give it to anyone."), index.h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password) && this.setNewPassword() }), !!this.lastError && (index.h("div", { class: "error", role: "alert" }, ((_o = this.lastError) === null || _o === void 0 ? void 0 : _o.detailedMessage) || ((_p = this.lastError) === null || _p === void 0 ? void 0 : _p.message))), index.h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.password, onClick: () => this.setNewPassword() }, "Save password")));
       case 'error':
         return (index.h("div", { class: "error-view" }, index.h("div", { class: "error-view__message" }, this.lastError.message), index.h("div", { class: "error-view__details" }, this.lastError.detailedMessage)));
       case 'callback':
@@ -768,12 +815,28 @@ const IdentifoForm = class {
     }
   }
   async componentWillLoad() {
+    var base = (document.querySelector('base') || {}).href;
+    this.route = window.location.pathname.replace(base, '').replace(/^\/|\/$/g, '');
+    this.token = new URLSearchParams(window.location.search).get('token');
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-    this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
+    if (!this.appId) {
+      this.lastError = { message: 'app-id param is empty', name: 'app-id empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
+    if (!this.url) {
+      this.lastError = { message: 'url param is empty', name: 'url empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
     try {
+      this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
-      this.tfaType = settings.tfaType;
+      this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
+      this.tfaStatus = settings.tfaStatus;
       this.federatedProviders = settings.federatedProviders;
     }
     catch (err) {
@@ -797,6 +860,18 @@ const IdentifoForm = class {
         .then(route => this.openRoute(route))
         .catch(e => this.processError(e));
     }
+    // Auto theme select
+    this.selectedTheme = 'light';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      if (this.theme === 'auto') {
+        this.selectedTheme = 'dark';
+      }
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (this.theme === 'auto') {
+        this.selectedTheme = e.matches ? 'dark' : 'light';
+      }
+    });
   }
   componentWillRender() {
     if (this.route === 'callback') {
@@ -808,11 +883,20 @@ const IdentifoForm = class {
     if (this.route === 'logout') {
       this.complete.emit();
     }
+    if (this.route === 'tfa/setup/app') {
+      this.auth.api.enableTFA().then(r => {
+        if (r.provisioning_uri) {
+          this.provisioningURI = r.provisioning_uri;
+          this.provisioningQR = r.provisioning_qr;
+        }
+      });
+    }
   }
   render() {
-    return (index.h(index.Host, null, index.h("div", { class: { 'wrapper': this.theme === 'light', 'wrapper-dark': this.theme === 'dark' } }, this.renderRoute(this.route)), index.h("div", { class: "error-view" }, this.debug && (index.h("div", null, index.h("br", null), this.appId)))));
+    return (index.h(index.Host, null, index.h("div", { class: { 'wrapper': this.selectedTheme === 'light', 'wrapper-dark': this.selectedTheme === 'dark' } }, this.renderRoute(this.route)), index.h("div", { class: "error-view" }, this.debug && (index.h("div", null, index.h("br", null), this.appId)))));
   }
   static get assetsDirs() { return ["assets"]; }
 };
+IdentifoForm.style = mainCss;
 
 exports.identifo_form = IdentifoForm;

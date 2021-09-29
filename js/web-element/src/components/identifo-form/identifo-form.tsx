@@ -1,4 +1,4 @@
-import { ApiError, APIErrorCodes, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider } from '@identifo/identifo-auth-js';
+import { ApiError, APIErrorCodes, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider, TFAStatus } from '@identifo/identifo-auth-js';
 import { Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State } from '@stencil/core';
 
 export type Routes =
@@ -60,7 +60,7 @@ export class IdentifoForm {
   @State() tfaCode: string;
   @State() tfaTypes: TFAType[];
   @State() federatedProviders: string[] = [];
-  @State() tfaMandatory: boolean;
+  @State() tfaStatus: TFAStatus;
   @State() provisioningURI: string;
   @State() provisioningQR: string;
   @State() success: boolean;
@@ -110,6 +110,9 @@ export class IdentifoForm {
       if (e.enabled_2fa) {
         return this.redirectTfaVerify();
       }
+    }
+    if (this.tfaStatus === TFAStatus.OPTIONAL) {
+      return `tfa/setup/select`;
     }
     if (e.access_token && e.refresh_token) {
       return 'callback';
@@ -388,7 +391,7 @@ export class IdentifoForm {
             {this.route === 'tfa/setup/select' && <p class="tfa-setup__text">Protect your account with 2-step verification</p>}
 
             {this.tfaTypes.includes(TFAType.TFATypeApp) && (
-              <div class="info-card">
+              <div class="info-card info-card-app">
                 <div class="info-card__controls">
                   <p class="info-card__title">Authenticator app</p>
                   <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeApp)}>
@@ -399,7 +402,7 @@ export class IdentifoForm {
               </div>
             )}
             {this.tfaTypes.includes(TFAType.TFATypeEmail) && (
-              <div class="info-card">
+              <div class="info-card info-card-email">
                 <div class="info-card__controls">
                   <p class="info-card__title">Email</p>
                   <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeEmail)}>
@@ -411,18 +414,23 @@ export class IdentifoForm {
               </div>
             )}
             {this.tfaTypes.includes(TFAType.TFATypeSMS) && (
-              <div class="info-card">
+              <div class="info-card info-card-sms">
                 <div class="info-card__controls">
                   <p class="info-card__title">SMS</p>
                   <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeSMS)}>
                     Setup
                   </button>
                 </div>
-                <p class="info-card__subtitle">{this.email}</p>
+                <p class="info-card__subtitle">{this.phone}</p>
                 <p class="info-card__text"> Use phone as 2fa, please check your phone, we will send confirmation code to this phone</p>
               </div>
             )}
-            {this.renderBackToLogin()}
+            {this.route === 'tfa/setup/select' && this.tfaStatus === TFAStatus.OPTIONAL && (
+              <a onClick={() => this.openRoute('callback')} class="forgot-password__login">
+                Setup next time
+              </a>
+            )}
+            {this.tfaStatus !== TFAStatus.OPTIONAL && this.renderBackToLogin()}
           </div>
         );
       case 'tfa/setup/email':
@@ -653,6 +661,7 @@ export class IdentifoForm {
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
       this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
+      this.tfaStatus = settings.tfaStatus;
       this.federatedProviders = settings.federatedProviders;
     } catch (err) {
       this.route = 'error';
