@@ -27,7 +27,6 @@ type ServerStorageCollection struct {
 	Invite       InviteStorage
 	Verification VerificationCodeStorage
 	Config       ConfigurationStorage
-	Static       StaticFilesStorage
 	Session      SessionStorage
 	Key          KeyStorage
 }

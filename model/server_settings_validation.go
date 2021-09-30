@@ -6,6 +6,14 @@ import (
 	"os"
 )
 
+const (
+	identifoLoginWebAppBucket    = "IDENTIFO_LOGIN_APP_BUCKET"
+	identifoJWTKeysBucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
+	// RouteMobileRegionUAE is a regional UAE RouteMobileR platform.
+	RouteMobileRegionUAE        = "uae"
+	identifoConfigBucketEnvName = "IDENTIFO_CONFIG_BUCKET"
+)
+
 // Validate makes sure that all crucial fields are set.
 func (ss *ServerSettings) Validate() error {
 	if len(ss.AdminAccount.LoginEnvName) == 0 {
@@ -24,12 +32,16 @@ func (ss *ServerSettings) Validate() error {
 	if err := ss.SessionStorage.Validate(); err != nil {
 		return err
 	}
-	// if err := ss.ConfigurationStorage.Validate(); err != nil {
-	// 	return err
-	// }
-	if err := ss.Static.Validate(); err != nil {
+	if err := ss.LoginWebApp.Validate(); err != nil {
 		return err
 	}
+	if err := ss.AdminPanel.Validate(); err != nil {
+		return err
+	}
+	if err := ss.EmailTemplates.Validate(); err != nil {
+		return err
+	}
+
 	if err := ss.Services.Validate(); err != nil {
 		return err
 	}
@@ -143,8 +155,6 @@ func (sss *SessionStorageSettings) Validate() error {
 	return nil
 }
 
-const identifoConfigBucketEnvName = "IDENTIFO_CONFIG_BUCKET"
-
 // Validate validates configuration storage settings.
 func (css *ConfigStorageSettings) Validate() error {
 	subject := "ConfigurationStorageSettings"
@@ -184,47 +194,80 @@ func (css *ConfigStorageSettings) Validate() error {
 	return nil
 }
 
-const identifoStaticFilesBucketEnvName = "IDENTIFO_STATIC_FILES_BUCKET"
-
-// Validate validates static files storage settings.
-func (sfs *StaticFilesStorageSettings) Validate() error {
-	subject := "StaticFilesStorageSettings"
+// Validate validates login web app settings
+func (sfs *LoginWebAppSettings) Validate() error {
+	subject := "LoginWebAppSettings"
 	if sfs == nil {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
 	if len(sfs.Type) == 0 {
-		return fmt.Errorf("%s. Empty static files storage type", subject)
+		return fmt.Errorf("%s. Empty login web app type", subject)
 	}
 
 	switch sfs.Type {
-	case StaticFilesStorageTypeLocal:
+	case LoginWebAppTypeNone:
 		return nil
-	case StaticFilesStorageTypeS3:
+	case LoginWebAppTypeLocal:
+		if len(sfs.Local.FolderPath) > 0 {
+			return fmt.Errorf("%s. empty folder", subject)
+		}
+		return nil
+	case LoginWebAppTypeS3:
 		if len(sfs.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
-		if bucket := os.Getenv(identifoStaticFilesBucketEnvName); len(bucket) != 0 {
+		if bucket := os.Getenv(identifoLoginWebAppBucket); len(bucket) != 0 {
 			sfs.S3.Bucket = bucket
 		}
 		if len(sfs.S3.Bucket) == 0 {
-			return fmt.Errorf("%s. Bucket for static files is not set", subject)
+			return fmt.Errorf("%s. empty s3 bucket for login web app", subject)
 		}
-	case StaticFilesStorageTypeDynamoDB:
-		if len(sfs.Dynamo.Region) == 0 {
-			return fmt.Errorf("%s. Empty dynamodb region", subject)
-		}
-		if len(sfs.Dynamo.Endpoint) == 0 {
-			return fmt.Errorf("%s. Empty dynamodb endpoints", subject)
-		}
-
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)
 	}
 	return nil
 }
 
-const identifoJWTKeysBucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
+// Validate validates email template storage settings
+func (sfs *EmailTemplatesSettings) Validate() error {
+	subject := "EmailTemplatesSettings"
+	if sfs == nil {
+		return fmt.Errorf("Nil %s", subject)
+	}
+
+	if len(sfs.Type) == 0 {
+		return fmt.Errorf("%s. Empty email templates sotrage type", subject)
+	}
+
+	switch sfs.Type {
+	case EmailTemplatesStorageTypeNone:
+		return nil
+	case EmailTemplatesStorageTypeLocal:
+		if len(sfs.Local.FolderPath) > 0 {
+			return fmt.Errorf("%s. empty folder", subject)
+		}
+		return nil
+	case EmailTemplatesStorageTypeS3:
+		if len(sfs.S3.Region) == 0 {
+			return fmt.Errorf("%s. Empty AWS region", subject)
+		}
+		if bucket := os.Getenv(identifoLoginWebAppBucket); len(bucket) != 0 {
+			sfs.S3.Bucket = bucket
+		}
+		if len(sfs.S3.Bucket) == 0 {
+			return fmt.Errorf("%s. empty s3 bucket for email templates", subject)
+		}
+	default:
+		return fmt.Errorf("%s. Unknown type", subject)
+	}
+	return nil
+}
+
+func (kss *AdminPanelSettings) Validate() error {
+	// not it has just one bool field wich always valid
+	return nil
+}
 
 // Validate validates key storage settings.
 func (kss *KeyStorageSettings) Validate() error {
@@ -273,9 +316,6 @@ func (ess *ServicesSettings) Validate() error {
 	}
 	return nil
 }
-
-// RouteMobileRegionUAE is a regional UAE RouteMobileR platform.
-const RouteMobileRegionUAE = "uae"
 
 // Validate validates SMS service settings.
 func (sss *SMSServiceSettings) Validate() error {

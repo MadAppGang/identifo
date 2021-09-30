@@ -9,15 +9,13 @@ import (
 
 // Router is an admin panel router.
 type Router struct {
-	router             *mux.Router
-	staticFilesStorage model.StaticFilesStorage
+	router *mux.Router
 }
 
 // NewRouter creates and initializes new admin panel router.
-func NewRouter(sfs model.StaticFilesStorage, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(options ...func(*Router) error) (model.Router, error) {
 	apr := &Router{
-		router:             mux.NewRouter(),
-		staticFilesStorage: sfs,
+		router: mux.NewRouter(),
 	}
 
 	for _, option := range options {

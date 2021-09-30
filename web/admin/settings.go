@@ -8,16 +8,18 @@ import (
 )
 
 type ServerSettingsAPI struct {
-	General        *model.GeneralServerSettings      `json:"general,omitempty"`
-	AdminAccount   *model.AdminAccountSettings       `json:"admin_account,omitempty"`
-	Storage        *StorageSettingsAPI               `json:"storage,omitempty"`
-	SessionStorage *model.SessionStorageSettings     `json:"session_storage,omitempty"`
-	Static         *model.StaticFilesStorageSettings `json:"static_files_storage,omitempty"`
-	Services       *model.ServicesSettings           `json:"external_services,omitempty"`
-	Login          *model.LoginSettings              `json:"login,omitempty"`
-	KeyStorage     *model.KeyStorageSettings         `json:"keyStorage,omitempty"`
-	Config         *model.ConfigStorageSettings      `json:"config,omitempty"`
-	Logger         *model.LoggerSettings             `json:"logger,omitempty"`
+	General        *model.GeneralServerSettings  `json:"general,omitempty"`
+	AdminAccount   *model.AdminAccountSettings   `json:"admin_account,omitempty"`
+	Storage        *StorageSettingsAPI           `json:"storage,omitempty"`
+	SessionStorage *model.SessionStorageSettings `json:"session_storage,omitempty"`
+	Services       *model.ServicesSettings       `json:"external_services,omitempty"`
+	Login          *model.LoginSettings          `json:"login,omitempty"`
+	KeyStorage     *model.KeyStorageSettings     `json:"keyStorage,omitempty"`
+	Config         *model.ConfigStorageSettings  `json:"config,omitempty"`
+	Logger         *model.LoggerSettings         `json:"logger,omitempty"`
+	LoginWebApp    *model.LoginWebAppSettings    `json:"login_web_app"`
+	AdminPanel     *model.AdminPanelSettings     `json:"admin_panel"`
+	EmailTemplates *model.EmailTemplatesSettings `json:"email_templaits"`
 }
 
 type StorageSettingsAPI struct {
@@ -122,8 +124,18 @@ func mergeSettings(settings model.ServerSettings, updatedSettings ServerSettings
 		changed = true
 	}
 
-	if updatedSettings.Static != nil {
-		settings.Static = *updatedSettings.Static
+	if updatedSettings.LoginWebApp != nil {
+		settings.LoginWebApp = *updatedSettings.LoginWebApp
+		changed = true
+	}
+
+	if updatedSettings.AdminPanel != nil {
+		settings.AdminPanel = *updatedSettings.AdminPanel
+		changed = true
+	}
+
+	if updatedSettings.EmailTemplates != nil {
+		settings.EmailTemplates = *updatedSettings.EmailTemplates
 		changed = true
 	}
 

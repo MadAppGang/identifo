@@ -54,11 +54,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	static, err := storage.NewStaticFileStorage(settings.Static)
-	if err != nil {
-		return nil, err
-	}
-
 	key, err := storage.NewKeyStorage(settings.KeyStorage)
 	if err != nil {
 		return nil, err
@@ -73,7 +68,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		Verification: verification,
 		Session:      session,
 		Config:       config,
-		Static:       static,
 		Key:          key,
 	}
 
