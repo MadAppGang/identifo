@@ -104,6 +104,16 @@ Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Pas
   cy.screenshot();
   cy.get('button').contains('Login').click();
 });
+
+Cypress.Commands.add('registerWithEmail', (email = 'test@test.com', password = 'Password') => {
+  cy.contains('Sign Up').click();
+  cy.get('[placeholder=Email]').click().type(email);
+  cy.get('[placeholder=Password]').click().type(password);
+  cy.contains('Go back to login');
+  cy.screenshot();
+  cy.get('button').contains('Continue').click();
+});
+
 Cypress.Commands.add('verifyTfa', (code = '0000') => {
   cy.get('[placeholder="Verify code"]').click().type('0000');
   cy.contains('Go back to login');
