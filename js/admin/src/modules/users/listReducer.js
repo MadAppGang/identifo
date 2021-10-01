@@ -22,11 +22,6 @@ const reducer = (state = INITIAL_STATE, action) => {
         list: payload.users,
         total: payload.total,
       });
-    case types.FETCH_USERS_FAILURE:
-      return update(state, {
-        fetching: false,
-        error: payload,
-      });
     default:
       return state;
   }

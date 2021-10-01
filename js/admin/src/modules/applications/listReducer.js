@@ -23,11 +23,6 @@ const reducer = (state = INITIAL_STATE, action) => {
         list: payload.apps,
         total: payload.total,
       });
-    case types.FETCH_APPLICATIONS_FAILURE:
-      return update(state, {
-        fetching: false,
-        error: payload,
-      });
     case types.DELETE_APPLICATION_SUCCESS:
       return update(state, {
         list: list => list.filter(app => app.id !== payload),

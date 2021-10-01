@@ -47,7 +47,7 @@ const reducer = (state = INITIAL_STATE, action) => {
     case FETCH_JWT_KEYS:
       return {
         ...state,
-        original: { ...state.current, jwtKeys: payload },
+        original: { ...state.original, jwtKeys: payload },
         current: { ...state.current, jwtKeys: payload },
       };
     case SET_VERIFICATION_STATUS:

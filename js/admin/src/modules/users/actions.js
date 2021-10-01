@@ -1,84 +1,68 @@
 import actionCreator from '@madappgang/action-creator';
-import { getError } from '~/utils';
+import { commonAsyncHandler } from '../../utils/commonAsynсHandler';
+import { successSnackMessages } from '../applications/constants';
+import { showSuccessNotificationSnack } from '../applications/notification-actions';
 import types from './types';
 
 const fetchAttempt = actionCreator(types.FETCH_USERS_ATTEMPT);
 const fetchSuccess = actionCreator(types.FETCH_USERS_SUCCESS);
-const fetchFailure = actionCreator(types.FETCH_USERS_FAILURE);
 
 const postAttempt = actionCreator(types.POST_USER_ATTEMPT);
 const postSuccess = actionCreator(types.POST_USER_SUCCESS);
-const postFailure = actionCreator(types.POST_USER_FAILURE);
 
 const alterAttempt = actionCreator(types.ALTER_USER_ATTEMPT);
 const alterSuccess = actionCreator(types.ALTER_USER_SUCCESS);
-const alterFailure = actionCreator(types.ALTER_USER_FAILURE);
 
 const fetchByIdAttempt = actionCreator(types.FETCH_USER_BY_ID_ATTEMPT);
 const fetchByIdSuccess = actionCreator(types.FETCH_USER_BY_ID_SUCCESS);
-const fetchByIdFailure = actionCreator(types.FETCH_USER_BY_ID_FAILURE);
 
 const deleteAttempt = actionCreator(types.DELETE_USER_BY_ID_ATTEMPT);
 const deleteSuccess = actionCreator(types.DELETE_USER_BY_ID_SUCCESS);
-const deleteFailure = actionCreator(types.DELETE_USER_BY_ID_FAILURE);
 
 const resetUserError = actionCreator(types.RESET_USER_ERROR);
 const resetUserById = actionCreator(types.RESET_USER_BY_ID);
 
 const fetchUsers = filters => async (dispatch, _, services) => {
   dispatch(fetchAttempt());
-
-  try {
+  await commonAsyncHandler(async () => {
     const { users = [], total = 0 } = await services.users.fetchUsers(filters);
     dispatch(fetchSuccess({ users, total }));
-  } catch (err) {
-    dispatch(fetchFailure(getError(err)));
-  }
+  }, dispatch);
 };
 
 const postUser = user => async (dispatch, _, services) => {
   dispatch(postAttempt());
-
-  try {
+  await commonAsyncHandler(async () => {
     const result = await services.users.postUser(user);
     dispatch(postSuccess(result));
-  } catch (err) {
-    dispatch(postFailure(getError(err)));
-    throw new Error(err);
-  }
+    dispatch(showSuccessNotificationSnack(successSnackMessages.postUser));
+  }, dispatch);
 };
 
 const alterUser = (id, changes) => async (dispatch, _, services) => {
   dispatch(alterAttempt());
-
-  try {
+  await commonAsyncHandler(async () => {
     const user = await services.users.alterUser(id, changes);
     dispatch(alterSuccess(user));
-  } catch (err) {
-    dispatch(alterFailure(getError(err)));
-  }
+    dispatch(showSuccessNotificationSnack(successSnackMessages.alterUser));
+  }, dispatch);
 };
 
 const fetchUserById = id => async (dispatch, _, services) => {
   dispatch(fetchByIdAttempt());
-
-  try {
+  await commonAsyncHandler(async () => {
     const user = await services.users.fetchUserById(id);
     dispatch(fetchByIdSuccess(user));
-  } catch (err) {
-    dispatch(fetchByIdFailure(getError(err)));
-  }
+  }, dispatch);
 };
 
 const deleteUserById = id => async (dispatch, _, services) => {
   dispatch(deleteAttempt());
-
-  try {
+  await commonAsyncHandler(async () => {
     await services.users.deleteUserById(id);
     dispatch(deleteSuccess(id));
-  } catch (err) {
-    dispatch(deleteFailure(getError(err)));
-  }
+    dispatch(showSuccessNotificationSnack(successSnackMessages.deleteUser));
+  }, dispatch);
 };
 
 export {

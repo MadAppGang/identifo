@@ -86,7 +86,7 @@ export const JWTSettingsForm = ({
   const [changing, setChanging] = useState(false);
 
   const showPasswordHandler = async () => {
-    if (!settings.private) {
+    if (!settings || !settings.private) {
       await onShowPassword();
     } else if (!form.values.private) {
       form.setValues(settings);

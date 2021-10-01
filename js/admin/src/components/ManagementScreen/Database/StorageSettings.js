@@ -59,7 +59,7 @@ const StorageSettings = (props) => {
           <>
             <Preview fetching={progress} settings={settings} />
             <Button
-              disabled={progress}
+              disabled={progress || !settings}
               Icon={progress ? LoadingIcon : EditIcon}
               onClick={() => setEditing(true)}
             >

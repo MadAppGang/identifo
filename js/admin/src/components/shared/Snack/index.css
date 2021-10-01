@@ -1,5 +1,5 @@
 .iap-snack {
-    position: fixed;
+    /* position: fixed; */
     bottom: 20px;
     right: 20px;
     background-color: var(--main-color);
@@ -11,8 +11,17 @@
     line-height: 24px;
 }
 
+.iap-snack--in {
+    display: flex;
+    flex-direction: column;
+}
+
 .iap-snack--success {
     background-color: #65C48D;
+}
+
+.iap-snack--changes {
+    order: 1;
 }
 
 .iap-snack--error {
