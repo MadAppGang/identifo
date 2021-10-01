@@ -29,8 +29,8 @@ func main() {
 		log.Fatalf("Unable to start Identifo with error: %v ", err)
 	}
 	go startHTTPServer(httpSrv)
-	log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
-	log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
+	log.Printf("Started the server on port: %s", srv.Settings().GetPort())
+	log.Printf("You can open admin panel: %s/adminpanel or http://localhost:%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
 
 	watcher, err := config.NewConfigWatcher(srv.Settings().Config)
 	if err != nil {
@@ -53,8 +53,8 @@ func main() {
 			log.Fatalf("Unable to start Identifo with error: %v ", err)
 		}
 		go startHTTPServer(httpSrv)
-		log.Printf("Started the server on host: %s%s", srv.Settings().General.Host, srv.Settings().GetPort())
-		log.Printf("You can open amin panel: %s%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
+		log.Printf("Started the server on port: %s", srv.Settings().GetPort())
+		log.Printf("You can open admin panel: %s/adminpanel or http://localhost:%s/adminpanel", srv.Settings().General.Host, srv.Settings().GetPort())
 		log.Println("Server successfully restarted with new settings ...")
 	}
 

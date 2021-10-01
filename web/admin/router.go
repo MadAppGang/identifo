@@ -16,16 +16,17 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	server        model.Server
-	middleware    *negroni.Negroni
-	cors          *cors.Cors
-	originChecker *originchecker.OriginChecker
-	logger        *log.Logger
-	router        *mux.Router
-	RedirectURL   string
-	PathPrefix    string
-	Host          string
-	forceRestart  chan<- bool
+	server          model.Server
+	middleware      *negroni.Negroni
+	cors            *cors.Cors
+	originChecker   *originchecker.OriginChecker
+	logger          *log.Logger
+	router          *mux.Router
+	RedirectURL     string
+	PathPrefix      string
+	Host            string
+	WebRouterPrefix string
+	forceRestart    chan<- bool
 }
 
 func defaultOptions() []func(*Router) error {
@@ -79,6 +80,14 @@ func RedirectURLOption(redirectURL string) func(*Router) error {
 func PathPrefixOptions(prefix string) func(r *Router) error {
 	return func(r *Router) error {
 		r.PathPrefix = prefix
+		return nil
+	}
+}
+
+// WebRouterPrefixOption sets web prefix host value.
+func WebRouterPrefixOption(prefix string) func(*Router) error {
+	return func(r *Router) error {
+		r.WebRouterPrefix = prefix
 		return nil
 	}
 }
