@@ -14,6 +14,10 @@ export type Routes =
   | 'tfa/setup/select'
   | 'password/reset'
   | 'password/forgot'
+  | 'password/forgot/tfa/sms'
+  | 'password/forgot/tfa/email'
+  | 'password/forgot/tfa/app'
+  | 'password/forgot/tfa/select'
   | 'callback'
   | 'otp/login'
   | 'error'
@@ -21,7 +25,8 @@ export type Routes =
   | 'logout'
   | 'loading';
 export type TFASetupRoutes = 'tfa/setup/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app';
-export type TFAVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
+export type TFALoginVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
+export type TFAResetVerifyRoutes = 'password/forgot/tfa/select' | 'password/forgot/tfa/sms' | 'password/forgot/tfa/email' | 'password/forgot/tfa/app';
 const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 @Component({
@@ -85,18 +90,11 @@ export class IdentifoForm {
     this.lastError = e;
     this.error.emit(e);
   }
-  redirectTfaSetup(): TFASetupRoutes {
+  redirectTfa(prefix: string): string {
     if (this.tfaTypes.length === 1) {
-      return `tfa/setup/${this.tfaTypes[0]}` as TFASetupRoutes;
+      return `${prefix}/${this.tfaTypes[0]}`;
     } else {
-      return `tfa/setup/select`;
-    }
-  }
-  redirectTfaVerify(): TFAVerifyRoutes {
-    if (this.tfaTypes.length === 1) {
-      return `tfa/verify/${this.tfaTypes[0]}` as TFAVerifyRoutes;
-    } else {
-      return `tfa/verify/select`;
+      return `${prefix}/select`;
     }
   }
   afterLoginRedirect = (e: LoginResponse) => {
@@ -105,10 +103,10 @@ export class IdentifoForm {
     this.lastResponse = e;
     if (e.require_2fa) {
       if (!e.enabled_2fa) {
-        return this.redirectTfaSetup();
+        return this.redirectTfa('tfa/setup') as TFASetupRoutes;
       }
       if (e.enabled_2fa) {
-        return this.redirectTfaVerify();
+        return this.redirectTfa('tfa/verify') as TFALoginVerifyRoutes;
       }
     }
     if (this.tfaStatus === TFAStatus.OPTIONAL) {
@@ -123,7 +121,7 @@ export class IdentifoForm {
   };
   loginCatchRedirect = (data: ApiError): TFASetupRoutes => {
     if (data.id === APIErrorCodes.PleaseEnableTFA) {
-      return this.redirectTfaSetup();
+      return this.redirectTfa('tfa/setup') as TFASetupRoutes;
     }
     throw data;
   };
@@ -155,10 +153,20 @@ export class IdentifoForm {
       .catch(e => this.processError(e));
   }
   async verifyTFA() {
-    this.auth.api
-      .verifyTFA(this.tfaCode, [])
-      .then(() => this.openRoute('callback'))
-      .catch(e => this.processError(e));
+    if (this.route.indexOf('password/forgot/tfa') === 0) {
+      this.auth.api
+        .requestResetPassword(this.email, this.tfaCode)
+        .then(() => {
+          this.success = true;
+          this.openRoute('password/forgot/success');
+        })
+        .catch(e => this.processError(e));
+    } else {
+      this.auth.api
+        .verifyTFA(this.tfaCode, [])
+        .then(() => this.openRoute('callback'))
+        .catch(e => this.processError(e));
+    }
   }
   async selectTFA(type: TFAType) {
     this.openRoute(`tfa/setup/${type}` as TFASetupRoutes);
@@ -181,14 +189,19 @@ export class IdentifoForm {
 
         break;
     }
-    this.openRoute(`tfa/verify/${type}` as TFAVerifyRoutes);
+    this.openRoute(`tfa/verify/${type}` as TFALoginVerifyRoutes);
   }
   restorePassword() {
     this.auth.api
       .requestResetPassword(this.email)
-      .then(() => {
-        this.success = true;
-        this.openRoute('password/forgot/success');
+      .then(response => {
+        if (response.result === 'tfa-required') {
+          this.openRoute(this.redirectTfa('password/forgot/tfa') as TFALoginVerifyRoutes);
+        }
+        if (response.result === 'ok') {
+          this.success = true;
+          this.openRoute('password/forgot/success');
+        }
       })
       .catch(e => this.processError(e));
   }
@@ -356,7 +369,7 @@ export class IdentifoForm {
               </p>
             )}
             <input type="phone" class="form-control" id="login" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
-            <button onClick={() => this.openRoute(this.redirectTfaVerify())} class="primary-button" disabled={!this.phone}>
+            <button onClick={() => this.openRoute(this.redirectTfa('tfa/verify') as TFALoginVerifyRoutes)} class="primary-button" disabled={!this.phone}>
               Continue
             </button>
             {this.federatedProviders.length > 0 && (
@@ -385,6 +398,7 @@ export class IdentifoForm {
         );
       case 'tfa/verify/select':
       case 'tfa/setup/select':
+      case 'password/forgot/tfa/select':
         return (
           <div class="tfa-setup">
             {this.route === 'tfa/verify/select' && <p class="tfa-setup__text">Select 2-step verification method</p>}
@@ -504,21 +518,24 @@ export class IdentifoForm {
       case 'tfa/verify/app':
       case 'tfa/verify/email':
       case 'tfa/verify/sms':
+      case 'password/forgot/tfa/app':
+      case 'password/forgot/tfa/email':
+      case 'password/forgot/tfa/sms':
         return (
           <div class="tfa-verify">
-            {this.route === 'tfa/verify/app' && (
+            {this.route.indexOf('app') > 0 && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code from authenticator app</h2>
                 <p class="tfa-verify__subtitle">Code will be generated by app</p>
               </div>
             )}
-            {this.route === 'tfa/verify/sms' && (
+            {this.route.indexOf('sms') > 0 && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your phone number</h2>
                 <p class="tfa-verify__subtitle">The code has been sent to {this.phone}</p>
               </div>
             )}
-            {this.route === 'tfa/verify/email' && (
+            {this.route.indexOf('email') > 0 && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your email address</h2>
                 <p class="tfa-verify__subtitle">The email has been sent to {this.email}</p>

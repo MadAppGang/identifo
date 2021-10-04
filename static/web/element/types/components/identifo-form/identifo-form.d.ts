@@ -1,8 +1,9 @@
 import { ApiError, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider, TFAStatus } from '@identifo/identifo-auth-js';
 import { EventEmitter } from '../../stencil-public-runtime';
-export declare type Routes = 'login' | 'register' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app' | 'tfa/verify/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app' | 'tfa/setup/select' | 'password/reset' | 'password/forgot' | 'callback' | 'otp/login' | 'error' | 'password/forgot/success' | 'logout' | 'loading';
+export declare type Routes = 'login' | 'register' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app' | 'tfa/verify/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app' | 'tfa/setup/select' | 'password/reset' | 'password/forgot' | 'password/forgot/tfa/sms' | 'password/forgot/tfa/email' | 'password/forgot/tfa/app' | 'password/forgot/tfa/select' | 'callback' | 'otp/login' | 'error' | 'password/forgot/success' | 'logout' | 'loading';
 export declare type TFASetupRoutes = 'tfa/setup/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app';
-export declare type TFAVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
+export declare type TFALoginVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
+export declare type TFAResetVerifyRoutes = 'password/forgot/tfa/select' | 'password/forgot/tfa/sms' | 'password/forgot/tfa/email' | 'password/forgot/tfa/app';
 export declare class IdentifoForm {
   route: Routes;
   token: string;
@@ -33,9 +34,8 @@ export declare class IdentifoForm {
   complete: EventEmitter<LoginResponse>;
   error: EventEmitter<ApiError>;
   processError(e: ApiError): void;
-  redirectTfaSetup(): TFASetupRoutes;
-  redirectTfaVerify(): TFAVerifyRoutes;
-  afterLoginRedirect: (e: LoginResponse) => "callback" | TFASetupRoutes | TFAVerifyRoutes;
+  redirectTfa(prefix: string): string;
+  afterLoginRedirect: (e: LoginResponse) => "callback" | TFASetupRoutes | TFALoginVerifyRoutes;
   loginCatchRedirect: (data: ApiError) => TFASetupRoutes;
   signIn(): Promise<void>;
   loginWith(provider: FederatedLoginProvider): Promise<void>;

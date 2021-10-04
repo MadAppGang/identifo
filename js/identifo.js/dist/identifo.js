@@ -208,10 +208,11 @@ class Api {
       return this.post("/auth/register", data).then((r) => this.storeToken(r));
     });
   }
-  requestResetPassword(email) {
+  requestResetPassword(email, tfaCode) {
     return __async$2(this, null, function* () {
       const data = {
-        email
+        email,
+        tfa_code: tfaCode
       };
       return this.post("/auth/request_reset_password", data);
     });

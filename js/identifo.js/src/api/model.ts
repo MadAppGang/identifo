@@ -100,4 +100,8 @@ export interface SuccessResponse {
   result: 'ok';
 }
 
+export interface TFARequiredRespopnse {
+  result: 'tfa-required';
+}
+
 export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';

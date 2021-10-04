@@ -7,7 +7,7 @@ describe('simple login by email', () => {
   it('login by email disabled', () => {
     cy.visitLogin();
     cy.loginWithEmail();
-    cy.contains('Application does not support login with email');
+    cy.contains('application does not support login with email');
     cy.screenshot();
   });
   it('enable login by email', () => {

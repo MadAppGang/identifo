@@ -171,6 +171,9 @@ interface UpdateUser {
 interface SuccessResponse {
     result: 'ok';
 }
+interface TFARequiredRespopnse {
+    result: 'tfa-required';
+}
 declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 
 declare class Api {
@@ -201,7 +204,7 @@ declare class Api {
     }): Promise<void>;
     federatedLoginComplete(params: URLSearchParams): Promise<LoginResponse>;
     register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
-    requestResetPassword(email: string): Promise<SuccessResponse>;
+    requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(): Promise<AppSettingsResponse>;
     enableTFA(): Promise<EnableTFAResponse>;
@@ -257,4 +260,4 @@ declare class SessionStorage extends StorageManager {
     constructor(accessKey?: string, refreshKey?: string);
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFAStatus, TFAType, TokenResponse, UpdateUser, User };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFARequiredRespopnse, TFAStatus, TFAType, TokenResponse, UpdateUser, User };

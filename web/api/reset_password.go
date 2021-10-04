@@ -12,17 +12,24 @@ import (
 
 // RequestResetPassword requests password reset
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
-	type resetRequestEmail struct {
-		Email string `json:"email,omitempty"`
+	type resetRequest struct {
+		login
+		TFACode string `json:"tfa_code,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
-		d := resetRequestEmail{}
+		d := resetRequest{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
-		if !model.EmailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestResetPassword.emailRegexp_MatchString")
+
+		if err := d.login.validate(); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RequestResetPassword.validate")
+			return
+		}
+
+		if err := ar.checkSupportedWays(d.login); err != nil {
+			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, err.Error(), "RequestResetPassword.unsupportedLoginWays")
 			return
 		}
 
@@ -34,10 +41,36 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
 		}
 
-		// TODO: Check 2fa when reset password, return
-		// access_token: 2fa access token
-		// enabled_2fa: user.enabletfa
-		// require_2fa: false
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusInternalServerError, "App is not in context.", "RequestResetPassword.AppFromContext")
+			return
+		}
+
+		if user.TFAInfo.IsEnabled && ar.tfaType != model.TFATypeEmail {
+			if d.TFACode != "" {
+				otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
+				if err != nil {
+					ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.OTP_Invalid")
+					return
+				}
+
+				dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
+
+				if !(otpVerified || dontNeedVerification) {
+					ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.OTP_Invalid")
+					return
+				}
+			} else {
+				if err := ar.sendOTPCode(user); err != nil {
+					ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.SendOTPCode")
+					return
+				}
+				result := map[string]string{"result": "tfa-required"}
+				ar.ServeJSON(w, http.StatusOK, result)
+				return
+			}
+		}
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
@@ -48,12 +81,6 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
 			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.tokenService_String")
-			return
-		}
-
-		app := middleware.AppFromContext(r.Context())
-		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusInternalServerError, "App is not in context.", "RequestResetPassword.AppFromContext")
 			return
 		}
 

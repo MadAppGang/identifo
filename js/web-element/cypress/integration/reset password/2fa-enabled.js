@@ -1,22 +1,39 @@
-describe('simple reset password without tfa', () => {
+describe('simple reset password with tfa email', () => {
   beforeEach(() => {
-    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
     cy.appSet({ tfa_status: 'mandatory' });
-    cy.addTestUser({ tfa_info: { is_enabled: true } });
+    cy.addTestUser({ phone: '+1234567890', tfa_info: { is_enabled: true } });
     cy.visitLogin();
   });
-  it('have back button', () => {
-    cy.contains('Forgot password').click();
-    cy.contains('Go back to login');
-    cy.screenshot();
-  });
-  it('forgot by email', () => {
+  it('forgot by email with 2fa email', () => {
+    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'email' });
     cy.contains('Forgot password').click();
     cy.get('#email').click().type('test@test.com');
     cy.screenshot();
     cy.contains('Send the link').click();
-    cy.contains('We sent you an email with a link to create a new password');
+    cy.contains('We sent you an email with a link');
     cy.contains('Go back to login');
-    cy.contains('Use email as 2fa');
+    cy.screenshot();
+  });
+  it('forgot by email with 2fa app', () => {
+    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
+    cy.contains('Forgot password').click();
+    cy.get('#email').click().type('test@test.com');
+    cy.screenshot();
+    cy.contains('Send the link').click();
+    cy.verifyTfa();
+    cy.contains('We sent you an email with a link');
+    cy.contains('Go back to login');
+    cy.screenshot();
+  });
+  it('forgot by email with 2fa sms', () => {
+    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'sms' });
+    cy.contains('Forgot password').click();
+    cy.get('#email').click().type('test@test.com');
+    cy.screenshot();
+    cy.contains('Send the link').click();
+    cy.verifyTfa();
+    cy.contains('We sent you an email with a link');
+    cy.contains('Go back to login');
+    cy.screenshot();
   });
 });

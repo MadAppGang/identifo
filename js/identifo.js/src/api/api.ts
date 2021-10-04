@@ -12,6 +12,7 @@ import {
   APIErrorCodes,
   FederatedLoginProvider,
   TokenResponse,
+  TFARequiredRespopnse,
 } from './model';
 
 const APP_ID_HEADER_KEY = 'X-Identifo-Clientid';
@@ -195,12 +196,13 @@ export class Api {
     return this.post<LoginResponse>('/auth/register', data).then((r) => this.storeToken(r));
   }
 
-  async requestResetPassword(email: string): Promise<SuccessResponse> {
+  async requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse> {
     const data = {
       email,
+      tfa_code: tfaCode,
     };
 
-    return this.post<SuccessResponse>('/auth/request_reset_password', data);
+    return this.post<SuccessResponse | TFARequiredRespopnse>('/auth/request_reset_password', data);
   }
 
   async resetPassword(password: string): Promise<SuccessResponse> {

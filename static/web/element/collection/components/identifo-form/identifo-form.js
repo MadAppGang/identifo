@@ -14,10 +14,10 @@ export class IdentifoForm {
       this.lastResponse = e;
       if (e.require_2fa) {
         if (!e.enabled_2fa) {
-          return this.redirectTfaSetup();
+          return this.redirectTfa('tfa/setup');
         }
         if (e.enabled_2fa) {
-          return this.redirectTfaVerify();
+          return this.redirectTfa('tfa/verify');
         }
       }
       if (this.tfaStatus === TFAStatus.OPTIONAL) {
@@ -32,7 +32,7 @@ export class IdentifoForm {
     };
     this.loginCatchRedirect = (data) => {
       if (data.id === APIErrorCodes.PleaseEnableTFA) {
-        return this.redirectTfaSetup();
+        return this.redirectTfa('tfa/setup');
       }
       throw data;
     };
@@ -51,20 +51,12 @@ export class IdentifoForm {
     this.lastError = e;
     this.error.emit(e);
   }
-  redirectTfaSetup() {
+  redirectTfa(prefix) {
     if (this.tfaTypes.length === 1) {
-      return `tfa/setup/${this.tfaTypes[0]}`;
+      return `${prefix}/${this.tfaTypes[0]}`;
     }
     else {
-      return `tfa/setup/select`;
-    }
-  }
-  redirectTfaVerify() {
-    if (this.tfaTypes.length === 1) {
-      return `tfa/verify/${this.tfaTypes[0]}`;
-    }
-    else {
-      return `tfa/verify/select`;
+      return `${prefix}/select`;
     }
   }
   async signIn() {
@@ -126,9 +118,14 @@ export class IdentifoForm {
   restorePassword() {
     this.auth.api
       .requestResetPassword(this.email)
-      .then(() => {
-      this.success = true;
-      this.openRoute('password/forgot/success');
+      .then(response => {
+      if (response.result === 'tfa-required') {
+        this.openRoute(this.redirectTfa('password/forgot/tfa'));
+      }
+      if (response.result === 'ok') {
+        this.success = true;
+        this.openRoute('password/forgot/success');
+      }
     })
       .catch(e => this.processError(e));
   }
@@ -211,7 +208,7 @@ export class IdentifoForm {
             "Don't have an account?\u00A0",
             h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))),
           h("input", { type: "phone", class: "form-control", id: "login", value: this.phone, placeholder: "Phone number", onInput: event => this.phoneChange(event) }),
-          h("button", { onClick: () => this.openRoute(this.redirectTfaVerify()), class: "primary-button", disabled: !this.phone }, "Continue"),
+          h("button", { onClick: () => this.openRoute(this.redirectTfa('tfa/verify')), class: "primary-button", disabled: !this.phone }, "Continue"),
           this.federatedProviders.length > 0 && (h("div", { class: "social-buttons" },
             h("p", { class: "social-buttons__text" }, "or continue with"),
             h("div", { class: "social-buttons__social-medias" },
@@ -223,6 +220,7 @@ export class IdentifoForm {
                 h("img", { src: getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
       case 'tfa/verify/select':
       case 'tfa/setup/select':
+      case 'password/forgot/tfa/select':
         return (h("div", { class: "tfa-setup" },
           this.route === 'tfa/verify/select' && h("p", { class: "tfa-setup__text" }, "Select 2-step verification method"),
           this.route === 'tfa/setup/select' && h("p", { class: "tfa-setup__text" }, "Protect your account with 2-step verification"),
@@ -268,6 +266,9 @@ export class IdentifoForm {
       case 'tfa/verify/app':
       case 'tfa/verify/email':
       case 'tfa/verify/sms':
+      case 'password/forgot/tfa/app':
+      case 'password/forgot/tfa/email':
+      case 'password/forgot/tfa/sms':
         return (h("div", { class: "tfa-verify" },
           this.route === 'tfa/verify/app' && (h("div", { class: "tfa-verify__title-wrapper" },
             h("h2", { class: "tfa-verify__title" }, "Enter the code from authenticator app"),
@@ -428,7 +429,7 @@ export class IdentifoForm {
       "mutable": true,
       "complexType": {
         "original": "Routes",
-        "resolved": "\"callback\" | \"error\" | \"loading\" | \"login\" | \"logout\" | \"otp/login\" | \"password/forgot\" | \"password/forgot/success\" | \"password/reset\" | \"register\" | \"tfa/setup/app\" | \"tfa/setup/email\" | \"tfa/setup/select\" | \"tfa/setup/sms\" | \"tfa/verify/app\" | \"tfa/verify/email\" | \"tfa/verify/select\" | \"tfa/verify/sms\"",
+        "resolved": "\"login\" | \"register\" | \"tfa/verify/sms\" | \"tfa/verify/email\" | \"tfa/verify/app\" | \"tfa/verify/select\" | \"tfa/setup/sms\" | \"tfa/setup/email\" | \"tfa/setup/app\" | \"tfa/setup/select\" | \"password/reset\" | \"password/forgot\" | \"password/forgot/tfa/sms\" | \"password/forgot/tfa/email\" | \"password/forgot/tfa/app\" | \"password/forgot/tfa/select\" | \"callback\" | \"otp/login\" | \"error\" | \"password/forgot/success\" | \"logout\" | \"loading\"",
         "references": {
           "Routes": {
             "location": "local"
