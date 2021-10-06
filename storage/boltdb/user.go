@@ -8,9 +8,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
 	"github.com/rs/xid"
+	bolt "go.etcd.io/bbolt"
 	"golang.org/x/crypto/bcrypt"
 )
 

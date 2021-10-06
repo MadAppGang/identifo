@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
+	bolt "go.etcd.io/bbolt"
 )
 
 const (

@@ -6,9 +6,9 @@ import (
 	"log"
 	"strings"
 
-	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
 	"github.com/rs/xid"
+	bolt "go.etcd.io/bbolt"
 )
 
 const (
