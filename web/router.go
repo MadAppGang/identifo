@@ -29,12 +29,15 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	var err error
 	authorizer := authorization.NewAuthorizer()
 
+	r.APIRouterPath = "/api"
+	r.WebRouterPath = "/web"
+
 	r.APIRouter, err = api.NewRouter(
 		settings.Server,
 		settings.Logger,
 		authorizer,
 		settings.LoggerSettings,
-		settings.APIRouterSettings...,
+		append(settings.APIRouterSettings, api.WebRouterPrefixOption(r.WebRouterPath))...,
 	)
 	if err != nil {
 		return nil, err
@@ -54,7 +57,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		r.AdminRouter, err = admin.NewRouter(
 			settings.Server,
 			settings.Logger,
-			settings.AdminRouterSettings...,
+			append(settings.AdminRouterSettings, admin.WebRouterPrefixOption(r.WebRouterPath))...,
 		)
 		if err != nil {
 			return nil, err

@@ -1,0 +1,38 @@
+{
+  "offline": true,
+  "type": "web",
+  "name": "test",
+  "scopes": [],
+  "secret": "4MuVMs02HoUMZqJrg13+5A==",
+  "active": true,
+  "description": "",
+  "tfa_status": "mandaroty",
+  "debug_tfa_code": "0000",
+  "redirect_urls": ["http://localhost:44000"],
+  "registration_forbidden": false,
+  "anonymous_registration_allowed": true,
+  "federated_login_settings": {
+    "apple": {
+      "params": {
+        "ClientId": "",
+        "KeyId": "",
+        "PKCS8PrivateKey": "",
+        "TeamId": ""
+      },
+      "scopes": ["email", "name"]
+    },
+    "facebook": {
+      "params": {
+        "ClientId": "",
+        "Secret": ""
+      },
+      "scopes": ["email"]
+    },
+    "google": {
+      "params": {
+        "ClientId": "",
+        "Secret": ""
+      }
+    }
+  }
+}

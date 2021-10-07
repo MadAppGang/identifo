@@ -39,9 +39,7 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func defaultOptions() []func(*Router) error {
-	return []func(*Router) error{
-		WebRouterPrefixOption("/web"),
-	}
+	return []func(*Router) error{}
 }
 
 // HostOption sets host value.

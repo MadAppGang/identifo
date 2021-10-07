@@ -3,6 +3,8 @@ package admin
 import (
 	"fmt"
 	"net/http"
+	"net/url"
+	"path"
 	"strings"
 
 	"github.com/madappgang/identifo/model"
@@ -22,6 +24,11 @@ type registrationData struct {
 	AccessRole string        `json:"access_role,omitempty"`
 	Scopes     []string      `json:"scopes,omitempty"`
 	TFAInfo    model.TFAInfo `json:"tfa_info,omitempty"`
+}
+
+type passwordResetData struct {
+	UserID string `json:"user_id,omitempty"`
+	AppID  string `json:"app_id,omitempty"`
 }
 
 func (rd *registrationData) validate() error {
@@ -145,6 +152,12 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			u.TFAInfo = existing.TFAInfo
 		}
 
+		if !u.TFAInfo.IsEnabled {
+			u.TFAInfo = model.TFAInfo{
+				IsEnabled: false,
+			}
+		}
+
 		// update password if password is part of update process
 		if len(u.Pswd) > 0 {
 			if err := model.StrongPswd(u.Pswd); err != nil {
@@ -184,5 +197,65 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 
 		ar.logger.Printf("User %s deleted", userID)
 		ar.ServeJSON(w, http.StatusOK, nil)
+	}
+}
+
+func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		resetData := passwordResetData{}
+		if ar.mustParseJSON(w, r, &resetData) != nil {
+			return
+		}
+
+		user, err := ar.server.Storages().User.UserByID(resetData.UserID)
+		if err != nil {
+			if err == model.ErrUserNotFound {
+				ar.Error(w, err, http.StatusNotFound, "")
+			} else {
+				ar.Error(w, err, http.StatusInternalServerError, "")
+			}
+			return
+		}
+
+		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		resetTokenString, err := ar.server.Services().Token.String(resetToken)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		query := fmt.Sprintf("appId=%s&token=%s", resetData.AppID, resetTokenString)
+
+		host, err := url.Parse(ar.Host)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		u := &url.URL{
+			Scheme:   host.Scheme,
+			Host:     host.Host,
+			Path:     path.Join(ar.WebRouterPrefix, "password/reset"),
+			RawQuery: query,
+		}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
+
+		resetEmailData := model.ResetEmailData{
+			Token: resetTokenString,
+			URL:   u.String(),
+			Host:  uu.String(),
+		}
+
+		if err = ar.server.Services().Email.SendResetEmail("Reset Password", user.Email, resetEmailData); err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, resetEmailData)
 	}
 }

@@ -60,7 +60,7 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(ar.RequestDisabledTFA()),
 	)).Methods("PUT")
 	auth.Path("/tfa/login").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, []string{model.TokenTFAPreauthScope}),
+		ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth}),
 		negroni.Wrap(ar.FinalizeTFA()),
 	)).Methods("POST")
 	auth.Path("/tfa/reset").Handler(negroni.New(

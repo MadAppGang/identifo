@@ -89,6 +89,11 @@ declare enum TFAType {
     TFATypeSMS = "sms",
     TFATypeEmail = "email"
 }
+declare enum TFAStatus {
+    DISABLED = "disabled",
+    OPTIONAL = "optional",
+    MANDATORY = "mandatory"
+}
 interface ApiRequestError {
     error: {
         detailed_message?: string;
@@ -128,6 +133,10 @@ interface EnableTFAResponse {
     provisioning_qr?: string;
     access_token?: string;
 }
+interface TokenResponse {
+    access_token?: string;
+    refresh_token?: string;
+}
 interface AppSettingsResponse {
     anonymousResitrationAllowed: boolean;
     active: boolean;
@@ -137,6 +146,7 @@ interface AppSettingsResponse {
     offline: boolean;
     registrationForbidden: boolean;
     tfaType: TFAType;
+    tfaStatus: TFAStatus;
     federatedProviders: string[];
 }
 interface User {
@@ -160,6 +170,9 @@ interface UpdateUser {
 }
 interface SuccessResponse {
     result: 'ok';
+}
+interface TFARequiredRespopnse {
+    result: 'tfa-required';
 }
 declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 
@@ -191,13 +204,13 @@ declare class Api {
     }): Promise<void>;
     federatedLoginComplete(params: URLSearchParams): Promise<LoginResponse>;
     register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
-    requestResetPassword(email: string): Promise<SuccessResponse>;
+    requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(): Promise<AppSettingsResponse>;
     enableTFA(): Promise<EnableTFAResponse>;
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;
-    storeToken(response: LoginResponse): LoginResponse;
+    storeToken<T extends TokenResponse>(response: T): T;
 }
 
 declare class IdentifoAuth {
@@ -247,4 +260,4 @@ declare class SessionStorage extends StorageManager {
     constructor(accessKey?: string, refreshKey?: string);
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFAType, UpdateUser, User };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFARequiredRespopnse, TFAStatus, TFAType, TokenResponse, UpdateUser, User };

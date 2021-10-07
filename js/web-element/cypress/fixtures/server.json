@@ -1,0 +1,33 @@
+{
+  "general": { "host": "http://localhost", "port": "8081", "issuer": "http://localhost", "supported_scopes": [] },
+  "admin_account": { "login_env_name": "IDENTIFO_ADMIN_LOGIN", "password_env_name": "IDENTIFO_ADMIN_PASSWORD" },
+  "storage": {
+    "app_storage": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } },
+    "user_storage": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } },
+    "token_storage": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } },
+    "token_blacklist": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } },
+    "verification_code_storage": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } },
+    "invite_storage": { "type": "boltdb", "boltdb": { "path": "./db.db" }, "mongo": { "connection": "", "database": "" }, "dynamo": { "region": "", "endpoint": "" } }
+  },
+  "session_storage": { "type": "memory", "session_duration": 300, "redis": { "address": "", "password": "", "db": 0 }, "dynamo": { "region": "", "endpoint": "" } },
+  "static_files_storage": {
+    "type": "local",
+    "dynamo": { "region": "", "endpoint": "" },
+    "local": { "folder": "./static" },
+    "s3": { "region": "", "bucket": "", "folder": "" },
+    "serve_admin_panel": true
+  },
+  "external_services": {
+    "email_service": { "type": "mock", "mailgun": { "domain": "", "private_key": "", "public_key": "", "sender": "" }, "ses": { "region": "", "sender": "" } },
+    "sms_service": {
+      "type": "mock",
+      "twilio": { "account_sid": "", "auth_token": "", "service_sid": "" },
+      "nexmo": { "api_key": "", "api_secret": "" },
+      "routemobile": { "username": "", "password": "", "source": "", "region": "" }
+    }
+  },
+  "login": { "login_with": { "username": false, "phone": false, "email": false, "federated": false }, "tfa_type": "app" },
+  "key_storage": { "type": "local", "s3": { "private_key_key": "" }, "file": { "private_key_path": "./jwt/test_artifacts/private.pem" } },
+  "config": { "type": "file", "raw_string": "file://./cmd/config-boltdb.yaml", "s3": null, "file": { "file_name": "./cmd/config-boltdb.yaml" }, "etcd": null },
+  "logger": { "dump_request": false }
+}
