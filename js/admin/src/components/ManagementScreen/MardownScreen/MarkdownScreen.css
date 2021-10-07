@@ -1,0 +1,48 @@
+.iap-markdown-screen {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.iap-markdown-screen__in {
+    padding-top: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: flex-start;
+    width: 100%;
+    position: relative;
+}
+
+.iap-markdown-screen__title {
+    font-size: 15px;
+    line-height: 20px;
+    color: #5D5D5D;
+}
+
+.iap-markdown-screen__back-btn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    color: rgba(88, 166, 239, 1);
+    cursor: pointer;
+    position: absolute;
+    right: calc(100% + 96px);
+    transition: all .2s ease-in-out;
+    white-space: nowrap;
+}
+
+.iap-markdown-screen__back-btn svg {
+    margin-right: 9px;
+}
+
+.iap-markdown-screen__back-btn svg * {
+    transition: all .2s ease-in-out;
+}
+
+.iap-markdown-screen__back-btn:hover {
+    color: var(--main-color-hover);
+}
+
+.iap-markdown-screen__back-btn:hover svg * {
+    stroke: var(--main-color-hover);
+}

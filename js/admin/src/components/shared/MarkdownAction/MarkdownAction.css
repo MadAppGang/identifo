@@ -1,0 +1,30 @@
+.iap-markdown-action {
+    padding: 24px;
+    border: 1px solid var(--main-color);
+    background: rgba(88, 166, 239, 0.1);
+    border-radius: 6px;
+    max-width: 172px;
+}
+
+.iap-markdown-action__in {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    justify-content: center;
+}
+
+.iap-markdown-action__content {
+    margin-top: 24px;
+}
+
+.iap-markdown-action__btn {
+    margin-top: 16px;
+    color: rgba(88, 166, 239, 1);
+    transition: color .2s ease-in-out;
+    text-decoration: none;
+}
+
+.iap-markdown-action__btn:hover {
+    color: var(--main-color-hover);
+    cursor: pointer;
+}

@@ -11,3 +11,7 @@ export const notificationStatuses = {
   error: 2,
   changed: 3,
 };
+
+export const localStorageKeys = {
+  markdown: 'iap-markdown',
+};
