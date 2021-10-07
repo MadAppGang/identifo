@@ -4,7 +4,6 @@ go 1.16
 
 require (
 	github.com/aws/aws-sdk-go v1.38.45
-	github.com/boltdb/bolt v1.3.1
 	github.com/casbin/casbin v1.9.1
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
@@ -36,6 +35,7 @@ require (
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
+	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.7.1
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
 	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect

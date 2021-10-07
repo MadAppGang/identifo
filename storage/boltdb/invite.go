@@ -6,7 +6,8 @@ import (
 	"log"
 	"time"
 
-	"github.com/boltdb/bolt"
+	bolt "go.etcd.io/bbolt"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/rs/xid"
 )
