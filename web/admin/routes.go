@@ -64,6 +64,10 @@ func (ar *Router) initRoutes() {
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetUser()).Methods("GET")
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateUser()).Methods("PUT")
 	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
+	users.Path("/generate_new_reset_token").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.GenerateNewResetTokenUser()),
+	)).Methods("POST")
 
 	ar.router.Path("/settings").Handler(negroni.New(
 		ar.Session(),

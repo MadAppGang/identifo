@@ -5,7 +5,7 @@ import { Tab, Tabs } from '~/components/shared/Tabs';
 import { verificationStatuses } from '~/enums';
 import useProgressBar from '~/hooks/useProgressBar';
 import { useVerification } from '~/hooks/useVerification';
-import { settingsActionsEnum, settingsConfig } from '~/modules/applications/dialogsConfigs';
+import { dialogActions, settingsConfig } from '~/modules/applications/dialogsConfigs';
 import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
 import { getStorageSettings } from '~/modules/settings/selectors';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
@@ -23,7 +23,6 @@ const StoragesSection = () => {
 
   const triggerFetchSettings = async () => {
     setProgress(70);
-
     try {
       await dispatch(fetchServerSetings());
     } finally {
@@ -32,15 +31,10 @@ const StoragesSection = () => {
   };
 
   const saveHandler = async (node, nodeSettings) => {
-    setProgress(70);
     const updatedSettings = { storage: update(settings, {
       [node]: nodeSettings,
     }) };
-    try {
-      dispatch(updateServerSettings(updatedSettings));
-    } finally {
-      setProgress(100);
-    }
+    dispatch(updateServerSettings(updatedSettings));
   };
 
   const handleSettingsVerification = async (nodeSettings) => {
@@ -61,15 +55,12 @@ const StoragesSection = () => {
       };
       const res = await dispatch(handleSettingsDialog(config));
       switch (res) {
-        case settingsActionsEnum.save:
+        case dialogActions.submit:
           await saveHandler(node, nodeSettings);
           break;
-        case settingsActionsEnum.verify:
+        case dialogActions.verify:
           await handleSettingsVerification(nodeSettings);
           await saveHandler(node, nodeSettings);
-          break;
-        case settingsActionsEnum.close:
-          dispatch(hideSettingsDialog());
           break;
         default:
           dispatch(hideSettingsDialog());
@@ -78,10 +69,6 @@ const StoragesSection = () => {
       await saveHandler(node, nodeSettings);
     }
   };
-
-  useEffect(() => {
-    setProgress(100);
-  }, []);
 
   useEffect(() => {
     setStatus(verificationStatuses.required);

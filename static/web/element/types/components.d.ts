@@ -16,7 +16,7 @@ export namespace Components {
         "postLogoutRedirectUri": string;
         "route": Routes;
         "scopes": string;
-        "theme": 'dark' | 'light';
+        "theme": 'dark' | 'light' | 'auto';
         "token": string;
         "url": string;
     }
@@ -43,7 +43,7 @@ declare namespace LocalJSX {
         "postLogoutRedirectUri"?: string;
         "route"?: Routes;
         "scopes"?: string;
-        "theme"?: 'dark' | 'light';
+        "theme"?: 'dark' | 'light' | 'auto';
         "token"?: string;
         "url"?: string;
     }

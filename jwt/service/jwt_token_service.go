@@ -217,7 +217,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 
 	tokenType := model.TokenTypeAccess
 	if requireTFA {
-		scopes = []string{model.TokenTFAPreauthScope}
+		scopes = []string{model.TokenTypeTFAPreauth}
 	}
 	if len(tokenPayload) > 0 {
 		for k, v := range tokenPayload {

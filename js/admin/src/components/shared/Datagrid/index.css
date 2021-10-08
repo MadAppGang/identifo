@@ -41,6 +41,11 @@
   margin-top: 5px;
 }
 
+.iap-datagrid-body .iap-datagrid-row > div {
+  text-overflow: ellipsis;
+  overflow: hidden;
+}
+
 .iap-datagrid__not-found {
   width: 100%;
   display: flex;

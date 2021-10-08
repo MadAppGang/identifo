@@ -56,8 +56,9 @@ func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
 // NewConfigurationStorage creates and returns new file configuration storage.
 func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from specified file...")
+
 	if config.Type != model.ConfigStorageTypeFile {
-		return nil, fmt.Errorf("cold not crate file config storage from non-file settings")
+		return nil, fmt.Errorf("cold not create file config storage from non-file settings")
 	}
 
 	cs := &ConfigurationStorage{

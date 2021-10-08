@@ -1,0 +1,35 @@
+.form-control {
+  width: 100%;
+  max-width: var(--content-width);
+  height: 72px;
+  background-color: var(--field-background);
+  box-shadow: 0px 11px 15px rgba(0, 0, 0, 0.04);
+  border-radius: 8px;
+  border: none;
+  outline: none;
+  font-size: 18px;
+  line-height: 26px;
+  color: var(--text);
+  padding: 23px 24px;
+
+  &::-webkit-inner-spin-button {
+    -webkit-appearance: none;
+    margin: 0; 
+  }
+
+  &::placeholder {
+    font-size: 18px;
+    line-height: 26px;
+    color: #828282;
+  }
+
+  &-danger {
+    border: 1px solid #F66161;
+  }
+}
+
+@include for-phone-only {
+  .form-control {
+    height: 64px;
+  }
+}

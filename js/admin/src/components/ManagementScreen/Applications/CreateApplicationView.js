@@ -4,14 +4,12 @@ import { Link } from 'react-router-dom';
 import { postApplication, resetApplicationError } from '~/modules/applications/actions';
 import ApplicationGeneralSettings from './GeneralSettingsForm';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
 
 const goBackPath = '/management/applications';
 
 const CreateApplicationView = ({ history }) => {
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess, notifyFailure } = useNotifications();
 
   const error = useSelector(s => s.selectedApplication.error);
   const application = useSelector(s => s.selectedApplication.application);
@@ -24,19 +22,8 @@ const CreateApplicationView = ({ history }) => {
 
   const handleSubmit = async (data) => {
     setProgress(70);
-
     try {
       await dispatch(postApplication({ ...data, active: true }));
-
-      notifySuccess({
-        title: 'Created',
-        text: 'Application has been created successfully',
-      });
-    } catch (_) {
-      notifyFailure({
-        title: 'Error',
-        text: 'Application could not be created',
-      });
     } finally {
       setProgress(100);
     }

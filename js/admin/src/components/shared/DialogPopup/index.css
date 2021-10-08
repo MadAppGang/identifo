@@ -21,15 +21,20 @@
 
 .iap-dialog-popup {
   left: 50%;
-  padding: 32px;
+  padding: 40px;
   background-color: #fff;
   -webkit-box-shadow: 0px 0px 15px 0px rgba(34, 60, 80, 0.2);
   -moz-box-shadow: 0px 0px 15px 0px rgba(34, 60, 80, 0.2);
   box-shadow: 0px 0px 15px 0px rgba(34, 60, 80, 0.2);
-  border-radius: 16px;
+  border-radius: 24px;
   max-width: 450px;
   display: inline-block;
   vertical-align: middle;
+}
+
+.iap-dialog-popup__danger {
+  background-color: var(--danger-color);
+  color: #fff;
 }
 
 .iap-dialog-popup--in {
@@ -37,25 +42,37 @@
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
+  text-align: left;
 }
 
 .iap-dialog-popup--title {
   width: 100%;
-  text-align: center;
-  margin-bottom: 12px;
+  font-size: 20px;
+  line-height: 28px;
+  margin-bottom: 8px;
+}
+
+.iap-dialog-popup--title+.iap-dialog-popup--content {
+  font-size: 15px;
+  line-height: 22px;
 }
 
 .iap-dialog-popup--content {
   width: 100%;
-  text-align: center;
-  margin-bottom: 34px;
+  margin-bottom: 32px;
+  font-size: 22px;
+  line-height: 30px;
+}
+
+.iap-dialog-popup--content-children {
+  margin-top: 28px;
 }
 
 .iap-dialog-popup--controls {
   width: 100%;
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
 }
 
 .iap-dialog-popup--controls button+button {

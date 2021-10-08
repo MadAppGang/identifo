@@ -10,9 +10,8 @@ export const isPhone = (value) => {
 
 export const getError = (axiosErr) => {
   if (axiosErr.response && axiosErr.response.data) {
-    return new Error(axiosErr.response.data.error);
+    return new Error(axiosErr.response.data.error || axiosErr);
   }
-
   return axiosErr;
 };
 

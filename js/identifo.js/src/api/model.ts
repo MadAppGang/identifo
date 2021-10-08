@@ -9,6 +9,12 @@ export enum TFAType {
   TFATypeSMS = 'sms',
   TFATypeEmail = 'email',
 }
+
+export enum TFAStatus {
+  DISABLED = 'disabled',
+  OPTIONAL = 'optional',
+  MANDATORY = 'mandatory',
+}
 export interface ApiRequestError {
   error: {
     detailed_message?: string;
@@ -54,6 +60,10 @@ export interface EnableTFAResponse {
   provisioning_qr?: string;
   access_token?: string;
 }
+export interface TokenResponse {
+  access_token?: string;
+  refresh_token?: string;
+}
 export interface AppSettingsResponse {
   anonymousResitrationAllowed: boolean;
   active: boolean;
@@ -63,6 +73,7 @@ export interface AppSettingsResponse {
   offline: boolean;
   registrationForbidden: boolean;
   tfaType: TFAType;
+  tfaStatus: TFAStatus;
   federatedProviders: string[];
 }
 
@@ -87,6 +98,10 @@ export interface UpdateUser {
 }
 export interface SuccessResponse {
   result: 'ok';
+}
+
+export interface TFARequiredRespopnse {
+  result: 'tfa-required';
 }
 
 export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';

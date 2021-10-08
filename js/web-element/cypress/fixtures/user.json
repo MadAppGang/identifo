@@ -1,0 +1,10 @@
+{
+  "username": "testusername",
+  "pswd": "Password",
+  "full_name": "Test User",
+  "scopes": [],
+  "access_role": "role",
+  "email": "test@test.com",
+  "phone": "",
+  "tfa_info": { "is_enabled": false }
+}

@@ -30,6 +30,10 @@ type ConfigurationStorage struct {
 func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the S3 bucket...")
 
+	if config.Type != model.ConfigStorageTypeS3 {
+		return nil, fmt.Errorf("Configuration file from S3 specifies configuration type %s", config.Type)
+	}
+
 	s3client, err := NewS3Client(config.S3.Region)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot initialize S3 client: %s.", err)
@@ -66,10 +70,6 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 	var settings model.ServerSettings
 	if err = yaml.NewDecoder(resp.Body).Decode(&settings); err != nil {
 		return model.ServerSettings{}, fmt.Errorf("Cannot decode S3 response: %s", err)
-	}
-
-	if settings.Config.Type != model.ConfigStorageTypeS3 {
-		return model.ServerSettings{}, fmt.Errorf("Configuration file from S3 specifies configuration type %s", settings.Config.Type)
 	}
 
 	settings.Config = cs.config

@@ -4,3 +4,10 @@ export const verificationStatuses = {
   success: 2,
   fail: 3,
 };
+
+export const notificationStatuses = {
+  idle: 0,
+  success: 1,
+  error: 2,
+  changed: 3,
+};

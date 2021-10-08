@@ -1,0 +1,18 @@
+describe('2fa mandatory registration', () => {
+  beforeEach(() => {
+    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
+    cy.appSet({ tfa_status: 'mandatory' });
+    cy.deleteTestUser();
+    cy.visitLogin();
+  });
+  it('open signup and register test email', () => {
+    cy.registerWithEmail();
+    cy.get('.tfa-setup__qr-code');
+    cy.contains('Go back to login');
+    cy.screenshot();
+    cy.get('button').contains('Continue').click();
+    cy.verifyTfa();
+    cy.contains('Success');
+    cy.screenshot();
+  });
+});

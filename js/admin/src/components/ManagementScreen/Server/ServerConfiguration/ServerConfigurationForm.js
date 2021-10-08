@@ -8,19 +8,18 @@ const separeteCamelCase = (str, separator = ' ') => str.replace(/[A-Z]/gm, match
 
 const ServerConfigurationForm = () => {
   const settings = useSelector(getSettingsConfig);
-
   return (
     <form className="iap-apps-form">
       <Field label="Storage Type">
         <Input
-          value={settings.type}
+          value={settings ? settings.type : ''}
           autoComplete="off"
           placeholder="Storage type"
           disabled
         />
       </Field>
 
-      {Object.keys(settings[settings.type]).map(key => (
+      {settings && Object.keys(settings[settings.type]).map(key => (
         <Field key={key} label={separeteCamelCase(key)}>
           <Input
             value={settings[settings.type][key]}

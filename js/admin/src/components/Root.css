@@ -2,9 +2,13 @@
 @import './fonts.css';
 
 :root {
-  --main-color: #3CA6F5; 
+  --main-color: #3CA6F5;
   --main-color-hover: #1B9CFC;
+  --green-color: #36A84F;
+  --green-color-disabled: #9AD3A7;
+  --green-snack-color: #65C58D;
   --main-font: 'Nunito';
+  --danger-color: #E46E61;
 }
 
 * {
@@ -14,8 +18,38 @@
   box-sizing: border-box;
 }
 
+pre {
+  font-size: 14px;
+  line-height: 22px;
+  border: 1px solid #D5E5F2;
+  box-sizing: border-box;
+  border-radius: 6px;
+  padding: 16px;
+  background: #FCFEFF;
+  overflow-x: auto;
+}
+
+pre code {
+  font-family: monospace;
+}
+
 /* react router dom link */
-.rrdl { 
+.rrdl {
   text-decoration: none;
   color: inherit;
+}
+
+.iap-notifications {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  position: fixed;
+  right: 20px;
+  bottom: 0px;
+  z-index: 999;
+  margin-bottom: 10px;
+}
+
+.iap-notifications > div  {
+  margin: 10px 0;
 }

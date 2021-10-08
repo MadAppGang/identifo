@@ -1,24 +1,37 @@
-import { ApiError, APIErrorCodes, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider } from '@identifo/identifo-auth-js';
+import { ApiError, APIErrorCodes, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider, TFAStatus } from '@identifo/identifo-auth-js';
 import { Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State } from '@stencil/core';
 
 export type Routes =
   | 'login'
   | 'register'
-  | 'tfa/verify'
-  | 'tfa/setup'
+  | 'tfa/verify/sms'
+  | 'tfa/verify/email'
+  | 'tfa/verify/app'
+  | 'tfa/verify/select'
+  | 'tfa/setup/sms'
+  | 'tfa/setup/email'
+  | 'tfa/setup/app'
+  | 'tfa/setup/select'
   | 'password/reset'
   | 'password/forgot'
+  | 'password/forgot/tfa/sms'
+  | 'password/forgot/tfa/email'
+  | 'password/forgot/tfa/app'
+  | 'password/forgot/tfa/select'
   | 'callback'
   | 'otp/login'
   | 'error'
   | 'password/forgot/success'
   | 'logout'
   | 'loading';
-
+export type TFASetupRoutes = 'tfa/setup/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app';
+export type TFALoginVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
+export type TFAResetVerifyRoutes = 'password/forgot/tfa/select' | 'password/forgot/tfa/sms' | 'password/forgot/tfa/email' | 'password/forgot/tfa/app';
 const emailRegex = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 
 @Component({
   tag: 'identifo-form',
+  styleUrl: '../../styles/identifo-form/main.scss',
   assetsDirs: ['assets'],
   shadow: false,
 })
@@ -27,7 +40,7 @@ export class IdentifoForm {
   @Prop() token: string;
   @Prop({ reflect: true }) appId: string;
   @Prop({ reflect: true }) url: string;
-  @Prop() theme: 'dark' | 'light' = 'light';
+  @Prop() theme: 'dark' | 'light' | 'auto' = 'auto';
   @Prop() scopes: string = '';
 
   // This url will be preserved when federated login will be completed
@@ -40,6 +53,8 @@ export class IdentifoForm {
 
   @Prop() debug: boolean;
 
+  @State() selectedTheme: 'dark' | 'light' = 'light';
+
   @State() auth: IdentifoAuth;
 
   @State() username: string;
@@ -48,9 +63,9 @@ export class IdentifoForm {
   @State() email: string;
   @State() registrationForbidden: boolean;
   @State() tfaCode: string;
-  @State() tfaType: TFAType;
-  @State() federatedProviders: string[];
-  @State() tfaMandatory: boolean;
+  @State() tfaTypes: TFAType[];
+  @State() federatedProviders: string[] = [];
+  @State() tfaStatus: TFAStatus;
   @State() provisioningURI: string;
   @State() provisioningQR: string;
   @State() success: boolean;
@@ -70,8 +85,17 @@ export class IdentifoForm {
   //   return format(this.first, this.middle, this.last);
   // }
   processError(e: ApiError) {
+    e.detailedMessage = e.detailedMessage?.trim();
+    e.message = e.message?.trim();
     this.lastError = e;
     this.error.emit(e);
+  }
+  redirectTfa(prefix: string): string {
+    if (this.tfaTypes.length === 1) {
+      return `${prefix}/${this.tfaTypes[0]}`;
+    } else {
+      return `${prefix}/select`;
+    }
   }
   afterLoginRedirect = (e: LoginResponse) => {
     this.phone = e.user.phone || '';
@@ -79,11 +103,14 @@ export class IdentifoForm {
     this.lastResponse = e;
     if (e.require_2fa) {
       if (!e.enabled_2fa) {
-        return 'tfa/setup';
+        return this.redirectTfa('tfa/setup') as TFASetupRoutes;
       }
       if (e.enabled_2fa) {
-        return 'tfa/verify';
+        return this.redirectTfa('tfa/verify') as TFALoginVerifyRoutes;
       }
+    }
+    if (this.tfaStatus === TFAStatus.OPTIONAL) {
+      return `tfa/setup/select`;
     }
     if (e.access_token && e.refresh_token) {
       return 'callback';
@@ -92,13 +119,16 @@ export class IdentifoForm {
       return 'callback';
     }
   };
-  loginCatchRedirect = (data: ApiError): 'tfa/setup' => {
+  loginCatchRedirect = (data: ApiError): TFASetupRoutes => {
     if (data.id === APIErrorCodes.PleaseEnableTFA) {
-      return 'tfa/setup';
+      return this.redirectTfa('tfa/setup') as TFASetupRoutes;
     }
     throw data;
   };
   async signIn() {
+    if (!this.validateEmail(this.email)) {
+      return;
+    }
     await this.auth.api
       .login(this.email, this.password, '', this.scopes.split(','))
       .then(this.afterLoginRedirect)
@@ -123,38 +153,55 @@ export class IdentifoForm {
       .catch(e => this.processError(e));
   }
   async verifyTFA() {
-    this.auth.api
-      .verifyTFA(this.tfaCode, [])
-      .then(() => this.openRoute('callback'))
-      .catch(e => this.processError(e));
-  }
-  async setupTFA() {
-    if (this.tfaType == TFAType.TFATypeSMS) {
-      try {
-        await this.auth.api.updateUser({ new_phone: this.phone });
-      } catch (e) {
-        this.processError(e);
-        return;
-      }
+    if (this.route.indexOf('password/forgot/tfa') === 0) {
+      this.auth.api
+        .requestResetPassword(this.email, this.tfaCode)
+        .then(() => {
+          this.success = true;
+          this.openRoute('password/forgot/success');
+        })
+        .catch(e => this.processError(e));
+    } else {
+      this.auth.api
+        .verifyTFA(this.tfaCode, [])
+        .then(() => this.openRoute('callback'))
+        .catch(e => this.processError(e));
     }
+  }
+  async selectTFA(type: TFAType) {
+    this.openRoute(`tfa/setup/${type}` as TFASetupRoutes);
+  }
+  async setupTFA(type: TFAType) {
+    switch (type) {
+      case TFAType.TFATypeApp:
+        break;
+      case TFAType.TFATypeEmail:
+        await this.auth.api.enableTFA();
+        break;
+      case TFAType.TFATypeSMS:
+        try {
+          await this.auth.api.updateUser({ new_phone: this.phone });
+        } catch (e) {
+          this.processError(e);
+          return;
+        }
+        await this.auth.api.enableTFA();
 
-    await this.auth.api.enableTFA().then(r => {
-      if (!r.provisioning_uri) {
-        this.openRoute('tfa/verify');
-      }
-      if (r.provisioning_uri) {
-        this.provisioningURI = r.provisioning_uri;
-        this.provisioningQR = r.provisioning_qr;
-        this.openRoute('tfa/verify');
-      }
-    });
+        break;
+    }
+    this.openRoute(`tfa/verify/${type}` as TFALoginVerifyRoutes);
   }
   restorePassword() {
     this.auth.api
       .requestResetPassword(this.email)
-      .then(() => {
-        this.success = true;
-        this.openRoute('password/forgot/success');
+      .then(response => {
+        if (response.result === 'tfa-required') {
+          this.openRoute(this.redirectTfa('password/forgot/tfa') as TFALoginVerifyRoutes);
+        }
+        if (response.result === 'ok') {
+          this.success = true;
+          this.openRoute('password/forgot/success');
+        }
       })
       .catch(e => this.processError(e));
   }
@@ -192,10 +239,17 @@ export class IdentifoForm {
   }
   validateEmail(email: string) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
+      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
       return false;
     }
     return true;
+  }
+  renderBackToLogin() {
+    return (
+      <a onClick={() => this.openRoute('login')} class="forgot-password__login">
+        Go back to login
+      </a>
+    );
   }
   renderRoute(route: Routes) {
     switch (route) {
@@ -204,9 +258,8 @@ export class IdentifoForm {
           <div class="login-form">
             {!this.registrationForbidden && (
               <p class="login-form__register-text">
-                Don't have an account?
+                Don't have an account?&nbsp;
                 <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                  {' '}
                   Sign Up
                 </a>
               </p>
@@ -214,7 +267,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingInput"
+              id="login"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -223,7 +276,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -232,7 +285,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -249,17 +302,17 @@ export class IdentifoForm {
                 <p class="social-buttons__text">or continue with</p>
                 <div class="social-buttons__social-medias">
                   {this.federatedProviders.indexOf('apple') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('apple')}>
+                    <div class="social-buttons__media social-buttons__apple" onClick={() => this.loginWith('apple')}>
                       <img src={getAssetPath(`assets/images/${'apple.svg'}`)} class="social-buttons__image" alt="login via apple" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('google') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('google')}>
+                    <div class="social-buttons__media social-buttons__google" onClick={() => this.loginWith('google')}>
                       <img src={getAssetPath(`assets/images/${'google.svg'}`)} class="social-buttons__image" alt="login via google" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('facebook') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('facebook')}>
+                    <div class="social-buttons__media social-buttons__facebook" onClick={() => this.loginWith('facebook')}>
                       <img src={getAssetPath(`assets/images/${'fb.svg'}`)} class="social-buttons__image" alt="login via facebook" />
                     </div>
                   )}
@@ -274,7 +327,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingInput"
+              id="login"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -283,7 +336,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -292,7 +345,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -300,9 +353,7 @@ export class IdentifoForm {
               <button onClick={() => this.signUp()} class="primary-button" disabled={!this.email || !this.password}>
                 Continue
               </button>
-              <a onClick={() => this.openRoute('login')} class="register-form__log-in">
-                Go back to login
-              </a>
+              {this.renderBackToLogin()}
             </div>
           </div>
         );
@@ -311,15 +362,14 @@ export class IdentifoForm {
           <div class="otp-login">
             {!this.registrationForbidden && (
               <p class="otp-login__register-text">
-                Don't have an account?
+                Don't have an account?&nbsp;
                 <a onClick={() => this.openRoute('register')} class="login-form__register-link">
-                  {' '}
                   Sign Up
                 </a>
               </p>
             )}
-            <input type="phone" class="form-control" id="floatingInput" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
-            <button onClick={() => this.openRoute('tfa/verify')} class="primary-button" disabled={!this.phone}>
+            <input type="phone" class="form-control" id="login" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
+            <button onClick={() => this.openRoute(this.redirectTfa('tfa/verify') as TFALoginVerifyRoutes)} class="primary-button" disabled={!this.phone}>
               Continue
             </button>
             {this.federatedProviders.length > 0 && (
@@ -327,17 +377,17 @@ export class IdentifoForm {
                 <p class="social-buttons__text">or continue with</p>
                 <div class="social-buttons__social-medias">
                   {this.federatedProviders.indexOf('apple') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('apple')}>
+                    <div class="social-buttons__media social-buttons__apple" onClick={() => this.loginWith('apple')}>
                       <img src={getAssetPath(`assets/images/${'apple.svg'}`)} class="social-buttons__image" alt="login via apple" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('google') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('google')}>
+                    <div class="social-buttons__media social-buttons__google" onClick={() => this.loginWith('google')}>
                       <img src={getAssetPath(`assets/images/${'google.svg'}`)} class="social-buttons__image" alt="login via google" />
                     </div>
                   )}
                   {this.federatedProviders.indexOf('facebook') > -1 && (
-                    <div class="social-buttons__media" onClick={() => this.loginWith('facebook')}>
+                    <div class="social-buttons__media social-buttons__facebook" onClick={() => this.loginWith('facebook')}>
                       <img src={getAssetPath(`assets/images/${'fb.svg'}`)} class="social-buttons__image" alt="login via facebook" />
                     </div>
                   )}
@@ -346,26 +396,30 @@ export class IdentifoForm {
             )}
           </div>
         );
-      case 'tfa/setup':
+      case 'tfa/verify/select':
+      case 'tfa/setup/select':
+      case 'password/forgot/tfa/select':
         return (
           <div class="tfa-setup">
-            <p class="tfa-setup__text">Protect your account with 2-step verification</p>
-            {this.tfaType === TFAType.TFATypeApp && (
-              <div class="info-card">
+            {this.route === 'tfa/verify/select' && <p class="tfa-setup__text">Select 2-step verification method</p>}
+            {this.route === 'tfa/setup/select' && <p class="tfa-setup__text">Protect your account with 2-step verification</p>}
+
+            {this.tfaTypes.includes(TFAType.TFATypeApp) && (
+              <div class="info-card info-card-app">
                 <div class="info-card__controls">
                   <p class="info-card__title">Authenticator app</p>
-                  <button type="button" class="info-card__button" onClick={() => this.setupTFA()}>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeApp)}>
                     Setup
                   </button>
                 </div>
                 <p class="info-card__text">Use the Authenticator app to get free verification codes, even when your phone is offline. Available for Android and iPhone.</p>
               </div>
             )}
-            {this.tfaType === TFAType.TFATypeEmail && (
-              <div class="info-card">
+            {this.tfaTypes.includes(TFAType.TFATypeEmail) && (
+              <div class="info-card info-card-email">
                 <div class="info-card__controls">
                   <p class="info-card__title">Email</p>
-                  <button type="button" class="info-card__button" onClick={() => this.setupTFA()}>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeEmail)}>
                     Setup
                   </button>
                 </div>
@@ -373,50 +427,115 @@ export class IdentifoForm {
                 <p class="info-card__text"> Use email as 2fa, please check your email, we will send confirmation code to this email.</p>
               </div>
             )}
-            {this.tfaType === TFAType.TFATypeSMS && (
+            {this.tfaTypes.includes(TFAType.TFATypeSMS) && (
+              <div class="info-card info-card-sms">
+                <div class="info-card__controls">
+                  <p class="info-card__title">SMS</p>
+                  <button type="button" class="info-card__button" onClick={() => this.selectTFA(TFAType.TFATypeSMS)}>
+                    Setup
+                  </button>
+                </div>
+                <p class="info-card__subtitle">{this.phone}</p>
+                <p class="info-card__text"> Use phone as 2fa, please check your phone, we will send confirmation code to this phone</p>
+              </div>
+            )}
+            {this.route === 'tfa/setup/select' && this.tfaStatus === TFAStatus.OPTIONAL && (
+              <a onClick={() => this.openRoute('callback')} class="forgot-password__login">
+                Setup next time
+              </a>
+            )}
+            {this.tfaStatus !== TFAStatus.OPTIONAL && this.renderBackToLogin()}
+          </div>
+        );
+      case 'tfa/setup/email':
+      case 'tfa/setup/sms':
+      case 'tfa/setup/app':
+        return (
+          <div class="tfa-setup">
+            <p class="tfa-setup__text">Protect your account with 2-step verification</p>
+            {this.route === 'tfa/setup/app' && (
+              <div class="tfa-setup__form">
+                <p class="tfa-setup__subtitle">Please scan QR-code with the app and click Continue</p>
+                <div class="tfa-setup__qr-wrapper">
+                  {!!this.provisioningURI && <img src={`data:image/png;base64, ${this.provisioningQR}`} alt={this.provisioningURI} class="tfa-setup__qr-code" />}
+                </div>
+                <button onClick={() => this.setupTFA(TFAType.TFATypeApp)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`}>
+                  Continue
+                </button>
+              </div>
+            )}
+            {this.route === 'tfa/setup/email' && (
+              <div class="tfa-setup__form">
+                <p class="tfa-setup__subtitle"> Use email as 2fa, please check your enail bellow, we will send confirmation code to this email</p>
+                <input
+                  type="email"
+                  class={`form-control ${this.lastError && 'form-control-danger'}`}
+                  id="email"
+                  value={this.email}
+                  placeholder="Email"
+                  onInput={event => this.emailChange(event as InputEvent)}
+                  onKeyPress={e => !!(e.key === 'Enter' && this.email) && this.setupTFA(TFAType.TFATypeEmail)}
+                />
+
+                {!!this.lastError && (
+                  <div class="error" role="alert">
+                    {this.lastError?.detailedMessage || this.lastError?.message}
+                  </div>
+                )}
+
+                <button onClick={() => this.setupTFA(TFAType.TFATypeEmail)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.email}>
+                  Setup email
+                </button>
+              </div>
+            )}
+            {this.route === 'tfa/setup/sms' && (
               <div class="tfa-setup__form">
                 <p class="tfa-setup__subtitle"> Use phone as 2fa, please check your phone bellow, we will send confirmation code to this phone</p>
                 <input
                   type="phone"
                   class={`form-control ${this.lastError && 'form-control-danger'}`}
-                  id="floatingInput"
+                  id="phone"
                   value={this.phone}
                   placeholder="Phone"
                   onInput={event => this.phoneChange(event as InputEvent)}
-                  onKeyPress={e => !!(e.key === 'Enter' && this.phone) && this.setupTFA()}
+                  onKeyPress={e => !!(e.key === 'Enter' && this.phone) && this.setupTFA(TFAType.TFATypeSMS)}
                 />
 
                 {!!this.lastError && (
                   <div class="error" role="alert">
-                    {this.lastError?.detailedMessage}
+                    {this.lastError?.detailedMessage || this.lastError?.message}
                   </div>
                 )}
 
-                <button onClick={() => this.setupTFA()} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.phone}>
+                <button onClick={() => this.setupTFA(TFAType.TFATypeSMS)} class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.phone}>
                   Setup phone
                 </button>
               </div>
             )}
+            {this.renderBackToLogin()}
           </div>
         );
-      case 'tfa/verify':
+      case 'tfa/verify/app':
+      case 'tfa/verify/email':
+      case 'tfa/verify/sms':
+      case 'password/forgot/tfa/app':
+      case 'password/forgot/tfa/email':
+      case 'password/forgot/tfa/sms':
         return (
           <div class="tfa-verify">
-            {!!(this.tfaType === TFAType.TFATypeApp) && (
+            {this.route.indexOf('app') > 0 && (
               <div class="tfa-verify__title-wrapper">
-                <h2 class={this.provisioningURI ? 'tfa-verify__title' : 'tfa-verify__title_mb-40'}>
-                  {!!this.provisioningURI ? 'Please scan QR-code with the app' : 'Use GoogleAuth as 2fa'}
-                </h2>
-                {!!this.provisioningURI && <img src={`data:image/png;base64, ${this.provisioningQR}`} alt={this.provisioningURI} class="tfa-verify__qr-code" />}
+                <h2 class="tfa-verify__title">Enter the code from authenticator app</h2>
+                <p class="tfa-verify__subtitle">Code will be generated by app</p>
               </div>
             )}
-            {!!(this.tfaType === TFAType.TFATypeSMS) && (
+            {this.route.indexOf('sms') > 0 && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your phone number</h2>
                 <p class="tfa-verify__subtitle">The code has been sent to {this.phone}</p>
               </div>
             )}
-            {!!(this.tfaType === TFAType.TFATypeEmail) && (
+            {this.route.indexOf('email') > 0 && (
               <div class="tfa-verify__title-wrapper">
                 <h2 class="tfa-verify__title">Enter the code sent to your email address</h2>
                 <p class="tfa-verify__subtitle">The email has been sent to {this.email}</p>
@@ -425,7 +544,7 @@ export class IdentifoForm {
             <input
               type="text"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingCode"
+              id="tfaCode"
               value={this.tfaCode}
               placeholder="Verify code"
               onInput={event => this.tfaCodeChange(event as InputEvent)}
@@ -434,13 +553,14 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
             <button type="button" class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.tfaCode} onClick={() => this.verifyTFA()}>
               Confirm
             </button>
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/forgot':
@@ -451,7 +571,7 @@ export class IdentifoForm {
             <input
               type="email"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingEmail"
+              id="email"
               value={this.email}
               placeholder="Email"
               onInput={event => this.emailChange(event as InputEvent)}
@@ -460,21 +580,24 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
             <button type="button" class={`primary-button ${this.lastError && 'primary-button-mt-32'}`} disabled={!this.email} onClick={() => this.restorePassword()}>
               Send the link
             </button>
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/forgot/success':
         return (
           <div class="forgot-password-success">
-            {this.theme === 'dark' && <img src={getAssetPath(`./assets/images/${'email-dark.svg'}`)} alt="email" class="forgot-password-success__image" />}
-            {this.theme === 'light' && <img src={getAssetPath(`./assets/images/${'email.svg'}`)} alt="email" class="forgot-password-success__image" />}
+            {this.selectedTheme === 'dark' && <img src={getAssetPath(`./assets/images/${'email-dark.svg'}`)} alt="email" class="forgot-password-success__image" />}
+            {this.selectedTheme === 'light' && <img src={getAssetPath(`./assets/images/${'email.svg'}`)} alt="email" class="forgot-password-success__image" />}
             <p class="forgot-password-success__text">We sent you an email with a link to create a new password</p>
+
+            {this.renderBackToLogin()}
           </div>
         );
       case 'password/reset':
@@ -485,7 +608,7 @@ export class IdentifoForm {
             <input
               type="password"
               class={`form-control ${this.lastError && 'form-control-danger'}`}
-              id="floatingPassword"
+              id="password"
               value={this.password}
               placeholder="Password"
               onInput={event => this.passwordChange(event as InputEvent)}
@@ -494,7 +617,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage}
+                {this.lastError?.detailedMessage || this.lastError?.message}
               </div>
             )}
 
@@ -533,14 +656,29 @@ export class IdentifoForm {
   }
 
   async componentWillLoad() {
+    var base = (document.querySelector('base') || {}).href;
+    this.route = window.location.pathname.replace(base, '').replace(/^\/|\/$/g, '') as Routes;
+    this.token = new URLSearchParams(window.location.search).get('token');
+
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-
-    this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
-
+    if (!this.appId) {
+      this.lastError = { message: 'app-id param is empty', name: 'app-id empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
+    if (!this.url) {
+      this.lastError = { message: 'url param is empty', name: 'url empty' };
+      this.error.emit(this.lastError);
+      this.route = 'error';
+      return;
+    }
     try {
+      this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
       const settings = await this.auth.api.getAppSettings();
       this.registrationForbidden = settings.registrationForbidden;
-      this.tfaType = settings.tfaType;
+      this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
+      this.tfaStatus = settings.tfaStatus;
       this.federatedProviders = settings.federatedProviders;
     } catch (err) {
       this.route = 'error';
@@ -553,7 +691,6 @@ export class IdentifoForm {
       const u = new URL(window.location.href);
       const sp = new URLSearchParams();
       const appId = href.searchParams.get('appId');
-
       sp.set('appId', appId);
       window.history.replaceState({}, document.title, `${u.pathname}?${sp.toString()}`);
       this.route = 'loading';
@@ -564,6 +701,18 @@ export class IdentifoForm {
         .then(route => this.openRoute(route))
         .catch(e => this.processError(e));
     }
+    // Auto theme select
+    this.selectedTheme = 'light';
+    if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      if (this.theme === 'auto') {
+        this.selectedTheme = 'dark';
+      }
+    }
+    window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', e => {
+      if (this.theme === 'auto') {
+        this.selectedTheme = e.matches ? 'dark' : 'light';
+      }
+    });
   }
 
   componentWillRender() {
@@ -576,12 +725,20 @@ export class IdentifoForm {
     if (this.route === 'logout') {
       this.complete.emit();
     }
+    if (this.route === 'tfa/setup/app') {
+      this.auth.api.enableTFA().then(r => {
+        if (r.provisioning_uri) {
+          this.provisioningURI = r.provisioning_uri;
+          this.provisioningQR = r.provisioning_qr;
+        }
+      });
+    }
   }
 
   render() {
     return (
       <Host>
-        <div class={{ 'wrapper': this.theme === 'light', 'wrapper-dark': this.theme === 'dark' }}>{this.renderRoute(this.route)}</div>
+        <div class={{ 'wrapper': this.selectedTheme === 'light', 'wrapper-dark': this.selectedTheme === 'dark' }}>{this.renderRoute(this.route)}</div>
         <div class="error-view">
           {this.debug && (
             <div>

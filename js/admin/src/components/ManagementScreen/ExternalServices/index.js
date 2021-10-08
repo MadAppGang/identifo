@@ -5,7 +5,6 @@ import { Tabs, Tab } from '~/components/shared/Tabs';
 import MailServiceSettings from './MailServiceSettings';
 import SmsServiceSettings from './SmsServiceSettings';
 import useProgressBar from '~/hooks/useProgressBar';
-import useNotifications from '~/hooks/useNotifications';
 import { getExternalServicesSettings } from '~/modules/settings/selectors';
 import { updateServerSettings } from '../../../modules/settings/actions';
 
@@ -14,7 +13,6 @@ const ExternalServicesSection = () => {
   const dispatch = useDispatch();
   const settings = useSelector(getExternalServicesSettings);
   const { progress, setProgress } = useProgressBar();
-  const { notifySuccess } = useNotifications();
 
   useEffect(() => {
     if (settings && progress) {
@@ -23,19 +21,11 @@ const ExternalServicesSection = () => {
   }, [settings]);
 
   const handleSubmit = async (service, value) => {
-    setProgress(70);
-
     const nextSettings = { externalServices: update(settings, {
       [service]: value,
     }) };
 
-    await dispatch(updateServerSettings(nextSettings));
-    notifySuccess({
-      title: 'Updated',
-      text: 'Settings have been updated successfully',
-    });
-
-    setProgress(100);
+    dispatch(updateServerSettings(nextSettings));
   };
 
   return (

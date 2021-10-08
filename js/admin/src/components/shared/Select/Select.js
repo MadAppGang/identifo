@@ -4,6 +4,7 @@ import useDropdown from 'use-dropdown';
 import DropdownIcon from '~/components/icons/DropdownIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import Input from '~/components/shared/Input';
+import classnames from 'classnames';
 
 const getDisplayValue = (value, children) => {
   const child = Children
@@ -19,7 +20,9 @@ const Select = (props) => {
   const { children, value, disabled, placeholder, errorMessage } = props;
   const [containerRef, isOpen, open, close] = useDropdown();
   const [loading, setLoading] = useState(false);
-
+  const iconClass = classnames('iap-select-icon', {
+    'iap-select-icon--disabled': disabled,
+  });
   useEffect(() => {
     if (loading) {
       setLoading(false);
@@ -40,13 +43,13 @@ const Select = (props) => {
         renderButton={() => {
           if (loading) {
             return (
-              <LoadingIcon className="iap-select-icon" />
+              <LoadingIcon className={iconClass} />
             );
           }
 
           return (
             <DropdownIcon
-              className="iap-select-icon"
+              className={iconClass}
               onClick={isOpen ? close : open}
             />
           );

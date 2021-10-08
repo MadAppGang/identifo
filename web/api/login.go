@@ -35,21 +35,22 @@ type AuthResponse struct {
 	CallbackUrl  string     `json:"callback_url,omitempty" bson:"callback_url,omitempty"`
 	Scopes       []string   `json:"scopes,omitempty" bson:"scopes,omitempty"`
 }
-
+type login struct {
+	Email    string `json:"email,omitempty"`
+	Username string `json:"username,omitempty"`
+	Phone    string `json:"phone,omitempty"`
+}
 type loginData struct {
-	Email       string   `json:"email,omitempty"`
-	Username    string   `json:"username,omitempty"`
-	Phone       string   `json:"phone,omitempty"`
+	login
 	Password    string   `json:"password,omitempty"`
 	DeviceToken string   `json:"device_token,omitempty"`
 	Scopes      []string `json:"scopes,omitempty"`
 }
 
-func (ld *loginData) validate() error {
+func (ld *login) validate() error {
 	emailLen := len(ld.Email)
 	phoneLen := len(ld.Phone)
 	usernameLen := len(ld.Username)
-	pswdLen := len(ld.Password)
 	if emailLen > 0 {
 		if phoneLen > 0 || usernameLen > 0 {
 			return fmt.Errorf("don't use phone or username when login with email")
@@ -74,8 +75,31 @@ func (ld *loginData) validate() error {
 			return fmt.Errorf("incorrect username length %d, expected a number between 6 and 130", usernameLen)
 		}
 	}
+	return nil
+}
+
+func (ld *loginData) validate() error {
+	if err := ld.login.validate(); err != nil {
+		return err
+	}
+	pswdLen := len(ld.Password)
 	if pswdLen < 6 || pswdLen > 50 {
 		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 130", pswdLen)
+	}
+	return nil
+}
+
+func (ar *Router) checkSupportedWays(l login) error {
+	if !ar.SupportedLoginWays.Email && len(l.Email) > 0 {
+		return fmt.Errorf("application does not support login with email")
+	}
+
+	if !ar.SupportedLoginWays.Phone && len(l.Phone) > 0 {
+		return fmt.Errorf("application does not support login with phone")
+	}
+
+	if !ar.SupportedLoginWays.Username && len(l.Username) > 0 {
+		return fmt.Errorf("application does not support login with username")
 	}
 	return nil
 }
@@ -93,18 +117,8 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		if !ar.SupportedLoginWays.Email && len(ld.Email) > 0 {
-			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, "Application does not support login with email", "LoginWithPassword.supportedLoginWays")
-			return
-		}
-
-		if !ar.SupportedLoginWays.Phone && len(ld.Phone) > 0 {
-			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, "Application does not support login with phone", "LoginWithPassword.supportedLoginWays")
-			return
-		}
-
-		if !ar.SupportedLoginWays.Username && len(ld.Username) > 0 {
-			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, "Application does not support login with username", "LoginWithPassword.supportedLoginWays")
+		if err := ar.checkSupportedWays(ld.login); err != nil {
+			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, err.Error(), "LoginWithPassword.unsupportedLoginWays")
 			return
 		}
 

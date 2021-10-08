@@ -3,8 +3,8 @@ package boltdb
 import (
 	"fmt"
 
-	"github.com/boltdb/bolt"
 	"github.com/madappgang/identifo/model"
+	bolt "go.etcd.io/bbolt"
 )
 
 type ConnectionTester struct {

@@ -44,13 +44,14 @@ const ServerJWTForm = (props) => {
 
     form.setValues(settings);
   }, [settings]);
-
   React.useEffect(() => {
     if (JSON.stringify(settings) !== JSON.stringify(form.values)) {
       onChange();
     }
   }, [settings, form.values]);
-  if (!form || !form.values.type) return null;
+
+  if (!form) return null;
+
   return (
     <form className="iap-apps-form" onSubmit={form.handleSubmit}>
       {!!error && (
@@ -60,7 +61,7 @@ const ServerJWTForm = (props) => {
       <Field label="Storage Type">
         <Select
           value={form.values.type}
-          disabled={loading}
+          disabled={loading || !form.values.type}
           onChange={value => form.setValue('type', value)}
           placeholder="Select storage type"
         >

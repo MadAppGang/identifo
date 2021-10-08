@@ -3,7 +3,11 @@
   margin: 50px 0;
 }
 
-.iap-tabs-tablist + .iap-apps-form {
+.iap-jwt-settings-form {
+  width: 450px;
+}
+
+.iap-tabs-tablist+.iap-apps-form {
   margin: 20px 0;
 }
 
@@ -18,7 +22,7 @@
   border-bottom: 1px solid #eee;
 }
 
-.iap-apps-form__provider > .iap-default-toggle {
+.iap-apps-form__provider>.iap-default-toggle {
   align-items: center;
 }
 
@@ -26,11 +30,11 @@
   border-bottom: none;
 }
 
-.iap-apps-form__provider > .iap-apps-form__note {
+.iap-apps-form__provider>.iap-apps-form__note {
   margin-bottom: 0;
 }
 
-.iap-apps-form__provider > .iap-default-toggle > span {
+.iap-apps-form__provider>.iap-default-toggle>span {
   font-size: 18px;
 }
 

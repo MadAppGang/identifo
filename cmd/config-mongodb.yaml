@@ -1,6 +1,6 @@
 general: # General server settings.
   port: 8081
-  host: http://localhost # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
+  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
   issuer: http://localhost # JWT tokens issuer.
 
 # Names of environment variables that store admin credentials.
