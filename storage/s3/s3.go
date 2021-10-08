@@ -13,11 +13,20 @@ import (
 // NewS3Client creates and returns new S3 client.
 func NewS3Client(region string) (*s3.S3, error) {
 	cfg := getConfig(region)
+	sess, err := NewSession(region)
+	if err != nil {
+		return nil, err
+	}
+	return s3.New(sess, cfg), nil
+}
+
+func NewSession(region string) (*session.Session, error) {
+	cfg := getConfig(region)
 	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
 	if err != nil {
 		return nil, fmt.Errorf("error creating new s3 session: %s", err)
 	}
-	return s3.New(sess, cfg), nil
+	return sess, err
 }
 
 func getConfig(region string) *aws.Config {

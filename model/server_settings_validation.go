@@ -195,7 +195,7 @@ func (css *ConfigStorageSettings) Validate() error {
 }
 
 // Validate validates login web app settings
-func (sfs *LoginWebAppSettings) Validate() error {
+func (sfs *FileStorageSettings) Validate() error {
 	subject := "LoginWebAppSettings"
 	if sfs == nil {
 		return fmt.Errorf("Nil %s", subject)
@@ -206,14 +206,14 @@ func (sfs *LoginWebAppSettings) Validate() error {
 	}
 
 	switch sfs.Type {
-	case LoginWebAppTypeNone:
+	case FileStorageTypeNone:
 		return nil
-	case LoginWebAppTypeLocal:
+	case FileStorageTypeLocal:
 		if len(sfs.Local.FolderPath) > 0 {
 			return fmt.Errorf("%s. empty folder", subject)
 		}
 		return nil
-	case LoginWebAppTypeS3:
+	case FileStorageTypeS3:
 		if len(sfs.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)
 		}
@@ -222,41 +222,6 @@ func (sfs *LoginWebAppSettings) Validate() error {
 		}
 		if len(sfs.S3.Bucket) == 0 {
 			return fmt.Errorf("%s. empty s3 bucket for login web app", subject)
-		}
-	default:
-		return fmt.Errorf("%s. Unknown type", subject)
-	}
-	return nil
-}
-
-// Validate validates email template storage settings
-func (sfs *EmailTemplatesSettings) Validate() error {
-	subject := "EmailTemplatesSettings"
-	if sfs == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
-
-	if len(sfs.Type) == 0 {
-		return fmt.Errorf("%s. Empty email templates sotrage type", subject)
-	}
-
-	switch sfs.Type {
-	case EmailTemplatesStorageTypeNone:
-		return nil
-	case EmailTemplatesStorageTypeLocal:
-		if len(sfs.Local.FolderPath) > 0 {
-			return fmt.Errorf("%s. empty folder", subject)
-		}
-		return nil
-	case EmailTemplatesStorageTypeS3:
-		if len(sfs.S3.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
-		}
-		if bucket := os.Getenv(identifoLoginWebAppBucket); len(bucket) != 0 {
-			sfs.S3.Bucket = bucket
-		}
-		if len(sfs.S3.Bucket) == 0 {
-			return fmt.Errorf("%s. empty s3 bucket for email templates", subject)
 		}
 	default:
 		return fmt.Errorf("%s. Unknown type", subject)

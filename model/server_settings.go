@@ -19,9 +19,9 @@ type ServerSettings struct {
 	KeyStorage     KeyStorageSettings     `yaml:"keyStorage" json:"key_storage"`
 	Config         ConfigStorageSettings  `yaml:"-" json:"config"`
 	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
-	LoginWebApp    LoginWebAppSettings    `yaml:"loginWebApp" json:"login_web_app"`
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
-	EmailTemplates EmailTemplatesSettings `yaml:"emailTemplaits" json:"email_templaits"`
+	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
+	EmailTemplates FileStorageSettings    `yaml:"emailTemplaits" json:"email_templaits"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -80,50 +80,36 @@ const (
 	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
 )
 
-type LoginWebAppSettings struct {
-	Type  LoginWebAppType                 `yaml:"type" json:"type"`
-	Local LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
-	S3    S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
+type FileStorageSettings struct {
+	Type  FileStorageType  `yaml:"type" json:"type"`
+	Local FileStorageLocal `yaml:"local,omitempty" json:"local,omitempty"`
+	S3    FileStorageS3    `yaml:"s3,omitempty" json:"s3,omitempty"`
 }
 
-type LoginWebAppType string
+type FileStorageType string
 
 const (
-	LoginWebAppTypeNone  LoginWebAppType = "none"
-	LoginWebAppTypeLocal LoginWebAppType = "local"
-	LoginWebAppTypeS3    LoginWebAppType = "s3"
+	FileStorageTypeNone  FileStorageType = "none"
+	FileStorageTypeLocal FileStorageType = "local"
+	FileStorageTypeS3    FileStorageType = "s3"
 )
 
-type EmailTemplatesSettings struct {
-	Type  EmailTemplatesStorageType       `yaml:"type" json:"type"`
-	Local LocalStaticFilesStorageSettings `yaml:"local,omitempty" json:"local,omitempty"`
-	S3    S3StaticFilesStorageSettings    `yaml:"s3,omitempty" json:"s3,omitempty"`
-}
-
-type EmailTemplatesStorageType string
-
-const (
-	EmailTemplatesStorageTypeNone  EmailTemplatesStorageType = "none"
-	EmailTemplatesStorageTypeLocal EmailTemplatesStorageType = "local"
-	EmailTemplatesStorageTypeS3    EmailTemplatesStorageType = "s3"
-)
-
-type S3StaticFilesStorageSettings struct {
+type FileStorageS3 struct {
 	Region string `yaml:"region" json:"region"`
 	Bucket string `yaml:"bucket" json:"bucket"`
 	Folder string `yaml:"folder" json:"folder"`
 }
 
-type LocalStaticFilesStorageSettings struct {
+type FileStorageLocal struct {
 	FolderPath string `yaml:"folder" json:"folder"`
 }
 
 type ConfigStorageSettings struct {
-	Type      ConfigStorageType    `json:"type"`
-	RawString string               `json:"raw_string"`
-	S3        *S3StorageSettings   `json:"s3"`
-	File      *FileStorageSettings `json:"file"`
-	Etcd      *EtcdStorageSettings `json:"etcd"`
+	Type      ConfigStorageType         `json:"type"`
+	RawString string                    `json:"raw_string"`
+	S3        *S3StorageSettings        `json:"s3"`
+	File      *LocalFileStorageSettings `json:"file"`
+	Etcd      *EtcdStorageSettings      `json:"etcd"`
 }
 
 // ConfigStorageType describes type of configuration storage.
@@ -311,7 +297,7 @@ type LoggerSettings struct {
 	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
 }
 
-type FileStorageSettings struct {
+type LocalFileStorageSettings struct {
 	// just a file name
 	FileName string `yaml:"file_name" json:"file_name" bson:"file_name"`
 }
@@ -332,21 +318,6 @@ type EtcdStorageSettings struct {
 type AdminPanelSettings struct {
 	Enabled bool `json:"enabled" yaml:"enabled"`
 }
-
-type TemplateStorageSettings struct {
-	Type TemplateStorageType `json:"type" yaml:"type"`
-	S3   S3StorageSettings   `json:"s3" yaml:"s3"`
-	File FileStorageSettings `json:"file" yaml:"file"`
-	ZIP  FileStorageSettings `json:"zip" yaml:"zip"`
-}
-
-type TemplateStorageType string
-
-const (
-	TemplateStorageTypeLocal   = "local"
-	TemplateStorageTypeS3      = "s3"
-	TemplateStorageTypeZIPFile = "zip"
-)
 
 func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, error) {
 	// Parse the URL and ensure there are no errors.
@@ -402,7 +373,7 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 	return ConfigStorageSettings{
 		Type:      ConfigStorageTypeFile,
 		RawString: config,
-		File: &FileStorageSettings{
+		File: &LocalFileStorageSettings{
 			FileName: filename,
 		},
 	}, nil
