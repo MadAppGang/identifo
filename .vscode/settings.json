@@ -9,28 +9,5 @@
     "mongodb",
     "nexmo",
     "twilio"
-  ],
-  "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#83ac92",
-    "activityBar.activeBorder": "#eeecf2",
-    "activityBar.background": "#83ac92",
-    "activityBar.foreground": "#15202b",
-    "activityBar.inactiveForeground": "#15202b99",
-    "activityBarBadge.background": "#eeecf2",
-    "activityBarBadge.foreground": "#15202b",
-    "statusBar.background": "#659777",
-    "statusBar.foreground": "#15202b",
-    "statusBarItem.hoverBackground": "#51785f",
-    "titleBar.activeBackground": "#659777",
-    "titleBar.activeForeground": "#15202b",
-    "titleBar.inactiveBackground": "#65977799",
-    "titleBar.inactiveForeground": "#15202b99",
-    "editorGroup.border": "#83ac92",
-    "panel.border": "#83ac92",
-    "sash.hoverBorder": "#83ac92",
-    "sideBar.border": "#83ac92",
-    "statusBarItem.remoteBackground": "#659777",
-    "statusBarItem.remoteForeground": "#15202b"
-  },
-  "peacock.color": "#659777"
+  ]
 }
