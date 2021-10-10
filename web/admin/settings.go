@@ -17,9 +17,9 @@ type ServerSettingsAPI struct {
 	KeyStorage     *model.KeyStorageSettings     `json:"keyStorage,omitempty"`
 	Config         *model.ConfigStorageSettings  `json:"config,omitempty"`
 	Logger         *model.LoggerSettings         `json:"logger,omitempty"`
-	LoginWebApp    *model.LoginWebAppSettings    `json:"login_web_app"`
 	AdminPanel     *model.AdminPanelSettings     `json:"admin_panel"`
-	EmailTemplates *model.EmailTemplatesSettings `json:"email_templaits"`
+	LoginWebApp    *model.FileStorageSettings    `json:"login_web_app"`
+	EmailTemplates *model.FileStorageSettings    `json:"email_templaits"`
 }
 
 type StorageSettingsAPI struct {

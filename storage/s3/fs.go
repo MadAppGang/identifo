@@ -15,7 +15,3 @@ func NewFS(settings model.FileStorageS3) (fs.FS, error) {
 	}
 	return s3fs.New(s3.New(session), settings.Bucket), nil
 }
-
-type fsWithPath struct{}
-
-// name := filepath.Join(c.Root, filepath.Clean("/"+p)) // "/"+ for security. TODO: Jack: it is not clear why adding leading slash providing extra security
