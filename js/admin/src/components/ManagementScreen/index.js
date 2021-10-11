@@ -31,7 +31,6 @@ const ManagementScreen = () => {
   const dialogConfig = useSelector(s => s.notifications.settingsDialog);
   const notificationSnack = useSelector(s => s.notifications.notificationSnack);
   useSettings();
-
   return (
     <div className="iap-management-layout">
       {/* iap-notifications is needed to render portal snack */}

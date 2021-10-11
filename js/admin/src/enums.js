@@ -15,3 +15,12 @@ export const notificationStatuses = {
 export const localStorageKeys = {
   markdown: 'iap-markdown',
 };
+
+export const tabGroups = {
+  server_group: 'server_group',
+  account_group: 'account_group',
+  storages_group: 'storages_group',
+  external_services_group: 'external_services_group',
+  apple_integration_group: 'apple_integration_group',
+  edit_app_group: 'edit_app_group',
+};

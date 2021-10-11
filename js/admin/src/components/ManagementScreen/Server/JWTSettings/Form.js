@@ -1,19 +1,16 @@
 import copy from 'copy-to-clipboard';
 import React, { useEffect, useState } from 'react';
 import CopyIcon from '~/components/icons/CopyIcon';
+import EditIcon from '~/components/icons/EditIcon';
 import KeyIcon from '~/components/icons/Key';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import SaveIcon from '~/components/icons/SaveIcon';
 import PaswordIcon from '~/components/icons/ShowPassword';
 import Button from '~/components/shared/Button';
-import { CollapseItem, CollapseLinks } from '~/components/shared/CollapseLink/CollapseLink';
 import Field from '~/components/shared/Field';
 import FormErrorMessage from '~/components/shared/FormErrorMessage';
 import Input from '~/components/shared/Input';
 import useForm from '~/hooks/useForm';
-import Markdown from 'markdown-to-jsx';
-import { mardownNames } from '~/markdowns/markdownNames';
-import EditIcon from '~/components/icons/EditIcon';
 
 const validationSchema = (values) => {
   const errors = {};
@@ -39,7 +36,7 @@ const FormFooter = ({ changing, loading, error, onGenerateKey, onEdit, onCancel 
         error={!loading && !!error}
         key="edit"
       >
-          Edit
+        Edit
       </Button>
     );
   }
@@ -52,7 +49,7 @@ const FormFooter = ({ changing, loading, error, onGenerateKey, onEdit, onCancel 
         error={!loading && !!error}
         key="submit"
       >
-          Save Changes
+        Save Changes
       </Button>
       <Button
         type="button"
@@ -62,7 +59,7 @@ const FormFooter = ({ changing, loading, error, onGenerateKey, onEdit, onCancel 
         key="generate"
         error
       >
-          Generate Key
+        Generate Key
       </Button>
       <Button
         type="button"
@@ -71,7 +68,7 @@ const FormFooter = ({ changing, loading, error, onGenerateKey, onEdit, onCancel 
         key="cancel"
         transparent
       >
-          Cancel
+        Cancel
       </Button>
     </>
   );
@@ -82,7 +79,6 @@ export const JWTSettingsForm = ({
   onGenerateKey, onSubmit,
 }) => {
   const form = useForm(initialValues, validationSchema, onSubmit);
-  const [keysInstr, setKeysInstr] = useState('');
   const [changing, setChanging] = useState(false);
 
   const showPasswordHandler = async () => {
@@ -105,12 +101,6 @@ export const JWTSettingsForm = ({
       form.setValues(settings);
     }
   }, [settings]);
-
-  useEffect(() => {
-    fetch(mardownNames.generateKeys)
-      .then(res => res.text())
-      .then(r => setKeysInstr(r));
-  }, []);
 
   return (
     <form className="iap-apps-form iap-jwt-settings-form" onSubmit={form.handleSubmit}>
@@ -157,11 +147,6 @@ export const JWTSettingsForm = ({
           disabled
         />
       </Field>
-      <CollapseLinks accordion activeTitle>
-        <CollapseItem title="How to generate private key with openssl">
-          <Markdown>{keysInstr}</Markdown>
-        </CollapseItem>
-      </CollapseLinks>
       <footer className="iap-apps-form__footer">
         <FormFooter
           changing={changing}

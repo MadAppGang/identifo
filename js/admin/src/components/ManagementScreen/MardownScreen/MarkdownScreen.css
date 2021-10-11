@@ -46,3 +46,78 @@
 .iap-markdown-screen__back-btn:hover svg * {
     stroke: var(--main-color-hover);
 }
+
+
+/* markdown file styles */
+
+.iap-markdown-screen__content h1,
+.iap-markdown-screen__content h2,
+.iap-markdown-screen__content h3,
+.iap-markdown-screen__content h4,
+.iap-markdown-screen__content h5,
+.iap-markdown-screen__content h6 {
+    padding: 10px 0;
+}
+
+.iap-markdown-screen__content p {
+    line-height: 32px;
+    margin-bottom: 8px;
+}
+
+.iap-markdown-screen__content ul {
+    padding-left: 30px;
+    margin: 8px 0;
+}
+
+.iap-markdown-screen__content ul li {
+    line-height: 32px;
+}
+
+.iap-markdown-screen__content a {
+    color: var(--main-color);
+}
+
+.iap-markdown-screen__content pre {
+    margin: 12px 0;
+}
+
+.iap-markdown-screen__content table {
+    border-collapse: collapse;
+    border: 1px solid #ddd
+}
+
+.iap-markdown-screen__content table thead th {
+    border-right: 1px solid #ddd;
+}
+
+.iap-markdown-screen__content table th,
+.iap-markdown-screen__content table td {
+    padding: 8px;
+}
+
+.iap-markdown-screen__content table tbody tr+tr {
+    border-top: 1px solid #ddd;
+}
+
+.iap-markdown-screen__content table tbody tr:nth-child(2n) {
+    background-color: #f9f9f9;
+}
+
+.iap-markdown-screen__content table tbody tr td {
+    border-right: 1px solid #ddd;
+}
+
+.iap-markdown-screen__content table thead {
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+}
+
+
+.iap-markdown-screen__content blockquote {
+    font-style: italic;
+    border-left: 3px solid var(--main-color);
+}
+
+.iap-markdown-screen__content blockquote p {
+    padding-left: 12px;
+}
