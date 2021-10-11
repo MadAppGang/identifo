@@ -656,8 +656,9 @@ export class IdentifoForm {
   }
 
   async componentWillLoad() {
-    var base = (document.querySelector('base') || {}).href;
-    this.route = window.location.pathname.replace(base, '').replace(/^\/|\/$/g, '') as Routes;
+    // const base = (document.querySelector('base') || {}).href;
+    // const path = window.location.href.split('?')[0];
+    // this.route = path.replace(base, '').replace(/^\/|\/$/g, '') as Routes;
     this.token = new URLSearchParams(window.location.search).get('token');
 
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
