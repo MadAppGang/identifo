@@ -77,7 +77,12 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	email, err := mail.NewService(settings.Services.Email, static)
+	emailTemplateFS, err := storage.NewFS(settings.EmailTemplates)
+	if err != nil {
+		return nil, err
+	}
+
+	email, err := mail.NewService(settings.Services.Email, emailTemplateFS)
 	if err != nil {
 		return nil, err
 	}

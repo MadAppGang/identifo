@@ -12,5 +12,5 @@ type EmailTransport interface {
 
 type EmailData struct {
 	User User
-	Data map[string]interface{}
+	Data interface{}
 }

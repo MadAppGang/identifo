@@ -1,1 +1,1 @@
-I am email template 1
+I am email template {{.Title}}

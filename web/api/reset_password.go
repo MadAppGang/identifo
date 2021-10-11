@@ -100,15 +100,28 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
 
-		resetEmailData := model.ResetEmailData{
+		resetEmailData := ResetEmailData{
 			User:  user,
 			Token: resetTokenString,
 			URL:   u.String(),
 			Host:  uu.String(),
 		}
 
-		if err = ar.server.Services().Email.SendResetEmail("Reset Password", d.Email, resetEmailData); err != nil {
-			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail")
+		if err = ar.server.Services().Email.SendTemplateEmail(
+			model.EmailTemplateTypeResetPassword,
+			"Reset Password",
+			d.Email,
+			model.EmailData{
+				User: user,
+				Data: resetEmailData,
+			},
+		); err != nil {
+			ar.Error(
+				w,
+				ErrorAPIEmailNotSent,
+				http.StatusInternalServerError,
+				"Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail",
+			)
 			return
 		}
 

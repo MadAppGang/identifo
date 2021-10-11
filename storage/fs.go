@@ -34,8 +34,6 @@ type RootReplacedFS struct {
 
 // we add root path every time we want to open the file
 func (f *RootReplacedFS) Open(name string) (fs.File, error) {
-	fmt.Println("trying to open file:", name)
 	fn := filepath.Join(f.Root, filepath.Clean("/"+name))
-	fmt.Println("trying to open file instead:", fn)
 	return f.FS.Open(fn)
 }
