@@ -174,7 +174,7 @@ export class IdentifoForm {
   }
   validateEmail(email) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
+      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
       return false;
     }
     return true;
@@ -192,7 +192,7 @@ export class IdentifoForm {
             h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))),
           h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }),
           h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }),
-          !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_a = this.lastError) === null || _a === void 0 ? void 0 : _a.detailedMessage) || ((_b = this.lastError) === null || _b === void 0 ? void 0 : _b.message))),
+          !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_a = this.lastError) === null || _a === void 0 ? void 0 : _a.message) || ((_b = this.lastError) === null || _b === void 0 ? void 0 : _b.detailedMessage))),
           h("div", { class: `login-form__buttons ${!!this.lastError ? 'login-form__buttons_mt-32' : ''}` },
             h("button", { onClick: () => this.signIn(), class: "primary-button", disabled: !this.email || !this.password }, "Login"),
             h("a", { onClick: () => this.openRoute('password/forgot'), class: "login-form__forgot-pass" }, "Forgot password")),

@@ -35,7 +35,8 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err == model.ErrUserNotFound {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestResetPassword.UserExists")
+			result := map[string]string{"result": "ok"}
+			ar.ServeJSON(w, http.StatusOK, result)
 			return
 		} else if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
