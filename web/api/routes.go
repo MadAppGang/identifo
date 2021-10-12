@@ -98,6 +98,9 @@ func (ar *Router) initRoutes() {
 
 	oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
 	oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods("GET")
-	oidc.Path("/apple-developer-domain-association.txt").HandlerFunc(ar.ServeADDAFile()).Methods("GET")
-	oidc.Path("/apple-app-site-association").HandlerFunc(ar.ServeAASAFile()).Methods("GET")
+
+	// apple native integration
+	// TODO: Jack reimplement it completely
+	// oidc.Path("/apple-developer-domain-association.txt").HandlerFunc(ar.ServeADDAFile()).Methods("GET")
+	// oidc.Path("/apple-app-site-association").HandlerFunc(ar.ServeAASAFile()).Methods("GET")
 }

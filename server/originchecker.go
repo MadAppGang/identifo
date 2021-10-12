@@ -1,10 +1,12 @@
-package originchecker
+package server
 
 import (
 	"fmt"
 	"net/http"
 	"net/url"
 	"sync"
+
+	"github.com/madappgang/identifo/model"
 )
 
 // OriginChecker holds user's AllowOriginRequestFunc and checks dynamically
@@ -17,7 +19,7 @@ type OriginChecker struct {
 }
 
 // NewOriginChecker creates new instance of an OriginChecker.
-func NewOriginChecker() *OriginChecker {
+func NewOriginChecker() model.OriginChecker {
 	originChecker := &OriginChecker{
 		origins: make(map[string]struct{}),
 		checks:  make([]func(r *http.Request, origin string) bool, 1),
@@ -78,7 +80,7 @@ func (os *OriginChecker) DeleteAll() {
 }
 
 // With adds AllowOriginRequestFunc to list of checks.
-func (os *OriginChecker) With(f func(r *http.Request, origin string) bool) *OriginChecker {
+func (os *OriginChecker) With(f func(r *http.Request, origin string) bool) model.OriginChecker {
 	os.checks = append(os.checks, f)
 	return os
 }

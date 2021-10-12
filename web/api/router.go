@@ -8,7 +8,6 @@ import (
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/madappgang/identifo/web/authorization"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
@@ -51,7 +50,7 @@ func HostOption(host string) func(*Router) error {
 }
 
 // CorsOption sets cors option.
-func CorsOption(corsOptions model.CorsOptions, originChecker *originchecker.OriginChecker) func(*Router) error {
+func CorsOption(corsOptions model.CorsOptions, originChecker model.OriginChecker) func(*Router) error {
 	return func(r *Router) error {
 		if corsOptions.API != nil {
 			if originChecker != nil {

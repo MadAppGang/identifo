@@ -12,6 +12,13 @@ import (
 	"github.com/madappgang/identifo/web/html"
 )
 
+const (
+	adminpanelPath    = "/adminpanel"
+	adminpanelAPIPath = "/admin"
+	apiPath           = "/api"
+	loginAppPath      = "/web"
+)
+
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
 	Server              model.Server
@@ -29,15 +36,12 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	var err error
 	authorizer := authorization.NewAuthorizer()
 
-	r.APIRouterPath = "/api"
-	r.WebRouterPath = "/web"
-
 	r.APIRouter, err = api.NewRouter(
 		settings.Server,
 		settings.Logger,
 		authorizer,
 		settings.LoggerSettings,
-		append(settings.APIRouterSettings, api.WebRouterPrefixOption(r.WebRouterPath))...,
+		settings.APIRouterSettings...,
 	)
 	if err != nil {
 		return nil, err
@@ -54,25 +58,26 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	}
 
 	if settings.ServeAdminPanel {
+		// init admin panel api router
 		r.AdminRouter, err = admin.NewRouter(
 			settings.Server,
 			settings.Logger,
-			append(settings.AdminRouterSettings, admin.WebRouterPrefixOption(r.WebRouterPath))...,
+			settings.AdminRouterSettings...,
 		)
 		if err != nil {
 			return nil, err
 		}
-		r.AdminRouterPath = "/admin"
-
-		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.Server.Storages().Static)
+		r.AdminRouterPath = adminpanelAPIPath
+		// init admin panel web app
+		r.AdminPanelRouter, err = adminpanel.NewRouter()
 		if err != nil {
 			return nil, err
 		}
-		r.AdminPanelRouterPath = "/adminpanel"
+		r.AdminPanelRouterPath = adminpanelPath
 	}
 
-	r.APIRouterPath = "/api"
-	r.WebRouterPath = "/web"
+	r.APIRouterPath = apiPath
+	r.WebRouterPath = loginAppPath
 
 	r.setupRoutes()
 	return &r, nil

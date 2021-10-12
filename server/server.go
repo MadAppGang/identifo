@@ -6,7 +6,6 @@ import (
 	"os"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/madappgang/identifo/web"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
@@ -41,7 +40,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		hostName = settings.General.Host
 	}
 
-	originChecker := originchecker.NewOriginChecker()
+	originChecker := NewOriginChecker()
 
 	// validate, try to fetch apps
 	apps, _, err := storages.App.FetchApps("", 0, 0)
@@ -57,10 +56,9 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 
 	routerSettings := web.RouterSetting{
 		Server:          &s,
-		ServeAdminPanel: settings.Static.ServeAdminPanel,
+		ServeAdminPanel: settings.AdminPanel.Enabled,
 		WebRouterSettings: []func(*html.Router) error{
 			html.HostOption(hostName),
-			// html.StaticFilesStorageSettings(&settings.StaticFilesStorage),
 			html.CorsOption(defaultCors),
 		},
 		APIRouterSettings: []func(*api.Router) error{
@@ -127,5 +125,4 @@ func (s *Server) Close() {
 	s.storages.Blocklist.Close()
 	s.storages.Token.Close()
 	s.storages.Verification.Close()
-	s.storages.Static.Close()
 }
