@@ -10,6 +10,14 @@ describe('simple reset password without tfa', () => {
     cy.contains('Go back to login');
     cy.screenshot();
   });
+  it('forgot by unexist email', () => {
+    cy.contains('Forgot password').click();
+    cy.get('#email').click().type('fake@email.com');
+    cy.screenshot();
+    cy.contains('Send the link').click();
+    cy.contains('We sent you an email with a link to create a new password');
+    cy.contains('Go back to login');
+  });
   it('forgot by email', () => {
     cy.contains('Forgot password').click();
     cy.get('#email').click().type('test@test.com');

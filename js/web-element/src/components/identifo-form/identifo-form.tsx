@@ -239,7 +239,7 @@ export class IdentifoForm {
   }
   validateEmail(email: string) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
+      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
       return false;
     }
     return true;
@@ -285,7 +285,7 @@ export class IdentifoForm {
 
             {!!this.lastError && (
               <div class="error" role="alert">
-                {this.lastError?.detailedMessage || this.lastError?.message}
+                {this.lastError?.message || this.lastError?.detailedMessage}
               </div>
             )}
 
