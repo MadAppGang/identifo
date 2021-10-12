@@ -62,7 +62,7 @@ func (w *Watcher) runWatch() {
 			}
 			log.Println("file watcher error:", err)
 			w.err <- err
-		case _ = <-w.done:
+		case <-w.done:
 			log.Println("file watcher received signal to stop watching")
 		}
 	}

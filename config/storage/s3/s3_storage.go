@@ -142,20 +142,18 @@ func NewS3Client(region, endpoint string) (*s3.S3, error) {
 }
 
 func getConfig(region, endpoint string) *aws.Config {
-	cfg := aws.NewConfig()
-
-	cfg.WithHTTPClient(&http.Client{
-		Timeout: 10 * time.Second,
-	})
-
-	if len(region) > 0 {
-		cfg.WithRegion(region)
-	}
-
-	cfg.WithCredentialsChainVerboseErrors(true)
+	cfg := aws.NewConfig().
+		WithHTTPClient(&http.Client{
+			Timeout: 10 * time.Second,
+		}).
+		WithCredentialsChainVerboseErrors(true)
 
 	if len(endpoint) > 0 {
 		cfg.WithEndpoint(endpoint)
+	}
+
+	if len(region) > 0 {
+		cfg.WithRegion(region)
 	}
 
 	return cfg

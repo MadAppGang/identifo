@@ -25,13 +25,14 @@ publish: docker_image
 
 
 test.all: ## run all tests including integration ones, see readme for information how to set up local test environment
-	env IDENTIFO_TEST_INGRATION=1 \
-		IDENTIFO_TEST_AWS_ENDPOINT="http://localhost:5000" \
-		AWS_ACCESS_KEY_ID='testing' \
-		AWS_SECRET_ACCESS_KEY='testing' \
-		AWS_SECURITY_TOKEN='testing' \
-		AWS_SESSION_TOKEN='testing' \
-		go test -race ./...
+	cd test && ./test.sh
 
-test.local: ## run tests except integration ones
+test.module: ## run tests except integration ones
 	go test -race ./...
+
+
+build:
+	go build -o ./identifo
+
+lint:
+	golangci-lint run -D deadcode,errcheck,unused,varcheck,govet
