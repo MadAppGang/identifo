@@ -83,7 +83,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.M{"_id": hexID.Hex()}).Decode(&u); err != nil {
-		return model.User{}, err
+		return model.User{}, model.ErrUserNotFound
 	}
 	return u, nil
 }
@@ -100,7 +100,7 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.M{"email": email}).Decode(&u); err != nil {
-		return model.User{}, err
+		return model.User{}, model.ErrUserNotFound
 	}
 	// clear password hash
 	u.Pswd = ""
@@ -267,11 +267,23 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	if err != nil {
 		return model.User{}, err
 	}
+	oldUser, err := us.UserByID(userID)
+	if err != nil {
+		return model.User{}, err
+	}
 
 	newUser.Email = strings.ToLower(newUser.Email)
 	newUser.Username = strings.ToLower(newUser.Username)
 	// use ID from the request
 	newUser.ID = userID
+
+	if newUser.Pswd == "" {
+		newUser.Pswd = oldUser.Pswd
+	}
+
+	if newUser.TFAInfo.Secret == "" {
+		newUser.TFAInfo.Secret = oldUser.TFAInfo.Secret
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
@@ -374,7 +386,13 @@ func (us *UserStorage) DeleteUser(id string) error {
 func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model.User, int, error) {
 	q := bson.D{}
 	if len(filterString) > 0 {
-		q = bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: filterString, Options: "i"}}}
+		q = bson.D{
+			primitive.E{Key: "$or", Value: bson.A{
+				bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: filterString, Options: "i"}}},
+				bson.D{primitive.E{Key: "email", Value: primitive.Regex{Pattern: filterString, Options: "i"}}},
+				bson.D{primitive.E{Key: "phone", Value: primitive.Regex{Pattern: filterString, Options: "i"}}},
+			}},
+		}
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*us.timeout)

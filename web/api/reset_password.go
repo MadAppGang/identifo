@@ -40,6 +40,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		} else if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
+			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
