@@ -2,6 +2,8 @@ import user from '../fixtures/user.json';
 import app from '../fixtures/app.json';
 import server from '../fixtures/server.json';
 const adminUrl = `${Cypress.config('serverUrl')}/admin`;
+let appId = '';
+let userId = '';
 const login = () => {
   return fetch(`${adminUrl}/login`, {
     body: '{"email":"admin@admin.com","password":"password"}',
@@ -10,21 +12,8 @@ const login = () => {
     credentials: 'include',
   });
 };
-const getTestUser = async () => {
-  const testUser = await fetch(`${adminUrl}/users?search=test`, {
-    body: null,
-    method: 'GET',
-    mode: 'cors',
-    credentials: 'include',
-  })
-    .then(r => r.json())
-    .then(result => result.users[0]);
-  if (testUser) {
-    return testUser;
-  }
-};
-const deleteTestUser = async () => {
-  const testUser = await fetch(`${adminUrl}/users?search=test`, {
+const deleteTestUserBySearch = async () => {
+  const testUser = await fetch(`${adminUrl}/users?search=test@test.com`, {
     body: null,
     method: 'GET',
     mode: 'cors',
@@ -41,9 +30,59 @@ const deleteTestUser = async () => {
     });
   }
 };
+const deleteTestUser = async () => {
+  return fetch(`${adminUrl}/users/${userId}`, {
+    body: null,
+    method: 'DELETE',
+    mode: 'cors',
+    credentials: 'include',
+  });
+};
+const deleteTestApp = async () => {
+  return fetch(`${adminUrl}/apps/${appId}`, {
+    body: null,
+    method: 'DELETE',
+    mode: 'cors',
+    credentials: 'include',
+  });
+};
+// Init test user and app
+Cypress.Commands.add('createAppAndUser', async (createUser = true) => {
+  await login();
+  await deleteTestApp();
+  await deleteTestUser();
+  await deleteTestUserBySearch();
+  await fetch(`${adminUrl}/apps`, {
+    body: JSON.stringify({
+      ...app,
+    }),
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+  })
+    .then(r => r.json())
+    .then(result => (appId = result.id));
+  if (createUser) {
+    await fetch(`${adminUrl}/users/`, {
+      body: JSON.stringify({ ...user }),
+      method: 'POST',
+      mode: 'cors',
+      credentials: 'include',
+    })
+      .then(r => r.json())
+      .then(result => (userId = result.id));
+  }
+});
+// Cleanup test user and app
+Cypress.Commands.add('deleteAppAndUser', async data => {
+  await login();
+  await deleteTestApp();
+  await deleteTestUser();
+});
+// Change app settings
 Cypress.Commands.add('appSet', async data => {
   await login();
-  await fetch(`${adminUrl}/apps/${Cypress.config('appId')}`, {
+  await fetch(`${adminUrl}/apps/${appId}`, {
     body: JSON.stringify({
       ...app,
       ...data,
@@ -53,6 +92,7 @@ Cypress.Commands.add('appSet', async data => {
     credentials: 'include',
   });
 });
+// Change server login options
 Cypress.Commands.add('serverSetLoginOptions', async data => {
   await login();
   await fetch(`${adminUrl}/settings`, {
@@ -65,38 +105,36 @@ Cypress.Commands.add('serverSetLoginOptions', async data => {
   });
 });
 
+// Delete test user using search
+// Using on registration tests
 Cypress.Commands.add('deleteTestUser', async () => {
   await login();
-  await deleteTestUser();
+  await deleteTestUserBySearch();
 });
 
-Cypress.Commands.add('addTestUser', async data => {
+// Change user settings
+Cypress.Commands.add('userSet', async data => {
   await login();
-  await deleteTestUser();
-  const testUser = await fetch(`${adminUrl}/users/`, {
+  await fetch(`${adminUrl}/users/${userId}`, {
     body: JSON.stringify({ ...user, ...data }),
-    method: 'POST',
+    method: 'PUT',
     mode: 'cors',
     credentials: 'include',
   });
 });
 
 Cypress.Commands.add('getResetTokenURL', async () => {
-  const user = await getTestUser();
-  if (user) {
-    const resetTokenData = await fetch(`${adminUrl}/users/generate_new_reset_token`, {
-      body: JSON.stringify({ user_id: user.id, app_id: Cypress.config('appId') }),
-      method: 'POST',
-      mode: 'cors',
-      credentials: 'include',
-    }).then(r => r.json());
-    return `${Cypress.config('baseUrl')}/password/reset/?appId=${Cypress.config('appId')}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
-  }
-  throw new Error("Can't open reset token");
+  const resetTokenData = await fetch(`${adminUrl}/users/generate_new_reset_token`, {
+    body: JSON.stringify({ user_id: userId, app_id: appId }),
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+  }).then(r => r.json());
+  return `${Cypress.config('baseUrl')}/password/reset/?appId=${appId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
 });
 
 Cypress.Commands.add('visitLogin', (orig, url, options) => {
-  return cy.visit(`${Cypress.config('baseUrl')}/login/?appId=${Cypress.config('appId')}&url=${Cypress.config('serverUrl')}`);
+  return cy.visit(`${Cypress.config('baseUrl')}/login/?appId=${appId}&url=${Cypress.config('serverUrl')}`);
 });
 Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password') => {
   cy.get('[placeholder=Email]').click().type(email);
@@ -120,15 +158,3 @@ Cypress.Commands.add('verifyTfa', (code = '0000') => {
   cy.screenshot();
   cy.contains('Confirm').click();
 });
-//
-//
-// -- This is a child command --
-// Cypress.Commands.add('drag', { prevSubject: 'element'}, (subject, options) => { ... })
-//
-//
-// -- This is a dual command --
-// Cypress.Commands.add('dismiss', { prevSubject: 'optional'}, (subject, options) => { ... })
-//
-//
-// -- This will overwrite an existing command --
-// Cypress.Commands.overwrite('visit', (originalFn, url, options) => { ... })

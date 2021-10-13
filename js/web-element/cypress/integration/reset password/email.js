@@ -1,8 +1,13 @@
 describe('simple reset password without tfa', () => {
+  before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
     cy.appSet({ tfa_status: 'disabled' });
-    cy.addTestUser();
     cy.visitLogin();
   });
   it('have back button', () => {

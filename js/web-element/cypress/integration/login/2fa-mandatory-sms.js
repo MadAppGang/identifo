@@ -1,11 +1,17 @@
 describe('2fa mandatory sms', () => {
-  beforeEach(() => {
+  before(() => {
+    cy.createAppAndUser();
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'sms' });
     cy.appSet({ tfa_status: 'mandatory' });
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
+  beforeEach(() => {
     cy.visitLogin();
   });
   it('2fa flow mandatory with empty phone', () => {
-    cy.addTestUser();
+    cy.userSet({});
     cy.loginWithEmail();
     cy.contains('Use phone as 2fa');
     cy.contains('Go back to login');
@@ -17,7 +23,7 @@ describe('2fa mandatory sms', () => {
     cy.screenshot();
   });
   it('2fa flow mandatory with phone filled', () => {
-    cy.addTestUser({ phone: '+0123456789' });
+    cy.userSet({ phone: '+0123456789' });
     cy.loginWithEmail();
     cy.contains('Use phone as 2fa');
     cy.contains('Go back to login');

@@ -1,8 +1,13 @@
 describe('simple login by email', () => {
   before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
+  before(() => {
     cy.serverSetLoginOptions({});
     cy.appSet({ tfa_status: 'disabled' });
-    cy.addTestUser();
   });
   it('login by email disabled', () => {
     cy.visitLogin();
