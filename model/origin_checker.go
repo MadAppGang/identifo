@@ -2,9 +2,10 @@ package model
 
 import "net/http"
 
+type OriginCheckFunc func(r *http.Request, origin string) bool
+
 type OriginChecker interface {
-	With(f func(r *http.Request, origin string) bool) OriginChecker
+	AddCheck(f OriginCheckFunc)
 	CheckOrigin(r *http.Request, origin string) bool
-	AddRawURLs(urls []string)
-	DeleteAll()
+	Update() error
 }

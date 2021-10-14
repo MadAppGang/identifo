@@ -150,17 +150,10 @@ func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
 }
 
 func (ar *Router) updateAllowedOrigins() error {
-	ar.originChecker.DeleteAll()
-
-	apps, _, err := ar.server.Storages().App.FetchApps("", 0, 0)
-	if err != nil {
-		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
+	if ar.originUpdate == nil {
+		return nil
 	}
-
-	for _, a := range apps {
-		ar.originChecker.AddRawURLs(a.RedirectURLs)
-	}
-	return nil
+	return ar.originUpdate()
 }
 
 func isBase64(s string) bool {

@@ -1,9 +1,10 @@
-package html
+package middleware
 
 import (
 	"context"
+	"log"
 	"net/http"
-	"path"
+	"os"
 	"strings"
 
 	"github.com/madappgang/identifo/model"
@@ -16,8 +17,12 @@ const (
 )
 
 // AppID gets app id from the request body.
-func (ar *Router) AppID() negroni.HandlerFunc {
-	errorPath := path.Join(ar.PathPrefix, "/misconfiguration")
+func AppID(errorPath string, appStorage model.AppStorage, logger *log.Logger) negroni.HandlerFunc {
+	// Setup logger to stdout.
+	if logger == nil {
+		logger = log.New(os.Stdout, "APP_ID_MIDDLEWARE: ", log.Ldate|log.Ltime|log.Lshortfile)
+	}
+
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		appID := ""
 
@@ -31,9 +36,9 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 			appID = strings.TrimSpace(r.FormValue(FormKeyAppID))
 		}
 
-		app, err := ar.Server.Storages().App.ActiveAppByID(appID)
+		app, err := appStorage.ActiveAppByID(appID)
 		if err != nil {
-			ar.Logger.Printf("Error: getting app by id. %s", err)
+			logger.Printf("Error: getting app by id. %s", err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}

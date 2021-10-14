@@ -31,80 +31,38 @@ type Router struct {
 	LoggerSettings       model.LoggerSettings
 }
 
-// ServeHTTP implements identifo.Router interface.
-func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// reroute to our internal implementation
-	ar.router.ServeHTTP(w, r)
-}
-
-func defaultOptions() []func(*Router) error {
-	return []func(*Router) error{}
-}
-
-// HostOption sets host value.
-func HostOption(host string) func(*Router) error {
-	return func(r *Router) error {
-		r.Host = host
-		return nil
-	}
-}
-
-// CorsOption sets cors option.
-func CorsOption(corsOptions model.CorsOptions, originChecker model.OriginChecker) func(*Router) error {
-	return func(r *Router) error {
-		if corsOptions.API != nil {
-			if originChecker != nil {
-				corsOptions.API.AllowOriginRequestFunc = originChecker.With(corsOptions.API.AllowOriginRequestFunc).CheckOrigin
-			}
-			r.cors = cors.New(*corsOptions.API)
-		}
-		return nil
-	}
-}
-
-// SupportedLoginWaysOption is for setting supported ways of logging in into the app.
-func SupportedLoginWaysOption(loginWays model.LoginWith) func(*Router) error {
-	return func(r *Router) error {
-		r.SupportedLoginWays = loginWays
-		return nil
-	}
-}
-
-// TFATypeOption is for setting two-factor authentication type.
-func TFATypeOption(tfaType model.TFAType) func(*Router) error {
-	return func(r *Router) error {
-		r.tfaType = tfaType
-		return nil
-	}
-}
-
-// WebRouterPrefixOption sets web prefix host value.
-func WebRouterPrefixOption(prefix string) func(*Router) error {
-	return func(r *Router) error {
-		r.WebRouterPrefix = prefix
-		return nil
-	}
+type RouterSettings struct {
+	Server         model.Server
+	Logger         *log.Logger
+	LoggerSettings model.LoggerSettings
+	Authorizer     *authorization.Authorizer
+	Host           string
+	Prefix         string
+	TFAType        model.TFAType
+	LoginWith      model.LoginWith
+	Cors           *cors.Cors
 }
 
 // NewRouter creates and inits new router.
-func NewRouter(server model.Server, logger *log.Logger, authorizer *authorization.Authorizer, loggerSettings model.LoggerSettings, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(settings RouterSettings) (*Router, error) {
 	ar := Router{
-		server:         server,
-		middleware:     negroni.Classic(),
-		router:         mux.NewRouter(),
-		Authorizer:     authorizer,
-		LoggerSettings: loggerSettings,
-	}
-
-	for _, option := range append(defaultOptions(), options...) {
-		if err := option(&ar); err != nil {
-			return nil, err
-		}
+		server:             settings.Server,
+		middleware:         negroni.New(negroni.NewLogger(), negroni.NewRecovery()),
+		router:             mux.NewRouter(),
+		Authorizer:         settings.Authorizer,
+		LoggerSettings:     settings.LoggerSettings,
+		Host:               settings.Host,
+		WebRouterPrefix:    settings.Prefix,
+		tfaType:            settings.TFAType,
+		SupportedLoginWays: settings.LoginWith,
+		cors:               settings.Cors,
 	}
 
 	// setup logger to stdout.
-	if logger == nil {
+	if settings.Logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
+	} else {
+		ar.logger = settings.Logger
 	}
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
@@ -118,6 +76,12 @@ func NewRouter(server model.Server, logger *log.Logger, authorizer *authorizatio
 	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
+}
+
+// ServeHTTP implements identifo.Router interface.
+func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	// reroute to our internal implementation
+	ar.middleware.ServeHTTP(w, r)
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user

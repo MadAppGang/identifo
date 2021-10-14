@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 	"os"
-	"path"
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
@@ -15,100 +14,52 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	server          model.Server
-	middleware      *negroni.Negroni
-	cors            *cors.Cors
-	originChecker   model.OriginChecker
-	logger          *log.Logger
-	router          *mux.Router
-	RedirectURL     string
-	PathPrefix      string
-	Host            string
-	WebRouterPrefix string
-	forceRestart    chan<- bool
+	server            model.Server
+	middleware        *negroni.Negroni
+	cors              *cors.Cors
+	logger            *log.Logger
+	router            *mux.Router
+	RedirectURL       string
+	PathPrefix        string
+	LoginWebAppPrefix string
+	Host              string
+	forceRestart      chan<- bool
+	originUpdate      func() error
 }
 
-func defaultOptions() []func(*Router) error {
-	return []func(*Router) error{
-		PathPrefixOptions("/admin"),
-		RedirectURLOption("/login"),
-	}
-}
-
-// HostOption sets host value.
-func HostOption(host string) func(*Router) error {
-	return func(r *Router) error {
-		r.Host = host
-		return nil
-	}
-}
-
-// CorsOption sets cors option.
-func CorsOption(corsOptions model.CorsOptions, originChecker model.OriginChecker) func(*Router) error {
-	return func(r *Router) error {
-		r.originChecker = originChecker
-
-		if corsOptions.Admin != nil {
-			r.cors = cors.New(*corsOptions.Admin)
-		}
-		return nil
-	}
-}
-
-// ForceRestartOption sets channel to send force restart command
-func ForceRestartOption(restartChan chan<- bool) func(*Router) error {
-	return func(r *Router) error {
-		r.forceRestart = restartChan
-		return nil
-	}
-}
-
-// RedirectURLOption sets redirect url value.
-func RedirectURLOption(redirectURL string) func(*Router) error {
-	return func(r *Router) error {
-		r.RedirectURL = path.Join(r.Host, r.PathPrefix, redirectURL)
-		return nil
-	}
-}
-
-// PathPrefixOptions sets path prefix options.
-func PathPrefixOptions(prefix string) func(r *Router) error {
-	return func(r *Router) error {
-		r.PathPrefix = prefix
-		return nil
-	}
-}
-
-// WebRouterPrefixOption sets web prefix host value.
-func WebRouterPrefixOption(prefix string) func(*Router) error {
-	return func(r *Router) error {
-		r.WebRouterPrefix = prefix
-		return nil
-	}
+type RouterSettings struct {
+	Server            model.Server
+	Logger            *log.Logger
+	Host              string
+	Prefix            string
+	LoginWebAppPrefix string // this used to create invite link and reset password link for user
+	Cors              *cors.Cors
+	Restart           chan<- bool
+	OriginUpdate      func() error
 }
 
 // NewRouter creates and initializes new admin router.
-func NewRouter(server model.Server, logger *log.Logger, options ...func(*Router) error) (model.Router, error) {
+func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar := Router{
-		server:     server,
-		middleware: negroni.Classic(),
-		router:     mux.NewRouter(),
+		server:            settings.Server,
+		middleware:        negroni.New(negroni.NewLogger(), negroni.NewRecovery()),
+		router:            mux.NewRouter(),
+		Host:              settings.Host,
+		PathPrefix:        settings.Prefix,
+		forceRestart:      settings.Restart,
+		cors:              settings.Cors,
+		RedirectURL:       "/login",
+		LoginWebAppPrefix: settings.LoginWebAppPrefix,
 	}
 
-	for _, option := range append(defaultOptions(), options...) {
-		if err := option(&ar); err != nil {
-			return nil, err
-		}
-	}
-
-	if logger == nil {
+	if settings.Logger == nil {
 		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
 	ar.middleware.Use(ar.RemoveTrailingSlash())
 
 	if ar.cors == nil {
-		ar.cors = ar.defaultCORS()
+		ar.cors = cors.New(model.DefaultCors)
 	}
 	ar.middleware.Use(ar.cors)
 
@@ -161,18 +112,4 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	if _, err = w.Write(data); err != nil {
 		log.Printf("error writing http response: %s", err)
 	}
-}
-
-func (ar *Router) defaultCORS() *cors.Cors {
-	allowedOrigins := []string{"http://localhost:*"}
-	if adminPanelURL := os.Getenv("ADMIN_PANEL_URL"); len(adminPanelURL) > 0 {
-		allowedOrigins = append(allowedOrigins, adminPanelURL)
-	}
-
-	return cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"GET", "POST", "PATCH", "PUT", "DELETE", "HEAD", "OPTIONS"},
-		AllowedHeaders:   []string{"Content-Type", "X-Requested-With"},
-		AllowCredentials: true,
-	})
 }

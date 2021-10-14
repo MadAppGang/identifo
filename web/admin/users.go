@@ -247,10 +247,10 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "password/reset"),
+			Path:     path.Join(ar.LoginWebAppPrefix, "password/reset"),
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.LoginWebAppPrefix, "password/reset")}
 
 		resetEmailData := ResetEmailData{
 			Token: resetTokenString,

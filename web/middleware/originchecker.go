@@ -1,4 +1,4 @@
-package server
+package middleware
 
 import (
 	"fmt"
@@ -9,20 +9,22 @@ import (
 	"github.com/madappgang/identifo/model"
 )
 
+// OriginCheckFunc the type of function that checks origin
+
 // OriginChecker holds user's AllowOriginRequestFunc and checks dynamically
 // added CORS origins from an all app's redirect urls.
 type OriginChecker struct {
 	sync.RWMutex
-	origins map[string]struct{}
+	origins map[string]bool
 	// checks is a slice of AllowOriginRequestFuncs
-	checks []func(r *http.Request, origin string) bool
+	checks []model.OriginCheckFunc
 }
 
 // NewOriginChecker creates new instance of an OriginChecker.
-func NewOriginChecker() model.OriginChecker {
+func NewOriginChecker() *OriginChecker {
 	originChecker := &OriginChecker{
-		origins: make(map[string]struct{}),
-		checks:  make([]func(r *http.Request, origin string) bool, 1),
+		origins: make(map[string]bool),
+		checks:  make([]model.OriginCheckFunc, 1),
 	}
 
 	// function that grabs origins from the global origins map
@@ -31,6 +33,18 @@ func NewOriginChecker() model.OriginChecker {
 	}
 
 	return originChecker
+}
+
+// NewOriginChecker creates new instance of an OriginChecker.
+func NewOriginCheckerWithFunc(f model.OriginCheckFunc) model.OriginChecker {
+	oc := NewOriginChecker()
+	oc.AddCheck(f)
+	return oc
+}
+
+func (os *OriginChecker) Update() error {
+	// do nothing
+	return nil
 }
 
 // IsPresent returns true if the provided origin presented in the origins map, false otherwise.
@@ -47,7 +61,7 @@ func (os *OriginChecker) Add(origin string) {
 	os.Lock()
 	defer os.Unlock()
 
-	os.origins[origin] = struct{}{}
+	os.origins[origin] = true
 }
 
 // AddRawURLs parses and adds urls to the list of allowed origins.
@@ -58,7 +72,7 @@ func (os *OriginChecker) AddRawURLs(urls []string) {
 	for _, u := range urls {
 		parsed, err := url.Parse(u)
 		if err == nil {
-			os.origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = struct{}{}
+			os.origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = true
 		}
 	}
 }
@@ -76,13 +90,12 @@ func (os *OriginChecker) DeleteAll() {
 	os.Lock()
 	defer os.Unlock()
 
-	os.origins = make(map[string]struct{})
+	os.origins = make(map[string]bool)
 }
 
 // With adds AllowOriginRequestFunc to list of checks.
-func (os *OriginChecker) With(f func(r *http.Request, origin string) bool) model.OriginChecker {
+func (os *OriginChecker) AddCheck(f model.OriginCheckFunc) {
 	os.checks = append(os.checks, f)
-	return os
 }
 
 // CheckOrigin is a custom func for validate origin, checking it with all AllowOriginRequestFuncs,

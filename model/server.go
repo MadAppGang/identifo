@@ -1,6 +1,7 @@
 package model
 
 import (
+	"io/fs"
 	"net/http"
 )
 
@@ -29,6 +30,8 @@ type ServerStorageCollection struct {
 	Config       ConfigurationStorage
 	Session      SessionStorage
 	Key          KeyStorage
+	LoginAppFS   fs.FS
+	AdminPanelFS fs.FS
 }
 
 type ServerServices struct {

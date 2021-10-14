@@ -1,6 +1,8 @@
 package config
 
 import (
+	"io/fs"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/services/mail"
@@ -9,6 +11,13 @@ import (
 
 	jwt "github.com/madappgang/identifo/jwt/service"
 )
+
+var adminPanelFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/admin_panel",
+	},
+}
 
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
@@ -59,6 +68,19 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
+	loginFS, err := storage.NewFS(settings.LoginWebApp)
+	if err != nil {
+		return nil, err
+	}
+
+	var adminPanelFS fs.FS
+	if settings.AdminPanel.Enabled == true {
+		adminPanelFS, err = storage.NewFS(adminPanelFSSettings)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	sc := model.ServerStorageCollection{
 		App:          app,
 		User:         user,
@@ -69,6 +91,8 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		Session:      session,
 		Config:       config,
 		Key:          key,
+		LoginAppFS:   loginFS,
+		AdminPanelFS: adminPanelFS,
 	}
 
 	// create 3rd party services
