@@ -220,8 +220,8 @@ export class Api {
     });
   }
 
-  async getAppSettings(): Promise<AppSettingsResponse> {
-    return this.get<AppSettingsResponse>('/auth/app_settings');
+  async getAppSettings(callbackUrl: string): Promise<AppSettingsResponse> {
+    return this.get<AppSettingsResponse>(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
   }
 
   async enableTFA(): Promise<EnableTFAResponse> {

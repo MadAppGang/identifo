@@ -30,6 +30,7 @@ var messages = map[MessageID]string{
 	ErrorAPIRequestBodyEmailInvalid:          "Specified email is invalid or empty",
 	ErrorAPIRequestSignatureInvalid:          "Incorrect or empty request signature",
 	ErrorAPIRequestAppIDInvalid:              "Incorrect or empty application ID",
+	ErrorAPIRequestCallbackUrlInvalid:        "Please add callbackURL in application settings.",
 	ErrorAPIRequestTokenInvalid:              "Incorrect or empty Bearer token",
 	ErrorAPIRequestTFACodeEmpty:              "Empty two-factor authentication code",
 	ErrorAPIRequestTFACodeInvalid:            "Invalid two-factor authentication code",
@@ -99,6 +100,8 @@ const (
 	ErrorAPIRequestSignatureInvalid = "error.api.request.signature.invalid"
 	// ErrorAPIRequestAppIDInvalid means that application ID header value is invalid.
 	ErrorAPIRequestAppIDInvalid = "error.api.request.app_id.invalid"
+	// ErrorAPIRequestCallbackUrlInvalid means that callback url is invalid.
+	ErrorAPIRequestCallbackUrlInvalid = "error.api.request.callbackurl.invalid"
 	// ErrorAPIRequestTokenInvalid means that the token is invalid or empty.
 	ErrorAPIRequestTokenInvalid = "error.api.request.token.invalid"
 
