@@ -24,7 +24,12 @@ func AppID(errorPath string, appStorage model.AppStorage, logger *log.Logger) ne
 	}
 
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		appID := ""
+		if strings.HasSuffix(errorPath, r.URL.Path) {
+			next.ServeHTTP(w, r)
+			return
+		}
+
+		var appID string
 
 		switch r.Method {
 		case http.MethodGet:

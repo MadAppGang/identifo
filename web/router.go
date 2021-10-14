@@ -17,6 +17,7 @@ const (
 	adminpanelAPIPath = "/admin"
 	apiPath           = "/api"
 	loginAppPath      = "/web"
+	loginAppErrorPath = "/web/misconfiguration"
 )
 
 // RouterSetting contains settings for root http router.
@@ -68,7 +69,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		Root:       "/",
 		FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
 	}
-	r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, settings.Logger)
+	r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, nil, settings.Logger)
 	if err != nil {
 		return nil, err
 	}
@@ -97,7 +98,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 			Root:       "/",
 			FileSystem: http.FS(settings.Server.Storages().AdminPanelFS),
 		}
-		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, settings.Logger)
+		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
 		if err != nil {
 			return nil, err
 		}

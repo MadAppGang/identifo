@@ -56,7 +56,7 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 			return
 		}
 
-		if err := merged.Validate(false); err != nil {
+		if err := merged.Validate(true); err != nil {
 			ar.Error(w, fmt.Errorf("settings validation failed with error: %v", err), http.StatusBadRequest, "")
 			return
 		}

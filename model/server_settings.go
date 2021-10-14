@@ -89,9 +89,10 @@ type FileStorageSettings struct {
 type FileStorageType string
 
 const (
-	FileStorageTypeNone  FileStorageType = "none"
-	FileStorageTypeLocal FileStorageType = "local"
-	FileStorageTypeS3    FileStorageType = "s3"
+	FileStorageTypeNone    FileStorageType = "none"
+	FileStorageTypeDefault FileStorageType = "default"
+	FileStorageTypeLocal   FileStorageType = "local"
+	FileStorageTypeS3      FileStorageType = "s3"
 )
 
 type FileStorageS3 struct {

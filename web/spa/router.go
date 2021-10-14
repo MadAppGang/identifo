@@ -11,9 +11,9 @@ import (
 	"github.com/urfave/negroni"
 )
 
-func NewRouter(setting SPASettings, logger *log.Logger) (model.Router, error) {
+func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.Logger) (model.Router, error) {
 	ar := Router{
-		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()),
+		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()).With(middlewares...),
 		FS:         setting.FileSystem,
 	}
 
