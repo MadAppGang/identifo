@@ -1,4 +1,10 @@
 describe('login errors', () => {
+  before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: '' });
     cy.appSet({});
@@ -16,14 +22,14 @@ describe('login errors', () => {
     cy.get('#login').click().type('fake user');
     cy.get('#password').click().type('wrong password');
     cy.contains('Login').click();
-    cy.get('.error').should('have.text', 'Email address is not valid.');
+    cy.get('.error').should('have.text', 'Email address is not valid');
     cy.screenshot();
   });
   it('invalid user', () => {
     cy.get('#login').click().type('fake@test.com');
     cy.get('#password').click().type('wrong password');
     cy.contains('Login').click();
-    cy.get('.error').should('have.text', 'User not found.');
+    cy.get('.error').should('have.text', 'Incorrect email or password');
     cy.screenshot();
   });
 });

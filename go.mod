@@ -13,7 +13,6 @@ require (
 	github.com/go-redis/redis v0.0.0-20190503082931-75795aa4236d
 	github.com/go-stack/stack v1.8.1 // indirect
 	github.com/golang-jwt/jwt/v4 v4.0.0
-	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.4 // indirect
 	github.com/google/go-querystring v1.1.0 // indirect
 	github.com/gorilla/mux v1.7.3
@@ -25,6 +24,7 @@ require (
 	github.com/mailgun/mailgun-go v1.1.1
 	github.com/markbates/goth v1.68.0
 	github.com/njern/gonexmo v2.0.0+incompatible
+	github.com/onsi/gomega v1.16.0 // indirect
 	github.com/pallinder/go-randomdata v1.2.0
 	github.com/qiangmzsx/string-adapter v0.0.0-20180323073508-38f25303bb0c
 	github.com/rs/cors v1.6.0
@@ -49,7 +49,7 @@ require (
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1
-	gopkg.in/yaml.v2 v2.3.0
+	gopkg.in/yaml.v2 v2.4.0
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b // indirect
 )
 

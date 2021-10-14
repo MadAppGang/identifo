@@ -51,7 +51,7 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 		}
 
 		merged, changed := mergeSettings(s, us)
-		if changed == false {
+		if !changed {
 			ar.Error(w, fmt.Errorf("no settings has been changed, skipping the update"), http.StatusBadRequest, "")
 			return
 		}

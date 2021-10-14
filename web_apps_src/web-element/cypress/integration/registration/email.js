@@ -1,4 +1,10 @@
 describe('simple registration', () => {
+  before(() => {
+    cy.createAppAndUser(false);
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.serverSetLoginOptions({});
     cy.appSet({});

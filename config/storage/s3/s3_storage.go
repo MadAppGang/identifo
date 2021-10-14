@@ -34,7 +34,7 @@ func NewConfigurationStorage(config model.ConfigStorageSettings) (*Configuration
 		return nil, fmt.Errorf("Configuration file from S3 specifies configuration type %s", config.Type)
 	}
 
-	s3client, err := NewS3Client(config.S3.Region)
+	s3client, err := NewS3Client(config.S3.Region, config.S3.Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot initialize S3 client: %s.", err)
 	}
@@ -130,23 +130,31 @@ func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
 }
 
 // NewS3Client creates and returns new S3 client.
-func NewS3Client(region string) (*s3.S3, error) {
-	cfg := getConfig(region)
-	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
+func NewS3Client(region, endpoint string) (*s3.S3, error) {
+	cfg := getConfig(region, endpoint)
+
+	sess, err := session.NewSession(cfg)
 	if err != nil {
 		return nil, fmt.Errorf("error creating new s3 session: %s", err)
 	}
+
 	return s3.New(sess, cfg), nil
 }
 
-func getConfig(region string) *aws.Config {
-	cfg := aws.NewConfig()
-	if len(region) > 0 {
-		cfg = cfg.WithRegion(region)
+func getConfig(region, endpoint string) *aws.Config {
+	cfg := aws.NewConfig().
+		WithHTTPClient(&http.Client{
+			Timeout: 10 * time.Second,
+		}).
+		WithCredentialsChainVerboseErrors(true)
+
+	if len(endpoint) > 0 {
+		cfg.WithEndpoint(endpoint)
 	}
 
-	cfg.HTTPClient = http.DefaultClient
-	cfg.HTTPClient.Timeout = 10 * time.Second
+	if len(region) > 0 {
+		cfg.WithRegion(region)
+	}
 
 	return cfg
 }

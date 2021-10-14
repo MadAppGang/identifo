@@ -303,9 +303,10 @@ type LocalFileStorageSettings struct {
 }
 
 type S3StorageSettings struct {
-	Region string `yaml:"region" json:"region" bson:"region"`
-	Bucket string `yaml:"bucket" json:"bucket" bson:"bucket"`
-	Key    string `yaml:"key" json:"key" bson:"key"`
+	Region   string `yaml:"region" json:"region" bson:"region"`
+	Bucket   string `yaml:"bucket" json:"bucket" bson:"bucket"`
+	Endpoint string `yaml:"endpoint" json:"endpoint" bson:"endpoint"`
+	Key      string `yaml:"key" json:"key" bson:"key"`
 }
 
 type EtcdStorageSettings struct {

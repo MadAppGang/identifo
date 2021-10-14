@@ -1,0 +1,9 @@
+# this is compose for test environment
+
+version: "3"
+services:
+  identifo:
+    image: motoserver/moto:2.2.9
+    ports:
+      - "5001:5001"
+    entrypoint: ["/usr/local/bin/moto_server", "-H", "0.0.0.0", "-p", "5001"]

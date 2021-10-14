@@ -174,7 +174,6 @@ func (css *ConfigStorageSettings) Validate() error {
 		if len(css.File.FileName) == 0 {
 			return fmt.Errorf("%s. empty file key ", subject)
 		}
-		break
 	case ConfigStorageTypeS3:
 		if css.S3 == nil {
 			return fmt.Errorf("%s. empty s3 settings key", subject)
@@ -250,7 +249,6 @@ func (kss *KeyStorageSettings) Validate() error {
 		if len(kss.File.PrivateKeyPath) == 0 {
 			return fmt.Errorf("%s. empty File settings key", subject)
 		}
-		break
 	case KeyStorageTypeS3:
 		if len(kss.S3.Region) == 0 {
 			return fmt.Errorf("%s. Empty AWS region", subject)

@@ -21,7 +21,6 @@ MFkwEwYHKoZIzj0CAQYIKoZIzj0DAQcDQgAED3DoOWZMbqYc0OO1Ih628hB2Odhv
 )
 
 func TestMiddleware(t *testing.T) {
-
 	os.Setenv("PK", publicKeyString)
 
 	successConfig := validator.Config{
@@ -53,26 +52,30 @@ func TestMiddleware(t *testing.T) {
 		c validator.Config
 	}
 	tests := []struct {
-		name    string
-		args    args
-		want    middleware.Error
-		wantErr bool
+		name string
+		args args
+		want middleware.Error
 	}{
-		{"successfull get token", args{successConfig}, "", false},
-		{"invalid issuer", args{wrongIssuerConfig}, middleware.ErrorTokenIsInvalid, true},
-		{"invalid user", args{specificUserIssuerConfig}, middleware.ErrorTokenIsInvalid, true},
+		{"successfull get token", args{successConfig}, ""},
+		{"invalid issuer", args{wrongIssuerConfig}, middleware.ErrorTokenIsInvalid},
+		{"invalid user", args{specificUserIssuerConfig}, middleware.ErrorTokenIsInvalid},
 	}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			meh := mockErrorHandler{t: t, e: ""}
+			meh := &mockErrorHandler{t: t, e: ""}
+
 			handler, _ := middleware.JWT(meh, tt.args.c)
+
 			req, _ := http.NewRequest(http.MethodGet, "testServer.URL", nil)
 			req.Header.Add("Authorization", "Bearer "+tokenStringExample)
+
 			next := func(rw http.ResponseWriter, r *http.Request) {
 			}
+
 			handler(nil, req, next)
-			if (tt.want != meh.e) != tt.wantErr {
-				t.Errorf("TestMiddleware() error = %v, wantErr %v", meh.e, tt.wantErr)
+
+			if tt.want != meh.e {
+				t.Errorf("TestMiddleware() error = %T, wantErr %T %v", meh.e, tt.want, tt.want != meh.e)
 			}
 		})
 	}
@@ -83,6 +86,6 @@ type mockErrorHandler struct {
 	e middleware.Error
 }
 
-func (m mockErrorHandler) Error(rw http.ResponseWriter, errorType middleware.Error, status int, description string) {
+func (m *mockErrorHandler) Error(rw http.ResponseWriter, errorType middleware.Error, status int, description string) {
 	m.e = errorType
 }

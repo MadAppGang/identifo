@@ -692,10 +692,21 @@ const IdentifoForm$1 = class extends HTMLElement {
       .catch(e => this.processError(e));
   }
   async verifyTFA() {
-    this.auth.api
-      .verifyTFA(this.tfaCode, [])
-      .then(() => this.openRoute('callback'))
-      .catch(e => this.processError(e));
+    if (this.route.indexOf('password/forgot/tfa') === 0) {
+      this.auth.api
+        .requestResetPassword(this.email, this.tfaCode)
+        .then(() => {
+        this.success = true;
+        this.openRoute('password/forgot/success');
+      })
+        .catch(e => this.processError(e));
+    }
+    else {
+      this.auth.api
+        .verifyTFA(this.tfaCode, [])
+        .then(() => this.openRoute('callback'))
+        .catch(e => this.processError(e));
+    }
   }
   async selectTFA(type) {
     this.openRoute(`tfa/setup/${type}`);
@@ -768,7 +779,7 @@ const IdentifoForm$1 = class extends HTMLElement {
   }
   validateEmail(email) {
     if (!emailRegex.test(email)) {
-      this.processError({ detailedMessage: 'Email address is not valid.', name: 'Validation error', message: 'Email address is not valid.' });
+      this.processError({ detailedMessage: 'Email address is not valid', name: 'Validation error', message: 'Email address is not valid' });
       return false;
     }
     return true;
@@ -780,7 +791,7 @@ const IdentifoForm$1 = class extends HTMLElement {
     var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p;
     switch (route) {
       case 'login':
-        return (h("div", { class: "login-form" }, !this.registrationForbidden && (h("p", { class: "login-form__register-text" }, "Don't have an account?\u00A0", h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))), h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_a = this.lastError) === null || _a === void 0 ? void 0 : _a.detailedMessage) || ((_b = this.lastError) === null || _b === void 0 ? void 0 : _b.message))), h("div", { class: `login-form__buttons ${!!this.lastError ? 'login-form__buttons_mt-32' : ''}` }, h("button", { onClick: () => this.signIn(), class: "primary-button", disabled: !this.email || !this.password }, "Login"), h("a", { onClick: () => this.openRoute('password/forgot'), class: "login-form__forgot-pass" }, "Forgot password")), this.federatedProviders.length > 0 && (h("div", { class: "social-buttons" }, h("p", { class: "social-buttons__text" }, "or continue with"), h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (h("div", { class: "social-buttons__media social-buttons__apple", onClick: () => this.loginWith('apple') }, h("img", { src: getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (h("div", { class: "social-buttons__media social-buttons__google", onClick: () => this.loginWith('google') }, h("img", { src: getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (h("div", { class: "social-buttons__media social-buttons__facebook", onClick: () => this.loginWith('facebook') }, h("img", { src: getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
+        return (h("div", { class: "login-form" }, !this.registrationForbidden && (h("p", { class: "login-form__register-text" }, "Don't have an account?\u00A0", h("a", { onClick: () => this.openRoute('register'), class: "login-form__register-link" }, "Sign Up"))), h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email && this.password) && this.signIn() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_a = this.lastError) === null || _a === void 0 ? void 0 : _a.message) || ((_b = this.lastError) === null || _b === void 0 ? void 0 : _b.detailedMessage))), h("div", { class: `login-form__buttons ${!!this.lastError ? 'login-form__buttons_mt-32' : ''}` }, h("button", { onClick: () => this.signIn(), class: "primary-button", disabled: !this.email || !this.password }, "Login"), h("a", { onClick: () => this.openRoute('password/forgot'), class: "login-form__forgot-pass" }, "Forgot password")), this.federatedProviders.length > 0 && (h("div", { class: "social-buttons" }, h("p", { class: "social-buttons__text" }, "or continue with"), h("div", { class: "social-buttons__social-medias" }, this.federatedProviders.indexOf('apple') > -1 && (h("div", { class: "social-buttons__media social-buttons__apple", onClick: () => this.loginWith('apple') }, h("img", { src: getAssetPath(`assets/images/${'apple.svg'}`), class: "social-buttons__image", alt: "login via apple" }))), this.federatedProviders.indexOf('google') > -1 && (h("div", { class: "social-buttons__media social-buttons__google", onClick: () => this.loginWith('google') }, h("img", { src: getAssetPath(`assets/images/${'google.svg'}`), class: "social-buttons__image", alt: "login via google" }))), this.federatedProviders.indexOf('facebook') > -1 && (h("div", { class: "social-buttons__media social-buttons__facebook", onClick: () => this.loginWith('facebook') }, h("img", { src: getAssetPath(`assets/images/${'fb.svg'}`), class: "social-buttons__image", alt: "login via facebook" }))))))));
       case 'register':
         return (h("div", { class: "register-form" }, h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "login", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), h("input", { type: "password", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "password", value: this.password, placeholder: "Password", onInput: event => this.passwordChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.password && this.email) && this.signUp() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_c = this.lastError) === null || _c === void 0 ? void 0 : _c.detailedMessage) || ((_d = this.lastError) === null || _d === void 0 ? void 0 : _d.message))), h("div", { class: `register-form__buttons ${!!this.lastError ? 'register-form__buttons_mt-32' : ''}` }, h("button", { onClick: () => this.signUp(), class: "primary-button", disabled: !this.email || !this.password }, "Continue"), this.renderBackToLogin())));
       case 'otp/login':
@@ -799,7 +810,7 @@ const IdentifoForm$1 = class extends HTMLElement {
       case 'password/forgot/tfa/app':
       case 'password/forgot/tfa/email':
       case 'password/forgot/tfa/sms':
-        return (h("div", { class: "tfa-verify" }, this.route === 'tfa/verify/app' && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code from authenticator app"), h("p", { class: "tfa-verify__subtitle" }, "Code will be generated by app"))), this.route === 'tfa/verify/sms' && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your phone number"), h("p", { class: "tfa-verify__subtitle" }, "The code has been sent to ", this.phone))), this.route === 'tfa/verify/email' && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your email address"), h("p", { class: "tfa-verify__subtitle" }, "The email has been sent to ", this.email))), h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "tfaCode", value: this.tfaCode, placeholder: "Verify code", onInput: event => this.tfaCodeChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.tfaCode) && this.verifyTFA() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_j = this.lastError) === null || _j === void 0 ? void 0 : _j.detailedMessage) || ((_k = this.lastError) === null || _k === void 0 ? void 0 : _k.message))), h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.tfaCode, onClick: () => this.verifyTFA() }, "Confirm"), this.renderBackToLogin()));
+        return (h("div", { class: "tfa-verify" }, this.route.indexOf('app') > 0 && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code from authenticator app"), h("p", { class: "tfa-verify__subtitle" }, "Code will be generated by app"))), this.route.indexOf('sms') > 0 && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your phone number"), h("p", { class: "tfa-verify__subtitle" }, "The code has been sent to ", this.phone))), this.route.indexOf('email') > 0 && (h("div", { class: "tfa-verify__title-wrapper" }, h("h2", { class: "tfa-verify__title" }, "Enter the code sent to your email address"), h("p", { class: "tfa-verify__subtitle" }, "The email has been sent to ", this.email))), h("input", { type: "text", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "tfaCode", value: this.tfaCode, placeholder: "Verify code", onInput: event => this.tfaCodeChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.tfaCode) && this.verifyTFA() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_j = this.lastError) === null || _j === void 0 ? void 0 : _j.detailedMessage) || ((_k = this.lastError) === null || _k === void 0 ? void 0 : _k.message))), h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.tfaCode, onClick: () => this.verifyTFA() }, "Confirm"), this.renderBackToLogin()));
       case 'password/forgot':
         return (h("div", { class: "forgot-password" }, h("h2", { class: "forgot-password__title" }, "Enter the email you gave when you registered"), h("p", { class: "forgot-password__subtitle" }, "We will send you a link to create a new password on email"), h("input", { type: "email", class: `form-control ${this.lastError && 'form-control-danger'}`, id: "email", value: this.email, placeholder: "Email", onInput: event => this.emailChange(event), onKeyPress: e => !!(e.key === 'Enter' && this.email) && this.restorePassword() }), !!this.lastError && (h("div", { class: "error", role: "alert" }, ((_l = this.lastError) === null || _l === void 0 ? void 0 : _l.detailedMessage) || ((_m = this.lastError) === null || _m === void 0 ? void 0 : _m.message))), h("button", { type: "button", class: `primary-button ${this.lastError && 'primary-button-mt-32'}`, disabled: !this.email, onClick: () => this.restorePassword() }, "Send the link"), this.renderBackToLogin()));
       case 'password/forgot/success':
@@ -815,8 +826,9 @@ const IdentifoForm$1 = class extends HTMLElement {
     }
   }
   async componentWillLoad() {
-    var base = (document.querySelector('base') || {}).href;
-    this.route = window.location.pathname.replace(base, '').replace(/^\/|\/$/g, '');
+    // const base = (document.querySelector('base') || {}).href;
+    // const path = window.location.href.split('?')[0];
+    // this.route = path.replace(base, '').replace(/^\/|\/$/g, '') as Routes;
     this.token = new URLSearchParams(window.location.search).get('token');
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
     if (!this.appId) {

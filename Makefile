@@ -17,8 +17,22 @@ run_dynamodb:
 
 
 docker_image:
-	docker build  --tag madappgangd/identifo:latest --tag madappgangd/identifo:$(DOCKER_IMAGE_VERSION) . 
+	docker build  --tag madappgangd/identifo:latest --tag madappgangd/identifo:$(DOCKER_IMAGE_VERSION) .
 
 publish: docker_image
 	docker push madappgangd/identifo:latest
 	docker push madappgangd/identifo:$(DOCKER_IMAGE_VERSION)
+
+
+test.all: ## run all tests including integration ones, see readme for information how to set up local test environment
+	cd test && ./test.sh
+
+test.module: ## run tests except integration ones
+	go test -race ./...
+
+
+build:
+	go build -o ./identifo
+
+lint:
+	golangci-lint run -D deadcode,errcheck,unused,varcheck,govet
