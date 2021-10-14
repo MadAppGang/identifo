@@ -15,7 +15,11 @@ const (
 )
 
 // Validate makes sure that all crucial fields are set.
-func (ss *ServerSettings) Validate() error {
+func (ss *ServerSettings) Validate(rewriteDefaults bool) error {
+	if rewriteDefaults == true {
+		ss.RewriteDefaults()
+	}
+
 	if len(ss.AdminAccount.LoginEnvName) == 0 {
 		return fmt.Errorf("Admin login env variable name not specified")
 	}
@@ -230,7 +234,7 @@ func (sfs *FileStorageSettings) Validate() error {
 }
 
 func (kss *AdminPanelSettings) Validate() error {
-	// not it has just one bool field wich always valid
+	// not it has just one bool field which is always valid
 	return nil
 }
 

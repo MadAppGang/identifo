@@ -117,8 +117,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 	settings.Config = cs.config
 	cs.cache = settings
 	cs.cached = true
-
-	return settings, settings.Validate()
+	return settings, settings.Validate(true)
 }
 
 // GetUpdateChan returns update channel.

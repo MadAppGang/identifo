@@ -51,3 +51,5 @@ services:
     type: mock
   sms:
     type: mock
+adminPanel:
+  enabled: true

@@ -35,11 +35,6 @@ storage:
 sessionStorage:
   type: memory
   sessionDuration: 300
-static:
-  type: local
-  local:
-    folder: ./static
-  serveAdminPanel: true
 services:
   email:
     type: mock
@@ -56,3 +51,6 @@ keyStorage:
   type: local
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
+adminPanel:
+  enabled: true
+

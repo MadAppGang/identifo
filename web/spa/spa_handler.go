@@ -11,6 +11,7 @@ import (
 const DefaultIndexFilename = "index.html"
 
 type SPASettings struct {
+	Name       string
 	Root       string
 	FileSystem http.FileSystem
 	Index      string
@@ -78,7 +79,7 @@ func NewSPAHandlerFunc(c SPASettings) http.HandlerFunc {
 			}
 
 			// return the file
-			http.ServeContent(w, r, info.Name(), info.ModTime(), file)
+			http.ServeContent(w, r, info.Name(), info.ModTime(), index)
 			return
 		}
 

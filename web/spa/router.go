@@ -1,31 +1,28 @@
 package spa
 
 import (
+	"fmt"
 	"log"
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/web/middleware"
 	"github.com/urfave/negroni"
 )
 
 func NewRouter(setting SPASettings, logger *log.Logger) (model.Router, error) {
 	ar := Router{
-		Middleware: negroni.New(negroni.NewLogger(), negroni.NewRecovery()),
-		Router:     mux.NewRouter(),
+		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()),
 		FS:         setting.FileSystem,
 	}
 
 	// Setup logger to stdout.
 	if logger == nil {
-		ar.Logger = log.New(os.Stdout, "HTML_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
+		ar.Logger = log.New(os.Stdout, fmt.Sprintf("[ %s ]: ", setting.Name), log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	// setup the only route we have
-	ar.Router.HandleFunc("/", NewSPAHandlerFunc(setting))
-
-	ar.Middleware.UseHandler(ar.Router)
+	ar.Middleware.UseHandler(NewSPAHandlerFunc(setting))
 	return &ar, nil
 }
 
@@ -33,7 +30,6 @@ func NewRouter(setting SPASettings, logger *log.Logger) (model.Router, error) {
 type Router struct {
 	Logger     *log.Logger
 	Middleware *negroni.Negroni
-	Router     *mux.Router
 	FS         http.FileSystem
 }
 

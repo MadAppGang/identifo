@@ -9,6 +9,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/authorization"
+	"github.com/madappgang/identifo/web/middleware"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
@@ -47,7 +48,7 @@ type RouterSettings struct {
 func NewRouter(settings RouterSettings) (*Router, error) {
 	ar := Router{
 		server:             settings.Server,
-		middleware:         negroni.New(negroni.NewLogger(), negroni.NewRecovery()),
+		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
 		router:             mux.NewRouter(),
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,

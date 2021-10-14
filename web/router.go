@@ -64,6 +64,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 
 	// Web login app setup
 	loginAppSettings := spa.SPASettings{
+		Name:       "LOGIN_APP",
 		Root:       "/",
 		FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
 	}
@@ -92,6 +93,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		}
 		// init admin panel web app
 		adminPanelAppSettings := spa.SPASettings{
+			Name:       "ADMIN_PANEL",
 			Root:       "/",
 			FileSystem: http.FS(settings.Server.Storages().AdminPanelFS),
 		}
@@ -99,11 +101,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		if err != nil {
 			return nil, err
 		}
-		r.AdminPanelRouterPath = adminpanelPath
 	}
-
-	r.APIRouterPath = apiPath
-	r.LoginAppRouterPath = loginAppPath
 
 	r.setupRoutes()
 	return &r, nil
@@ -116,11 +114,6 @@ type Router struct {
 	AdminRouter      model.Router
 	AdminPanelRouter model.Router
 	RootRouter       *http.ServeMux
-
-	APIRouterPath        string
-	LoginAppRouterPath   string
-	AdminRouterPath      string
-	AdminPanelRouterPath string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -132,9 +125,9 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
-	ar.RootRouter.Handle(ar.LoginAppRouterPath+"/", http.StripPrefix(ar.LoginAppRouterPath, ar.LoginAppRouter))
+	ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter))
 	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
-		ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
-		ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
+		ar.RootRouter.Handle(adminpanelAPIPath+"/", http.StripPrefix(adminpanelAPIPath, ar.AdminRouter))
+		ar.RootRouter.Handle(adminpanelPath+"/", http.StripPrefix(adminpanelPath, ar.AdminPanelRouter))
 	}
 }

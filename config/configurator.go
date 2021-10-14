@@ -19,6 +19,20 @@ var adminPanelFSSettings = model.FileStorageSettings{
 	},
 }
 
+var defaultLoginWebAppFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/web",
+	},
+}
+
+var defaultEmailTemplateFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/email_templates",
+	},
+}
+
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
 	// read settings, if they empty or use cached version
@@ -68,7 +82,12 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	loginFS, err := storage.NewFS(settings.LoginWebApp)
+	lwas := settings.LoginWebApp
+	if settings.LoginWebApp.Type == model.FileStorageTypeNone {
+		// if not set, use default value
+		lwas = defaultLoginWebAppFSSettings
+	}
+	loginFS, err := storage.NewFS(lwas)
 	if err != nil {
 		return nil, err
 	}
@@ -101,7 +120,11 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	emailTemplateFS, err := storage.NewFS(settings.EmailTemplates)
+	ets := settings.EmailTemplates
+	if ets.Type == model.FileStorageTypeNone {
+		ets = defaultEmailTemplateFSSettings
+	}
+	emailTemplateFS, err := storage.NewFS(ets)
 	if err != nil {
 		return nil, err
 	}
