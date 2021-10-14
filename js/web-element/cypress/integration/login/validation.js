@@ -1,4 +1,10 @@
 describe('login errors', () => {
+  before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: '' });
     cy.appSet({});

@@ -1,10 +1,23 @@
 // TASK: When optional remember user to enable 2fa
 describe('2fa optional', () => {
+  before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'sms' });
     cy.appSet({ tfa_status: 'optional' });
-    cy.addTestUser();
     cy.visitLogin();
+  });
+  it('ask for setup 2fa and skip', () => {
+    cy.loginWithEmail();
+    cy.contains('Setup next time');
+    cy.screenshot();
+    cy.contains('Setup next time').click();
+    cy.contains('Success');
+    cy.screenshot();
   });
   it('ask for setup 2fa and setup sms 2fa', () => {
     cy.loginWithEmail();
@@ -15,14 +28,6 @@ describe('2fa optional', () => {
     cy.screenshot();
     cy.contains('Setup phone').click();
     cy.verifyTfa();
-    cy.contains('Success');
-    cy.screenshot();
-  });
-  it('ask for setup 2fa and skip', () => {
-    cy.loginWithEmail();
-    cy.contains('Setup next time');
-    cy.screenshot();
-    cy.contains('Setup next time').click();
     cy.contains('Success');
     cy.screenshot();
   });

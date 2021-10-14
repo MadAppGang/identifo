@@ -1,7 +1,13 @@
 describe('simple reset password with tfa email', () => {
+  before(() => {
+    cy.createAppAndUser();
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
   beforeEach(() => {
     cy.appSet({ tfa_status: 'mandatory' });
-    cy.addTestUser({ phone: '+1234567890', tfa_info: { is_enabled: true } });
+    cy.userSet({ phone: '+1234567890', tfa_info: { is_enabled: true } });
     cy.visitLogin();
   });
   it('forgot by email with 2fa email', () => {

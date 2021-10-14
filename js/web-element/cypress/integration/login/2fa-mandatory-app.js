@@ -1,8 +1,13 @@
 describe('2fa mandatory app', () => {
-  beforeEach(() => {
-    cy.addTestUser();
+  before(() => {
+    cy.createAppAndUser();
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
     cy.appSet({ tfa_status: 'mandatory' });
+  });
+  after(() => {
+    cy.deleteAppAndUser();
+  });
+  beforeEach(() => {
     cy.visitLogin();
   });
   it('2fa flow mandatory with app', () => {
