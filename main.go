@@ -41,7 +41,7 @@ func main() {
 		watcher.Watch()
 	}()
 
-	osch := make(chan os.Signal)
+	osch := make(chan os.Signal, 1)
 	signal.Notify(osch, syscall.SIGINT, syscall.SIGTERM)
 
 	restartServer := func() {

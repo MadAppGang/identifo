@@ -3,6 +3,7 @@ package s3_test
 import (
 	"bytes"
 	"fmt"
+	"os"
 	"testing"
 	"time"
 
@@ -32,6 +33,21 @@ var settings = model.S3StorageSettings{
 }
 
 func TestWatcher(t *testing.T) {
+	if os.Getenv("IDENTIFO_TEST_INGRATION") == "" {
+		t.SkipNow()
+	}
+
+	settings.Endpoint = os.Getenv("IDENTIFO_TEST_AWS_ENDPOINT")
+
+	s3client, err := s3s.NewS3Client(settings.Region, settings.Endpoint)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	_, _ = s3client.CreateBucket(&s3.CreateBucketInput{
+		Bucket: aws.String("identifo-public"),
+	})
+
 	watcher, err := s3s.NewPollWatcher(settings, time.Second*4)
 	if err != nil {
 		t.Fatalf("unable to create watcher with error: %v", err)
@@ -42,11 +58,7 @@ func TestWatcher(t *testing.T) {
 
 	go func() {
 		time.Sleep(time.Second * 1)
-		s3client, err := s3s.NewS3Client(settings.Region)
-		if err != nil {
-			t.Error(err)
-			return
-		}
+
 		newFilecontent := []byte(fmt.Sprintf("This content has been changed at %v", time.Now().Unix()))
 		input := &s3.PutObjectInput{
 			Bucket:             aws.String(settings.Bucket),

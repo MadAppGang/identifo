@@ -26,7 +26,7 @@ type PollWatcher struct {
 }
 
 func NewPollWatcher(settings model.S3StorageSettings, poll time.Duration) (model.ConfigurationWatcher, error) {
-	s3client, err := NewS3Client(settings.Region)
+	s3client, err := NewS3Client(settings.Region, settings.Endpoint)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot initialize S3 client for s3 poll config watcher: %s.", err)
 	}

@@ -30,7 +30,7 @@ type UserStorage struct {
 // UserByID returns randomly generated user.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
 	for _, u := range us.users {
-		if strings.ToUpper(u.ID) == strings.ToUpper(id) {
+		if strings.EqualFold(u.ID, id) {
 			return u, nil
 		}
 	}
@@ -40,7 +40,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 // UserByEmail returns randomly generated user.
 func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	for _, u := range us.users {
-		if strings.ToUpper(u.Email) == strings.ToUpper(email) {
+		if strings.EqualFold(u.Email, email) {
 			return u, nil
 		}
 	}
@@ -51,7 +51,7 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 	for _, u := range us.users {
 		for _, fi := range u.FederatedIDs {
-			if strings.ToUpper(fi) == strings.ToUpper(id) {
+			if strings.EqualFold(fi, id) {
 				return u, nil
 			}
 		}
@@ -62,7 +62,7 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 // UserByPhone returns randomly generated user.
 func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	for _, u := range us.users {
-		if strings.ToUpper(u.Phone) == strings.ToUpper(phone) {
+		if strings.EqualFold(u.Phone, phone) {
 			return u, nil
 		}
 	}
@@ -72,7 +72,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 // UserExists always returns true.
 func (us *UserStorage) UserExists(name string) bool {
 	for _, u := range us.users {
-		if strings.ToUpper(u.Username) == strings.ToUpper(name) {
+		if strings.EqualFold(u.Username, name) {
 			return true
 		}
 	}
@@ -95,7 +95,7 @@ func (us *UserStorage) DetachDeviceToken(token string) error {
 func (us *UserStorage) AllDeviceTokens(userID string) ([]string, error) {
 	devices := []string{}
 	for uid, did := range us.userDevices {
-		if strings.ToUpper(uid) == strings.ToUpper(userID) {
+		if strings.EqualFold(uid, userID) {
 			devices = append(devices, did)
 		}
 	}
@@ -105,7 +105,7 @@ func (us *UserStorage) AllDeviceTokens(userID string) ([]string, error) {
 // UserByUsername returns randomly generated user.
 func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 	for _, u := range us.users {
-		if strings.ToUpper(u.Username) == strings.ToUpper(username) {
+		if strings.EqualFold(u.Username, username) {
 			return u, nil
 		}
 	}
@@ -151,7 +151,7 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	sid := string(provider) + ":" + id
 	for _, u := range us.users {
 		for _, fi := range u.FederatedIDs {
-			if strings.ToUpper(fi) == strings.ToUpper(sid) {
+			if strings.EqualFold(fi, sid) {
 				return u, nil
 			}
 		}
@@ -181,7 +181,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 	newUser.ID = userID
 
 	for i, u := range us.users {
-		if strings.ToLower(userID) == strings.ToLower(u.ID) {
+		if strings.EqualFold(userID, u.ID) {
 			us.users[i] = newUser
 			break
 		}
@@ -193,7 +193,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 // ResetPassword does nothing here.
 func (us *UserStorage) ResetPassword(id, password string) error {
 	for i, u := range us.users {
-		if strings.ToLower(id) == strings.ToLower(u.ID) {
+		if strings.EqualFold(id, u.ID) {
 			u.Pswd = model.PasswordHash(password)
 			us.users[i] = u
 			break
@@ -229,7 +229,7 @@ func (us *UserStorage) IDByName(name string) (string, error) {
 // DeleteUser does nothing here.
 func (us *UserStorage) DeleteUser(id string) error {
 	for i, u := range us.users {
-		if strings.ToLower(id) == strings.ToLower(u.ID) {
+		if strings.EqualFold(id, u.ID) {
 			us.users = append(us.users[:i], us.users[i+1:]...)
 			break
 		}
@@ -240,7 +240,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 // UpdateLoginMetadata does nothing here.
 func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	for i, u := range us.users {
-		if strings.ToLower(userID) == strings.ToLower(u.ID) {
+		if strings.EqualFold(userID, u.ID) {
 			u.NumOfLogins += 1
 			u.LatestLoginTime = time.Now().Unix()
 			us.users[i] = u
