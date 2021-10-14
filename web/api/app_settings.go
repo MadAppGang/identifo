@@ -2,6 +2,7 @@ package api
 
 import (
 	"net/http"
+	"strings"
 
 	"github.com/madappgang/identifo/web/middleware"
 )
@@ -22,10 +23,17 @@ type appSettings struct {
 // GetAppSettings return app settings
 func (ar *Router) GetAppSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		callbackUrl := strings.TrimSpace(r.URL.Query().Get("callbackUrl"))
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
 			ar.logger.Println("Error getting App")
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			return
+		}
+
+		if callbackUrl != "" && !contains(app.RedirectURLs, callbackUrl) {
+			ar.logger.Println("Error checking callback URL")
+			ar.Error(w, ErrorAPIRequestCallbackUrlInvalid, http.StatusBadRequest, "Callback url is invalid", "LoginWithPassword.CallbackURL")
 			return
 		}
 

@@ -3,6 +3,7 @@ import { r as registerInstance, c as createEvent, h, g as getAssetPath, H as Hos
 var APIErrorCodes;
 (function(APIErrorCodes2) {
   APIErrorCodes2["PleaseEnableTFA"] = "error.api.request.2fa.please_enable";
+  APIErrorCodes2["InvalidCallbackURL"] = "error.api.request.callbackurl.invalid";
   APIErrorCodes2["NetworkError"] = "error.network";
 })(APIErrorCodes || (APIErrorCodes = {}));
 var TFAType;
@@ -231,9 +232,9 @@ class Api {
       });
     });
   }
-  getAppSettings() {
+  getAppSettings(callbackUrl) {
     return __async$2(this, null, function* () {
-      return this.get("/auth/app_settings");
+      return this.get(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
     });
   }
   enableTFA() {
@@ -843,7 +844,7 @@ const IdentifoForm = class {
     }
     try {
       this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
-      const settings = await this.auth.api.getAppSettings();
+      const settings = await this.auth.api.getAppSettings(this.callbackUrl);
       this.registrationForbidden = settings.registrationForbidden;
       this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
       this.tfaStatus = settings.tfaStatus;

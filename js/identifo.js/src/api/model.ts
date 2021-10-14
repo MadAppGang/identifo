@@ -1,6 +1,7 @@
 /* eslint-disable camelcase */
 export enum APIErrorCodes {
   PleaseEnableTFA = 'error.api.request.2fa.please_enable',
+  InvalidCallbackURL = 'error.api.request.callbackurl.invalid',
   NetworkError = 'error.network',
 }
 

@@ -5,6 +5,7 @@ Object.defineProperty(exports, '__esModule', { value: true });
 exports.APIErrorCodes = void 0;
 (function(APIErrorCodes2) {
   APIErrorCodes2["PleaseEnableTFA"] = "error.api.request.2fa.please_enable";
+  APIErrorCodes2["InvalidCallbackURL"] = "error.api.request.callbackurl.invalid";
   APIErrorCodes2["NetworkError"] = "error.network";
 })(exports.APIErrorCodes || (exports.APIErrorCodes = {}));
 exports.TFAType = void 0;
@@ -233,9 +234,9 @@ class Api {
       });
     });
   }
-  getAppSettings() {
+  getAppSettings(callbackUrl) {
     return __async$2(this, null, function* () {
-      return this.get("/auth/app_settings");
+      return this.get(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
     });
   }
   enableTFA() {

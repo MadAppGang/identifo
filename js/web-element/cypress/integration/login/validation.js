@@ -32,4 +32,5 @@ describe('login errors', () => {
     cy.get('.error').should('have.text', 'Incorrect email or password');
     cy.screenshot();
   });
+  it('invalid callback', () => {});
 });

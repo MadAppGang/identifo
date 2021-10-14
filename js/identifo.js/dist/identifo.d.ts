@@ -82,6 +82,7 @@ declare class TokenService {
 
 declare enum APIErrorCodes {
     PleaseEnableTFA = "error.api.request.2fa.please_enable",
+    InvalidCallbackURL = "error.api.request.callbackurl.invalid",
     NetworkError = "error.network"
 }
 declare enum TFAType {
@@ -206,7 +207,7 @@ declare class Api {
     register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
     requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse>;
     resetPassword(password: string): Promise<SuccessResponse>;
-    getAppSettings(): Promise<AppSettingsResponse>;
+    getAppSettings(callbackUrl: string): Promise<AppSettingsResponse>;
     enableTFA(): Promise<EnableTFAResponse>;
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;
