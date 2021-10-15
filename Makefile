@@ -36,3 +36,14 @@ build:
 
 lint:
 	golangci-lint run -D deadcode,errcheck,unused,varcheck,govet
+
+build_admin_panel:
+	rm -rf static/admin_panel
+	web_apps_src/update-admin.sh
+
+build_login_web_app:
+	rm -rf static/web
+	web_apps_src/update-web.sh
+
+build_web: build_admin_panel build_login_web_app
+
