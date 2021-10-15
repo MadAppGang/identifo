@@ -10,13 +10,13 @@ This settings file is subject for changes and extendability.
 
 ## General 
 
-| Field | Description |
-| :--- | :--- |
-| port | external port, exposed globally by load balancers and/or reverse proxy  |
-| host | Identifo server URL. env variable `HOST_NAME` overrides this value from the config file. The host should have full URL, including scheme, hostname, path and port. |
-| issuer | JWT token issuer, used as `iss` field value in JWT token. [Please refer to RFC7519 Section 4.1.1.](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1) |
-| algorithm | Key signature algorithms for JWT tokens. [Please refer RFC7518 for details.](https://datatracker.ietf.org/doc/html/rfc7518) Supported options are: `es256`, `es256` or `auto`. Auto option will use keys algorithm as an option. |
-| supported\_scopes | An array containing a list of the [OAuth 2.0](https://openid.net/specs/openid-connect-discovery-1_0.html#RFC6749) \[RFC6749\] scope values that this server supports. The server MUST support the `openid` scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [\[OpenID.Core\]](https://openid.net/specs/openid-connect-discovery-1_0.html#OpenID.Core) SHOULD be listed, if supported. |
+| Field            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
+| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| port             | external port, exposed globally by load balancers and/or reverse proxy                                                                                                                                                                                                                                                                                                                                                                                                         |
+| host             | Identifo server URL. env variable `HOST_NAME` overrides this value from the config file. The host should have full URL, including scheme, hostname, path and port.                                                                                                                                                                                                                                                                                                             |
+| issuer           | JWT token issuer, used as `iss` field value in JWT token. [Please refer to RFC7519 Section 4.1.1.](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1)                                                                                                                                                                                                                                                                                                                |
+| algorithm        | Key signature algorithms for JWT tokens. [Please refer RFC7518 for details.](https://datatracker.ietf.org/doc/html/rfc7518) Supported options are: `es256`, `es256` or `auto`. Auto option will use keys algorithm as an option.                                                                                                                                                                                                                                               |
+| supported_scopes | An array containing a list of the [OAuth 2.0](https://openid.net/specs/openid-connect-discovery-1\_0.html#RFC6749) \[RFC6749] scope values that this server supports. The server MUST support the `openid` scope value. Servers MAY choose not to advertise some supported scope values even when this parameter is used, although those defined in [\[OpenID.Core\]](https://openid.net/specs/openid-connect-discovery-1\_0.html#OpenID.Core) SHOULD be listed, if supported. |
 
 _Example:_
 
@@ -35,12 +35,12 @@ general:
     - adv_manager
 ```
 
-## Admin panel 
+## Admin panel account
 
-| Field | Description |
-| :--- | :--- |
-| loginEnvName | environment variable for admin account email address/login |
-| passwordEnvName | environment variable for admin account password |
+| Field           | Description                                                |
+| --------------- | ---------------------------------------------------------- |
+| loginEnvName    | environment variable for admin account email address/login |
+| passwordEnvName | environment variable for admin account password            |
 
 Example:
 
@@ -52,16 +52,16 @@ adminAccount:
 
 ## Data storages
 
-Storage settings hold together all storage settings. All settings for a particular database engine \(i.e, file paths for BoltDB, endpoints and regions for DynamoDB etc.\) are assumed to be the same across all stores. If they are not the same, the latest option in this file will be applied. For example, if there are two MongoDB-backed storage, `appStorage` and `tokenStorage`, and endpoint for `appStorage` is localhost:27017, while tokenStorage's endpoint is `localhost:27018`, the server will connect both stores to `localhost:27018`.
+Storage settings hold together all storage settings. All settings for a particular database engine (i.e, file paths for BoltDB, endpoints and regions for DynamoDB etc.) are assumed to be the same across all stores. If they are not the same, the latest option in this file will be applied. For example, if there are two MongoDB-backed storage, `appStorage` and `tokenStorage`, and endpoint for `appStorage` is localhost:27017, while tokenStorage's endpoint is `localhost:27018`, the server will connect both stores to `localhost:27018`.
 
-| Field | Description |
-| :--- | :--- |
-| appStorage | Application storage settings |
-| userStorage | User accounts storage settings |
-| tokenStorage | Tokens storage for all issues access and refresh tokens |
-| tokenBlacklist | Storage for token blacklist |
-| varificationCodeStorage | Storage to keep verification codes |
-| inviteStorage | Storage for invitations for registration |
+| Field                   | Description                                             |
+| ----------------------- | ------------------------------------------------------- |
+| appStorage              | Application storage settings                            |
+| userStorage             | User accounts storage settings                          |
+| tokenStorage            | Tokens storage for all issues access and refresh tokens |
+| tokenBlacklist          | Storage for token blacklist                             |
+| varificationCodeStorage | Storage to keep verification codes                      |
+| inviteStorage           | Storage for invitations for registration                |
 
 Now we support a list of storage types out of the box. It is easy to add a new one, so please free to implement it and send PR. And we have a plugin system, that will allow you to extend  the storage with custom logic on your favourite language with supported by [the Hashicorp plugin system](https://pkg.go.dev/github.com/hashicorp/go-plugin): Nodejs, python, RoR and any other language, which support gRPC.
 
@@ -82,20 +82,20 @@ storage:
 
 Now we support the following types:
 
-| Field 'type' value | Description |
-| :--- | :--- |
-| mongodb | MongoDB 4+ databases, you can use AtlasDB with a large free storage allowance to start. |
-| dynamodb | AWS DynamoDB storage |
-| boltDB | BoltDB local storage for simple solutions and single instance solutions |
-| mem | In-memory storage for testing and development |
+| Field 'type' value | Description                                                                             |
+| ------------------ | --------------------------------------------------------------------------------------- |
+| mongodb            | MongoDB 4+ databases, you can use AtlasDB with a large free storage allowance to start. |
+| dynamodb           | AWS DynamoDB storage                                                                    |
+| boltDB             | BoltDB local storage for simple solutions and single instance solutions                 |
+| mem                | In-memory storage for testing and development                                           |
 
 ### MongoDB
 
-| Field | Description |
-| :--- | :--- |
-| type | mongodb |
-| mongo | object field to keep all settings for mongodb |
-| mongo.database | the database name to keep all the data |
+| Field            | Description                                          |
+| ---------------- | ---------------------------------------------------- |
+| type             | mongodb                                              |
+| mongo            | object field to keep all settings for mongodb        |
+| mongo.database   | the database name to keep all the data               |
 | mongo.connection | the connection string for cluster or single instance |
 
 Example:
@@ -111,10 +111,10 @@ storage:
 
 ### BoltDB
 
-| Field | Description |
-| :--- | :--- |
-| type | boltdb |
-| boltdb | object field to keep all settings for boltdb |
+| Field       | Description                                                                                                |
+| ----------- | ---------------------------------------------------------------------------------------------------------- |
+| type        | boltdb                                                                                                     |
+| boltdb      | object field to keep all settings for boltdb                                                               |
 | boltdb.path | Full file path and name for boltdb file, could be absolute or relevant on local or network attached drive. |
 
 Example:
@@ -130,8 +130,8 @@ storage:
 ### Memory
 
 | Field | Description |
-| :--- | :--- |
-| type | fake |
+| ----- | ----------- |
+| type  | fake        |
 
 Example:
 
@@ -143,12 +143,12 @@ storage:
 
 ### DynamoDb
 
-| Field | Description |
-| :--- | :--- |
-| type | dynamodb |
-| dynamo | Field to store all the relevant settings for dynamoDB |
-| dynamo.endpoint | Full endpoint for DynamoDB |
-| dynamo.region | Region for DynamoDB endpoint |
+| Field           | Description                                           |
+| --------------- | ----------------------------------------------------- |
+| type            | dynamodb                                              |
+| dynamo          | Field to store all the relevant settings for dynamoDB |
+| dynamo.endpoint | Full endpoint for DynamoDB                            |
+| dynamo.region   | Region for DynamoDB endpoint                          |
 
 Example:
 
@@ -165,18 +165,18 @@ storage:
 
 Session storage keeps sessions for admin panel. 
 
-| Field | Description |
-| :--- | :--- |
-| sessionStorage | root field to hold the session values |
-| type | options are `memory`, `redis` and `dynamodb` |
-| sessionDuration | session duration in seconds |
-| redis | is object key to store values for session settings in redis |
-| redis.address | redis address  |
-| redis.password | redis password, optional |
-| redis.db | redis database name |
-| dynamo | is an object key to store session settings for dynamodb storage type |
-| dynamo.region | AWS region for dynamodb session storage  |
-| dynamo.endpoint | AWS Dynamodb endpoint for session storage |
+| Field           | Description                                                          |
+| --------------- | -------------------------------------------------------------------- |
+| sessionStorage  | root field to hold the session values                                |
+| type            | options are `memory`, `redis` and `dynamodb`                         |
+| sessionDuration | session duration in seconds                                          |
+| redis           | is object key to store values for session settings in redis          |
+| redis.address   | redis address                                                        |
+| redis.password  | redis password, optional                                             |
+| redis.db        | redis database name                                                  |
+| dynamo          | is an object key to store session settings for dynamodb storage type |
+| dynamo.region   | AWS region for dynamodb session storage                              |
+| dynamo.endpoint | AWS Dynamodb endpoint for session storage                            |
 
 Example:
 
@@ -206,18 +206,18 @@ Storage for keys used for signing and verifying JWT tokens. Technically, a priva
 
 Currently we support keys from local file system and S3. Other options could be added in the future. like: base64 encoded env variable or etcd or Hashicorp vault or AWS KMS.
 
-| Field | Description |
-| :--- | :--- |
-| keyStorage | root key for key settings |
-| type | `local` or `s3` |
-| file | key for local file type settings |
-| file.private\_key\_path | absolute or relevant path for a private key |
-| file.public\_key\_path | absolute or relevant path for a public key |
-| s3 | key for s3 file type settings |
-| s3.region | AWS S3 region |
-| s3.bucket | AWS S3 bucket  |
-| s3.public\_key\_key | Public key S3 key |
-| s3.private\_key\_key | Private key S3 key |
+| Field                 | Description                                 |
+| --------------------- | ------------------------------------------- |
+| keyStorage            | root key for key settings                   |
+| type                  | `local` or `s3`                             |
+| file                  | key for local file type settings            |
+| file.private_key_path | absolute or relevant path for a private key |
+| file.public_key_path  | absolute or relevant path for a public key  |
+| s3                    | key for s3 file type settings               |
+| s3.region             | AWS S3 region                               |
+| s3.bucket             | AWS S3 bucket                               |
+| s3.public_key_key     | Public key S3 key                           |
+| s3.private_key_key    | Private key S3 key                          |
 
 Example:
 
@@ -230,61 +230,114 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
     public_key_path: ./jwt/test_artifacts/public.pem
 ```
 
-## Static files serving
+## Admin panel settings
 
-Static file storage is responsible to store the admin panel, login pages and email templates.
+By default admin panel is not served. Admin API is not active if the admin panel is not served for security reasons. 
 
-Now we support only one storage for all of those above.
+This setting enables the admin panel.
 
-It tries to get the custom static data from the settings here, and if it failed, it gets the data included locally in docker file.
+| Field   | Description                                       |
+| ------- | ------------------------------------------------- |
+| enabled | Bool value, admin panel is served with admin API. |
 
-| Field | Description |
-| :--- | :--- |
-| static | root key for static data storage settings |
-| type | storage type, supported values are `local`, `s3`, `dynamodb` |
-| serveAdminPanel | boolean value, if `true` - serves admin panel |
-| local | key for local static files settings |
-| local.folder | folder for static data  |
-| s3 | key for aws s3 static files settings |
-| s3.region | aws s3 region for s3 static files settings |
-| s3.bucket | aws s3 bucket for static file storage |
-| s3.folder | aws s3 key/folder/prefix for static file storage |
-| dynamo | key for aws dynamodb static files settings |
-| dynamo.region | aws dynamodb region |
-| dynamo.endpoint | aws dynamodb enpoint |
+
 
 Example:
 
 ```yaml
-static:
+adminPanel:
+  enabled: true
+```
+
+## Login web app
+
+Web UI for login/registration/2fa flow is built with web elements. It allows to embed it in any framework natively: ReactJS, Vue, AngulaJS. You can use it without any web framework at all with just vanilla JS.
+
+There are three options to provide UI for web login:
+
+1. Identifo serves all UI, the web app just needs to redirect to `https://identifo.com/web/login` address and after login, identifo will redirect back.
+2. Use identifo web elements UI on client-side. All you need is to connect IdentifoJS library to your app. Identifo will show UI and communicate with Identifo instance with regular REST API.
+3. Implement your custom UI and communicate with Identifo with API.
+
+When Identifo serves login web app itself (first option) it can serve default files from Docker image, you can point it to other location on the file system or point to S3 with your customised version.
+
+You are not limited to web elements implementation we provide, you can do your own from scratch using any web framework. The only requirement is it should be SPA app.
+
+The root settings key for the login web app is `loginWebApp` 
+
+| Field        | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| type         | storage type, supported values are: `none`, `default`, `local`, `s3` |
+| local        | key for local (file system) storage settings                         |
+| local.folder | root folder of SPA app                                               |
+| s3           | key for s3 storage settings                                          |
+| s3.region    | s3 region                                                            |
+| s3.bucket    | s3 bucket                                                            |
+| s3.folder    | s3 folder (aka prefix)                                               |
+
+Example:
+
+```yaml
+loginWebApp:
   type: local
-  serveAdminPanel: true
   local:
     folder: ./static
   # s3 storage example
   # s3:
   #   region: east-us1
   #   bucket: identifo-data
-  #   folder: static
-  # dynamodb storage example
-  # dynamo:
+  #   folder: login-web-app
+```
+
+## Email templates storage settings
+
+Identifo sending emails to users for following resons:
+
+* invitation email
+* reset password email with a reset link
+* an email with one-time password (OTP) for login
+* email to verify email
+* welcome email
+
+ 
+
+| Field        | Description                                                          |
+| ------------ | -------------------------------------------------------------------- |
+| type         | storage type, supported values are: `none`, `default`, `local`, `s3` |
+| local        | key for local (file system) storage settings                         |
+| local.folder | folder with templates                                                |
+| s3           | key for s3 storage settings                                          |
+| s3.region    | s3 region                                                            |
+| s3.bucket    | s3 bucket                                                            |
+| s3.folder    | s3 folder (aka prefix)                                               |
+
+Example:
+
+```yaml
+loginWebApp:
+  type: local
+  local:
+    folder: ./static
+  # s3 storage example
+  # s3:
   #   region: east-us1
-  #   endpoint: dbb-endpoint
+  #   bucket: identifo-data
+  #   folder: login-web-app
 ```
 
 ## Login options
 
 Settings for login options supported by identifo.
 
-| Field | Description |
-| :--- | :--- |
-| login | root key for login settings |
-| loginWith | key for login types  |
-| loginWith.phone | boolean value, indicating login with phone is supported |
-| loginWith.email | boolean value, login with email is supported |
-| loginWith.username | boolean value, login with username is supported |
-| loginWith.federated | boolean value, federated login is supported |
-| tfyType | Two-factor authentication, currently we support `app`, `sms` and `email`. |
+| Field               | Description                                                               |
+| ------------------- | ------------------------------------------------------------------------- |
+| login               | root key for login settings                                               |
+| loginWith           | key for login types                                                       |
+| loginWith.phone     | boolean value, indicating login with phone is supported                   |
+| loginWith.email     | boolean value, login with email is supported                              |
+| loginWith.username  | boolean value, login with username is supported                           |
+| loginWith.federated | boolean value, federated login is supported                               |
+| tfyType             | Two-factor authentication, currently we support `app`, `sms` and `email`. |
 
 Example:
 
@@ -310,18 +363,18 @@ All services are supporting `mock` type. This type prints everything to a consol
 
 ### Email external service
 
-| Field | Description |
-| :--- | :--- |
-| email | root key for email service settings |
-| email.type | email service type, supported types are mailgun, ses and mock. Mock types does not requeres any  |
-| email.mailgun | mailgun email service settings key |
-| email.mailgun.domain | mailgun domain name |
-| email.mailgun.privateKey | mailgun private key  |
-| email.mailgun.publicKey | mailgun public key |
-| email.mailgun.sender | sender email address |
-| email.ses | AWS SES email settings key |
-| email.ses.sender | email sender for SES service |
-| email.ses.region | email AWS SES region |
+| Field                    | Description                                                                                      |
+| ------------------------ | ------------------------------------------------------------------------------------------------ |
+| email                    | root key for email service settings                                                              |
+| email.type               | email service type, supported types are mailgun, ses and mock. Mock types does not requeres any  |
+| email.mailgun            | mailgun email service settings key                                                               |
+| email.mailgun.domain     | mailgun domain name                                                                              |
+| email.mailgun.privateKey | mailgun private key                                                                              |
+| email.mailgun.publicKey  | mailgun public key                                                                               |
+| email.mailgun.sender     | sender email address                                                                             |
+| email.ses                | AWS SES email settings key                                                                       |
+| email.ses.sender         | email sender for SES service                                                                     |
+| email.ses.region         | email AWS SES region                                                                             |
 
 Example:
 
@@ -341,22 +394,22 @@ services:
 
 ### SMS external service
 
-| Field | Description |
-| :--- | :--- |
-| sms | root key for sms settings |
-| sms.type | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
-| sms.twilio | key to store settings for Twilio SMS service |
-| sms.twilio.accountSid | Twilio account SID |
-| sms.twilio.authToken | Twilio authentication token |
-| sms.twilio.serviceSid | Twilio service SID |
-| sms.nexmo | key to store nexmo service settings |
-| sms.nexmo.apiKey | Nexmo API Key |
-| sms.nexmo.apiSecret | Nexmo API Secret |
-| sms.routemobile | RouteMobile service settings |
-| sms.routemobile.username | Routemobile username |
-| sms.routemobile.password | Routemobile service password |
-| sms.routemobile.source | Routemobile service source |
-| sms.routemobile.region | Routemobile region settings |
+| Field                    | Description                                                               |
+| ------------------------ | ------------------------------------------------------------------------- |
+| sms                      | root key for sms settings                                                 |
+| sms.type                 | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
+| sms.twilio               | key to store settings for Twilio SMS service                              |
+| sms.twilio.accountSid    | Twilio account SID                                                        |
+| sms.twilio.authToken     | Twilio authentication token                                               |
+| sms.twilio.serviceSid    | Twilio service SID                                                        |
+| sms.nexmo                | key to store nexmo service settings                                       |
+| sms.nexmo.apiKey         | Nexmo API Key                                                             |
+| sms.nexmo.apiSecret      | Nexmo API Secret                                                          |
+| sms.routemobile          | RouteMobile service settings                                              |
+| sms.routemobile.username | Routemobile username                                                      |
+| sms.routemobile.password | Routemobile service password                                              |
+| sms.routemobile.source   | Routemobile service source                                                |
+| sms.routemobile.region   | Routemobile region settings                                               |
 
 ```yaml
 services:
@@ -375,4 +428,3 @@ services:
     #   source: whatever 
     #   region: australia 
 ```
-
