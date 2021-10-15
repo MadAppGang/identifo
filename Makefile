@@ -36,3 +36,23 @@ build:
 
 lint:
 	golangci-lint run -D deadcode,errcheck,unused,varcheck,govet
+
+build_admin_panel:
+	rm -rf static/admin_panel
+	web_apps_src/update-admin.sh
+
+build_login_web_app:
+	rm -rf static/web/element
+	web_apps_src/update-web.sh
+
+build_web: build_admin_panel build_login_web_app
+
+
+run_ui_tests:
+	go run main.go --config=file://./cmd/config-boltdb.yaml &
+	cd web_apps_src/web-element && npx cypress run
+	kill $$(ps  | grep config-boltdb.yaml | awk '{print $1}')
+
+open_ui_tests:
+	$$(cd web_apps_src/web-element; npm install; $$(npm bin)/cypress open )
+	

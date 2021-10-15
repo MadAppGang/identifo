@@ -1,6 +1,7 @@
 package model
 
 import (
+	"io/fs"
 	"net/http"
 )
 
@@ -27,9 +28,10 @@ type ServerStorageCollection struct {
 	Invite       InviteStorage
 	Verification VerificationCodeStorage
 	Config       ConfigurationStorage
-	Static       StaticFilesStorage
 	Session      SessionStorage
 	Key          KeyStorage
+	LoginAppFS   fs.FS
+	AdminPanelFS fs.FS
 }
 
 type ServerServices struct {

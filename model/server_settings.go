@@ -10,16 +10,18 @@ const defaultEtcdKey = "identifo"
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General        GeneralServerSettings      `yaml:"general" json:"general"`
-	AdminAccount   AdminAccountSettings       `yaml:"adminAccount" json:"admin_account"`
-	Storage        StorageSettings            `yaml:"storage" json:"storage"`
-	SessionStorage SessionStorageSettings     `yaml:"sessionStorage" json:"session_storage"`
-	Static         StaticFilesStorageSettings `yaml:"static" json:"static_files_storage"`
-	Services       ServicesSettings           `yaml:"services" json:"external_services"`
-	Login          LoginSettings              `yaml:"login" json:"login"`
-	KeyStorage     KeyStorageSettings         `yaml:"keyStorage" json:"key_storage"`
-	Config         ConfigStorageSettings      `yaml:"-" json:"config"`
-	Logger         LoggerSettings             `yaml:"logger" json:"logger"`
+	General        GeneralServerSettings  `yaml:"general" json:"general"`
+	AdminAccount   AdminAccountSettings   `yaml:"adminAccount" json:"admin_account"`
+	Storage        StorageSettings        `yaml:"storage" json:"storage"`
+	SessionStorage SessionStorageSettings `yaml:"sessionStorage" json:"session_storage"`
+	Services       ServicesSettings       `yaml:"services" json:"external_services"`
+	Login          LoginSettings          `yaml:"login" json:"login"`
+	KeyStorage     KeyStorageSettings     `yaml:"keyStorage" json:"key_storage"`
+	Config         ConfigStorageSettings  `yaml:"-" json:"config"`
+	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
+	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
+	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
+	EmailTemplates FileStorageSettings    `yaml:"emailTemplaits" json:"email_templaits"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -78,43 +80,37 @@ const (
 	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
 )
 
-// StaticFilesStorageSettings are settings for static files storage.
-type StaticFilesStorageSettings struct {
-	Type            StaticFilesStorageType          `yaml:"type" json:"type"`
-	Dynamo          DynamoDatabaseSettings          `yaml:"dynamo" json:"dynamo"`
-	Local           LocalStaticFilesStorageSettings `yaml:"local" json:"local"`
-	S3              S3StaticFilesStorageSettings    `yaml:"s3" json:"s3"`
-	ServeAdminPanel bool                            `yaml:"serveAdminPanel" json:"serve_admin_panel"`
+type FileStorageSettings struct {
+	Type  FileStorageType  `yaml:"type" json:"type"`
+	Local FileStorageLocal `yaml:"local,omitempty" json:"local,omitempty"`
+	S3    FileStorageS3    `yaml:"s3,omitempty" json:"s3,omitempty"`
 }
 
-type S3StaticFilesStorageSettings struct {
+type FileStorageType string
+
+const (
+	FileStorageTypeNone    FileStorageType = "none"
+	FileStorageTypeDefault FileStorageType = "default"
+	FileStorageTypeLocal   FileStorageType = "local"
+	FileStorageTypeS3      FileStorageType = "s3"
+)
+
+type FileStorageS3 struct {
 	Region string `yaml:"region" json:"region"`
 	Bucket string `yaml:"bucket" json:"bucket"`
 	Folder string `yaml:"folder" json:"folder"`
 }
 
-type LocalStaticFilesStorageSettings struct {
+type FileStorageLocal struct {
 	FolderPath string `yaml:"folder" json:"folder"`
 }
 
-// StaticFilesStorageType is a type of static files storage.
-type StaticFilesStorageType string
-
-const (
-	// StaticFilesStorageTypeLocal is for storing static files locally.
-	StaticFilesStorageTypeLocal = "local"
-	// StaticFilesStorageTypeS3 is for storing static files in S3 bucket.
-	StaticFilesStorageTypeS3 = "s3"
-	// StaticFilesStorageTypeDynamoDB is for storing static files in DynamoDB table.
-	StaticFilesStorageTypeDynamoDB = "dynamo"
-)
-
 type ConfigStorageSettings struct {
-	Type      ConfigStorageType    `json:"type"`
-	RawString string               `json:"raw_string"`
-	S3        *S3StorageSettings   `json:"s3"`
-	File      *FileStorageSettings `json:"file"`
-	Etcd      *EtcdStorageSettings `json:"etcd"`
+	Type      ConfigStorageType         `json:"type"`
+	RawString string                    `json:"raw_string"`
+	S3        *S3StorageSettings        `json:"s3"`
+	File      *LocalFileStorageSettings `json:"file"`
+	Etcd      *EtcdStorageSettings      `json:"etcd"`
 }
 
 // ConfigStorageType describes type of configuration storage.
@@ -302,7 +298,7 @@ type LoggerSettings struct {
 	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
 }
 
-type FileStorageSettings struct {
+type LocalFileStorageSettings struct {
 	// just a file name
 	FileName string `yaml:"file_name" json:"file_name" bson:"file_name"`
 }
@@ -319,6 +315,10 @@ type EtcdStorageSettings struct {
 	Key       string   `json:"key" yaml:"key"`
 	Username  string   `json:"username" yaml:"username"`
 	Password  string   `json:"password" yaml:"password"`
+}
+
+type AdminPanelSettings struct {
+	Enabled bool `json:"enabled" yaml:"enabled"`
 }
 
 func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, error) {
@@ -375,7 +375,7 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 	return ConfigStorageSettings{
 		Type:      ConfigStorageTypeFile,
 		RawString: config,
-		File: &FileStorageSettings{
+		File: &LocalFileStorageSettings{
 			FileName: filename,
 		},
 	}, nil

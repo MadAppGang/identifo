@@ -1,15 +1,11 @@
 package api
 
 import (
-	"bytes"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"encoding/base64"
 	"math/big"
 	"net/http"
-	"time"
-
-	"github.com/madappgang/identifo/model"
 )
 
 // OIDCConfiguration describes OIDC configuration.
@@ -127,37 +123,40 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 }
 
 // ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.
-func (ar *Router) ServeADDAFile() http.HandlerFunc {
-	data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
-	if err != nil {
-		ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
-	}
-	if data == nil {
-		ar.logger.Println("Apple Developer Domain Association file does not exist, so won't be served.")
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusNotFound, nil) }
-	}
+// func (ar *Router) ServeADDAFile() http.HandlerFunc {
+// TODO: Jack, reimplement this completely
+// data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.DeveloperDomainAssociation)
+// if err != nil {
+// 	ar.logger.Fatalln("Cannot read Apple Domain Association file path:", err)
+// }
+// if data == nil {
+// 	ar.logger.Println("Apple Developer Domain Association file does not exist, so won't be served.")
+// 	return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusNotFound, nil) }
+// }
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Disposition", "attachment; filename=apple-developer-domain-association.txt")
-		w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
-		http.ServeContent(w, r, "apple-developer-domain-association.txt", time.Now(), bytes.NewReader(data))
-	}
-}
+// return func(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Disposition", "attachment; filename=apple-developer-domain-association.txt")
+// 	w.Header().Set("Content-Type", r.Header.Get("Content-Type"))
+// 	http.ServeContent(w, r, "apple-developer-domain-association.txt", time.Now(), bytes.NewReader(data))
+// }
+// }
 
 // ServeAASAFile lets Apple servers download apple-app-site-association file.
-func (ar *Router) ServeAASAFile() http.HandlerFunc {
-	data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.AppSiteAssociation)
-	if err != nil {
-		ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
-	}
-	if data == nil {
-		ar.logger.Println("Apple App Site Association file does not exist, so won't be served.")
-		return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusNotFound, nil) }
-	}
+// func (ar *Router) ServeAASAFile() http.HandlerFunc {
+// TODO: Jack, reimplement this completely
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Disposition", "attachment; filename=apple-app-site-association")
-		w.Header().Set("Content-Type", "application/pkcs7-mime")
-		http.ServeContent(w, r, "apple-app-site-association", time.Now(), bytes.NewReader(data))
-	}
-}
+// data, err := ar.server.Storages().Static.GetAppleFile(model.AppleFilenames.AppSiteAssociation)
+// if err != nil {
+// 	ar.logger.Fatalln("Cannot read Apple App Site Association file path:", err)
+// }
+// if data == nil {
+// 	ar.logger.Println("Apple App Site Association file does not exist, so won't be served.")
+// 	return func(w http.ResponseWriter, r *http.Request) { ar.ServeJSON(w, http.StatusNotFound, nil) }
+// }
+
+// return func(w http.ResponseWriter, r *http.Request) {
+// 	w.Header().Set("Content-Disposition", "attachment; filename=apple-app-site-association")
+// 	w.Header().Set("Content-Type", "application/pkcs7-mime")
+// 	http.ServeContent(w, r, "apple-app-site-association", time.Now(), bytes.NewReader(data))
+// }
+// }

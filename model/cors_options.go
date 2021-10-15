@@ -4,9 +4,4 @@ import (
 	"github.com/rs/cors"
 )
 
-// CorsOptions are options for routers CORS.
-type CorsOptions struct {
-	Admin *cors.Options
-	API   *cors.Options
-	HTML  *cors.Options
-}
+var DefaultCors = cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}, AllowCredentials: true}

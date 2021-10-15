@@ -31,6 +31,13 @@ type passwordResetData struct {
 	AppID  string `json:"app_id,omitempty"`
 }
 
+type ResetEmailData struct {
+	User  model.User
+	Token string
+	URL   string
+	Host  string
+}
+
 func (rd *registrationData) validate() error {
 	if usernameLen := len(rd.Username); usernameLen < 6 || usernameLen > 50 {
 		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
@@ -240,19 +247,32 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "password/reset"),
+			Path:     path.Join(ar.LoginWebAppPrefix, "password/reset"),
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.LoginWebAppPrefix, "password/reset")}
 
-		resetEmailData := model.ResetEmailData{
+		resetEmailData := ResetEmailData{
 			Token: resetTokenString,
 			URL:   u.String(),
 			Host:  uu.String(),
 		}
 
-		if err = ar.server.Services().Email.SendResetEmail("Reset Password", user.Email, resetEmailData); err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+		if err = ar.server.Services().Email.SendTemplateEmail(
+			model.EmailTemplateTypeResetPassword,
+			"Reset Password",
+			user.Email,
+			model.EmailData{
+				User: user,
+				Data: resetEmailData,
+			},
+		); err != nil {
+			ar.Error(
+				w,
+				err,
+				http.StatusInternalServerError,
+				"Email sending error: "+err.Error(),
+			)
 			return
 		}
 

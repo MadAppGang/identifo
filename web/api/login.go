@@ -20,6 +20,12 @@ var (
 	errPleaseDisableTFA  = fmt.Errorf("please disable two-factor authentication to be able to use this app")
 )
 
+type SendTFAEmailData struct {
+	User model.User
+	OTP  string
+	Data interface{}
+}
+
 const (
 	smsTFACode        = "%v is your one-time password!"
 	hotpLifespanHours = 12 // One time code expiration in hours, default value is 30 secs for TOTP and 12 hours for HOTP
@@ -35,11 +41,13 @@ type AuthResponse struct {
 	CallbackUrl  string     `json:"callback_url,omitempty" bson:"callback_url,omitempty"`
 	Scopes       []string   `json:"scopes,omitempty" bson:"scopes,omitempty"`
 }
+
 type login struct {
 	Email    string `json:"email,omitempty"`
 	Username string `json:"username,omitempty"`
 	Phone    string `json:"phone,omitempty"`
 }
+
 type loginData struct {
 	login
 	Password    string   `json:"password,omitempty"`
@@ -315,13 +323,23 @@ func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
 		return errors.New("unable to send email OTP, user has no email")
 	}
 
-	emailData := model.SendTFAEmailData{
+	emailData := SendTFAEmailData{
 		User: user,
 		OTP:  otp,
 	}
-	if err := ar.server.Services().Email.SendTFAEmail("One-time password", user.Email, emailData); err != nil {
+
+	if err := ar.server.Services().Email.SendTemplateEmail(
+		model.EmailTemplateTypeTFAWithCode,
+		"One-time password",
+		user.Email,
+		model.EmailData{
+			User: user,
+			Data: emailData,
+		},
+	); err != nil {
 		return fmt.Errorf("unable to send email with OTP with error: %s", err)
 	}
+
 	return nil
 }
 

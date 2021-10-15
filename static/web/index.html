@@ -70,7 +70,9 @@
       identifoForm.scopes = scopes;
       identifoForm.appId = appId;
       identifoForm.url = `${window.location.protocol}//${window.location.host}`;
-      identifoForm.route = window.location.pathname.replace("/web/", "");
+      identifoForm.route = window.location.pathname
+        .replace("/web/", "")
+        .replace(/\/$/, "");
       identifoForm.token = token;
       identifoForm.callbackUrl = callbackUrl;
       identifoForm.debug = debug;

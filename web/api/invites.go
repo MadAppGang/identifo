@@ -12,6 +12,18 @@ import (
 	"github.com/madappgang/identifo/web/middleware"
 )
 
+type InviteEmailData struct {
+	Requester model.User
+	Token     string
+	URL       string
+	Host      string
+	Query     string
+	App       string
+	Scopes    string
+	Callback  string
+	Data      interface{}
+}
+
 // RequestInviteLink requests invite link. Invite link will be returned in response even if email or access_role is not specified.
 func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -85,7 +97,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")
 				return
 			}
-			requestData := model.InviteEmailData{
+			requestData := InviteEmailData{
 				Token:     inviteTokenString,
 				App:       app.ID,
 				Scopes:    scopes,
@@ -95,11 +107,24 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 				Query:     query,
 				Host:      uu.String(),
 			}
-			err = ar.server.Services().Email.SendInviteEmail("Invitation", d.Email, requestData)
-			if err != nil {
-				ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, err.Error(), "RequestInviteLink.SendInviteEmail")
+
+			if err = ar.server.Services().Email.SendTemplateEmail(
+				model.EmailTemplateTypeInvite,
+				"Invitation",
+				d.Email,
+				model.EmailData{
+					Data: requestData,
+				},
+			); err != nil {
+				ar.Error(
+					w,
+					ErrorAPIEmailNotSent,
+					http.StatusInternalServerError,
+					"Email sending error: "+err.Error(), "RequestInviteLink.SendInviteEmail",
+				)
 				return
 			}
+
 		}
 		result := map[string]string{"link": u.String()}
 		ar.ServeJSON(w, http.StatusOK, result)

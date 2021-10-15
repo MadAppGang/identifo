@@ -1,6 +1,8 @@
 package config
 
 import (
+	"io/fs"
+
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/server"
 	"github.com/madappgang/identifo/services/mail"
@@ -9,6 +11,27 @@ import (
 
 	jwt "github.com/madappgang/identifo/jwt/service"
 )
+
+var adminPanelFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/admin_panel",
+	},
+}
+
+var defaultLoginWebAppFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/web",
+	},
+}
+
+var defaultEmailTemplateFSSettings = model.FileStorageSettings{
+	Type: model.FileStorageTypeLocal,
+	Local: model.FileStorageLocal{
+		FolderPath: "./static/email_templates",
+	},
+}
 
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
@@ -54,14 +77,27 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	static, err := storage.NewStaticFileStorage(settings.Static)
+	key, err := storage.NewKeyStorage(settings.KeyStorage)
 	if err != nil {
 		return nil, err
 	}
 
-	key, err := storage.NewKeyStorage(settings.KeyStorage)
+	lwas := settings.LoginWebApp
+	if settings.LoginWebApp.Type == model.FileStorageTypeNone {
+		// if not set, use default value
+		lwas = defaultLoginWebAppFSSettings
+	}
+	loginFS, err := storage.NewFS(lwas)
 	if err != nil {
 		return nil, err
+	}
+
+	var adminPanelFS fs.FS
+	if settings.AdminPanel.Enabled == true {
+		adminPanelFS, err = storage.NewFS(adminPanelFSSettings)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	sc := model.ServerStorageCollection{
@@ -73,8 +109,9 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		Verification: verification,
 		Session:      session,
 		Config:       config,
-		Static:       static,
 		Key:          key,
+		LoginAppFS:   loginFS,
+		AdminPanelFS: adminPanelFS,
 	}
 
 	// create 3rd party services
@@ -83,7 +120,16 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	email, err := mail.NewService(settings.Services.Email, static)
+	ets := settings.EmailTemplates
+	if ets.Type == model.FileStorageTypeNone {
+		ets = defaultEmailTemplateFSSettings
+	}
+	emailTemplateFS, err := storage.NewFS(ets)
+	if err != nil {
+		return nil, err
+	}
+
+	email, err := mail.NewService(settings.Services.Email, emailTemplateFS)
 	if err != nil {
 		return nil, err
 	}

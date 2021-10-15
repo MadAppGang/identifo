@@ -6,21 +6,30 @@ import (
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/admin"
-	"github.com/madappgang/identifo/web/adminpanel"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/authorization"
-	"github.com/madappgang/identifo/web/html"
+	"github.com/madappgang/identifo/web/spa"
+	"github.com/rs/cors"
+)
+
+const (
+	adminpanelPath    = "/adminpanel"
+	adminpanelAPIPath = "/admin"
+	apiPath           = "/api"
+	loginAppPath      = "/web"
+	loginAppErrorPath = "/web/misconfiguration"
 )
 
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
-	Server              model.Server
-	Logger              *log.Logger
-	ServeAdminPanel     bool
-	APIRouterSettings   []func(*api.Router) error
-	WebRouterSettings   []func(*html.Router) error
-	AdminRouterSettings []func(*admin.Router) error
-	LoggerSettings      model.LoggerSettings
+	Server           model.Server
+	Logger           *log.Logger
+	ServeAdminPanel  bool
+	HostName         string
+	LoggerSettings   model.LoggerSettings
+	AppOriginChecker model.OriginChecker
+	APICors          *cors.Cors
+	RestartChan      chan<- bool
 }
 
 // NewRouter creates and inits root http router.
@@ -29,50 +38,71 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	var err error
 	authorizer := authorization.NewAuthorizer()
 
-	r.APIRouterPath = "/api"
-	r.WebRouterPath = "/web"
+	// API router setup
+	apiCorsSettings := model.DefaultCors
+	if settings.AppOriginChecker != nil {
+		apiCorsSettings.AllowOriginRequestFunc = settings.AppOriginChecker.CheckOrigin
+	}
+	apiCors := cors.New(apiCorsSettings)
 
-	r.APIRouter, err = api.NewRouter(
-		settings.Server,
-		settings.Logger,
-		authorizer,
-		settings.LoggerSettings,
-		append(settings.APIRouterSettings, api.WebRouterPrefixOption(r.WebRouterPath))...,
-	)
+	apiSettings := api.RouterSettings{
+		Server:         settings.Server,
+		Logger:         settings.Logger,
+		LoggerSettings: settings.LoggerSettings,
+		Authorizer:     authorizer,
+		Host:           settings.HostName,
+		Prefix:         apiPath,
+		LoginWith:      settings.Server.Settings().Login.LoginWith,
+		TFAType:        settings.Server.Settings().Login.TFAType,
+		Cors:           apiCors,
+	}
+
+	apiRouter, err := api.NewRouter(apiSettings)
+	if err != nil {
+		return nil, err
+	}
+	r.APIRouter = apiRouter
+
+	// Web login app setup
+	loginAppSettings := spa.SPASettings{
+		Name:       "LOGIN_APP",
+		Root:       "/",
+		FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
+	}
+	r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, nil, settings.Logger)
 	if err != nil {
 		return nil, err
 	}
 
-	r.WebRouter, err = html.NewRouter(
-		settings.Server,
-		settings.Logger,
-		authorizer,
-		settings.WebRouterSettings...,
-	)
-	if err != nil {
-		return nil, err
-	}
-
+	// Admin panel
 	if settings.ServeAdminPanel {
-		r.AdminRouter, err = admin.NewRouter(
-			settings.Server,
-			settings.Logger,
-			append(settings.AdminRouterSettings, admin.WebRouterPrefixOption(r.WebRouterPath))...,
-		)
-		if err != nil {
-			return nil, err
+		routerSettings := admin.RouterSettings{
+			Server:  settings.Server,
+			Logger:  settings.Logger,
+			Host:    settings.HostName,
+			Prefix:  adminpanelAPIPath,
+			Restart: settings.RestartChan,
+			OriginUpdate: func() error {
+				return settings.AppOriginChecker.Update()
+			},
 		}
-		r.AdminRouterPath = "/admin"
 
-		r.AdminPanelRouter, err = adminpanel.NewRouter(settings.Server.Storages().Static)
+		// init admin panel api router
+		r.AdminRouter, err = admin.NewRouter(routerSettings)
 		if err != nil {
 			return nil, err
 		}
-		r.AdminPanelRouterPath = "/adminpanel"
+		// init admin panel web app
+		adminPanelAppSettings := spa.SPASettings{
+			Name:       "ADMIN_PANEL",
+			Root:       "/",
+			FileSystem: http.FS(settings.Server.Storages().AdminPanelFS),
+		}
+		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
+		if err != nil {
+			return nil, err
+		}
 	}
-
-	r.APIRouterPath = "/api"
-	r.WebRouterPath = "/web"
 
 	r.setupRoutes()
 	return &r, nil
@@ -81,15 +111,10 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 // Router is a root router to handle REST API, web, and admin requests.
 type Router struct {
 	APIRouter        model.Router
-	WebRouter        model.Router
+	LoginAppRouter   model.Router
 	AdminRouter      model.Router
 	AdminPanelRouter model.Router
 	RootRouter       *http.ServeMux
-
-	APIRouterPath        string
-	WebRouterPath        string
-	AdminRouterPath      string
-	AdminPanelRouterPath string
 }
 
 // ServeHTTP implements identifo.Router interface.
@@ -101,9 +126,9 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
-	ar.RootRouter.Handle(ar.WebRouterPath+"/", http.StripPrefix(ar.WebRouterPath, ar.WebRouter))
+	ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter))
 	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
-		ar.RootRouter.Handle(ar.AdminRouterPath+"/", http.StripPrefix(ar.AdminRouterPath, ar.AdminRouter))
-		ar.RootRouter.Handle(ar.AdminPanelRouterPath+"/", http.StripPrefix(ar.AdminPanelRouterPath, ar.AdminPanelRouter))
+		ar.RootRouter.Handle(adminpanelAPIPath+"/", http.StripPrefix(adminpanelAPIPath, ar.AdminRouter))
+		ar.RootRouter.Handle(adminpanelPath+"/", http.StripPrefix(adminpanelPath, ar.AdminPanelRouter))
 	}
 }

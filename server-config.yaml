@@ -50,20 +50,8 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
 
-static:
-  type: local
-  serveAdminPanel: true
-  local:
-    folder: ./static
-  # s3 storage example
-  # s3:
-  #   region: east-us1
-  #   bucket: identifo-data
-  #   folder: static
-  # dynamodb storage example
-  # dynamo:
-  #   region: east-us1
-  #   endpoint: dbb-endpoint
+
+
 
 login: # Supported login ways.
   loginWith:

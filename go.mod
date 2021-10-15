@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/sessions v1.2.1
+	github.com/jszwec/s3fs v0.3.1 // indirect
 	github.com/klauspost/compress v1.13.4 // indirect
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
@@ -31,6 +32,7 @@ require (
 	github.com/sfreiberg/gotwilio v0.0.0-20201211181435-c426a3710ab5
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
+	github.com/spf13/afero v1.6.0 // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119

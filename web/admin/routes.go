@@ -46,6 +46,7 @@ func (ar *Router) initRoutes() {
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetApp()).Methods("GET")
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateApp()).Methods("PUT")
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteApp()).Methods("DELETE")
+	apps.Path("/").HandlerFunc(ar.DeleteAllApps()).Methods("DELETE")
 
 	ar.router.Path("/users").Handler(negroni.New(
 		ar.Session(),
@@ -109,10 +110,6 @@ func (ar *Router) initRoutes() {
 		negroni.Wrap(static),
 	))
 
-	static.Path("/template").HandlerFunc(ar.GetStringifiedFile()).Methods("GET")
-	static.Path("/template").HandlerFunc(ar.UploadStringifiedFile()).Methods("PUT")
-
 	static.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
 	static.Path("/keys").HandlerFunc(ar.GetJWTKeys()).Methods("GET")
-	static.Path("/uploads/apple-domain-association").HandlerFunc(ar.UploadADDAFile()).Methods("POST")
 }

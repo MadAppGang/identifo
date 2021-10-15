@@ -15,6 +15,14 @@ import (
 	"github.com/xlzd/gotp"
 )
 
+type ResetEmailData struct {
+	User  model.User
+	Token string
+	URL   string
+	Host  string
+	Data  interface{}
+}
+
 // EnableTFA enables two-factor authentication for the user.
 func (ar *Router) EnableTFA() http.HandlerFunc {
 	type tfaSecret struct {
@@ -297,15 +305,28 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			Host:   host.Host,
 			Path:   path.Join(ar.WebRouterPrefix, "tfa/disable"),
 		}
-		resetEmailData := model.ResetEmailData{
+		resetEmailData := ResetEmailData{
 			User:  user,
 			Token: resetTokenString,
 			Host:  uu.String(),
 			URL:   u.String(),
 		}
 
-		if err = ar.server.Services().Email.SendResetEmail("Disable Two-Factor Authentication", d.Email, resetEmailData); err != nil {
-			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail")
+		if err = ar.server.Services().Email.SendTemplateEmail(
+			model.EmailTemplateTypeResetPassword,
+			"Disable Two-Factor Authentication",
+			d.Email,
+			model.EmailData{
+				User: user,
+				Data: resetEmailData,
+			},
+		); err != nil {
+			ar.Error(
+				w,
+				ErrorAPIEmailNotSent,
+				http.StatusInternalServerError,
+				"Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail",
+			)
 			return
 		}
 
@@ -385,15 +406,28 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			Path:   path.Join(ar.WebRouterPrefix, "tfa/reset"),
 		}
 
-		resetEmailData := model.ResetEmailData{
+		resetEmailData := ResetEmailData{
 			URL:   u.String(),
 			User:  user,
 			Token: resetTokenString,
 			Host:  uu.String(),
 		}
 
-		if err = ar.server.Services().Email.SendResetEmail("Reset Two-Factor Authentication", d.Email, resetEmailData); err != nil {
-			ar.Error(w, ErrorAPIEmailNotSent, http.StatusInternalServerError, "Email sending error: "+err.Error(), "RequestTFAReset.SendResetEmail")
+		if err = ar.server.Services().Email.SendTemplateEmail(
+			model.EmailTemplateTypeResetPassword,
+			"Disable Two-Factor Authentication",
+			d.Email,
+			model.EmailData{
+				User: user,
+				Data: resetEmailData,
+			},
+		); err != nil {
+			ar.Error(
+				w,
+				ErrorAPIEmailNotSent,
+				http.StatusInternalServerError,
+				"Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail",
+			)
 			return
 		}
 

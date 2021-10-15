@@ -140,6 +140,29 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 	}
 }
 
+// DeleteAllApps delete all current apps for some reason?
+// now we are using it for tests
+func (ar *Router) DeleteAllApps() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		apps, _, err := ar.server.Storages().App.FetchApps("", 0, 1_000_000) // just fetch one million, looks ugly, but ...
+		if err != nil {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
+		}
+		var errs []error
+		for _, a := range apps {
+			err := ar.server.Storages().App.DeleteApp(a.ID)
+			if err != nil {
+				errs = append(errs, err)
+				ar.logger.Printf("Error deleting app: %s, error: %s. Ignoring and moving next.", a.ID, err)
+			}
+		}
+		if len(errs) > 0 {
+			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, fmt.Sprintf("%v", errs))
+		}
+		ar.ServeJSON(w, http.StatusOK, nil)
+	}
+}
+
 func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
 	secret := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, secret); err != nil {
@@ -150,17 +173,10 @@ func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
 }
 
 func (ar *Router) updateAllowedOrigins() error {
-	ar.originChecker.DeleteAll()
-
-	apps, _, err := ar.server.Storages().App.FetchApps("", 0, 0)
-	if err != nil {
-		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
+	if ar.originUpdate == nil {
+		return nil
 	}
-
-	for _, a := range apps {
-		ar.originChecker.AddRawURLs(a.RedirectURLs)
-	}
-	return nil
+	return ar.originUpdate()
 }
 
 func isBase64(s string) bool {

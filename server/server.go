@@ -6,20 +6,12 @@ import (
 	"os"
 
 	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server/utils/originchecker"
 	"github.com/madappgang/identifo/web"
-	"github.com/madappgang/identifo/web/admin"
-	"github.com/madappgang/identifo/web/api"
-	"github.com/madappgang/identifo/web/html"
-	"github.com/rs/cors"
+	"github.com/madappgang/identifo/web/middleware"
 )
 
-var defaultCors = model.CorsOptions{
-	API: &cors.Options{AllowedHeaders: []string{"*", "x-identifo-clientid"}, AllowedMethods: []string{"HEAD", "GET", "POST", "PUT", "PATCH", "DELETE"}, AllowCredentials: true},
-}
-
 // NewServer creates backend service.
-func NewServer(storages model.ServerStorageCollection, services model.ServerServices, restartChan chan<- bool, options ...func(*Server) error) (model.Server, error) {
+func NewServer(storages model.ServerStorageCollection, services model.ServerServices, restartChan chan<- bool) (model.Server, error) {
 	if storages.Config == nil {
 		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}
@@ -41,40 +33,19 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		hostName = settings.General.Host
 	}
 
-	originChecker := originchecker.NewOriginChecker()
-
-	// validate, try to fetch apps
-	apps, _, err := storages.App.FetchApps("", 0, 0)
+	originChecker, err := middleware.NewAppOriginChecker(storages.App)
 	if err != nil {
 		return nil, err
 	}
 
-	for _, a := range apps {
-		originChecker.AddRawURLs(a.RedirectURLs)
-	}
-
 	// sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, storages.Session)
-
 	routerSettings := web.RouterSetting{
-		Server:          &s,
-		ServeAdminPanel: settings.Static.ServeAdminPanel,
-		WebRouterSettings: []func(*html.Router) error{
-			html.HostOption(hostName),
-			// html.StaticFilesStorageSettings(&settings.StaticFilesStorage),
-			html.CorsOption(defaultCors),
-		},
-		APIRouterSettings: []func(*api.Router) error{
-			api.HostOption(hostName),
-			api.SupportedLoginWaysOption(settings.Login.LoginWith),
-			api.TFATypeOption(settings.Login.TFAType),
-			api.CorsOption(defaultCors, originChecker),
-		},
-		AdminRouterSettings: []func(*admin.Router) error{
-			admin.HostOption(hostName),
-			admin.CorsOption(defaultCors, originChecker),
-			admin.ForceRestartOption(restartChan),
-		},
-		LoggerSettings: settings.Logger,
+		Server:           &s,
+		ServeAdminPanel:  settings.AdminPanel.Enabled,
+		HostName:         hostName,
+		AppOriginChecker: originChecker,
+		RestartChan:      restartChan,
+		LoggerSettings:   settings.Logger,
 	}
 
 	r, err := web.NewRouter(routerSettings)
@@ -82,12 +53,6 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		return nil, err
 	}
 	s.MainRouter = r.(*web.Router)
-
-	for _, option := range options {
-		if err := option(&s); err != nil {
-			return nil, err
-		}
-	}
 	return &s, nil
 }
 
@@ -127,5 +92,4 @@ func (s *Server) Close() {
 	s.storages.Blocklist.Close()
 	s.storages.Token.Close()
 	s.storages.Verification.Close()
-	s.storages.Static.Close()
 }

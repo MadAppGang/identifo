@@ -1,58 +1,127 @@
-general: # General server settings.
-  port: 8081
-  host: http://localhost:8081 # Identifo server URL. If "HOST_NAME" env variable is set, it overrides the value specified here.
-  issuer: http://localhost # JWT tokens issuer.
-
+general:
+  host: http://localhost:8081
+  port: "8081"
+  issuer: http://localhost
+  supported_scopes: []
 adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
-
 storage:
   appStorage:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
   userStorage:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
   tokenStorage:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
   tokenBlacklist:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
   verificationCodeStorage:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
   inviteStorage:
     type: boltdb
     boltdb:
       path: ./db.db
+    mongo:
+      connection: ""
+      database: ""
+    dynamo:
+      region: ""
+      endpoint: ""
 sessionStorage:
   type: memory
   sessionDuration: 300
-static:
-  type: local
-  local:
-    folder: ./static
-  serveAdminPanel: true
+  redis:
+    address: ""
+    password: ""
+    db: 0
+  dynamo:
+    region: ""
+    endpoint: ""
 services:
   email:
     type: mock
+    mailgun:
+      domain: ""
+      privateKey: ""
+      publicKey: ""
+      sender: ""
+    ses:
+      region: ""
+      sender: ""
   sms:
     type: mock
+    twilio:
+      accountSid: ""
+      authToken: ""
+      serviceSid: ""
+    nexmo:
+      apiKey: ""
+      apiSecret: ""
+    routemobile:
+      username: ""
+      password: ""
+      source: ""
+      region: ""
 login:
   loginWith:
-    username: true
-    phone: true
+    username: false
+    phone: false
     email: false
-    federated: true
+    federated: false
   tfaType: app
 keyStorage:
   type: local
+  s3:
+    region: ""
+    bucket: ""
+    private_key_key: ""
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
+logger:
+  dumpRequest: false
+adminPanel:
+  enabled: true
+loginWebApp:
+  type: none
+emailTemplaits:
+  type: none
