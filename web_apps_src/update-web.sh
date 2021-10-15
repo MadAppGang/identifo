@@ -11,5 +11,4 @@ npm i
 npm link @identifo/identifo-auth-js
 npm run build
 rm -rf ../../static/web/element
-mkdir -p ../../static/web
 cp -r ./dist ../../static/web/element

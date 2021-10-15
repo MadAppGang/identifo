@@ -56,13 +56,11 @@
       const callbackUrl =
         params.get("callback-url") ||
         params.get("callbackUrl") ||
-        params.get("callback_url") ||
-        "";
+        params.get("callback_url");
       const redirectUri =
         params.get("redirect-uri") ||
         params.get("redirectUri") ||
-        params.get("redirect_uri") ||
-        "";
+        params.get("redirect_uri");
       const scopes = params.get("scopes") || "";
       const debug = localStorage.getItem("debug");
 
@@ -70,7 +68,9 @@
       identifoForm.scopes = scopes;
       identifoForm.appId = appId;
       identifoForm.url = `${window.location.protocol}//${window.location.host}`;
-      identifoForm.route = window.location.pathname.replace("/web/", "");
+      identifoForm.route = window.location.pathname
+        .replace("/web/", "")
+        .replace(/\/$/, "");
       identifoForm.token = token;
       identifoForm.callbackUrl = callbackUrl;
       identifoForm.debug = debug;

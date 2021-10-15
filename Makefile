@@ -42,7 +42,7 @@ build_admin_panel:
 	web_apps_src/update-admin.sh
 
 build_login_web_app:
-	rm -rf static/web
+	rm -rf static/web/element
 	web_apps_src/update-web.sh
 
 build_web: build_admin_panel build_login_web_app
@@ -54,6 +54,5 @@ run_ui_tests:
 	kill $$(ps  | grep config-boltdb.yaml | awk '{print $1}')
 
 open_ui_tests:
-	cd web_apps_src/web-element
-	npm install
-	$$(npm bin)/cypress open
+	$$(cd web_apps_src/web-element; npm install; $$(npm bin)/cypress open )
+	
