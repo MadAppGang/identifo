@@ -31,7 +31,7 @@ integrations/*/*/master.zip
 integrations/aws/identifo lambda/.env
 .devcontainer
 
-web_apps_src/web-element/cypress/screenshots
+web_apps_src/web-element/cypress/screenshots/*
 
 .idea
 db3.db
