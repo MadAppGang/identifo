@@ -31,6 +31,7 @@ const deleteTestUserBySearch = async () => {
   }
 };
 const deleteTestUser = async () => {
+  if (!userId) { return }
   return fetch(`${adminUrl}/users/${userId}`, {
     body: null,
     method: 'DELETE',
@@ -39,6 +40,8 @@ const deleteTestUser = async () => {
   });
 };
 const deleteTestApp = async () => {
+  if (!appId) { return }
+
   return fetch(`${adminUrl}/apps/${appId}`, {
     body: null,
     method: 'DELETE',

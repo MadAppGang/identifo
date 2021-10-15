@@ -46,6 +46,7 @@ func (ar *Router) initRoutes() {
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetApp()).Methods("GET")
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateApp()).Methods("PUT")
 	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteApp()).Methods("DELETE")
+	apps.Path("/").HandlerFunc(ar.DeleteAllApps()).Methods("DELETE")
 
 	ar.router.Path("/users").Handler(negroni.New(
 		ar.Session(),

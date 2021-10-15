@@ -35,6 +35,7 @@ func NewService(ess model.EmailServiceSettings, fs fs.FS) (model.EmailService, e
 	}
 
 	return &EmailService{
+		cache:     make(map[string]template.Template),
 		transport: t,
 		fs:        fs,
 	}, nil

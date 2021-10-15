@@ -466,7 +466,7 @@ export class IdentifoForm {
             )}
             {this.route === 'tfa/setup/email' && (
               <div class="tfa-setup__form">
-                <p class="tfa-setup__subtitle"> Use email as 2fa, please check your enail bellow, we will send confirmation code to this email</p>
+                <p class="tfa-setup__subtitle"> Use email as 2fa, please check your email bellow, we will send confirmation code to this email</p>
                 <input
                   type="email"
                   class={`form-control ${this.lastError && 'form-control-danger'}`}
