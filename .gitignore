@@ -33,7 +33,7 @@ integrations/aws/identifo lambda/.env
 
 web_apps_src/web-element/cypress/screenshots/*
 static/admin_panel
-static/web
+static/web/element/**
 
 .idea
 db3.db

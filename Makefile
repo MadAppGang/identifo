@@ -47,3 +47,13 @@ build_login_web_app:
 
 build_web: build_admin_panel build_login_web_app
 
+
+run_ui_tests:
+	go run main.go --config=file://./cmd/config-boltdb.yaml &
+	cd web_apps_src/web-element && npx cypress run
+	kill $$(ps  | grep config-boltdb.yaml | awk '{print $1}')
+
+open_ui_tests:
+	cd web_apps_src/web-element
+	npm install
+	$$(npm bin)/cypress open
