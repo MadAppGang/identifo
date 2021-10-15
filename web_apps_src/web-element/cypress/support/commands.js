@@ -136,8 +136,8 @@ Cypress.Commands.add('getResetTokenURL', async () => {
   return `${Cypress.config('baseUrl')}/password/reset/?appId=${appId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
 });
 
-Cypress.Commands.add('visitLogin', (orig, url, options) => {
-  return cy.visit(`${Cypress.config('baseUrl')}/login/?appId=${appId}&url=${Cypress.config('serverUrl')}`);
+Cypress.Commands.add('visitLogin', options => {
+  return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: appId, url: Cypress.config('serverUrl') }).toString()}`);
 });
 Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password') => {
   cy.get('[placeholder=Email]').click().type(email);

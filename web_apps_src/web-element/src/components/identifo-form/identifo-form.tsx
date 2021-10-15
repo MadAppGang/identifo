@@ -676,7 +676,7 @@ export class IdentifoForm {
     }
     try {
       this.auth = new IdentifoAuth({ appId: this.appId, url: this.url, postLogoutRedirectUri });
-      const settings = await this.auth.api.getAppSettings();
+      const settings = await this.auth.api.getAppSettings(this.callbackUrl);
       this.registrationForbidden = settings.registrationForbidden;
       this.tfaTypes = Array.isArray(settings.tfaType) ? settings.tfaType : [settings.tfaType];
       this.tfaStatus = settings.tfaStatus;

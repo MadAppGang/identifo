@@ -56,11 +56,13 @@
       const callbackUrl =
         params.get("callback-url") ||
         params.get("callbackUrl") ||
-        params.get("callback_url");
+        params.get("callback_url") ||
+        "";
       const redirectUri =
         params.get("redirect-uri") ||
         params.get("redirectUri") ||
-        params.get("redirect_uri");
+        params.get("redirect_uri") ||
+        "";
       const scopes = params.get("scopes") || "";
       const debug = localStorage.getItem("debug");
 
