@@ -31,7 +31,9 @@ const deleteTestUserBySearch = async () => {
   }
 };
 const deleteTestUser = async () => {
-  if (!userId) { return }
+  if (!userId) {
+    return;
+  }
   return fetch(`${adminUrl}/users/${userId}`, {
     body: null,
     method: 'DELETE',
@@ -40,7 +42,9 @@ const deleteTestUser = async () => {
   });
 };
 const deleteTestApp = async () => {
-  if (!appId) { return }
+  if (!appId) {
+    return;
+  }
 
   return fetch(`${adminUrl}/apps/${appId}`, {
     body: null,
@@ -48,6 +52,20 @@ const deleteTestApp = async () => {
     mode: 'cors',
     credentials: 'include',
   });
+};
+const parseJwt = token => {
+  var base64Url = token.split('.')[1];
+  var base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+  var jsonPayload = decodeURIComponent(
+    atob(base64)
+      .split('')
+      .map(function (c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+      })
+      .join(''),
+  );
+
+  return JSON.parse(jsonPayload);
 };
 // Init test user and app
 Cypress.Commands.add('createAppAndUser', async (createUser = true) => {
@@ -137,6 +155,7 @@ Cypress.Commands.add('getResetTokenURL', async () => {
 });
 
 Cypress.Commands.add('visitLogin', options => {
+  window.localStorage.setItem('debug', true);
   return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: appId, url: Cypress.config('serverUrl') }).toString()}`);
 });
 Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password') => {
@@ -160,4 +179,15 @@ Cypress.Commands.add('verifyTfa', (code = '0000') => {
   cy.contains('Go back to login');
   cy.screenshot();
   cy.contains('Confirm').click();
+});
+
+Cypress.Commands.add('verifySuccessToken', () => {
+  cy.contains('Success');
+  cy.get('#access_token')
+    .invoke('text')
+    .then(text => {
+      const token = parseJwt(text.trim());
+      expect(token.scopes).equal(undefined);
+      expect(token.type).equal('access');
+    });
 });

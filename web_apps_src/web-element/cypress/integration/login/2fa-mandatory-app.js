@@ -17,7 +17,7 @@ describe('2fa mandatory app', () => {
     cy.screenshot();
     cy.get('button').contains('Continue').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });

@@ -19,7 +19,7 @@ describe('2fa mandatory sms', () => {
     cy.screenshot();
     cy.contains('Setup phone').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
   it('2fa flow mandatory with phone filled', () => {
@@ -31,7 +31,7 @@ describe('2fa mandatory sms', () => {
     cy.screenshot();
     cy.contains('Setup phone').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });
