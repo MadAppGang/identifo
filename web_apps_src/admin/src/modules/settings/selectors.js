@@ -10,6 +10,10 @@ export const getServerSectionSettings = (state) => {
   return getCurentSettings(state).configurationStorage;
 };
 
+export const getAdminPanelSettings = (state) => {
+  return getCurentSettings(state).adminPanel;
+};
+
 export const getGeneralServerSettings = (state) => {
   return getCurentSettings(state).general;
 };

@@ -28,6 +28,7 @@ const initialSettings = {
   logger: null,
   storage: null,
   jwtKeys: null,
+  adminPanel: null,
 };
 
 const INITIAL_STATE = {
