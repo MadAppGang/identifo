@@ -19,7 +19,7 @@ describe('simple registration', () => {
     cy.contains('Go back to login');
     cy.screenshot();
     cy.contains('Continue').click();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });

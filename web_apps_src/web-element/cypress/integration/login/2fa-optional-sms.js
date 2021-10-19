@@ -16,7 +16,7 @@ describe('2fa optional', () => {
     cy.contains('Setup next time');
     cy.screenshot();
     cy.contains('Setup next time').click();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
   it('ask for setup 2fa and setup sms 2fa', () => {
@@ -28,7 +28,7 @@ describe('2fa optional', () => {
     cy.screenshot();
     cy.contains('Setup phone').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });

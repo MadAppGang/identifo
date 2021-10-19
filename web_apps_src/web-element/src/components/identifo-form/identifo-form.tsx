@@ -164,7 +164,9 @@ export class IdentifoForm {
     } else {
       this.auth.api
         .verifyTFA(this.tfaCode, [])
-        .then(() => this.openRoute('callback'))
+        .then(this.afterLoginRedirect)
+        .catch(this.loginCatchRedirect)
+        .then(route => this.openRoute(route))
         .catch(e => this.processError(e));
     }
   }
@@ -639,9 +641,15 @@ export class IdentifoForm {
             <div>Success</div>
             {this.debug && (
               <div>
-                <div>Access token: {this.lastResponse.access_token}</div>
-                <div>Refresh token: {this.lastResponse.refresh_token}</div>
-                <div>User: {JSON.stringify(this.lastResponse.user)}</div>
+                <div>
+                  Access token: <div id="access_token">{this.lastResponse.access_token}</div>
+                </div>
+                <div>
+                  Refresh token: <div id="refresh_token">{this.lastResponse.refresh_token}</div>
+                </div>
+                <div>
+                  User: <div id="user_data">{JSON.stringify(this.lastResponse.user)}</div>
+                </div>
               </div>
             )}
           </div>

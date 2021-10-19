@@ -17,7 +17,7 @@ describe('2fa optional registration', () => {
     cy.contains('Setup next time');
     cy.screenshot();
     cy.contains('Setup next time').click();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
   it('ask for setup 2fa and setup app 2fa', () => {
@@ -29,7 +29,7 @@ describe('2fa optional registration', () => {
     cy.screenshot();
     cy.get('button').contains('Continue').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });

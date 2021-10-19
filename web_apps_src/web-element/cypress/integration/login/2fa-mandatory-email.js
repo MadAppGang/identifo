@@ -16,7 +16,7 @@ describe('2fa mandatory email', () => {
     cy.screenshot();
     cy.get('button').contains('Setup email').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });

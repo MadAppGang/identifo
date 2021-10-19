@@ -18,7 +18,7 @@ describe('2fa mandatory registration', () => {
     cy.screenshot();
     cy.get('button').contains('Continue').click();
     cy.verifyTfa();
-    cy.contains('Success');
+    cy.verifySuccessToken();
     cy.screenshot();
   });
 });
