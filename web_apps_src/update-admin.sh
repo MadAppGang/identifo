@@ -8,3 +8,4 @@ export BASE_URL=/adminpanel/ && export ASSETS_PATH=/adminpanel/ # Needed for bui
 npm run build
 rm -rf ../../static/admin_panel
 cp -r ./build ../../static/admin_panel
+echo "{\"apiUrl\": \"/admin\"}" > ../../static/admin_panel/config.json
