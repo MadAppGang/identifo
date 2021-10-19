@@ -1,10 +1,12 @@
 package web
 
 import (
+	"io/fs"
 	"log"
 	"net/http"
 
 	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/storage/mem"
 	"github.com/madappgang/identifo/web/admin"
 	"github.com/madappgang/identifo/web/api"
 	"github.com/madappgang/identifo/web/authorization"
@@ -92,11 +94,12 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		if err != nil {
 			return nil, err
 		}
+
 		// init admin panel web app
 		adminPanelAppSettings := spa.SPASettings{
 			Name:       "ADMIN_PANEL",
 			Root:       "/",
-			FileSystem: http.FS(settings.Server.Storages().AdminPanelFS),
+			FileSystem: http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
 		}
 		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
 		if err != nil {
@@ -106,6 +109,13 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 
 	r.setupRoutes()
 	return &r, nil
+}
+
+func fsWithConfig(fs fs.FS) fs.FS {
+	files := map[string][]byte{
+		"config.json": []byte(`{"apiUrl": "/admin"}`),
+	}
+	return mem.NewMapOverlayFS(fs, files)
 }
 
 // Router is a root router to handle REST API, web, and admin requests.
