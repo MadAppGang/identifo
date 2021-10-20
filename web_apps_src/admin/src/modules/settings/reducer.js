@@ -29,6 +29,8 @@ const initialSettings = {
   storage: null,
   jwtKeys: null,
   adminPanel: null,
+  loginWebApp: null,
+  emailTemplaits: null,
 };
 
 const INITIAL_STATE = {

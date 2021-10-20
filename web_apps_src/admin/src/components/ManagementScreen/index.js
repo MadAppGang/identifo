@@ -4,27 +4,27 @@ import { Route, Switch } from 'react-router-dom';
 import Container from '~/components/shared/Container';
 import { DialogPopup } from '~/components/shared/DialogPopup/DialogPopup';
 import { NotificationContainer } from '~/components/shared/Notifications';
+import { SaveChangesSnack } from '~/components/shared/SaveChangesSnack/SaveChangesSnack';
+import { Snack } from '~/components/shared/Snack/Snack';
 import ProgressBar from '~/components/shared/TopProgressBar';
+import { notificationStatuses } from '~/enums';
 import { useSettings } from '../../hooks/useSettings';
 import AccountSection from './Account';
 import AppleIntegrationSection from './AppleIntegration';
 import ApplicationsSection from './Applications';
 import DatabaseSection from './Database';
+import EmailTemplates from './EmailTemplates';
 import ExternalServicesSection from './ExternalServices';
 import Header from './Header';
-import HostedPagesSection from './HostedPages';
 import LoginTypesSection from './LoginTypes';
+import LoginWebAppSection from './LoginWebApp';
 import './Management.css';
 import MultiFactorAuthSection from './MultiFactorAuth';
 import NotFoundSection from './NotFoundSection';
 import ReloadServerPopup from './ReloadServerPopup';
 import ServerSection from './Server';
 import Sidebar from './Sidebar';
-import StaticFilesSection from './StaticFiles';
 import UsersSection from './Users';
-import { SaveChangesSnack } from '~/components/shared/SaveChangesSnack/SaveChangesSnack';
-import { Snack } from '~/components/shared/Snack/Snack';
-import { notificationStatuses } from '~/enums';
 
 const ManagementScreen = () => {
   const dialogConfig = useSelector(s => s.notifications.settingsDialog);
@@ -54,8 +54,8 @@ const ManagementScreen = () => {
                 <Route path="/management/account" component={AccountSection} />
                 <Route path="/management/settings" component={LoginTypesSection} />
                 <Route path="/management/multi-factor_auth" component={MultiFactorAuthSection} />
-                <Route path="/management/static" component={StaticFilesSection} />
-                <Route path="/management/hosted_pages" component={HostedPagesSection} />
+                <Route path="/management/login_web_app" component={LoginWebAppSection} />
+                <Route path="/management/email_templates" component={EmailTemplates} />
                 <Route path="/management/apple" component={AppleIntegrationSection} />
                 <Route component={NotFoundSection} />
               </Switch>

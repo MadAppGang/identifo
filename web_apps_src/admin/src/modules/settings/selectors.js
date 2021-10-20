@@ -14,6 +14,14 @@ export const getAdminPanelSettings = (state) => {
   return getCurentSettings(state).adminPanel;
 };
 
+export const getLoginWebAppSettings = (state) => {
+  return getCurentSettings(state).loginWebApp;
+};
+
+export const getEmailTemplatesSettigns = (state) => {
+  return getCurentSettings(state).emailTemplaits;
+};
+
 export const getGeneralServerSettings = (state) => {
   return getCurentSettings(state).general;
 };

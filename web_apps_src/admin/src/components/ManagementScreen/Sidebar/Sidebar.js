@@ -50,25 +50,26 @@ const sections = [
     Icon: ExternalServicesIcon,
   },
   {
-    title: 'Static Files',
-    path: '/management/static',
+    title: 'Login Web App',
+    path: '/management/login_web_app',
     Icon: StaticFilesIcon,
+  },
+  {
+    title: 'Email Templates',
+    path: '/management/email_templates',
+    Icon: HostedPagesIcon,
   },
   {
     title: 'Apple Integration',
     path: '/management/apple',
     Icon: AppleIcon,
+    disabled: true,
   },
   {
     title: 'Multi-factor Auth',
     path: '/management/multi-factor_auth',
     Icon: MultiFactorAuthIcon,
     disabled: true,
-  },
-  {
-    title: 'Hosted Pages',
-    path: '/management/hosted_pages',
-    Icon: HostedPagesIcon,
   },
 ];
 
