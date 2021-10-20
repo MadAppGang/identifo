@@ -7,5 +7,7 @@ cd ..
 make run_boltdb &
 IDENTIFO_PID=$!
 cd web_apps_src/web-element
-npx cypress run --record --key f1169950-dcab-42ef-ad47-f6849179dd71
+npx cypress run
+status=$?
 kill $IDENTIFO_PID
+exit "$status"
