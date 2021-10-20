@@ -114,7 +114,7 @@ export class IdentifoForm {
       }
     }
     // Ask about tfa on login only
-    if (this.tfaStatus === TFAStatus.OPTIONAL && ['login', 'login/otp'].includes(this.route)) {
+    if (this.tfaStatus === TFAStatus.OPTIONAL && ['login', 'login/otp', 'register'].includes(this.route)) {
       return `tfa/setup/select`;
     }
     if (e.access_token && e.refresh_token) {
