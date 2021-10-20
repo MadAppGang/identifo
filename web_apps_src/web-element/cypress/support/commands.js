@@ -151,7 +151,7 @@ Cypress.Commands.add('getResetTokenURL', async () => {
     mode: 'cors',
     credentials: 'include',
   }).then(r => r.json());
-  return `${Cypress.config('baseUrl')}/password/reset/?appId=${appId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
+  return resetTokenData.URL;
 });
 
 Cypress.Commands.add('visitLogin', options => {

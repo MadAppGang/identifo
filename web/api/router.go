@@ -27,7 +27,7 @@ type Router struct {
 	Authorizer           *authorization.Authorizer
 	Host                 string
 	SupportedLoginWays   model.LoginWith
-	WebRouterPrefix      string
+	LoginAppPath         string
 	tokenPayloadServices map[string]model.TokenPayloadProvider
 	LoggerSettings       model.LoggerSettings
 }
@@ -38,7 +38,7 @@ type RouterSettings struct {
 	LoggerSettings model.LoggerSettings
 	Authorizer     *authorization.Authorizer
 	Host           string
-	Prefix         string
+	LoginAppPath   string
 	TFAType        model.TFAType
 	LoginWith      model.LoginWith
 	Cors           *cors.Cors
@@ -53,7 +53,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,
 		Host:               settings.Host,
-		WebRouterPrefix:    settings.Prefix,
+		LoginAppPath:       settings.LoginAppPath,
 		tfaType:            settings.TFAType,
 		SupportedLoginWays: settings.LoginWith,
 		cors:               settings.Cors,

@@ -53,7 +53,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		LoggerSettings: settings.LoggerSettings,
 		Authorizer:     authorizer,
 		Host:           settings.HostName,
-		Prefix:         apiPath,
+		LoginAppPath:   loginAppPath,
 		LoginWith:      settings.Server.Settings().Login.LoginWith,
 		TFAType:        settings.Server.Settings().Login.TFAType,
 		Cors:           apiCors,
@@ -79,11 +79,12 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	// Admin panel
 	if settings.ServeAdminPanel {
 		routerSettings := admin.RouterSettings{
-			Server:  settings.Server,
-			Logger:  settings.Logger,
-			Host:    settings.HostName,
-			Prefix:  adminpanelAPIPath,
-			Restart: settings.RestartChan,
+			Server:       settings.Server,
+			Logger:       settings.Logger,
+			Host:         settings.HostName,
+			Prefix:       adminpanelAPIPath,
+			Restart:      settings.RestartChan,
+			LoginAppPath: loginAppPath,
 			OriginUpdate: func() error {
 				return settings.AppOriginChecker.Update()
 			},

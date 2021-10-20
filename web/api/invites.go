@@ -85,13 +85,13 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "register"),
+			Path:     path.Join(ar.LoginAppPath, "register"),
 			RawQuery: query,
 		}
 
 		// Send email only if it's specified.
 		if d.Email != "" {
-			uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "register")}
+			uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.LoginAppPath, "register")}
 			err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
 			if err != nil {
 				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")
