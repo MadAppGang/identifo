@@ -297,13 +297,13 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "tfa/disable"),
+			Path:     path.Join(ar.LoginAppPath, "tfa/disable"),
 			RawQuery: query,
 		}
 		uu := &url.URL{
 			Scheme: host.Scheme,
 			Host:   host.Host,
-			Path:   path.Join(ar.WebRouterPrefix, "tfa/disable"),
+			Path:   path.Join(ar.LoginAppPath, "tfa/disable"),
 		}
 		resetEmailData := ResetEmailData{
 			User:  user,
@@ -397,13 +397,13 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "tfa/reset"),
+			Path:     path.Join(ar.LoginAppPath, "tfa/reset"),
 			RawQuery: query,
 		}
 		uu := &url.URL{
 			Scheme: host.Scheme,
 			Host:   host.Host,
-			Path:   path.Join(ar.WebRouterPrefix, "tfa/reset"),
+			Path:   path.Join(ar.LoginAppPath, "tfa/reset"),
 		}
 
 		resetEmailData := ResetEmailData{

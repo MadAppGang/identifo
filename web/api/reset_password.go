@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
@@ -86,7 +85,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
+		query := fmt.Sprintf("appId=%s&token=%s&route=password/reset", app.ID, resetTokenString)
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -97,10 +96,10 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.WebRouterPrefix, "password/reset"),
+			Path:     ar.LoginAppPath,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.WebRouterPrefix, "password/reset")}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}
 
 		resetEmailData := ResetEmailData{
 			User:  user,

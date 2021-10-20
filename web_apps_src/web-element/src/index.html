@@ -4,7 +4,7 @@
     <meta charset="utf-8" />
     <meta name="color-scheme" content="dark light" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    <title>Identifo web component</title>
+    <title>Identifo</title>
     <script type="module" src="/build/identifo.esm.js"></script>
     <script nomodule src="/build/identifo.js"></script>
     <style>
@@ -45,19 +45,33 @@
       <identifo-form></identifo-form>
     </div>
     <script>
-      // const token = new URLSearchParams(window.location.search).get('token');
+      const params = new URLSearchParams(window.location.search);
+      const appId = params.get('app-id') || params.get('appId') || params.get('app_id');
+      const redirectUri = params.get('redirect-uri') || params.get('redirectUri') || params.get('redirect_uri') || '';
+      const debug = localStorage.getItem('debug');
+
       const identifoForm = document.getElementsByTagName('identifo-form')[0];
-      identifoForm.appId = new URLSearchParams(location.search).get('appId');
+      identifoForm.appId = appId;
+      identifoForm.debug = debug;
       identifoForm.url = new URLSearchParams(location.search).get('url');
 
-      // identifoForm.addEventListener('complete', event => {
-      //   window.alert(event.detail);
-      // });
+      identifoForm.addEventListener('complete', event => {
+        if (redirectUri) {
+          const url = new URL(`${redirectUri}&callbackUrl=${callbackUrl}`);
+          window.location.href = url.toString();
+          return;
+        }
 
-      // if (token) {
-      //   identifoForm.token = token;
-      //   identifoForm.route = 'password/reset';
-      // }
+        if (callbackUrl || event.detail.callback_url) {
+          const url = new URL(callbackUrl || event.detail.callback_url);
+          if (event.detail) {
+            url.searchParams.set('token', event.detail.access_token);
+            url.searchParams.set('refresh_token', event.detail.refresh_token);
+          }
+          window.location.href = url.toString();
+          return;
+        }
+      });
     </script>
   </body>
 </html>

@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/madappgang/identifo/model"
@@ -236,7 +235,7 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 			return
 		}
 
-		query := fmt.Sprintf("appId=%s&token=%s", resetData.AppID, resetTokenString)
+		query := fmt.Sprintf("appId=%s&token=%s&route=password/reset", resetData.AppID, resetTokenString)
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -247,10 +246,10 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     path.Join(ar.LoginWebAppPrefix, "password/reset"),
+			Path:     ar.LoginAppPath,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.LoginWebAppPrefix, "password/reset")}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}
 
 		resetEmailData := ResetEmailData{
 			Token: resetTokenString,

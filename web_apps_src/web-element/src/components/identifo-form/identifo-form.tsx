@@ -1,29 +1,33 @@
 import { ApiError, APIErrorCodes, IdentifoAuth, LoginResponse, TFAType, FederatedLoginProvider, TFAStatus } from '@identifo/identifo-auth-js';
 import { Component, Event, EventEmitter, getAssetPath, h, Host, Prop, State } from '@stencil/core';
 
-export type Routes =
-  | 'login'
-  | 'register'
-  | 'tfa/verify/sms'
-  | 'tfa/verify/email'
-  | 'tfa/verify/app'
-  | 'tfa/verify/select'
-  | 'tfa/setup/sms'
-  | 'tfa/setup/email'
-  | 'tfa/setup/app'
-  | 'tfa/setup/select'
-  | 'password/reset'
-  | 'password/forgot'
-  | 'password/forgot/tfa/sms'
-  | 'password/forgot/tfa/email'
-  | 'password/forgot/tfa/app'
-  | 'password/forgot/tfa/select'
-  | 'callback'
-  | 'otp/login'
-  | 'error'
-  | 'password/forgot/success'
-  | 'logout'
-  | 'loading';
+const routes = [
+  'login',
+  'register',
+  'tfa/verify/sms',
+  'tfa/verify/email',
+  'tfa/verify/app',
+  'tfa/verify/select',
+  'tfa/setup/sms',
+  'tfa/setup/email',
+  'tfa/setup/app',
+  'tfa/setup/select',
+  'password/reset',
+  'password/forgot',
+  'password/forgot/tfa/sms',
+  'password/forgot/tfa/email',
+  'password/forgot/tfa/app',
+  'password/forgot/tfa/select',
+  'callback',
+  'otp/login',
+  'error',
+  'password/forgot/success',
+  'logout',
+  'loading',
+] as const;
+
+export type Routes = typeof routes[number];
+
 export type TFASetupRoutes = 'tfa/setup/select' | 'tfa/setup/sms' | 'tfa/setup/email' | 'tfa/setup/app';
 export type TFALoginVerifyRoutes = 'tfa/verify/select' | 'tfa/verify/sms' | 'tfa/verify/email' | 'tfa/verify/app';
 export type TFAResetVerifyRoutes = 'password/forgot/tfa/select' | 'password/forgot/tfa/sms' | 'password/forgot/tfa/email' | 'password/forgot/tfa/app';
@@ -109,7 +113,8 @@ export class IdentifoForm {
         return this.redirectTfa('tfa/verify') as TFALoginVerifyRoutes;
       }
     }
-    if (this.tfaStatus === TFAStatus.OPTIONAL) {
+    // Ask about tfa on login only
+    if (this.tfaStatus === TFAStatus.OPTIONAL && ['login', 'login/otp'].includes(this.route)) {
       return `tfa/setup/select`;
     }
     if (e.access_token && e.refresh_token) {
@@ -664,10 +669,16 @@ export class IdentifoForm {
   }
 
   async componentWillLoad() {
-    // const base = (document.querySelector('base') || {}).href;
-    // const path = window.location.href.split('?')[0];
-    // this.route = path.replace(base, '').replace(/^\/|\/$/g, '') as Routes;
-    this.token = new URLSearchParams(window.location.search).get('token');
+    const params = new URLSearchParams(window.location.search);
+    this.callbackUrl = params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
+    this.scopes = params.get('scopes') || '';
+    this.token = params.get('token');
+    const paramRoute = params.get('route');
+    if (routes.includes(paramRoute as Routes)) {
+      this.route = paramRoute as Routes;
+    } else {
+      this.route = 'login';
+    }
 
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
     if (!this.appId) {
