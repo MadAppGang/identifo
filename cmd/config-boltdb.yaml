@@ -106,9 +106,9 @@ login:
   loginWith:
     username: false
     phone: false
-    email: false
+    email: true
     federated: false
-  tfaType: app
+  tfaType: sms
 keyStorage:
   type: local
   s3:

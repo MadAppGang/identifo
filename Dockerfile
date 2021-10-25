@@ -18,14 +18,17 @@ RUN go build -o /identifo .
 FROM alpine:3.13.2
 RUN apk --no-cache add ca-certificates
 
-WORKDIR /root/
+WORKDIR /
 COPY --from=builder /identifo .
 COPY --from=node_builder /identifo/static ./static
 COPY cmd/config-boltdb.yaml ./server-config.yaml
 COPY jwt/test_artifacts/private.pem ./jwt/test_artifacts/private.pem
-RUN mkdir ./data
+RUN mkdir -p /data
 
 EXPOSE 8081/tcp
+
+ENV IDENTIFO_ADMIN_LOGIN=admin@admin.com
+ENV IDENTIFO_ADMIN_PASSWORD=password
 
 
 ENTRYPOINT ["./identifo"]

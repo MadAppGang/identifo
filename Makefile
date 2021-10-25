@@ -5,6 +5,7 @@ export IDENTIFO_ADMIN_PASSWORD = password
 
 
 run_boltdb:
+	mkdir -p ./data
 	go run main.go --config=file://./cmd/config-boltdb.yaml
 run_mem:
 	go run main.go --config=file://./cmd/config-mem.yaml
