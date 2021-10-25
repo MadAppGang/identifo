@@ -10,7 +10,7 @@ storage:
   appStorage:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
@@ -20,7 +20,7 @@ storage:
   userStorage:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
@@ -30,7 +30,7 @@ storage:
   tokenStorage:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
@@ -40,7 +40,7 @@ storage:
   tokenBlacklist:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
@@ -50,7 +50,7 @@ storage:
   verificationCodeStorage:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
@@ -60,7 +60,7 @@ storage:
   inviteStorage:
     type: boltdb
     boltdb:
-      path: ./db.db
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""

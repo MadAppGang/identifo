@@ -21,5 +21,11 @@ RUN apk --no-cache add ca-certificates
 WORKDIR /root/
 COPY --from=builder /identifo .
 COPY --from=node_builder /identifo/static ./static
+COPY cmd/config-boltdb.yaml ./server-config.yaml
+COPY jwt/test_artifacts/private.pem ./jwt/test_artifacts/private.pem
+RUN mkdir ./data
+
+EXPOSE 8081/tcp
+
 
 ENTRYPOINT ["./identifo"]
