@@ -24,9 +24,14 @@ func NewConnectionTester(settings model.TestConnection) (model.ConnectionTester,
 			return nil, fmt.Errorf("empty connection settings for testing type %s", settings.Type)
 		}
 		return NewKeyStorageConnectionTester(*settings.KeyStorage), nil
+	case model.TTFileStorage:
+		if settings.FileStorage == nil {
+			return nil, fmt.Errorf("empty file storage settings for testing type %s", settings.Type)
+		}
+		return NewFileStorageConnectionTester(*settings.FileStorage), nil
 	}
 
-	return nil, fmt.Errorf("unknown tester type: %v", settings.Type)
+	return nil, fmt.Errorf("unknown settings type fro testing: %v", settings.Type)
 }
 
 func NewDatabaseConnectionTester(settings model.DatabaseSettings) model.ConnectionTester {
@@ -53,8 +58,24 @@ func NewKeyStorageConnectionTester(settings model.KeyStorageSettings) model.Conn
 	return nil
 }
 
+func NewFileStorageConnectionTester(settings model.FileStorageTestSettings) model.ConnectionTester {
+	switch settings.FileStorage.Type {
+	case model.FileStorageTypeNone, model.FileStorageTypeDefault:
+		return AlwaysHappyConnectionTester{}
+	case model.FileStorageTypeLocal:
+		return fs.NewFSConnectionTester(settings.FileStorage.Local, settings.ExpectedFiles)
+	}
+	return nil
+}
+
 type AlwaysFailedConnectionTester struct{}
 
 func (ct AlwaysFailedConnectionTester) Connect() error {
 	return fmt.Errorf("unsupported connection type")
+}
+
+type AlwaysHappyConnectionTester struct{}
+
+func (ct AlwaysHappyConnectionTester) Connect() error {
+	return nil
 }
