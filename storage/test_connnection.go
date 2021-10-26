@@ -12,6 +12,8 @@ import (
 	"github.com/madappgang/identifo/storage/s3"
 )
 
+var spaFileStorageExpectedFiles = []string{"index.html"}
+
 func NewConnectionTester(settings model.TestConnection) (model.ConnectionTester, error) {
 	switch settings.Type {
 	case model.TTDatabase:
@@ -24,11 +26,16 @@ func NewConnectionTester(settings model.TestConnection) (model.ConnectionTester,
 			return nil, fmt.Errorf("empty connection settings for testing type %s", settings.Type)
 		}
 		return NewKeyStorageConnectionTester(*settings.KeyStorage), nil
-	case model.TTFileStorage:
+	case model.TTSPAFileStorage:
 		if settings.FileStorage == nil {
 			return nil, fmt.Errorf("empty file storage settings for testing type %s", settings.Type)
 		}
-		return NewFileStorageConnectionTester(*settings.FileStorage), nil
+		return NewFileStorageConnectionTester(*settings.FileStorage, spaFileStorageExpectedFiles), nil
+	case model.TTEmailTemplateStorage:
+		if settings.FileStorage == nil {
+			return nil, fmt.Errorf("empty file storage settings for testing type %s", settings.Type)
+		}
+		return NewFileStorageConnectionTester(*settings.FileStorage, model.AllEmailTemplatesFileNames()), nil
 	}
 
 	return nil, fmt.Errorf("unknown settings type fro testing: %v", settings.Type)
@@ -58,12 +65,14 @@ func NewKeyStorageConnectionTester(settings model.KeyStorageSettings) model.Conn
 	return nil
 }
 
-func NewFileStorageConnectionTester(settings model.FileStorageTestSettings) model.ConnectionTester {
-	switch settings.FileStorage.Type {
+func NewFileStorageConnectionTester(settings model.FileStorageSettings, expectedFiles []string) model.ConnectionTester {
+	switch settings.Type {
 	case model.FileStorageTypeNone, model.FileStorageTypeDefault:
 		return AlwaysHappyConnectionTester{}
 	case model.FileStorageTypeLocal:
-		return fs.NewFSConnectionTester(settings.FileStorage.Local, settings.ExpectedFiles)
+		return fs.NewFSConnectionTester(settings.Local, expectedFiles)
+	case model.FileStorageTypeS3:
+		return s3.NewFileStorageConnectionTester(settings.S3, expectedFiles)
 	}
 	return nil
 }

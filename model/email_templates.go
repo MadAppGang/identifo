@@ -19,3 +19,13 @@ func (t EmailTemplateType) FileName() string {
 func (t EmailTemplateType) String() string {
 	return string(t)
 }
+
+func AllEmailTemplatesFileNames() []string {
+	return []string{
+		EmailTemplateTypeInvite.FileName(),
+		EmailTemplateTypeResetPassword.FileName(),
+		EmailTemplateTypeTFAWithCode.FileName(),
+		EmailTemplateTypeVerifyEmail.FileName(),
+		EmailTemplateTypeWelcome.FileName(),
+	}
+}
