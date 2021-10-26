@@ -1,27 +1,33 @@
-import { Api } from './api/api';
+import { API } from './api/api';
 import { jwtRegex, REFRESH_TOKEN_QUERY_KEY, TOKEN_QUERY_KEY } from './constants';
 import TokenService from './tokenService';
 import { ClientToken, IdentifoConfig, UrlBuilderInit } from './types/types';
 import { UrlBuilder } from './UrlBuilder';
 
 class IdentifoAuth {
-  public api: Api;
+  public api!: API;
 
-  public tokenService: TokenService;
+  public tokenService!: TokenService;
 
-  public config: IdentifoConfig;
+  public config!: IdentifoConfig;
 
-  public urlBuilder: UrlBuilderInit;
+  public urlBuilder!: UrlBuilderInit;
 
   private token: ClientToken | null = null;
 
   isAuth = false;
 
-  constructor(config: IdentifoConfig) {
+  constructor(config?: IdentifoConfig) {
+    if (config) {
+      this.configure(config);
+    }
+  }
+
+  public configure(config: IdentifoConfig): void {
     this.config = { ...config, autoRenew: config.autoRenew ?? true };
     this.tokenService = new TokenService(config.tokenManager);
     this.urlBuilder = new UrlBuilder(this.config);
-    this.api = new Api(config, this.tokenService);
+    this.api = new API(config, this.tokenService);
     this.handleToken(this.tokenService.getToken()?.token || '', 'access');
   }
 
@@ -75,7 +81,7 @@ class IdentifoAuth {
       this.resetAuthValues();
       return await Promise.reject();
     } finally {
-      window.history.pushState({}, document.title, window.location.pathname )
+      window.history.pushState({}, document.title, window.location.pathname);
     }
   }
 
@@ -123,9 +129,10 @@ class IdentifoAuth {
     }
   }
 
-  private async renewSessionWithToken(): Promise<{ access: string, refresh: string }> {
+  private async renewSessionWithToken(): Promise<{ access: string; refresh: string }> {
     try {
-      const tokens = await this.api.renewToken()
+      const tokens = await this.api
+        .renewToken()
         .then((l) => ({ access: l.access_token || '', refresh: l.refresh_token || '' }));
       return tokens;
     } catch (err) {

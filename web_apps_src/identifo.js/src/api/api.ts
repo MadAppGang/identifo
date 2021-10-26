@@ -18,7 +18,7 @@ import {
 const APP_ID_HEADER_KEY = 'X-Identifo-Clientid';
 const AUTHORIZATION_HEADER_KEY = 'Authorization';
 
-export class Api {
+export class API {
   baseUrl: string;
 
   appId: string;

@@ -24,7 +24,7 @@ describe('2fa optional', () => {
     cy.contains('Use email as 2fa');
     cy.screenshot();
     cy.get('button').contains('Setup').click();
-    cy.get('[placeholder=Email]').click().type('+0123456789');
+    cy.get('[placeholder=Email]').should('have.value', 'test@test.com');
     cy.screenshot();
     cy.contains('Setup email').click();
     cy.verifyTfa();

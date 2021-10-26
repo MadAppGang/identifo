@@ -23,7 +23,8 @@
   },
   "dependencies": {
     "@identifo/identifo-auth-js": "file:../identifo.js",
-    "@stencil/core": "^2.8.1"
+    "@stencil/core": "^2.8.1",
+    "rxjs": "^7.4.0"
   },
   "license": "MIT",
   "devDependencies": {
