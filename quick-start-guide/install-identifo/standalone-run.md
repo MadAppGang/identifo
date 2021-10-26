@@ -1,38 +1,42 @@
 ---
-description: How to start with docker
+description: How to use Identifo Docker image
 ---
 
 # 🐳 Run with Docker
 
-### Run in stateless mode
+### Running in stateless mode
 
-To run Idenitfo from the official Docker hub all you need is a simple command:
+The simplest way to get acquainted with Identifo is to run the official Docker image:
 
 ```
 docker run -p 8081:8081 madappgangd/identifo:latest 
 ```
 
-It runs identifo with all defaults settings and you can access:
+This command launches Identifo with default settings and allows you to access:
 
-* admin panel with the link [http://localhost:8081/adminpanel](http://localhost:8081/adminpanel)&#x20;
-  * use default login and password: admin@admin.com/password to login to the admin panel
-* login web app with the link [http://localhost:8081/web](http://localhost:8081/web/login)
-* make API calls to http://localhost:8081/api
+* admin panel on [http://localhost:8081/adminpanel](http://localhost:8081/adminpanel)&#x20;
+  * use default login `admin@admin.com`and default password `password`
+* web app on [http://localhost:8081/web](http://localhost:8081/web/login)
+* JSON API on [http://localhost:8081/api](http://localhost:8081/api)
 
 {% hint style="danger" %}
-All the data is stored on a local docker temp file system, so all the changes to settings and data (users and apps) will be deleted after the docker image stops. You can mount volume or host fs to make the data persistent.
+All the configuration and application data is stored on a temporary filesystem in Docker container, so all your changes to settings and data (users and apps) will be lost after container stops. There are a couple of ways to address that (please see the sections below).
 {% endhint %}
 
-### Run and persist all the data on the host system
+### Preserving state across container restarts
 
-To run and persist data and config, we need to create a local folder on the host machine, download the default config file there and attach it to the docker image.
+To introduce state to the above setup, [Docker bind mounts](https://docs.docker.com/storage/bind-mounts/) or [Docker volumes](https://docs.docker.com/storage/volumes/) can be used for either configuration or application data, or both; Identifo also allows for using AWS S3 a persistent configuration storage.
+
+#### Preserving configuration changes
+
+The simplest way to introduce state is to create a folder on the host machine, place a config file there and bind mount it to the Docker container. You can download the default config file from the Identifo repository and use it as is:
 
 ```bash
-mkdir data #create the dir for indetifo data 
+mkdir data #create a directory for Identifo data 
 curl -o data/config.yaml https://raw.githubusercontent.com/MadAppGang/identifo/master/cmd/config-boltdb.yaml
 ```
 
-This is all you need, now just run identifo with the command:
+Now run the image specifying a mount:
 
 ```
 docker run \                                          
@@ -42,11 +46,23 @@ docker run \
        --config=file://data/config.yaml
 ```
 
-### Persist user and application
+This way, all the updates made to configuration will be reflected in the `data/config.yaml` file on your host machine.
 
-Identifo with default config keeps the boltdb database file in the `/data` folder. To make the data persistent between docker restarts you can mount this folder to the local filesystem or create docker volume. More information about Docker Volume [you can find in the docs.](https://docs.docker.com/storage/volumes/)
+&#x20;[`--config` flag ](../../settings/)also accepts S3 prefixes as a valid config file location:&#x20;
 
-Use the following command to create and use docker named volume for that:
+```
+docker run \                                          
+       -p 8081:8081 \
+       --mount type=bind,source="$(pwd)"/data,target=/data \
+       madappgangd/identifo:latest \
+       --config=s3://<my-region>@<my-bucket>/identifo/config/custom-config.yaml
+```
+
+#### Preserving users and applications
+
+Default Identifo configuration uses BoltDB as a persistent storage for application data, with database file located under `/data` folder. Similar to the example with preserving configuration changes, to make application data survive container restarts, you can either mount the `/data` folder from the host filesystem, or create a Docker volume.
+
+Use the following command to create and use a Docker-managed volume called `identifo-data`:
 
 ```bash
 docker run \
@@ -55,13 +71,11 @@ docker run \
        madappgangd/identifo:latest
 ```
 
-Where the docker will create and use volume with the name `identifo-data`. You can see the volume if you run `docker volume ls`
+To get the details about this volume: `docker volume inspect identifo-data`.
 
-To get details about the docker volume use: `docker volume inspect identifo-data`
+To delete the volume:` docker volume rm identifo-data`.
 
-To delete the volume:` docker volume rm identifo-data`
-
-Another option is to attach the host's folder to the docker image.&#x20;
+Another option is to mount a host's folder when running the Docker image:
 
 ```bash
 docker run \
@@ -70,33 +84,5 @@ docker run \
        madappgangd/identifo:latest
 ```
 
-This command will use `./data` folder from the current directory as `/data` folder in docker image. Just ensure the directory exists, docker will not create it for you.
-
-### Persist the configuration file
-
-To persist the data from the config file, you need to put it in persistent storage. You can grab the [default config file from github](https://raw.githubusercontent.com/MadAppGang/identifo/master/cmd/config-boltdb.yaml). And place it in persistent storage.
-
-And then use the [`--config` flag ](../../settings/)to point to the config file you want to use.
-
-Let's assume we want to use the same data folder as we are alredy using for data persistent.&#x20;
-
-The options as persistent storage could be filesystem or s3. You can use a local file system or docker volume as FS persistent storage, the same way as we did it for data persistent storage.
-
-```
-docker run \                                          
-       -p 8081:8081 \
-       --mount type=bind,source="$(pwd)"/data,target=/data \
-       madappgangd/identifo:latest \
-       --config=file://data/config.yaml
-```
-
-Or use S3 storage:
-
-```
-docker run \                                          
-       -p 8081:8081 \
-       --mount type=bind,source="$(pwd)"/data,target=/data \
-       madappgangd/identifo:latest \
-       --config=s3://ap-southeast-2@my-bucket/identifo/config/custom-config.yaml
-```
+This command will use `./data` directory on your host filesystem as a `/data` folder in Docker container filesystem. Just ensure the directory exists on your host machine, Docker will not create it for you.
 
