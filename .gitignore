@@ -18,6 +18,7 @@ shared-local-instance.db
 debug
 *__debug_bin
 
+data
 static/apple/*
 static/admin_panel/identifo-admin-master
 static/admin_panel/master.zip
