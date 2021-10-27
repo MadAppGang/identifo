@@ -73,9 +73,9 @@ export interface AppSettingsResponse {
   newUserDefaultRole: string;
   offline: boolean;
   registrationForbidden: boolean;
-  tfaType: TFAType;
+  tfaType: TFAType[] | TFAType;
   tfaStatus: TFAStatus;
-  federatedProviders: string[];
+  federatedProviders: FederatedLoginProvider[];
 }
 
 export interface User {

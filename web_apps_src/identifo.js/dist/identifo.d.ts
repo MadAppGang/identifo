@@ -1,4 +1,5 @@
 import { JWSHeaderParameters } from 'jose/webcrypto/types';
+import { BehaviorSubject } from 'rxjs';
 
 declare type TokenType = 'access' | 'refresh';
 interface TokenManager {
@@ -27,6 +28,7 @@ declare type UrlBuilderInit = {
     createLogoutUrl: () => string;
     createRenewSessionUrl: () => string;
 };
+declare type UrlFlows = 'signin' | 'signup' | 'logout' | 'renew' | 'default';
 interface JWTPayload {
     /**
      * JWT Issuer - [RFC7519#section-4.1.1](https://tools.ietf.org/html/rfc7519#section-4.1.1).
@@ -146,9 +148,9 @@ interface AppSettingsResponse {
     newUserDefaultRole: string;
     offline: boolean;
     registrationForbidden: boolean;
-    tfaType: TFAType;
+    tfaType: TFAType[] | TFAType;
     tfaStatus: TFAStatus;
-    federatedProviders: string[];
+    federatedProviders: FederatedLoginProvider[];
 }
 interface User {
     id: string;
@@ -177,7 +179,7 @@ interface TFARequiredRespopnse {
 }
 declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 
-declare class Api {
+declare class API {
     private config;
     private tokenService;
     baseUrl: string;
@@ -215,13 +217,14 @@ declare class Api {
 }
 
 declare class IdentifoAuth {
-    api: Api;
+    api: API;
     tokenService: TokenService;
     config: IdentifoConfig;
     urlBuilder: UrlBuilderInit;
     private token;
     isAuth: boolean;
-    constructor(config: IdentifoConfig);
+    constructor(config?: IdentifoConfig);
+    configure(config: IdentifoConfig): void;
     private handleToken;
     private resetAuthValues;
     signup(): void;
@@ -261,4 +264,176 @@ declare class SessionStorage extends StorageManager {
     constructor(accessKey?: string, refreshKey?: string);
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, LocalStorage as LocalStorageManager, LoginResponse, SessionStorage as SessionStorageManager, SuccessResponse, TFARequiredRespopnse, TFAStatus, TFAType, TokenResponse, UpdateUser, User };
+declare enum Routes {
+    'LOGIN' = "login",
+    'REGISTER' = "register",
+    'TFA_VERIFY_SMS' = "tfa/verify/sms",
+    'TFA_VERIFY_EMAIL' = "tfa/verify/email",
+    'TFA_VERIFY_APP' = "tfa/verify/app",
+    'TFA_VERIFY_SELECT' = "tfa/verify/select",
+    'TFA_SETUP_SMS' = "tfa/setup/sms",
+    'TFA_SETUP_EMAIL' = "tfa/setup/email",
+    'TFA_SETUP_APP' = "tfa/setup/app",
+    'TFA_SETUP_SELECT' = "tfa/setup/select",
+    'PASSWORD_RESET' = "password/reset",
+    'PASSWORD_FORGOT' = "password/forgot",
+    'PASSWORD_FORGOT_TFA_SMS' = "password/forgot/tfa/sms",
+    'PASSWORD_FORGOT_TFA_EMAIL' = "password/forgot/tfa/email",
+    'PASSWORD_FORGOT_TFA_APP' = "password/forgot/tfa/app",
+    'PASSWORD_FORGOT_TFA_SELECT' = "password/forgot/tfa/select",
+    'CALLBACK' = "callback",
+    'OTP_LOGIN' = "otp/login",
+    'ERROR' = "error",
+    'PASSWORD_FORGOT_SUCCESS' = "password/forgot/success",
+    'LOGOUT' = "logout",
+    'LOADING' = "loading"
+}
+declare type TFASetupRoutes = Routes.TFA_SETUP_SELECT | Routes.TFA_SETUP_SMS | Routes.TFA_SETUP_EMAIL | Routes.TFA_SETUP_APP;
+declare type TFALoginVerifyRoutes = Routes.TFA_VERIFY_SELECT | Routes.TFA_VERIFY_SMS | Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_APP;
+declare type TFAResetVerifyRoutes = Routes.PASSWORD_FORGOT_TFA_SELECT | Routes.PASSWORD_FORGOT_TFA_SMS | Routes.PASSWORD_FORGOT_TFA_EMAIL | Routes.PASSWORD_FORGOT_TFA_APP;
+interface State {
+    route: Routes;
+}
+interface StateWithError {
+    error: ApiError;
+}
+interface StateLogin extends State, StateWithError {
+    route: Routes.LOGIN;
+    registrationForbidden: boolean;
+    federatedProviders: FederatedLoginProvider[];
+    signup: () => Promise<void>;
+    signin: (email: string, password: string) => Promise<void>;
+    socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
+    passwordForgot: () => Promise<void>;
+}
+interface StateRegister extends State, StateWithError {
+    route: Routes.REGISTER;
+    signup: (email: string, password: string) => Promise<void>;
+    goback: () => Promise<void>;
+}
+interface StatePasswordForgot extends State, StateWithError {
+    route: Routes.PASSWORD_FORGOT;
+    restorePassword: (email: string) => Promise<void>;
+    goback: () => Promise<void>;
+}
+interface StatePasswordForgotSuccess extends State {
+    route: Routes.PASSWORD_FORGOT_SUCCESS;
+    goback: () => Promise<void>;
+}
+interface StateError extends State, StateWithError {
+    route: Routes.ERROR;
+}
+interface StateCallback extends State {
+    route: Routes.CALLBACK;
+    callbackUrl: string;
+    result: LoginResponse;
+}
+interface StatePasswordReset extends State, StateWithError {
+    route: Routes.PASSWORD_RESET;
+    setNewPassword: (password: string) => Promise<void>;
+}
+interface StateLoading extends State {
+    route: Routes.LOADING;
+}
+interface StateOTPLogin extends State {
+    route: Routes.OTP_LOGIN;
+    registrationForbidden: boolean;
+    federatedProviders: FederatedLoginProvider[];
+    signup: () => Promise<void>;
+    signin: (phone: string) => Promise<void>;
+    socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
+}
+interface StateTFASetup extends State, StateWithError {
+}
+interface StateTFASetupApp extends StateTFASetup {
+    route: Routes.TFA_SETUP_APP;
+    provisioningURI: string;
+    provisioningQR: string;
+    setupTFA: () => Promise<void>;
+}
+interface StateTFASetupEmail extends StateTFASetup {
+    route: Routes.TFA_SETUP_EMAIL;
+    email: string;
+    setupTFA: (email: string) => Promise<void>;
+}
+interface StateTFASetupSMS extends StateTFASetup {
+    route: Routes.TFA_SETUP_SMS;
+    phone: string;
+    setupTFA: (phone: string) => Promise<void>;
+}
+interface StateTFASelect extends State {
+    tfaTypes: TFAType[];
+    select: (type: TFAType) => Promise<void>;
+    email?: string;
+    phone?: string;
+}
+interface StateTFASetupSelect extends StateTFASelect {
+    route: Routes.TFA_SETUP_SELECT;
+    tfaStatus: TFAStatus;
+    setupNextTime: () => Promise<void>;
+}
+interface StateTFAVerifySelect extends StateTFASelect {
+    route: Routes.TFA_VERIFY_SELECT;
+}
+interface StatePasswordForgotTFASelect extends StateTFASelect {
+    route: Routes.PASSWORD_FORGOT_TFA_SELECT;
+}
+interface StateTFAVerify extends State, StateWithError {
+    route: Routes.TFA_VERIFY_APP | Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_SMS;
+    email?: string;
+    phone?: string;
+    verifyTFA: (code: string) => Promise<void>;
+}
+interface StatePasswordForgotTFAVerify extends State, StateWithError {
+    route: Routes.PASSWORD_FORGOT_TFA_APP | Routes.PASSWORD_FORGOT_TFA_EMAIL | Routes.PASSWORD_FORGOT_TFA_SMS;
+    email?: string;
+    phone?: string;
+    verifyTFA: (code: string) => Promise<void>;
+}
+declare const typeToSetupRoute: {
+    app: Routes;
+    email: Routes;
+    sms: Routes;
+};
+declare const typeToTFAVerifyRoute: {
+    app: Routes;
+    email: Routes;
+    sms: Routes;
+};
+declare const typeToPasswordForgotTFAVerifyRoute: {
+    app: Routes;
+    email: Routes;
+    sms: Routes;
+};
+declare type States = State | StateTFASetupApp | StateTFASetupEmail | StateTFASetupSMS | StatePasswordReset | StatePasswordForgot | StatePasswordForgotSuccess | StateLoading | StateCallback | StateLogin | StateRegister | StateError;
+
+declare class CDK {
+    auth: IdentifoAuth;
+    settings: AppSettingsResponse;
+    lastError: ApiError;
+    callbackUrl?: string;
+    postLogoutRedirectUri?: string;
+    scopes: string[];
+    state: BehaviorSubject<States>;
+    constructor();
+    configure(authConfig: IdentifoConfig, callbackUrl: string, scopes: string[]): Promise<void>;
+    login(): void;
+    register(): void;
+    forgotPassword(): void;
+    forgotPasswordSuccess(): void;
+    passwordReset(): void;
+    callback(result: LoginResponse): void;
+    validateEmail(email: string): boolean;
+    tfaSetup(loginResponse: LoginResponse, type: TFAType): Promise<void>;
+    tfaVerify(loginResponse: LoginResponse, type: TFAType): Promise<void>;
+    passwordForgotTFAVerify(email: string, type: TFAType): Promise<void>;
+    private processError;
+    private redirectTfaSetup;
+    private tfaSetupSelect;
+    private redirectTfaVerify;
+    private redirectTfaForgot;
+    private afterLoginRedirect;
+    private loginCatchRedirect;
+}
+
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, Routes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateOTPLogin, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerify, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };

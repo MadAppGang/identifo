@@ -2,6 +2,8 @@
 
 Object.defineProperty(exports, '__esModule', { value: true });
 
+var rxjs = require('rxjs');
+
 exports.APIErrorCodes = void 0;
 (function(APIErrorCodes2) {
   APIErrorCodes2["PleaseEnableTFA"] = "error.api.request.2fa.please_enable";
@@ -29,23 +31,23 @@ class ApiError extends Error {
   }
 }
 
-var __defProp$1 = Object.defineProperty;
-var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
-var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
-var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
-var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
-var __spreadValues$1 = (a, b) => {
+var __defProp$2 = Object.defineProperty;
+var __getOwnPropSymbols$2 = Object.getOwnPropertySymbols;
+var __hasOwnProp$2 = Object.prototype.hasOwnProperty;
+var __propIsEnum$2 = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$2 = (obj, key, value) => key in obj ? __defProp$2(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$2 = (a, b) => {
   for (var prop in b || (b = {}))
-    if (__hasOwnProp$1.call(b, prop))
-      __defNormalProp$1(a, prop, b[prop]);
-  if (__getOwnPropSymbols$1)
-    for (var prop of __getOwnPropSymbols$1(b)) {
-      if (__propIsEnum$1.call(b, prop))
-        __defNormalProp$1(a, prop, b[prop]);
+    if (__hasOwnProp$2.call(b, prop))
+      __defNormalProp$2(a, prop, b[prop]);
+  if (__getOwnPropSymbols$2)
+    for (var prop of __getOwnPropSymbols$2(b)) {
+      if (__propIsEnum$2.call(b, prop))
+        __defNormalProp$2(a, prop, b[prop]);
     }
   return a;
 };
-var __async$2 = (__this, __arguments, generator) => {
+var __async$3 = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
       try {
@@ -67,7 +69,7 @@ var __async$2 = (__this, __arguments, generator) => {
 };
 const APP_ID_HEADER_KEY = "X-Identifo-Clientid";
 const AUTHORIZATION_HEADER_KEY = "Authorization";
-class Api {
+class API {
   constructor(config, tokenService) {
     this.config = config;
     this.tokenService = tokenService;
@@ -88,7 +90,7 @@ class Api {
       }
       throw e;
     };
-    this.checkStatusCodeAndGetJSON = (r) => __async$2(this, null, function* () {
+    this.checkStatusCodeAndGetJSON = (r) => __async$3(this, null, function* () {
       if (!r.ok) {
         const error = yield r.json();
         throw new ApiError(error == null ? void 0 : error.error);
@@ -100,22 +102,22 @@ class Api {
     this.appId = config.appId;
   }
   get(path, options) {
-    return this.send(path, __spreadValues$1({ method: "GET" }, options));
+    return this.send(path, __spreadValues$2({ method: "GET" }, options));
   }
   put(path, data, options) {
-    return this.send(path, __spreadValues$1({ method: "PUT", body: JSON.stringify(data) }, options));
+    return this.send(path, __spreadValues$2({ method: "PUT", body: JSON.stringify(data) }, options));
   }
   post(path, data, options) {
-    return this.send(path, __spreadValues$1({ method: "POST", body: JSON.stringify(data) }, options));
+    return this.send(path, __spreadValues$2({ method: "POST", body: JSON.stringify(data) }, options));
   }
   send(path, options) {
-    const init = __spreadValues$1({}, options);
+    const init = __spreadValues$2({}, options);
     init.credentials = "include";
-    init.headers = __spreadValues$1(__spreadValues$1({}, init.headers), this.defaultHeaders);
+    init.headers = __spreadValues$2(__spreadValues$2({}, init.headers), this.defaultHeaders);
     return fetch(`${this.baseUrl}${path}`, init).catch(this.catchNetworkErrorHandler).then(this.checkStatusCodeAndGetJSON).then((value) => value);
   }
   getUser() {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -128,7 +130,7 @@ class Api {
     });
   }
   renewToken() {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken("refresh")) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -141,7 +143,7 @@ class Api {
     });
   }
   updateUser(user) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -154,7 +156,7 @@ class Api {
     });
   }
   login(email, password, deviceToken, scopes) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       const data = {
         email,
         password,
@@ -165,7 +167,7 @@ class Api {
     });
   }
   federatedLogin(_0, _1, _2, _3) {
-    return __async$2(this, arguments, function* (provider, scopes, redirectUrl, callbackUrl, opts = { width: 600, height: 800, popUp: false }) {
+    return __async$3(this, arguments, function* (provider, scopes, redirectUrl, callbackUrl, opts = { width: 600, height: 800, popUp: false }) {
       var dataForm = document.createElement("form");
       dataForm.style.display = "none";
       if (opts.popUp) {
@@ -195,12 +197,12 @@ class Api {
     });
   }
   federatedLoginComplete(params) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       return this.get(`/auth/federated/complete?${params.toString()}`).then((r) => this.storeToken(r));
     });
   }
   register(email, password, scopes) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       const data = {
         email,
         password,
@@ -210,7 +212,7 @@ class Api {
     });
   }
   requestResetPassword(email, tfaCode) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       const data = {
         email,
         tfa_code: tfaCode
@@ -219,7 +221,7 @@ class Api {
     });
   }
   resetPassword(password) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -235,12 +237,12 @@ class Api {
     });
   }
   getAppSettings(callbackUrl) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       return this.get(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
     });
   }
   enableTFA() {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -251,7 +253,7 @@ class Api {
     });
   }
   verifyTFA(code, scopes) {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -260,7 +262,7 @@ class Api {
     });
   }
   logout() {
-    return __async$2(this, null, function* () {
+    return __async$3(this, null, function* () {
       var _a, _b, _c;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
@@ -343,7 +345,7 @@ class SessionStorage extends StorageManager {
   }
 }
 
-var __async$1 = (__this, __arguments, generator) => {
+var __async$2 = (__this, __arguments, generator) => {
   return new Promise((resolve, reject) => {
     var fulfilled = (value) => {
       try {
@@ -368,7 +370,7 @@ class TokenService {
     this.tokenManager = tokenManager || new LocalStorage();
   }
   handleVerification(token, audience, issuer) {
-    return __async$1(this, null, function* () {
+    return __async$2(this, null, function* () {
       if (!this.tokenManager.isAccessible)
         return true;
       try {
@@ -382,7 +384,7 @@ class TokenService {
     });
   }
   validateToken(token, audience, issuer) {
-    return __async$1(this, null, function* () {
+    return __async$2(this, null, function* () {
       var _a;
       if (!token)
         throw new Error(INVALID_TOKEN_ERROR);
@@ -464,6 +466,209 @@ class UrlBuilder {
   }
 }
 
+var __defProp$1 = Object.defineProperty;
+var __defProps$1 = Object.defineProperties;
+var __getOwnPropDescs$1 = Object.getOwnPropertyDescriptors;
+var __getOwnPropSymbols$1 = Object.getOwnPropertySymbols;
+var __hasOwnProp$1 = Object.prototype.hasOwnProperty;
+var __propIsEnum$1 = Object.prototype.propertyIsEnumerable;
+var __defNormalProp$1 = (obj, key, value) => key in obj ? __defProp$1(obj, key, { enumerable: true, configurable: true, writable: true, value }) : obj[key] = value;
+var __spreadValues$1 = (a, b) => {
+  for (var prop in b || (b = {}))
+    if (__hasOwnProp$1.call(b, prop))
+      __defNormalProp$1(a, prop, b[prop]);
+  if (__getOwnPropSymbols$1)
+    for (var prop of __getOwnPropSymbols$1(b)) {
+      if (__propIsEnum$1.call(b, prop))
+        __defNormalProp$1(a, prop, b[prop]);
+    }
+  return a;
+};
+var __spreadProps$1 = (a, b) => __defProps$1(a, __getOwnPropDescs$1(b));
+var __async$1 = (__this, __arguments, generator) => {
+  return new Promise((resolve, reject) => {
+    var fulfilled = (value) => {
+      try {
+        step(generator.next(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var rejected = (value) => {
+      try {
+        step(generator.throw(value));
+      } catch (e) {
+        reject(e);
+      }
+    };
+    var step = (x) => x.done ? resolve(x.value) : Promise.resolve(x.value).then(fulfilled, rejected);
+    step((generator = generator.apply(__this, __arguments)).next());
+  });
+};
+class IdentifoAuth {
+  constructor(config) {
+    this.token = null;
+    this.isAuth = false;
+    if (config) {
+      this.configure(config);
+    }
+  }
+  configure(config) {
+    var _a, _b;
+    this.config = __spreadProps$1(__spreadValues$1({}, config), { autoRenew: (_a = config.autoRenew) != null ? _a : true });
+    this.tokenService = new TokenService(config.tokenManager);
+    this.urlBuilder = new UrlBuilder(this.config);
+    this.api = new API(config, this.tokenService);
+    this.handleToken(((_b = this.tokenService.getToken()) == null ? void 0 : _b.token) || "", "access");
+  }
+  handleToken(token, tokenType) {
+    if (token) {
+      if (tokenType === "access") {
+        const payload = this.tokenService.parseJWT(token);
+        this.token = { token, payload };
+        this.isAuth = true;
+        this.tokenService.saveToken(token);
+      } else {
+        this.tokenService.saveToken(token, "refresh");
+      }
+    }
+  }
+  resetAuthValues() {
+    this.token = null;
+    this.isAuth = false;
+    this.tokenService.removeToken();
+    this.tokenService.removeToken("refresh");
+  }
+  signup() {
+    window.location.href = this.urlBuilder.createSignupUrl();
+  }
+  signin() {
+    window.location.href = this.urlBuilder.createSigninUrl();
+  }
+  logout() {
+    this.resetAuthValues();
+    window.location.href = this.urlBuilder.createLogoutUrl();
+  }
+  handleAuthentication() {
+    return __async$1(this, null, function* () {
+      const { access, refresh } = this.getTokenFromUrl();
+      if (!access) {
+        this.resetAuthValues();
+        return Promise.reject();
+      }
+      try {
+        yield this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
+        this.handleToken(access, "access");
+        if (refresh) {
+          this.handleToken(refresh, "refresh");
+        }
+        return yield Promise.resolve(true);
+      } catch (err) {
+        this.resetAuthValues();
+        return yield Promise.reject();
+      } finally {
+        window.history.pushState({}, document.title, window.location.pathname);
+      }
+    });
+  }
+  getTokenFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tokens = { access: "", refresh: "" };
+    const accessToken = urlParams.get(TOKEN_QUERY_KEY);
+    const refreshToken = urlParams.get(REFRESH_TOKEN_QUERY_KEY);
+    if (refreshToken && jwtRegex.test(refreshToken)) {
+      tokens.refresh = refreshToken;
+    }
+    if (accessToken && jwtRegex.test(accessToken)) {
+      tokens.access = accessToken;
+    }
+    return tokens;
+  }
+  getToken() {
+    return __async$1(this, null, function* () {
+      const token = this.tokenService.getToken();
+      const refreshToken = this.tokenService.getToken("refresh");
+      if (token) {
+        const isExpired = this.tokenService.isJWTExpired(token.payload);
+        if (isExpired && refreshToken) {
+          try {
+            yield this.renewSession();
+            return yield Promise.resolve(this.token);
+          } catch (err) {
+            this.resetAuthValues();
+            throw new Error("No token");
+          }
+        }
+        return Promise.resolve(token);
+      }
+      return Promise.resolve(null);
+    });
+  }
+  renewSession() {
+    return __async$1(this, null, function* () {
+      try {
+        const { access, refresh } = yield this.renewSessionWithToken();
+        this.handleToken(access, "access");
+        this.handleToken(refresh, "refresh");
+        return yield Promise.resolve(access);
+      } catch (err) {
+        return Promise.reject();
+      }
+    });
+  }
+  renewSessionWithToken() {
+    return __async$1(this, null, function* () {
+      try {
+        const tokens = yield this.api.renewToken().then((l) => ({ access: l.access_token || "", refresh: l.refresh_token || "" }));
+        return tokens;
+      } catch (err) {
+        return Promise.reject(err);
+      }
+    });
+  }
+}
+
+exports.Routes = void 0;
+(function(Routes2) {
+  Routes2["LOGIN"] = "login";
+  Routes2["REGISTER"] = "register";
+  Routes2["TFA_VERIFY_SMS"] = "tfa/verify/sms";
+  Routes2["TFA_VERIFY_EMAIL"] = "tfa/verify/email";
+  Routes2["TFA_VERIFY_APP"] = "tfa/verify/app";
+  Routes2["TFA_VERIFY_SELECT"] = "tfa/verify/select";
+  Routes2["TFA_SETUP_SMS"] = "tfa/setup/sms";
+  Routes2["TFA_SETUP_EMAIL"] = "tfa/setup/email";
+  Routes2["TFA_SETUP_APP"] = "tfa/setup/app";
+  Routes2["TFA_SETUP_SELECT"] = "tfa/setup/select";
+  Routes2["PASSWORD_RESET"] = "password/reset";
+  Routes2["PASSWORD_FORGOT"] = "password/forgot";
+  Routes2["PASSWORD_FORGOT_TFA_SMS"] = "password/forgot/tfa/sms";
+  Routes2["PASSWORD_FORGOT_TFA_EMAIL"] = "password/forgot/tfa/email";
+  Routes2["PASSWORD_FORGOT_TFA_APP"] = "password/forgot/tfa/app";
+  Routes2["PASSWORD_FORGOT_TFA_SELECT"] = "password/forgot/tfa/select";
+  Routes2["CALLBACK"] = "callback";
+  Routes2["OTP_LOGIN"] = "otp/login";
+  Routes2["ERROR"] = "error";
+  Routes2["PASSWORD_FORGOT_SUCCESS"] = "password/forgot/success";
+  Routes2["LOGOUT"] = "logout";
+  Routes2["LOADING"] = "loading";
+})(exports.Routes || (exports.Routes = {}));
+const typeToSetupRoute = {
+  [exports.TFAType.TFATypeApp]: exports.Routes.TFA_SETUP_APP,
+  [exports.TFAType.TFATypeEmail]: exports.Routes.TFA_SETUP_EMAIL,
+  [exports.TFAType.TFATypeSMS]: exports.Routes.TFA_SETUP_SMS
+};
+const typeToTFAVerifyRoute = {
+  [exports.TFAType.TFATypeApp]: exports.Routes.TFA_VERIFY_APP,
+  [exports.TFAType.TFATypeEmail]: exports.Routes.TFA_VERIFY_EMAIL,
+  [exports.TFAType.TFATypeSMS]: exports.Routes.TFA_VERIFY_SMS
+};
+const typeToPasswordForgotTFAVerifyRoute = {
+  [exports.TFAType.TFATypeApp]: exports.Routes.PASSWORD_FORGOT_TFA_APP,
+  [exports.TFAType.TFATypeEmail]: exports.Routes.PASSWORD_FORGOT_TFA_EMAIL,
+  [exports.TFAType.TFATypeSMS]: exports.Routes.PASSWORD_FORGOT_TFA_SMS
+};
+
 var __defProp = Object.defineProperty;
 var __defProps = Object.defineProperties;
 var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
@@ -503,127 +708,333 @@ var __async = (__this, __arguments, generator) => {
     step((generator = generator.apply(__this, __arguments)).next());
   });
 };
-class IdentifoAuth {
-  constructor(config) {
-    this.token = null;
-    this.isAuth = false;
+const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+class CDK {
+  constructor() {
+    this.scopes = [];
+    this.state = new rxjs.BehaviorSubject({ route: exports.Routes.LOADING });
+    this.afterLoginRedirect = (loginResponse) => __async(this, null, function* () {
+      if (loginResponse.require_2fa) {
+        if (!loginResponse.enabled_2fa) {
+          yield this.redirectTfaSetup(loginResponse);
+          return;
+        }
+        if (loginResponse.enabled_2fa) {
+          yield this.redirectTfaVerify(loginResponse);
+          return;
+        }
+      }
+      if (this.settings.tfaStatus === exports.TFAStatus.OPTIONAL && [exports.Routes.LOGIN, exports.Routes.OTP_LOGIN, exports.Routes.REGISTER].includes(this.state.getValue().route)) {
+        this.tfaSetupSelect(loginResponse);
+        return;
+      }
+      if (loginResponse.access_token && loginResponse.refresh_token) {
+        this.callback(loginResponse);
+        return;
+      }
+      if (loginResponse.access_token && !loginResponse.refresh_token) {
+        this.callback(loginResponse);
+        return;
+      }
+      this.login();
+    });
+    this.loginCatchRedirect = (data) => {
+      if (data.id === exports.APIErrorCodes.PleaseEnableTFA) {
+        return;
+      }
+      throw data;
+    };
+    this.auth = new IdentifoAuth();
+  }
+  configure(authConfig, callbackUrl, scopes) {
+    return __async(this, null, function* () {
+      this.state.next({ route: exports.Routes.LOADING });
+      this.callbackUrl = callbackUrl;
+      this.scopes = scopes;
+      this.postLogoutRedirectUri = window.location.origin + window.location.pathname;
+      if (!authConfig.appId) {
+        this.state.next({
+          route: exports.Routes.ERROR,
+          error: { message: "app-id param is empty", name: "app-id empty" }
+        });
+        return;
+      }
+      if (!authConfig.url) {
+        this.state.next({
+          route: exports.Routes.ERROR,
+          error: { message: "url param is empty", name: "url empty" }
+        });
+        return;
+      }
+      this.auth.configure(authConfig);
+      try {
+        this.settings = yield this.auth.api.getAppSettings(callbackUrl);
+      } catch (err) {
+        this.state.next({
+          route: exports.Routes.ERROR,
+          error: err
+        });
+      }
+      this.settings.tfaType = Array.isArray(this.settings.tfaType) ? this.settings.tfaType : [this.settings.tfaType];
+      const href = new URL(window.location.href);
+      if (!!href.searchParams.get("provider") && !!href.searchParams.get("state")) {
+        const u = new URL(window.location.href);
+        const sp = new URLSearchParams();
+        const appId = href.searchParams.get("appId");
+        if (appId === null) {
+          this.state.next({
+            route: exports.Routes.ERROR,
+            error: { message: "app-id param is empty", name: "app-id empty" }
+          });
+          return;
+        }
+        sp.set("appId", appId);
+        window.history.replaceState({}, document.title, `${u.pathname}?${sp.toString()}`);
+        this.auth.api.federatedLoginComplete(u.searchParams).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+      }
+    });
+  }
+  login() {
     var _a, _b;
-    this.config = __spreadProps(__spreadValues({}, config), { autoRenew: (_a = config.autoRenew) != null ? _a : true });
-    this.tokenService = new TokenService(config.tokenManager);
-    this.urlBuilder = new UrlBuilder(this.config);
-    this.api = new Api(config, this.tokenService);
-    this.handleToken(((_b = this.tokenService.getToken()) == null ? void 0 : _b.token) || "", "access");
-  }
-  handleToken(token, tokenType) {
-    if (token) {
-      if (tokenType === "access") {
-        const payload = this.tokenService.parseJWT(token);
-        this.token = { token, payload };
-        this.isAuth = true;
-        this.tokenService.saveToken(token);
-      } else {
-        this.tokenService.saveToken(token, "refresh");
-      }
-    }
-  }
-  resetAuthValues() {
-    this.token = null;
-    this.isAuth = false;
-    this.tokenService.removeToken();
-    this.tokenService.removeToken("refresh");
-  }
-  signup() {
-    window.location.href = this.urlBuilder.createSignupUrl();
-  }
-  signin() {
-    window.location.href = this.urlBuilder.createSigninUrl();
-  }
-  logout() {
-    this.resetAuthValues();
-    window.location.href = this.urlBuilder.createLogoutUrl();
-  }
-  handleAuthentication() {
-    return __async(this, null, function* () {
-      const { access, refresh } = this.getTokenFromUrl();
-      if (!access) {
-        this.resetAuthValues();
-        return Promise.reject();
-      }
-      try {
-        yield this.tokenService.handleVerification(access, this.config.appId, this.config.issuer);
-        this.handleToken(access, "access");
-        if (refresh) {
-          this.handleToken(refresh, "refresh");
+    this.state.next({
+      route: exports.Routes.LOGIN,
+      registrationForbidden: (_a = this.settings) == null ? void 0 : _a.registrationForbidden,
+      error: this.lastError,
+      federatedProviders: (_b = this.settings) == null ? void 0 : _b.federatedProviders,
+      signup: () => __async(this, null, function* () {
+        this.register();
+      }),
+      signin: (email, password) => __async(this, null, function* () {
+        if (!this.validateEmail(email)) {
+          return;
         }
-        return yield Promise.resolve(true);
-      } catch (err) {
-        this.resetAuthValues();
-        return yield Promise.reject();
-      } finally {
-        window.history.pushState({}, document.title, window.location.pathname);
-      }
+        yield this.auth.api.login(email, password, "", this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+      }),
+      socialLogin: (provider) => __async(this, null, function* () {
+        this.state.next({ route: exports.Routes.LOADING });
+        const federatedRedirectUrl = window.location.origin + window.location.pathname;
+        return this.auth.api.federatedLogin(provider, this.scopes, federatedRedirectUrl, this.callbackUrl);
+      }),
+      passwordForgot: () => __async(this, null, function* () {
+        this.forgotPassword();
+      })
     });
   }
-  getTokenFromUrl() {
-    const urlParams = new URLSearchParams(window.location.search);
-    const tokens = { access: "", refresh: "" };
-    const accessToken = urlParams.get(TOKEN_QUERY_KEY);
-    const refreshToken = urlParams.get(REFRESH_TOKEN_QUERY_KEY);
-    if (refreshToken && jwtRegex.test(refreshToken)) {
-      tokens.refresh = refreshToken;
-    }
-    if (accessToken && jwtRegex.test(accessToken)) {
-      tokens.access = accessToken;
-    }
-    return tokens;
+  register() {
+    this.state.next({
+      route: exports.Routes.REGISTER,
+      signup: (email, password) => __async(this, null, function* () {
+        if (!this.validateEmail(email)) {
+          return;
+        }
+        yield this.auth.api.register(email, password, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+      }),
+      goback: () => __async(this, null, function* () {
+        this.login();
+      })
+    });
   }
-  getToken() {
-    return __async(this, null, function* () {
-      const token = this.tokenService.getToken();
-      const refreshToken = this.tokenService.getToken("refresh");
-      if (token) {
-        const isExpired = this.tokenService.isJWTExpired(token.payload);
-        if (isExpired && refreshToken) {
-          try {
-            yield this.renewSession();
-            return yield Promise.resolve(this.token);
-          } catch (err) {
-            this.resetAuthValues();
-            throw new Error("No token");
+  forgotPassword() {
+    this.state.next({
+      route: exports.Routes.PASSWORD_FORGOT,
+      restorePassword: (email) => __async(this, null, function* () {
+        this.auth.api.requestResetPassword(email).then((response) => __async(this, null, function* () {
+          if (response.result === "tfa-required") {
+            yield this.redirectTfaForgot(email);
+            return;
           }
+          if (response.result === "ok") {
+            this.forgotPasswordSuccess();
+          }
+        })).catch((e) => this.processError(e));
+      }),
+      goback: () => __async(this, null, function* () {
+        this.login();
+      })
+    });
+  }
+  forgotPasswordSuccess() {
+    this.state.next({
+      route: exports.Routes.PASSWORD_FORGOT_SUCCESS,
+      goback: () => __async(this, null, function* () {
+        this.login();
+      })
+    });
+  }
+  passwordReset() {
+    this.state.next({
+      route: exports.Routes.PASSWORD_RESET,
+      setNewPassword: (password) => __async(this, null, function* () {
+        this.auth.api.resetPassword(password).then(() => {
+          this.login();
+        }).catch((e) => this.processError(e));
+      })
+    });
+  }
+  callback(result) {
+    this.state.next({
+      route: exports.Routes.CALLBACK,
+      callbackUrl: this.callbackUrl,
+      result
+    });
+  }
+  validateEmail(email) {
+    if (!emailRegex.test(email)) {
+      this.processError({
+        detailedMessage: "Email address is not valid",
+        name: "Validation error",
+        message: "Email address is not valid"
+      });
+      return false;
+    }
+    return true;
+  }
+  tfaSetup(loginResponse, type) {
+    return __async(this, null, function* () {
+      switch (type) {
+        case exports.TFAType.TFATypeApp: {
+          this.state.next({
+            route: exports.Routes.TFA_SETUP_APP,
+            provisioningURI: "",
+            provisioningQR: "",
+            setupTFA: () => __async(this, null, function* () {
+            })
+          });
+          const tfa = yield this.auth.api.enableTFA();
+          if (tfa.provisioning_uri) {
+            this.state.next({
+              route: exports.Routes.TFA_SETUP_APP,
+              provisioningURI: tfa.provisioning_uri,
+              provisioningQR: tfa.provisioning_qr || "",
+              setupTFA: () => __async(this, null, function* () {
+                return this.tfaVerify(loginResponse, type);
+              })
+            });
+          }
+          break;
         }
-        return Promise.resolve(token);
+        case exports.TFAType.TFATypeEmail: {
+          this.state.next({
+            route: exports.Routes.TFA_SETUP_EMAIL,
+            email: loginResponse.user.email || "",
+            setupTFA: (email) => __async(this, null, function* () {
+              yield this.auth.api.updateUser({ new_email: email });
+              yield this.auth.api.enableTFA();
+              return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { email }) }), type);
+            })
+          });
+          break;
+        }
+        case exports.TFAType.TFATypeSMS: {
+          this.state.next({
+            route: exports.Routes.TFA_SETUP_SMS,
+            phone: loginResponse.user.phone || "",
+            setupTFA: (phone) => __async(this, null, function* () {
+              yield this.auth.api.updateUser({ new_phone: phone });
+              yield this.auth.api.enableTFA();
+              return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { phone }) }), type);
+            })
+          });
+          break;
+        }
       }
-      return Promise.resolve(null);
     });
   }
-  renewSession() {
+  tfaVerify(loginResponse, type) {
     return __async(this, null, function* () {
-      try {
-        const { access, refresh } = yield this.renewSessionWithToken();
-        this.handleToken(access, "access");
-        this.handleToken(refresh, "refresh");
-        return yield Promise.resolve(access);
-      } catch (err) {
-        return Promise.reject();
+      this.state.next({
+        route: typeToTFAVerifyRoute[type],
+        email: loginResponse.user.email,
+        phone: loginResponse.user.phone,
+        verifyTFA: (code) => __async(this, null, function* () {
+          this.auth.api.verifyTFA(code, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        })
+      });
+    });
+  }
+  passwordForgotTFAVerify(email, type) {
+    return __async(this, null, function* () {
+      this.state.next({
+        route: typeToPasswordForgotTFAVerifyRoute[type],
+        verifyTFA: (code) => __async(this, null, function* () {
+          this.auth.api.requestResetPassword(email, code).then(() => {
+            this.forgotPasswordSuccess();
+          }).catch((e) => this.processError(e));
+        })
+      });
+    });
+  }
+  processError(e) {
+    var _a, _b;
+    e.detailedMessage = (_a = e.detailedMessage) == null ? void 0 : _a.trim();
+    e.message = (_b = e.message) == null ? void 0 : _b.trim();
+    this.state.next(__spreadProps(__spreadValues({}, this.state.getValue()), {
+      error: e
+    }));
+  }
+  redirectTfaSetup(loginResponse) {
+    return __async(this, null, function* () {
+      if (this.settings.tfaType.length === 1) {
+        yield this.tfaSetup(loginResponse, this.settings.tfaType[0]);
+        return;
+      }
+      this.tfaSetupSelect(loginResponse);
+    });
+  }
+  tfaSetupSelect(loginResponse) {
+    this.state.next({
+      route: exports.Routes.TFA_SETUP_SELECT,
+      tfaStatus: this.settings.tfaStatus,
+      tfaTypes: this.settings.tfaType,
+      select: (type) => __async(this, null, function* () {
+        yield this.tfaSetup(loginResponse, type);
+      }),
+      setupNextTime: () => {
+        this.callback(loginResponse);
       }
     });
   }
-  renewSessionWithToken() {
+  redirectTfaVerify(e) {
     return __async(this, null, function* () {
-      try {
-        const tokens = yield this.api.renewToken().then((l) => ({ access: l.access_token || "", refresh: l.refresh_token || "" }));
-        return tokens;
-      } catch (err) {
-        return Promise.reject(err);
+      if (this.settings.tfaType.length === 1) {
+        yield this.tfaVerify(e, this.settings.tfaType[0]);
+        return;
       }
+      this.state.next({
+        route: exports.Routes.TFA_VERIFY_SELECT,
+        tfaStatus: this.settings.tfaStatus,
+        tfaTypes: this.settings.tfaType,
+        select: (type) => __async(this, null, function* () {
+          yield this.tfaVerify(e, type);
+        })
+      });
+    });
+  }
+  redirectTfaForgot(email) {
+    return __async(this, null, function* () {
+      if (this.settings.tfaType.length === 1) {
+        yield this.passwordForgotTFAVerify(email, this.settings.tfaType[0]);
+        return;
+      }
+      this.state.next({
+        route: exports.Routes.PASSWORD_FORGOT_TFA_SELECT,
+        tfaStatus: this.settings.tfaStatus,
+        tfaTypes: this.settings.tfaType,
+        select: (type) => __async(this, null, function* () {
+          yield this.passwordForgotTFAVerify(email, type);
+        })
+      });
     });
   }
 }
 
 exports.ApiError = ApiError;
+exports.CDK = CDK;
 exports.CookieStorageManager = CookieStorage;
 exports.IdentifoAuth = IdentifoAuth;
 exports.LocalStorageManager = LocalStorage;
 exports.SessionStorageManager = SessionStorage;
+exports.typeToPasswordForgotTFAVerifyRoute = typeToPasswordForgotTFAVerifyRoute;
+exports.typeToSetupRoute = typeToSetupRoute;
+exports.typeToTFAVerifyRoute = typeToTFAVerifyRoute;
 //# sourceMappingURL=identifo.js.map
