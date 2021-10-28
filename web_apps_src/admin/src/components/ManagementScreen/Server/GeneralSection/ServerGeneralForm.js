@@ -8,9 +8,10 @@ import SaveIcon from '~/components/icons/SaveIcon';
 import LoadingIcon from '~/components/icons/LoadingIcon';
 import useForm from '~/hooks/useForm';
 import MultipleInput from '~/components/shared/MultipleInput';
+import Toggle from '~/components/shared/Toggle/Toggle';
 
 const GeneralForm = (props) => {
-  const { error, settings, loading, onSubmit } = props;
+  const { error, settings, loading, onSubmit, serveAdmin, onServeAdminChange } = props;
 
   const initialState = {
     host: '',
@@ -24,6 +25,7 @@ const GeneralForm = (props) => {
   };
 
   const form = useForm(initialState, null, handleSubmit);
+
 
   React.useEffect(() => {
     if (!settings) return;
@@ -80,6 +82,15 @@ const GeneralForm = (props) => {
           values={form.values.supportedScopes}
           placeholder="Hit Enter to add scope"
           onChange={s => form.setValue('supportedScopes', s)}
+        />
+      </Field>
+
+      <Field>
+        <Toggle
+          label="Serve admin panel"
+          value={serveAdmin}
+          onChange={onServeAdminChange}
+          preventLoading
         />
       </Field>
 

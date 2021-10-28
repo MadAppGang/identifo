@@ -5,7 +5,7 @@ import LoadingIcon from '~/components/icons/LoadingIcon';
 
 let loadingTimeout;
 
-const Toggle = ({ label, value, onChange }) => {
+const Toggle = ({ label, value, preventLoading, onChange }) => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
@@ -18,7 +18,9 @@ const Toggle = ({ label, value, onChange }) => {
 
   const handleToggle = () => {
     onChange(!value);
-    loadingTimeout = setTimeout(setLoading, 70, true);
+    if (!preventLoading) {
+      loadingTimeout = setTimeout(setLoading, 70, true);
+    }
   };
 
   const rootClassName = classnames({
@@ -51,12 +53,14 @@ const Toggle = ({ label, value, onChange }) => {
 Toggle.propTypes = {
   label: PropTypes.string,
   value: PropTypes.bool,
+  preventLoading: PropTypes.bool,
   onChange: PropTypes.func,
 };
 
 Toggle.defaultProps = {
   label: '',
   value: false,
+  preventLoading: false,
   onChange: () => {},
 };
 

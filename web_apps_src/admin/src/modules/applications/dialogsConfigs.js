@@ -44,3 +44,13 @@ export const showPrivateKeyConfig = {
     { label: 'Cancel', data: dialogActions.cancel, white: true, error: true },
   ],
 };
+
+export const disableServeAdmin = {
+  title: 'Confirmation alert',
+  content: 'If you disable serve admin you will no longer have access to the panel.',
+  type: dialogTypes.danger,
+  buttons: [
+    { label: 'Disable', data: dialogActions.submit, error: true },
+    { label: 'Cancel', data: dialogActions.cancel, white: true, error: true },
+  ],
+};
