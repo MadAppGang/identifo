@@ -122,6 +122,6 @@ logger:
 adminPanel:
   enabled: true
 loginWebApp:
-  type: none
+  type: default
 emailTemplaits:
-  type: none
+  type: default

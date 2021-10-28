@@ -82,8 +82,9 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
+	//maybe just not serve login web app if type is none?
 	lwas := settings.LoginWebApp
-	if settings.LoginWebApp.Type == model.FileStorageTypeNone {
+	if settings.LoginWebApp.Type == model.FileStorageTypeNone  || settings.LoginWebApp.Type == model.FileStorageTypeDefault {
 		// if not set, use default value
 		lwas = defaultLoginWebAppFSSettings
 	}
@@ -120,8 +121,9 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
+	//maybe not use email templates if type is None?
 	ets := settings.EmailTemplates
-	if ets.Type == model.FileStorageTypeNone {
+	if ets.Type == model.FileStorageTypeNone || ets.Type == model.FileStorageTypeDefault {
 		ets = defaultEmailTemplateFSSettings
 	}
 	emailTemplateFS, err := storage.NewFS(ets)
@@ -129,7 +131,13 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	email, err := mail.NewService(settings.Services.Email, emailTemplateFS)
+	emailServiceSettings := settings.Services.Email
+	if ets.Type == model.FileStorageTypeNone {
+		//we are replacing the real email service with fake one, 
+		//if we have no templates to send
+		emailServiceSettings.Type = model.EmailServiceMock
+	}
+	email, err := mail.NewService(emailServiceSettings, emailTemplateFS)
 	if err != nil {
 		return nil, err
 	}

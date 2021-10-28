@@ -65,15 +65,19 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	}
 	r.APIRouter = apiRouter
 
-	// Web login app setup
-	loginAppSettings := spa.SPASettings{
-		Name:       "LOGIN_APP",
-		Root:       "/",
-		FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
-	}
-	r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, nil, settings.Logger)
-	if err != nil {
-		return nil, err
+	if settings.Server.Settings().LoginWebApp.Type == model.FileStorageTypeNone {
+		r.LoginAppRouter = nil 
+	} else {
+		// Web login app setup
+		loginAppSettings := spa.SPASettings{
+			Name:       "LOGIN_APP",
+			Root:       "/",
+			FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
+		}
+		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, nil, settings.Logger)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// Admin panel
@@ -137,7 +141,9 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
-	ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter))
+	if ar.LoginAppRouter != nil {
+		ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter)) 
+	}
 	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
 		ar.RootRouter.Handle(adminpanelAPIPath+"/", http.StripPrefix(adminpanelAPIPath, ar.AdminRouter))
 		ar.RootRouter.Handle(adminpanelPath+"/", http.StripPrefix(adminpanelPath, ar.AdminPanelRouter))

@@ -204,11 +204,10 @@ func (sfs *FileStorageSettings) Validate() error {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-	if len(sfs.Type) == 0 {
-		return fmt.Errorf("%s. Empty login web app type", subject)
-	}
 
 	switch sfs.Type {
+	case FileStorageTypeDefault:
+		return nil
 	case FileStorageTypeNone:
 		return nil
 	case FileStorageTypeLocal:
