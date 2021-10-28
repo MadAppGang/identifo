@@ -20,7 +20,7 @@ const SnackComponent = ({ content, buttons, callback, status }) => {
     if (status !== notificationStatuses.changed) {
       setTimeout(() => {
         dispatch(hideNotificationSnack());
-      }, 3000);
+      }, 5000);
     }
   }, []);
 
