@@ -7,12 +7,21 @@ import { storageTypes, verificationStatuses } from '~/enums';
 import { settingsConfig, dialogActions } from '~/modules/applications/dialogsConfigs';
 import { StaticFilesForm } from './Form';
 
-// TODO: Add verification after backed will be done
+
 const isVerificationType = (type) => {
   return type === storageTypes.local || type === storageTypes.s3;
 };
 
-export const StaticFilesGeneralSection = ({ title, subtitle, settings, onSubmit }) => {
+const serializeVerificationPayload = (values) => {
+  return {
+    file_storage: {
+      type: values.type,
+      [values.type]: values[values.type],
+    },
+  };
+};
+
+export const StaticFilesGeneralSection = ({ title, subtitle, settings, onSubmit, onVerify }) => {
   const dispatch = useDispatch();
   const [verificationStatus, , setStatus] = useVerification();
 
@@ -32,25 +41,20 @@ export const StaticFilesGeneralSection = ({ title, subtitle, settings, onSubmit 
     if (isVerificationType(formValues.type)
         && verificationStatus !== verificationStatuses.success) {
       const res = await dispatch(handleSettingsDialog(config));
-      switch (res) {
-        case dialogActions.submit: {
-          onSubmit(payload);
-          break;
-        }
-        case dialogActions.verify: {
-          setStatus(verificationStatuses.success);
-          break;
-        }
-        default:
-          break;
+
+      if (res === dialogActions.submit) {
+        onSubmit(payload);
+      }
+      if (res === dialogActions.verify) {
+        onVerify(serializeVerificationPayload(formValues));
       }
     } else {
-      dispatch(onSubmit(payload));
+      onSubmit(payload);
     }
   };
 
-  const handleSettingsVerification = () => {
-    setStatus(verificationStatuses.success);
+  const handleSettingsVerification = (values) => {
+    onVerify(serializeVerificationPayload(values));
   };
 
   if (!settings) return null;
