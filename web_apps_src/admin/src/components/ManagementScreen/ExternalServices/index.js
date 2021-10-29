@@ -1,15 +1,28 @@
-import React, { useState, useEffect } from 'react';
 import update from '@madappgang/update-by-path';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { Tabs, Tab } from '~/components/shared/Tabs';
-import MailServiceSettings from './MailServiceSettings';
-import SmsServiceSettings from './SmsServiceSettings';
+import { Tab, Tabs } from '~/components/shared/Tabs';
 import useProgressBar from '~/hooks/useProgressBar';
 import { getExternalServicesSettings } from '~/modules/settings/selectors';
+import { tabGroups } from '../../../enums';
+import { useQuery } from '../../../hooks/useQuery';
 import { updateServerSettings } from '../../../modules/settings/actions';
+import MailServiceSettings from './MailServiceSettings';
+import SmsServiceSettings from './SmsServiceSettings';
+
+const tabsTitles = {
+  email_service: 'Email Service',
+  sms_service: 'SMS Service',
+};
+
+const tabsMatcher = Object.values(tabsTitles).reduce((p, n) => {
+  // eslint-disable-next-line no-param-reassign
+  p[n] = n.toLowerCase().replaceAll(' ', '_');
+  return p;
+}, {});
 
 const ExternalServicesSection = () => {
-  const [tabIndex, setTabIndex] = useState(0);
+  const activeTab = useQuery().get(tabGroups.external_services_group);
   const dispatch = useDispatch();
   const settings = useSelector(getExternalServicesSettings);
   const { progress, setProgress } = useProgressBar();
@@ -42,12 +55,11 @@ const ExternalServicesSection = () => {
 
       <main className="iap-settings-section">
         <div className="iap-management-section__tabs">
-          <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
-            <Tab title="Email Service" />
-            <Tab title="SMS Service" />
-
+          <Tabs group={tabGroups.external_services_group}>
+            <Tab title={tabsTitles.email_service} />
+            <Tab title={tabsTitles.sms_service} />
             <>
-              {tabIndex === 0 && (
+              {activeTab === tabsMatcher[tabsTitles.email_service] && (
                 <MailServiceSettings
                   loading={!!progress}
                   settings={settings ? settings.emailService : null}
@@ -55,7 +67,7 @@ const ExternalServicesSection = () => {
                 />
               )}
 
-              {tabIndex === 1 && (
+              {activeTab === tabsMatcher[tabsTitles.sms_service] && (
                 <SmsServiceSettings
                   loading={!!progress}
                   settings={settings ? settings.smsService : null}

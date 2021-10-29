@@ -1,17 +1,16 @@
+import update from '@madappgang/update-by-path';
 import React, { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { AlgorithmDialog } from '~/components/ManagementScreen/Server/JWTSettings/AlgorithmDialog';
 import useProgressBar from '~/hooks/useProgressBar';
 import { handleSettingsDialog, hideSettingsDialog } from '~/modules/applications/actions';
 import {
-  dialogActions, showPrivateKeyConfig, privateKeyChangedConfig,
+  dialogActions, privateKeyChangedConfig, showPrivateKeyConfig,
 } from '~/modules/applications/dialogsConfigs';
-import { generateKeys, getJWTKeys, uploadJWTKeys, setJWTKeys } from '~/modules/settings/actions';
+import { generateKeys, getJWTKeys, setJWTKeys, uploadJWTKeys } from '~/modules/settings/actions';
 import { selectJWTKeys } from '~/modules/settings/selectors';
-
-
-import update from '@madappgang/update-by-path';
 import { JWTSettingsForm } from './Form';
-import { AlgorithmDialog } from '~/components/ManagementScreen/Server/JWTSettings/AlgorithmDialog';
+
 
 export const JWTSettingsSection = () => {
   const dispatch = useDispatch();

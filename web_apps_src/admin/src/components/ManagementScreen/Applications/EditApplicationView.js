@@ -1,36 +1,49 @@
 import React from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, Redirect } from 'react-router-dom';
+import ActionsButton from '~/components/shared/ActionsButton';
+import { Tab, Tabs } from '~/components/shared/Tabs';
+import useProgressBar from '~/hooks/useProgressBar';
 import {
   alterApplication,
   deleteApplicationById,
-  fetchApplicationById,
-  resetApplicationError,
-  fetchFederatedProviders,
+  fetchApplicationById, fetchFederatedProviders, resetApplicationError,
 } from '~/modules/applications/actions';
-import ActionsButton from '~/components/shared/ActionsButton';
-import { Tabs, Tab } from '~/components/shared/Tabs';
-import ApplicationGeneralSettings from './GeneralSettingsForm';
-import ApplicationAuthSettings from './AuthSettingsForm';
-import ApplicationTokenSettings from './TokenSettingsForm';
-import ApplicationFederatedLoginSettings from './FederatedLoginSettingsForm';
-import useProgressBar from '~/hooks/useProgressBar';
-import { RegistrationSettingsForm } from './RegistrationSettingsForm';
-import { showErrorNotificationSnack } from '~/modules/applications/notification-actions';
 import { errorSnackMessages } from '~/modules/applications/constants';
+import { showErrorNotificationSnack } from '~/modules/applications/notification-actions';
+import { tabGroups } from '../../../enums';
+import { useQuery } from '../../../hooks/useQuery';
+import ApplicationAuthSettings from './AuthSettingsForm';
+import ApplicationFederatedLoginSettings from './FederatedLoginSettingsForm';
+import ApplicationGeneralSettings from './GeneralSettingsForm';
+import { RegistrationSettingsForm } from './RegistrationSettingsForm';
+import ApplicationTokenSettings from './TokenSettingsForm';
 
 const goBackPath = '/management/applications';
 
+const tabsTitles = {
+  general: 'General',
+  registration: 'Registration',
+  authorization: 'Authorization',
+  tokens: 'Tokens',
+  federated_login: 'Federated Login',
+};
+
+const tabsMatcher = Object.values(tabsTitles).reduce((p, n) => {
+  // eslint-disable-next-line no-param-reassign
+  p[n] = n.toLowerCase().replaceAll(' ', '_');
+  return p;
+}, {});
+
 const EditApplicationView = ({ match, history }) => {
+  const activeTab = useQuery().get(tabGroups.edit_app_group);
   const dispatch = useDispatch();
   const { progress, setProgress } = useProgressBar();
-
   const id = match.params.appid;
 
   const application = useSelector(s => s.selectedApplication.application);
   const federatedProviders = useSelector(s => s.applications.federatedProviders);
   const error = useSelector(s => s.selectedApplication.error);
-  const [tabIndex, setTabIndex] = React.useState(0);
 
   const fetchData = async () => {
     setProgress(70);
@@ -101,15 +114,15 @@ const EditApplicationView = ({ match, history }) => {
       </header>
       <main>
         <div className="iap-management-section__tabs">
-          <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
-            <Tab title="General" />
-            <Tab title="Registration" />
-            <Tab title="Authorization" />
-            <Tab title="Tokens" />
-            <Tab title="Federated Login" />
+          <Tabs group={tabGroups.edit_app_group}>
+            <Tab title={tabsTitles.general} />
+            <Tab title={tabsTitles.registration} />
+            <Tab title={tabsTitles.authorization} />
+            <Tab title={tabsTitles.tokens} />
+            <Tab title={tabsTitles.federated_login} />
 
             <>
-              {tabIndex === 0 && (
+              {activeTab === tabsMatcher[tabsTitles.general] && (
                 <ApplicationGeneralSettings
                   error={error}
                   loading={!!progress}
@@ -119,7 +132,7 @@ const EditApplicationView = ({ match, history }) => {
                   excludeFields={['newUserDefaultRole', 'newUserDefaultScopes', 'allowRegistration', 'allowAnonymousRegistration']}
                 />
               )}
-              {tabIndex === 1 && (
+              {activeTab === tabsMatcher[tabsTitles.registration] && (
               <RegistrationSettingsForm
                 error={error}
                 loading={!!progress}
@@ -128,7 +141,7 @@ const EditApplicationView = ({ match, history }) => {
                 onSubmit={handleSubmit}
               />
               )}
-              {tabIndex === 2 && (
+              {activeTab === tabsMatcher[tabsTitles.authorization] && (
                 <ApplicationAuthSettings
                   loading={!!progress}
                   application={application}
@@ -137,7 +150,7 @@ const EditApplicationView = ({ match, history }) => {
                 />
               )}
 
-              {tabIndex === 3 && (
+              {activeTab === tabsMatcher[tabsTitles.tokens] && (
                 <ApplicationTokenSettings
                   loading={!!progress}
                   application={application}
@@ -146,7 +159,7 @@ const EditApplicationView = ({ match, history }) => {
                 />
               )}
 
-              {tabIndex === 4 && (
+              {activeTab === tabsMatcher[tabsTitles.federated_login] && (
                 <ApplicationFederatedLoginSettings
                   federatedProviders={federatedProviders}
                   loading={!!progress}

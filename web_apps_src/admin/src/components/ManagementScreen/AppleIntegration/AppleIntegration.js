@@ -1,11 +1,21 @@
-import React, { useState } from 'react';
-import { Tabs, Tab } from '~/components/shared/Tabs';
+import React from 'react';
+import { Tab, Tabs } from '~/components/shared/Tabs';
+import { tabGroups } from '../../../enums';
+import { useQuery } from '../../../hooks/useQuery';
 import AppSiteAssociationForm from './AppSiteAssociationForm';
 import DomainAssociationForm from './DomainAssociationForm';
 
-const AppleIntegration = () => {
-  const [tabIndex, setTabIndex] = useState(0);
+const renderComponent = (tab) => {
+  const components = {
+    app_site_association: <AppSiteAssociationForm />,
+    developer_domain_association: <DomainAssociationForm />,
+    default: null,
+  };
+  return components[tab] || components.default;
+};
 
+const AppleIntegration = () => {
+  const activeTab = useQuery().get(tabGroups.apple_integration_group);
   return (
     <section className="iap-management-section">
       <header>
@@ -19,18 +29,11 @@ const AppleIntegration = () => {
       </header>
 
       <main className="iap-settings-section">
-        <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
+        <Tabs group={tabGroups.apple_integration_group}>
           <Tab title="App Site Association" />
           <Tab title="Developer Domain Association" />
-
           <>
-            {tabIndex === 0 && (
-              <AppSiteAssociationForm />
-            )}
-
-            {tabIndex === 1 && (
-              <DomainAssociationForm />
-            )}
+            {renderComponent(activeTab)}
           </>
         </Tabs>
       </main>
