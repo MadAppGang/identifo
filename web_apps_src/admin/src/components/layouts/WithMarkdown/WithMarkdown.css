@@ -1,0 +1,12 @@
+.iap-with-markdown {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 100%;
+}
+
+.iap-with-markdown__action {
+    flex-shrink: 0;
+    padding-left: 245px;
+}

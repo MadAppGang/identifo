@@ -1,21 +1,36 @@
 import update from '@madappgang/update-by-path';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Tab, Tabs } from '~/components/shared/Tabs';
-import { verificationStatuses } from '~/enums';
+import { tabGroups, verificationStatuses } from '~/enums';
 import useProgressBar from '~/hooks/useProgressBar';
 import { useVerification } from '~/hooks/useVerification';
 import { dialogActions, settingsConfig } from '~/modules/applications/dialogsConfigs';
 import { fetchServerSetings, updateServerSettings } from '~/modules/settings/actions';
 import { getStorageSettings } from '~/modules/settings/selectors';
+import { useQuery } from '../../../hooks/useQuery';
 import { handleSettingsDialog, hideSettingsDialog } from '../../../modules/applications/actions';
 import './index.css';
 import DatabasePlaceholder from './Placeholder';
 import StorageSettings from './StorageSettings';
 
+const tabsTitles = {
+  applications: 'Applications',
+  users: 'Users',
+  tokens: 'Tokens',
+  verifications_codes: 'Verification Codes',
+  blacklist: 'Blacklist',
+};
+
+const getTabIndex = (urlTab) => {
+  const tabsUrls = Object.keys(tabsTitles);
+  const idx = tabsUrls.indexOf(urlTab);
+  return idx === -1 ? 0 : idx;
+};
+
 const StoragesSection = () => {
   const dispatch = useDispatch();
-  const [tabIndex, setTabIndex] = useState(0);
+  const activeTab = useQuery().get(tabGroups.storages_group);
   const [verificationStatus, verify, setStatus] = useVerification();
   const { progress, setProgress } = useProgressBar();
   const settings = useSelector(getStorageSettings);
@@ -72,7 +87,7 @@ const StoragesSection = () => {
 
   useEffect(() => {
     setStatus(verificationStatuses.required);
-  }, [tabIndex]);
+  }, [getTabIndex(activeTab)]);
 
   if (error) {
     return (
@@ -125,8 +140,7 @@ const StoragesSection = () => {
     ][index];
   };
 
-  const storageSettingsProps = getStorageSettingsProps(tabIndex);
-
+  const storageSettingsProps = getStorageSettingsProps(getTabIndex(activeTab));
   return (
     <section className="iap-management-section">
       <header className="iap-management-section__header">
@@ -134,15 +148,14 @@ const StoragesSection = () => {
           Storages
         </p>
       </header>
-
-      <Tabs activeTabIndex={tabIndex} onChange={setTabIndex}>
-        <Tab title="Applications" />
-        <Tab title="Users" />
-        <Tab title="Tokens" />
-        <Tab title="Verification Codes" />
-        <Tab title="Blacklist" />
+      <Tabs group={tabGroups.storages_group}>
+        <Tab title={tabsTitles.applications} />
+        <Tab title={tabsTitles.users} />
+        <Tab title={tabsTitles.tokens} />
+        <Tab title={tabsTitles.verifications_codes} />
+        <Tab title={tabsTitles.blacklist} />
         <StorageSettings
-          activeTabIndex={tabIndex}
+          activeTabIndex={getTabIndex(activeTab)}
           connectionState={verificationStatus}
           onChange={() => setStatus(verificationStatuses.required)}
           progress={!!progress}

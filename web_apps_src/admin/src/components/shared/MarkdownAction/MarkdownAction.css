@@ -1,0 +1,35 @@
+.iap-markdown-action {
+    padding: 24px;
+    border: 1px solid #EBEBEB;
+    background: transparent;
+    border-radius: 6px;
+    max-width: 450px;
+}
+
+.iap-markdown-action__in {
+    display: flex;
+    align-items: flex-start;
+    justify-content: flex-start;
+}
+
+.iap-markdown-action__content {
+    margin-left: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+.iap-markdown-action__content span{
+    word-break: break-word;
+}
+
+.iap-markdown-action__btn {
+    margin-top: 8px;
+    color: rgba(88, 166, 239, 1);
+    transition: color .2s ease-in-out;
+    text-decoration: none;
+}
+
+.iap-markdown-action__btn:hover {
+    color: var(--main-color-hover);
+    cursor: pointer;
+}
