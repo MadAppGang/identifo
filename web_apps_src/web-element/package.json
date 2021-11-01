@@ -22,7 +22,7 @@
     "generate": "stencil generate"
   },
   "dependencies": {
-    "@identifo/identifo-auth-js": "file:../identifo.js",
+    "@identifo/identifo-auth-js": "^3.1.3",
     "@stencil/core": "^2.8.1",
     "rxjs": "^7.4.0"
   },
