@@ -1,4 +1,3 @@
-import { JWSHeaderParameters } from 'jose/webcrypto/types';
 import { BehaviorSubject } from 'rxjs';
 
 declare type TokenType = 'access' | 'refresh';
@@ -66,7 +65,6 @@ interface JWTPayload {
 declare type ClientToken = {
     token: string;
     payload: JWTPayload;
-    header?: JWSHeaderParameters;
 };
 
 declare class TokenService {

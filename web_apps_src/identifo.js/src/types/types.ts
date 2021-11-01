@@ -1,5 +1,3 @@
-import { JWSHeaderParameters } from 'jose/webcrypto/types';
-
 export type TokenType = 'access' | 'refresh';
 
 export interface TokenManager {
@@ -80,5 +78,4 @@ export interface JWTPayload {
 export type ClientToken = {
   token: string;
   payload: JWTPayload;
-  header?: JWSHeaderParameters;
 };
