@@ -1,0 +1,11 @@
+{
+  "name": "@identifo/create-web-element",
+  "version": "1.0.1",
+  "description": "Create copy of Identifo web element for future customization",
+  "author": "Stanislav Sokolov <stas.sokolov@madappgang.com>",
+  "license": "MIT",
+  "main": "index.js",
+  "bin": {
+    "create-web-element": "./scripts/run.sh"
+  }
+}

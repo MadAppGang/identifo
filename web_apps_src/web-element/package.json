@@ -2,6 +2,8 @@
   "name": "@identifo/identifo-auth-ui",
   "version": "1.0.0",
   "description": "Identifo web element",
+  "author": "Stanislav Sokolov <stas.sokolov@madappgang.com>",
+  "license": "MIT",
   "main": "dist/index.cjs.js",
   "module": "dist/custom-elements/index.js",
   "es2015": "dist/esm-es5/index.mjs",
@@ -26,7 +28,6 @@
     "@stencil/core": "^2.8.1",
     "rxjs": "^7.4.0"
   },
-  "license": "MIT",
   "devDependencies": {
     "@stencil/sass": "^1.4.1",
     "@types/jest": "^26.0.23",
