@@ -3,7 +3,7 @@
     "outDir": "dist",
     "module": "ES6",
     "target": "es6",
-    "lib": ["ESNext"],
+    "lib": ["ESNext","DOM"],
     "noImplicitAny": true,
     "moduleResolution": "node",
     "sourceMap": true,

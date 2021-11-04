@@ -6,10 +6,17 @@ import Tab from './Tab';
 
 const getElementWidth = el => el ? el.offsetWidth : 0;
 
+const getLocationPathname = () => {
+  const excludedBaseUrlPath = process.env.BASE_URL && process.env.BASE_URL !== '/'
+    ? window.location.pathname.replaceAll(process.env.BASE_URL, '')
+    : window.location.pathname;
+  return excludedBaseUrlPath[0] !== '/' ? `/${excludedBaseUrlPath}` : excludedBaseUrlPath;
+};
+
 const getUrl = (group, value) => {
   const searchParams = new URLSearchParams(window.location.search);
   searchParams.set(group, value);
-  return `${window.location.pathname}?${searchParams.toString()}`;
+  return `${getLocationPathname()}?${searchParams.toString()}`;
 };
 
 const toSnakeCase = (value) => {
