@@ -47,7 +47,6 @@
     <script>
       const params = new URLSearchParams(window.location.search);
       const appId = params.get('app-id') || params.get('appId') || params.get('app_id');
-      const redirectUri = params.get('redirect-uri') || params.get('redirectUri') || params.get('redirect_uri') || '';
       const debug = localStorage.getItem('debug');
 
       const identifoForm = document.getElementsByTagName('identifo-form')[0];
@@ -56,21 +55,7 @@
       identifoForm.url = new URLSearchParams(location.search).get('url');
 
       identifoForm.addEventListener('complete', event => {
-        if (redirectUri) {
-          const url = new URL(`${redirectUri}&callbackUrl=${callbackUrl}`);
-          window.location.href = url.toString();
-          return;
-        }
-
-        if (callbackUrl || event.detail.callback_url) {
-          const url = new URL(callbackUrl || event.detail.callback_url);
-          if (event.detail) {
-            url.searchParams.set('token', event.detail.access_token);
-            url.searchParams.set('refresh_token', event.detail.refresh_token);
-          }
-          window.location.href = url.toString();
-          return;
-        }
+        console.log(event.detail);
       });
     </script>
   </body>

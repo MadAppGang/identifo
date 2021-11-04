@@ -82,6 +82,7 @@ export class CDK {
         route: Routes.ERROR,
         error: err as ApiError,
       } as StateError);
+      return;
     }
     this.settings.tfaType = Array.isArray(this.settings.tfaType) ? this.settings.tfaType : [this.settings.tfaType];
 
@@ -210,6 +211,16 @@ export class CDK {
       callbackUrl: this.callbackUrl,
       result,
     } as StateCallback);
+    if (this.callbackUrl) {
+      const url = new URL(this.callbackUrl);
+      if (result.access_token) {
+        url.searchParams.set('token', result.access_token);
+      }
+      if (result.refresh_token) {
+        url.searchParams.set('refresh_token', result.refresh_token);
+      }
+      window.location.href = url.toString();
+    }
   }
 
   validateEmail(email: string): boolean {
