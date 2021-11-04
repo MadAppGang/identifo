@@ -770,6 +770,7 @@ class CDK {
           route: Routes.ERROR,
           error: err
         });
+        return;
       }
       this.settings.tfaType = Array.isArray(this.settings.tfaType) ? this.settings.tfaType : [this.settings.tfaType];
       const href = new URL(window.location.href);
@@ -873,6 +874,16 @@ class CDK {
       callbackUrl: this.callbackUrl,
       result
     });
+    if (this.callbackUrl) {
+      const url = new URL(this.callbackUrl);
+      if (result.access_token) {
+        url.searchParams.set("token", result.access_token);
+      }
+      if (result.refresh_token) {
+        url.searchParams.set("refresh_token", result.refresh_token);
+      }
+      window.location.href = url.toString();
+    }
   }
   validateEmail(email) {
     if (!emailRegex.test(email)) {

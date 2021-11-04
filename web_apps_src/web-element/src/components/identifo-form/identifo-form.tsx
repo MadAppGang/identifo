@@ -90,19 +90,21 @@ export class IdentifoForm {
       this.route = s.route;
       if (this.route === Routes.CALLBACK) {
         const u = new URL(window.location.href);
-        u.searchParams.set('callbackUrl', (s as StateCallback).result.callbackUrl);
+        u.searchParams.set('callbackUrl', (s as StateCallback).callbackUrl);
         window.history.replaceState({}, document.title, `${u.pathname}?${u.searchParams.toString()}`);
-        this.complete.emit((s as StateCallback).result);
+        this.complete.emit({ ...(s as StateCallback).result, callbackUrl: (s as StateCallback).callbackUrl });
       }
       if (this.route === Routes.LOGOUT) {
         this.complete.emit();
       }
     });
 
-    if (params.get('token')) {
-      CDKService.cdk.passwordReset();
-    } else {
-      CDKService.cdk.login();
+    if (CDKService.cdk.state.getValue().route !== Routes.ERROR) {
+      if (params.get('token')) {
+        CDKService.cdk.passwordReset();
+      } else {
+        CDKService.cdk.login();
+      }
     }
 
     // Auto theme select
