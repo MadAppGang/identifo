@@ -95,6 +95,7 @@ declare enum TFAStatus {
     OPTIONAL = "optional",
     MANDATORY = "mandatory"
 }
+declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 interface ApiRequestError {
     error: {
         detailed_message?: string;
@@ -147,6 +148,7 @@ interface AppSettingsResponse {
     offline: boolean;
     registrationForbidden: boolean;
     tfaType: TFAType[] | TFAType;
+    tfaResendTimeout: number;
     tfaStatus: TFAStatus;
     federatedProviders: FederatedLoginProvider[];
 }
@@ -175,7 +177,6 @@ interface SuccessResponse {
 interface TFARequiredRespopnse {
     result: 'tfa-required';
 }
-declare type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 
 declare class API {
     private config;
@@ -210,6 +211,7 @@ declare class API {
     getAppSettings(callbackUrl: string): Promise<AppSettingsResponse>;
     enableTFA(): Promise<EnableTFAResponse>;
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
+    resendTFA(): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;
     storeToken<T extends TokenResponse>(response: T): T;
 }
@@ -376,11 +378,19 @@ interface StateTFAVerifySelect extends StateTFASelect {
 interface StatePasswordForgotTFASelect extends StateTFASelect {
     route: Routes.PASSWORD_FORGOT_TFA_SELECT;
 }
-interface StateTFAVerify extends State, StateWithError {
-    route: Routes.TFA_VERIFY_APP | Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_SMS;
+interface StateTFAVerifyApp extends State, StateWithError {
+    route: Routes.TFA_VERIFY_APP;
     email?: string;
     phone?: string;
     verifyTFA: (code: string) => Promise<void>;
+}
+interface StateTFAVerifyEmailSms extends State, StateWithError {
+    route: Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_SMS;
+    email?: string;
+    phone?: string;
+    resendTimeout: number;
+    verifyTFA: (code: string) => Promise<void>;
+    resendTFA: () => Promise<void>;
 }
 interface StatePasswordForgotTFAVerify extends State, StateWithError {
     route: Routes.PASSWORD_FORGOT_TFA_APP | Routes.PASSWORD_FORGOT_TFA_EMAIL | Routes.PASSWORD_FORGOT_TFA_SMS;
@@ -434,4 +444,4 @@ declare class CDK {
     private loginCatchRedirect;
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, Routes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateOTPLogin, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerify, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, Routes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateOTPLogin, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };

@@ -141,11 +141,20 @@ export interface StatePasswordForgotTFASelect extends StateTFASelect {
   route: Routes.PASSWORD_FORGOT_TFA_SELECT;
 }
 
-export interface StateTFAVerify extends State, StateWithError {
-  route: Routes.TFA_VERIFY_APP | Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_SMS;
+export interface StateTFAVerifyApp extends State, StateWithError {
+  route: Routes.TFA_VERIFY_APP;
   email?: string;
   phone?: string;
   verifyTFA: (code: string) => Promise<void>;
+}
+
+export interface StateTFAVerifyEmailSms extends State, StateWithError {
+  route: Routes.TFA_VERIFY_EMAIL | Routes.TFA_VERIFY_SMS;
+  email?: string;
+  phone?: string;
+  resendTimeout: number;
+  verifyTFA: (code: string) => Promise<void>;
+  resendTFA: () => Promise<void>;
 }
 
 export interface StatePasswordForgotTFAVerify extends State, StateWithError {

@@ -138,6 +138,7 @@ export class API {
 
     return this.post<LoginResponse>('/auth/login', data).then((r) => this.storeToken(r));
   }
+
   // After complete login on provider browser will be redirected to redirectUrl
   // callbackUrl will be stored in sesson and returned after successfull login complete
   async federatedLogin(
@@ -146,11 +147,11 @@ export class API {
     redirectUrl: string,
     callbackUrl?: string,
     opts: { width?: number; height?: number; popUp?: boolean } = { width: 600, height: 800, popUp: false },
-  ) {
-    var dataForm = document.createElement('form');
+  ): Promise<void> {
+    const dataForm = document.createElement('form');
     dataForm.style.display = 'none';
     if (opts.popUp) {
-      dataForm.target = 'TargetWindow'; //Make sure the window name is same as this value
+      dataForm.target = 'TargetWindow'; // Make sure the window name is same as this value
     }
     dataForm.method = 'POST';
     const params = new URLSearchParams();
@@ -168,7 +169,7 @@ export class API {
     if (opts.popUp) {
       const left = window.screenX + window.outerWidth / 2 - (opts.width || 600) / 2;
       const top = window.screenY + window.outerHeight / 2 - (opts.height || 800) / 2;
-      var postWindow = window.open(
+      const postWindow = window.open(
         '',
         'TargetWindow',
         `status=0,title=0,height=${opts.height},width=${opts.width},top=${top},left=${left},scrollbars=1`,
@@ -246,6 +247,15 @@ export class API {
       { tfa_code: code, scopes },
       { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` } },
     ).then((r) => this.storeToken(r));
+  }
+
+  async resendTFA(): Promise<LoginResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
+    return this.post<LoginResponse>('/auth/tfa/resend', null, {
+      headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` },
+    }).then((r) => this.storeToken(r));
   }
 
   async logout(): Promise<SuccessResponse> {

@@ -168,7 +168,7 @@ class API {
   }
   federatedLogin(_0, _1, _2, _3) {
     return __async$3(this, arguments, function* (provider, scopes, redirectUrl, callbackUrl, opts = { width: 600, height: 800, popUp: false }) {
-      var dataForm = document.createElement("form");
+      const dataForm = document.createElement("form");
       dataForm.style.display = "none";
       if (opts.popUp) {
         dataForm.target = "TargetWindow";
@@ -187,7 +187,7 @@ class API {
       if (opts.popUp) {
         const left = window.screenX + window.outerWidth / 2 - (opts.width || 600) / 2;
         const top = window.screenY + window.outerHeight / 2 - (opts.height || 800) / 2;
-        var postWindow = window.open("", "TargetWindow", `status=0,title=0,height=${opts.height},width=${opts.width},top=${top},left=${left},scrollbars=1`);
+        const postWindow = window.open("", "TargetWindow", `status=0,title=0,height=${opts.height},width=${opts.width},top=${top},left=${left},scrollbars=1`);
         if (postWindow) {
           dataForm.submit();
         }
@@ -259,6 +259,17 @@ class API {
         throw new Error("No token in token service.");
       }
       return this.post("/auth/tfa/login", { tfa_code: code, scopes }, { headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` } }).then((r) => this.storeToken(r));
+    });
+  }
+  resendTFA() {
+    return __async$3(this, null, function* () {
+      var _a, _b;
+      if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
+        throw new Error("No token in token service.");
+      }
+      return this.post("/auth/tfa/resend", null, {
+        headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` }
+      }).then((r) => this.storeToken(r));
     });
   }
   logout() {
@@ -953,14 +964,30 @@ class CDK {
   }
   tfaVerify(loginResponse, type) {
     return __async(this, null, function* () {
-      this.state.next({
+      const state = {
         route: typeToTFAVerifyRoute[type],
         email: loginResponse.user.email,
         phone: loginResponse.user.phone,
         verifyTFA: (code) => __async(this, null, function* () {
-          this.auth.api.verifyTFA(code, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+          yield this.auth.api.verifyTFA(code, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
         })
-      });
+      };
+      switch (type) {
+        case exports.TFAType.TFATypeApp: {
+          this.state.next(__spreadValues({}, state));
+          break;
+        }
+        case exports.TFAType.TFATypeEmail:
+        case exports.TFAType.TFATypeSMS: {
+          this.state.next(__spreadProps(__spreadValues({}, state), {
+            resendTimeout: this.settings.tfaResendTimeout * 1e3,
+            resendTFA: () => __async(this, null, function* () {
+              yield this.auth.api.resendTFA();
+            })
+          }));
+          break;
+        }
+      }
     });
   }
   passwordForgotTFAVerify(email, type) {

@@ -1,11 +1,11 @@
-import { pause } from '~/utils';
-import { toDeepCase } from '~/utils/apiMapper';
+import { pause } from "~/utils";
+import { toDeepCase } from "~/utils/apiMapper";
 
 const data = {
   general: {
-    host: 'http://localhost:8081',
-    issuer: 'http://localhost:8081',
-    algorithm: 'auto',
+    host: "http://localhost:8081",
+    issuer: "http://localhost:8081",
+    algorithm: "auto",
   },
   login: {
     loginWith: {
@@ -13,53 +13,54 @@ const data = {
       phone: false,
       federated: false,
     },
-    tfaType: 'app',
+    tfaType: "app",
+    tfaLoginSettings: 30,
   },
   externalServices: {
     emailService: {
-      type: 'mailgun',
-      domain: 'example.com',
-      privateKey: 'PRIVATE',
-      publicKey: 'PUBLIC',
-      sender: '',
-      region: '',
+      type: "mailgun",
+      domain: "example.com",
+      privateKey: "PRIVATE",
+      publicKey: "PUBLIC",
+      sender: "",
+      region: "",
     },
     smsService: {
-      type: 'twilio',
-      accountSid: 'asid',
-      authToken: 'token',
-      serviceSid: 'ssid',
+      type: "twilio",
+      accountSid: "asid",
+      authToken: "token",
+      serviceSid: "ssid",
     },
   },
   sessionStorage: {
-    type: 'memory',
+    type: "memory",
     sessionDuration: 300,
-    address: '',
-    password: '',
-    db: '',
-    region: '',
-    endpoint: '',
+    address: "",
+    password: "",
+    db: "",
+    region: "",
+    endpoint: "",
   },
   staticFilesStorage: {
-    type: 'local',
-    serverConfigPath: 'server-config.yaml',
-    region: '',
-    bucket: '',
-    endpoint: '',
-    folder: '',
+    type: "local",
+    serverConfigPath: "server-config.yaml",
+    region: "",
+    bucket: "",
+    endpoint: "",
+    folder: "",
   },
   configurationStorage: {
-    type: 'file',
-    settingsKey: 'server-config.yaml',
+    type: "file",
+    settingsKey: "server-config.yaml",
     endpoints: [],
-    region: '',
-    bucket: 'bucket',
+    region: "",
+    bucket: "bucket",
     keyStorage: {
-      type: 'file',
-      privateKey: 'jwt/private.pem',
-      publicKey: 'jwt/public.pem',
-      region: '',
-      bucket: 'jwt bucket',
+      type: "file",
+      privateKey: "jwt/private.pem",
+      publicKey: "jwt/public.pem",
+      region: "",
+      bucket: "jwt bucket",
     },
   },
 };
@@ -121,7 +122,7 @@ const createSettingsServiceMock = () => {
   };
 
   const updateConfigurationStorageSettings = async (settings) => {
-    console.log(toDeepCase(settings, 'snake'));
+    console.log(toDeepCase(settings, "snake"));
     await pause(400);
     data.configurationStorage = settings;
   };

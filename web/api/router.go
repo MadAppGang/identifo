@@ -22,6 +22,7 @@ type Router struct {
 	logger               *log.Logger
 	router               *mux.Router
 	tfaType              model.TFAType
+	tfaResendTimeout     int
 	oidcConfiguration    *OIDCConfiguration
 	jwk                  *jwk
 	Authorizer           *authorization.Authorizer
@@ -33,15 +34,16 @@ type Router struct {
 }
 
 type RouterSettings struct {
-	Server         model.Server
-	Logger         *log.Logger
-	LoggerSettings model.LoggerSettings
-	Authorizer     *authorization.Authorizer
-	Host           string
-	LoginAppPath   string
-	TFAType        model.TFAType
-	LoginWith      model.LoginWith
-	Cors           *cors.Cors
+	Server           model.Server
+	Logger           *log.Logger
+	LoggerSettings   model.LoggerSettings
+	Authorizer       *authorization.Authorizer
+	Host             string
+	LoginAppPath     string
+	TFAType          model.TFAType
+	TFAResendTimeout int
+	LoginWith        model.LoginWith
+	Cors             *cors.Cors
 }
 
 // NewRouter creates and inits new router.
@@ -55,6 +57,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 		Host:               settings.Host,
 		LoginAppPath:       settings.LoginAppPath,
 		tfaType:            settings.TFAType,
+		tfaResendTimeout:   settings.TFAResendTimeout,
 		SupportedLoginWays: settings.LoginWith,
 		cors:               settings.Cors,
 	}

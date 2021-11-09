@@ -3,9 +3,9 @@ import {
   UPDATE_SERVER_SETTINGS,
   FETCH_JWT_KEYS,
   SET_VERIFICATION_STATUS,
-} from './types';
-import authTypes from '../auth/types';
-import { verificationStatuses } from '~/enums';
+} from "./types";
+import authTypes from "../auth/types";
+import { verificationStatuses } from "~/enums";
 
 const initialSettings = {
   login: {
@@ -14,7 +14,8 @@ const initialSettings = {
       federated: false,
       phone: false,
     },
-    tfaType: 'app',
+    tfaType: "app",
+    tfaLoginSettings: 30,
   },
   configurationStorage: null,
   sessionStorage: null,

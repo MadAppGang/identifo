@@ -48,15 +48,16 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	apiCors := cors.New(apiCorsSettings)
 
 	apiSettings := api.RouterSettings{
-		Server:         settings.Server,
-		Logger:         settings.Logger,
-		LoggerSettings: settings.LoggerSettings,
-		Authorizer:     authorizer,
-		Host:           settings.HostName,
-		LoginAppPath:   loginAppPath,
-		LoginWith:      settings.Server.Settings().Login.LoginWith,
-		TFAType:        settings.Server.Settings().Login.TFAType,
-		Cors:           apiCors,
+		Server:           settings.Server,
+		Logger:           settings.Logger,
+		LoggerSettings:   settings.LoggerSettings,
+		Authorizer:       authorizer,
+		Host:             settings.HostName,
+		LoginAppPath:     loginAppPath,
+		LoginWith:        settings.Server.Settings().Login.LoginWith,
+		TFAType:          settings.Server.Settings().Login.TFAType,
+		TFAResendTimeout: settings.Server.Settings().Login.TFAResendTimeout,
+		Cors:             apiCors,
 	}
 
 	apiRouter, err := api.NewRouter(apiSettings)
@@ -66,7 +67,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	r.APIRouter = apiRouter
 
 	if settings.Server.Settings().LoginWebApp.Type == model.FileStorageTypeNone {
-		r.LoginAppRouter = nil 
+		r.LoginAppRouter = nil
 	} else {
 		// Web login app setup
 		loginAppSettings := spa.SPASettings{
@@ -142,7 +143,7 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	if ar.LoginAppRouter != nil {
-		ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter)) 
+		ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter))
 	}
 	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
 		ar.RootRouter.Handle(adminpanelAPIPath+"/", http.StripPrefix(adminpanelAPIPath, ar.AdminRouter))

@@ -264,8 +264,9 @@ type RouteMobileServiceSettings struct {
 
 // LoginSettings are settings of login.
 type LoginSettings struct {
-	LoginWith LoginWith `yaml:"loginWith" json:"login_with"`
-	TFAType   TFAType   `yaml:"tfaType" json:"tfa_type"`
+	LoginWith        LoginWith `yaml:"loginWith" json:"login_with"`
+	TFAType          TFAType   `yaml:"tfaType" json:"tfa_type"`
+	TFAResendTimeout int       `yaml:"tfaResendTimeout" json:"tfa_resend_timeout"`
 }
 
 // LoginWith is a type for configuring supported login ways.
