@@ -1,4 +1,4 @@
-import { notEmpty, urlFormat } from '@dprovodnikov/validation';
+import { notEmpty, urlFormat, applyRules, hasError } from '@dprovodnikov/validation';
 
 const redirectUrlRule = message => (value) => {
   if (!value) {
@@ -39,6 +39,18 @@ const rules = {
   tokenLifespan: [
     onlyDigits('Token lifespan can only contain digits'),
   ],
+};
+
+const tokenSectionValidationScheme = {
+  tokenLifespan: [onlyDigits('Token lifespan can only contain digits')],
+  refreshTokenLifespan: [onlyDigits('Token lifespan can only contain digits')],
+  inviteTokenLifespan: [onlyDigits('Token lifespan can only contain digits')],
+};
+
+export const validateTokens = (values) => {
+  const validate = applyRules(tokenSectionValidationScheme);
+  const errors = validate('all', values);
+  return hasError(errors) ? errors : {};
 };
 
 export default rules;

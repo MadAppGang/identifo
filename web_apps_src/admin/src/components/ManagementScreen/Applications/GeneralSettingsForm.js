@@ -93,7 +93,7 @@ const ApplicationGeneralSettingsForm = (props) => {
       return;
     }
 
-    onSubmit({
+    const payload = {
       offline,
       type,
       name,
@@ -109,7 +109,9 @@ const ApplicationGeneralSettingsForm = (props) => {
       federated_login_settings: federatedLoginSettings,
       new_user_default_scopes: userDefaultScopes,
       new_user_default_role: userDefaultRole,
-    });
+    };
+
+    onSubmit(props.application ? { ...props.application, ...payload } : payload);
   };
 
   return (

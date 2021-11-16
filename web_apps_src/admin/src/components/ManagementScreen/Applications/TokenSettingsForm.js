@@ -8,7 +8,7 @@ import SaveIcon from '~/components/icons/SaveIcon';
 import useForm from '~/hooks/useForm';
 import SecretField from './SecretField';
 import { Select, Option } from '~/components/shared/Select';
-
+import { validateTokens } from './validationRules';
 
 const isValidUrl = (string) => {
   try {
@@ -41,16 +41,16 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
 
     onSubmit({
       ...application,
-      token_lifespan: Number(values.tokenLifespan) || undefined,
-      refresh_token_lifespan: Number(values.refreshTokenLifespan) || undefined,
-      invite_token_lifespan: Number(values.inviteTokenLifespan) || undefined,
+      token_lifespan: Number(values.tokenLifespan) || 0,
+      refresh_token_lifespan: Number(values.refreshTokenLifespan) || 0,
+      invite_token_lifespan: Number(values.inviteTokenLifespan) || 0,
       token_payload: values.tokenPayload,
       token_payload_service: values.tokenPayloadService || 'none',
       token_payload_service_http_settings: values.tokenPayloadServiceHttpSetting || {},
     });
   };
 
-  const form = useForm(initialValues, null, handleSubmit);
+  const form = useForm(initialValues, validateTokens, handleSubmit);
 
   React.useEffect(() => {
     if (!application) return;
@@ -65,13 +65,13 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
     });
   }, [application]);
 
-
   return (
     <form className="iap-apps-form" onSubmit={form.handleSubmit}>
       <Field label="Access Token Lifespan">
         <Input
           name="tokenLifespan"
           value={form.values.tokenLifespan}
+          errorMessage={form.errors.tokenLifespan}
           autoComplete="off"
           placeholder="Lifespan in seconds"
           onChange={form.handleChange}
@@ -83,6 +83,7 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
         <Input
           name="refreshTokenLifespan"
           value={form.values.refreshTokenLifespan}
+          errorMessage={form.errors.refreshTokenLifespan}
           autoComplete="off"
           placeholder="Lifespan in seconds"
           onChange={form.handleChange}
@@ -94,6 +95,7 @@ const TokenSettingsForm = ({ application, loading, onCancel, onSubmit }) => {
         <Input
           name="inviteTokenLifespan"
           value={form.values.inviteTokenLifespan}
+          errorMessage={form.errors.inviteTokenLifespan}
           autoComplete="off"
           placeholder="Lifespan in seconds"
           onChange={form.handleChange}
