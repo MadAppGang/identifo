@@ -45,6 +45,7 @@ login: # Supported login ways.
   # Type of two-factor authentication, if application enables it.
   # Supported values are: "app" (like Google Authenticator), "sms", "email".
   tfaType: app
+  tfaResendTimeout: 30
 
 services:
   email:

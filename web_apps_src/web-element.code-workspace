@@ -1,11 +1,11 @@
 {
   "folders": [
-	{
-		"path": "identifo.js"
-	},
-	{
-		"path": "web-element"
-	}
-],
+    {
+      "path": "identifo.js"
+    },
+    {
+      "path": "web-element"
+    }
+  ],
   "settings": {}
 }

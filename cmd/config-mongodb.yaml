@@ -42,6 +42,7 @@ login: # Supported login ways.
     username: true
     federated: true
   tfaType: app
+  tfaResendTimeout: 30
 
 services:
   email:

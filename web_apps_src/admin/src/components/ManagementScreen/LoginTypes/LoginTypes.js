@@ -1,12 +1,13 @@
-import update from '@madappgang/update-by-path';
-import React, { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import Field from '~/components/shared/Field';
-import { Option, Select } from '~/components/shared/Select';
-import useProgressBar from '~/hooks/useProgressBar';
-import { updateServerSettings } from '~/modules/settings/actions';
-import { getLoginSettings } from '~/modules/settings/selectors';
-import LoginTypesTable from './LoginTypesTable';
+import update from "@madappgang/update-by-path";
+import React, { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Field from "~/components/shared/Field";
+import Input from "~/components/shared/Input";
+import { Option, Select } from "~/components/shared/Select";
+import useProgressBar from "~/hooks/useProgressBar";
+import { updateServerSettings } from "~/modules/settings/actions";
+import { getLoginSettings } from "~/modules/settings/selectors";
+import LoginTypesTable from "./LoginTypesTable";
 
 const LoginTypesSection = () => {
   const dispatch = useDispatch();
@@ -28,11 +29,16 @@ const LoginTypesSection = () => {
     dispatch(updateServerSettings({ login: nextSettings }));
   };
 
+  const handleInput = ({ target }) => {
+    const nextSettings = update(settings, {
+      [target.name]: Number(target.value),
+    });
+    dispatch(updateServerSettings({ login: nextSettings }));
+  };
+
   return (
     <section className="iap-management-section">
-      <p className="iap-management-section__title">
-        Login Types
-      </p>
+      <p className="iap-management-section__title">Login Types</p>
 
       <p className="iap-management-section__description">
         These settings allow to turn off undesirable login endpoints.
@@ -51,10 +57,18 @@ const LoginTypesSection = () => {
               <Option value="email" title="Email" />
             </Select>
           </Field>
+          <Field label="2FA Resend timeout (seconds)">
+            <Input
+              name="tfaResendTimeout"
+              value={settings.tfaResendTimeout}
+              autoComplete="off"
+              placeholder="Timeout to show send again"
+              onChange={handleInput}
+            />
+          </Field>
         </div>
         <LoginTypesTable types={settings.loginWith} onChange={handleChange} />
       </div>
-
     </section>
   );
 };

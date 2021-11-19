@@ -1,4 +1,4 @@
-import { StateTFAVerify, StatePasswordForgotTFAVerify } from '@identifo/identifo-auth-js';
+import { StateTFAVerifyApp, StatePasswordForgotTFAVerify, StateTFAVerifyEmailSms } from '@identifo/identifo-auth-js';
 import { Component, h, State } from '@stencil/core';
 import { Subscription } from 'rxjs';
 import { CDKService } from '../../services/cdk.service';
@@ -10,12 +10,18 @@ import { CDKService } from '../../services/cdk.service';
   shadow: false,
 })
 export class IdentifoFormTFASetup {
-  @State() state: StateTFAVerify | StatePasswordForgotTFAVerify;
+  @State() state: StateTFAVerifyApp | StateTFAVerifyEmailSms | StatePasswordForgotTFAVerify;
   @State() tfaCode: string;
+  @State() resendLink: boolean;
 
   subscription: Subscription;
   connectedCallback() {
-    this.subscription = CDKService.cdk.state.subscribe(state => (this.state = state as StateTFAVerify | StatePasswordForgotTFAVerify));
+    this.subscription = CDKService.cdk.state.subscribe(state => {
+      this.state = state as StateTFAVerifyApp | StateTFAVerifyEmailSms | StatePasswordForgotTFAVerify;
+      if ((this.state as StateTFAVerifyEmailSms).resendTimeout > 0) {
+        window.setTimeout(() => (this.resendLink = true), (this.state as StateTFAVerifyEmailSms).resendTimeout);
+      }
+    });
   }
   disconnectedCallback() {
     this.subscription.unsubscribe();
@@ -27,6 +33,11 @@ export class IdentifoFormTFASetup {
 
   verify() {
     this.state.verifyTFA(this.tfaCode);
+  }
+
+  resend() {
+    this.resendLink = false;
+    (this.state as StateTFAVerifyEmailSms).resendTFA();
   }
 
   render() {
@@ -63,6 +74,12 @@ export class IdentifoFormTFASetup {
         <button type="button" class={`primary-button ${this.state.error && 'primary-button-mt-32'}`} disabled={!this.tfaCode} onClick={() => this.verify()}>
           Confirm
         </button>
+
+        {this.resendLink && (
+          <a onClick={() => this.resend()} class="forgot-password__login">
+            Resend code
+          </a>
+        )}
         <identifo-form-goback></identifo-form-goback>
       </div>
     );

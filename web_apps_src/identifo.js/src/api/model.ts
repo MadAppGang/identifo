@@ -16,6 +16,8 @@ export enum TFAStatus {
   OPTIONAL = 'optional',
   MANDATORY = 'mandatory',
 }
+
+export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 export interface ApiRequestError {
   error: {
     detailed_message?: string;
@@ -74,6 +76,7 @@ export interface AppSettingsResponse {
   offline: boolean;
   registrationForbidden: boolean;
   tfaType: TFAType[] | TFAType;
+  tfaResendTimeout: number;
   tfaStatus: TFAStatus;
   federatedProviders: FederatedLoginProvider[];
 }
@@ -104,5 +107,3 @@ export interface SuccessResponse {
 export interface TFARequiredRespopnse {
   result: 'tfa-required';
 }
-
-export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';

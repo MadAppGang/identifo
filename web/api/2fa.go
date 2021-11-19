@@ -7,8 +7,10 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strings"
 	"time"
 
+	ijwt "github.com/madappgang/identifo/jwt"
 	"github.com/madappgang/identifo/model"
 	"github.com/madappgang/identifo/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
@@ -122,6 +124,58 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
+	}
+}
+func (ar *Router) ResendTFA() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		tfaToken, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
+		if !ok {
+			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token bytes are not in context.", "ResendTFA.TokenBytesFromContext")
+			return
+		}
+
+		token, err := ar.server.Services().Token.Parse(string(tfaToken))
+		if err != nil {
+			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Can't parse token.", "ResendTFA.Parse")
+			return
+		}
+
+		now := ijwt.TimeFunc().Unix()
+
+		fromIssued := now - token.IssuedAt().Unix()
+
+		if fromIssued < int64(ar.tfaResendTimeout) {
+			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Please wait before new code resend.", "ResendTFA.timeout")
+			return
+		}
+
+		userID := token.Subject()
+		if err != nil {
+			ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusInternalServerError, err.Error(), "ResendTFA.getTokenSubject")
+			return
+		}
+
+		user, err := ar.server.Storages().User.UserByID(userID)
+		if err != nil {
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "ResendTFA.UserByID")
+			return
+		}
+
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "ResendTFA.AppFromContext")
+			return
+		}
+
+		authResult, err := ar.loginFlow(app, user, strings.Split(token.Scopes(), " "))
+		if err != nil {
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "LoginWithPassword.LoginFlowError")
+			return
+		}
+
+		ar.server.Storages().Blocklist.Add(string(tfaToken))
+
+		ar.ServeJSON(w, http.StatusOK, authResult)
 	}
 }
 

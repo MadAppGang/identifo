@@ -17,6 +17,7 @@ type appSettings struct {
 	RegistrationForbidden       bool     `json:"registrationForbidden"`
 	TfaType                     string   `json:"tfaType"`
 	TfaStatus                   string   `json:"tfaStatus"`
+	TfaResendTimeout            int      `json:"tfaResendTimeout"`
 	FederatedProviders          []string `json:"federatedProviders"`
 }
 
@@ -47,6 +48,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 			RegistrationForbidden:       app.RegistrationForbidden,
 			TfaType:                     string(ar.tfaType),
 			TfaStatus:                   string(app.TFAStatus),
+			TfaResendTimeout:            ar.tfaResendTimeout,
 			FederatedProviders:          make([]string, 0, len(app.FederatedProviders)),
 		}
 

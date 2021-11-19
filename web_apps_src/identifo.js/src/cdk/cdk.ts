@@ -19,7 +19,8 @@ import {
   StatePasswordForgotTFAVerify,
   States,
   StateTFASetupSelect,
-  StateTFAVerify,
+  StateTFAVerifyApp,
+  StateTFAVerifyEmailSms,
   StateTFAVerifySelect,
   StateWithError,
   typeToPasswordForgotTFAVerifyRoute,
@@ -284,18 +285,36 @@ export class CDK {
   }
 
   async tfaVerify(loginResponse: LoginResponse, type: TFAType): Promise<void> {
-    this.state.next({
+    const state = {
       route: typeToTFAVerifyRoute[type],
       email: loginResponse.user.email,
       phone: loginResponse.user.phone,
       verifyTFA: async (code: string) => {
-        this.auth.api
+        await this.auth.api
           .verifyTFA(code, this.scopes)
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
       },
-    } as StateTFAVerify);
+    };
+    switch (type) {
+      case TFAType.TFATypeApp: {
+        this.state.next({ ...state } as StateTFAVerifyApp);
+        break;
+      }
+      case TFAType.TFATypeEmail:
+      case TFAType.TFATypeSMS: {
+        this.state.next({
+          ...state,
+          resendTimeout: this.settings.tfaResendTimeout * 1000, // in ms
+          resendTFA: async () => {
+            await this.auth.api.resendTFA();
+          },
+        } as StateTFAVerifyEmailSms);
+        break;
+      }
+      default:
+    }
   }
 
   async passwordForgotTFAVerify(email: string, type: TFAType): Promise<void> {
