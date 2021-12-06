@@ -206,7 +206,7 @@ const ApplicationGeneralSettingsForm = (props) => {
             placeholder="Select TFA Status"
           >
             <Option value="disabled" title="Disabled" />
-            <Option value="mandaroty" title="Mandatory" />
+            <Option value="mandatory" title="Mandatory" />
             <Option value="optional" title="Optional" />
           </Select>
         </Field>
