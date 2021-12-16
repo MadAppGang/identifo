@@ -204,14 +204,13 @@ func (sfs *FileStorageSettings) Validate() error {
 		return fmt.Errorf("Nil %s", subject)
 	}
 
-
 	switch sfs.Type {
 	case FileStorageTypeDefault:
 		return nil
 	case FileStorageTypeNone:
 		return nil
 	case FileStorageTypeLocal:
-		if len(sfs.Local.FolderPath) > 0 {
+		if len(sfs.Local.FolderPath) == 0 {
 			return fmt.Errorf("%s. empty folder", subject)
 		}
 		return nil

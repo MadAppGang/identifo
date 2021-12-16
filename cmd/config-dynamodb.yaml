@@ -31,12 +31,6 @@ keyStorage: # Storage for keys used for signing and verifying JWTs.
   file:
     private_key_path: ./jwt/test_artifacts/private.pem
 
-static:
-  type: local
-  local:
-    folder: ./static
-  serveAdminPanel: true
-
 login: # Supported login ways.
   loginWith:
     phone: true
