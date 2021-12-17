@@ -1,15 +1,13 @@
 describe('simple registration', () => {
   before(() => {
     cy.createAppAndUser(false);
+    cy.serverSetLoginOptions({});
+    cy.appSet({ tfa_status: 'disabled' });
+    cy.deleteTestUser();
+    cy.visitLogin();
   });
   after(() => {
     cy.deleteAppAndUser();
-  });
-  beforeEach(() => {
-    cy.serverSetLoginOptions({});
-    cy.appSet({});
-    cy.deleteTestUser();
-    cy.visitLogin();
   });
   it('open signup and register test email', () => {
     cy.screenshot();

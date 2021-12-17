@@ -6,7 +6,6 @@
   "secret": "4MuVMs02HoUMZqJrg13+5A==",
   "active": true,
   "description": "",
-  "tfa_status": "mandatory",
   "debug_tfa_code": "0000",
   "redirect_urls": ["http://localhost:44000"],
   "registration_forbidden": false,
