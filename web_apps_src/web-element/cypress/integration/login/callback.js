@@ -14,7 +14,7 @@ describe('simple login by email', () => {
     cy.screenshot();
   });
   it('check callback works and have token', () => {
-    cy.appSet({ redirect_urls: ['http://localhost:44000', 'https://google.com'] });
+    cy.appSet({ redirect_urls: ['http://localhost:44000', 'https://google.com'], tfa_status: 'disabled' });
     cy.visitLogin({ callbackUrl: 'https://google.com' });
     cy.loginWithEmail();
     cy.location('host').should('eq', 'www.google.com');
@@ -23,7 +23,7 @@ describe('simple login by email', () => {
     });
   });
   it('check callback works and have token and refresh-token when scopes offline', () => {
-    cy.appSet({ redirect_urls: ['http://localhost:44000', 'https://google.com'] });
+    cy.appSet({ redirect_urls: ['http://localhost:44000', 'https://google.com'], tfa_status: 'disabled' });
     cy.visitLogin({ callbackUrl: 'https://google.com', scopes: 'offline' });
     cy.loginWithEmail();
     cy.location('host').should('eq', 'www.google.com');
