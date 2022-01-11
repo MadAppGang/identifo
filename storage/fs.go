@@ -5,9 +5,9 @@ import (
 	"io/fs"
 	"path/filepath"
 
-	"github.com/madappgang/identifo/model"
-	fss "github.com/madappgang/identifo/storage/fs"
-	"github.com/madappgang/identifo/storage/s3"
+	"github.com/madappgang/identifo/v2/model"
+	fss "github.com/madappgang/identifo/v2/storage/fs"
+	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
 func NewFS(settings model.FileStorageSettings) (fs.FS, error) {

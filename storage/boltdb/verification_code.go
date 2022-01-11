@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
 

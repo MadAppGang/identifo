@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	"github.com/pallinder/go-randomdata"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"golang.org/x/crypto/bcrypt"

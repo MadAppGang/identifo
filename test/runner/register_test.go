@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/madappgang/identifo/test/runner"
+	"github.com/madappgang/identifo/v2/test/runner"
 )
 
 // test register with email and password

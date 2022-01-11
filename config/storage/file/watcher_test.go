@@ -7,7 +7,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/madappgang/identifo/config/storage/file"
+	"github.com/madappgang/identifo/v2/config/storage/file"
 )
 
 // TestWatcher test file watcher

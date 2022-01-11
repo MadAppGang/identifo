@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func NewFileStorageConnectionTester(settings model.FileStorageS3, expectedFiles []string) model.ConnectionTester {

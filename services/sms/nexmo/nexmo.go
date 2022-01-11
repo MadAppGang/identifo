@@ -3,7 +3,7 @@ package nexmo
 import (
 	"errors"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	nexmo "github.com/njern/gonexmo"
 )
 

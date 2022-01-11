@@ -6,10 +6,10 @@ import (
 	"io/fs"
 	"text/template"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/services/mail/mailgun"
-	"github.com/madappgang/identifo/services/mail/mock"
-	"github.com/madappgang/identifo/services/mail/ses"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/services/mail/mailgun"
+	"github.com/madappgang/identifo/v2/services/mail/mock"
+	"github.com/madappgang/identifo/v2/services/mail/ses"
 )
 
 const (

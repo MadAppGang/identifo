@@ -1,7 +1,7 @@
 package mailgun
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	mailgun "github.com/mailgun/mailgun-go"
 )
 

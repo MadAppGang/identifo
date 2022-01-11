@@ -3,7 +3,7 @@ package middleware
 import (
 	"context"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // AppFromContext returns app data from request conntext.

@@ -1,7 +1,7 @@
 package generic
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // ConfigurationWatcher is a storage-agnostic config watcher.

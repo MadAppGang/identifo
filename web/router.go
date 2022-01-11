@@ -5,12 +5,12 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage/mem"
-	"github.com/madappgang/identifo/web/admin"
-	"github.com/madappgang/identifo/web/api"
-	"github.com/madappgang/identifo/web/authorization"
-	"github.com/madappgang/identifo/web/spa"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/mem"
+	"github.com/madappgang/identifo/v2/web/admin"
+	"github.com/madappgang/identifo/v2/web/api"
+	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/spa"
 	"github.com/rs/cors"
 )
 

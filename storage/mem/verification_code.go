@@ -1,7 +1,7 @@
 package mem
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // NewVerificationCodeStorage creates and inits in-memory verification code storage.

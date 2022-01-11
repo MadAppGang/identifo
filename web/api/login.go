@@ -6,10 +6,10 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/madappgang/identifo/model"
-	thp "github.com/madappgang/identifo/user_payload_provider/http"
-	"github.com/madappgang/identifo/web/authorization"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	thp "github.com/madappgang/identifo/v2/user_payload_provider/http"
+	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/xlzd/gotp"
 )
 

@@ -1,7 +1,7 @@
 package dynamodb
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 const testTableName = "test_connection_table"

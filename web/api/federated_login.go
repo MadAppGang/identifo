@@ -15,9 +15,9 @@ import (
 	"strings"
 
 	"github.com/gorilla/sessions"
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/authorization"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/markbates/goth"
 )
 

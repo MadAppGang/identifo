@@ -3,13 +3,13 @@ package config
 import (
 	"io/fs"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/server"
-	"github.com/madappgang/identifo/services/mail"
-	"github.com/madappgang/identifo/services/sms"
-	"github.com/madappgang/identifo/storage"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/server"
+	"github.com/madappgang/identifo/v2/services/mail"
+	"github.com/madappgang/identifo/v2/services/sms"
+	"github.com/madappgang/identifo/v2/storage"
 
-	jwt "github.com/madappgang/identifo/jwt/service"
+	jwt "github.com/madappgang/identifo/v2/jwt/service"
 )
 
 var adminPanelFSSettings = model.FileStorageSettings{
@@ -84,7 +84,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	//maybe just not serve login web app if type is none?
 	lwas := settings.LoginWebApp
-	if settings.LoginWebApp.Type == model.FileStorageTypeNone  || settings.LoginWebApp.Type == model.FileStorageTypeDefault {
+	if settings.LoginWebApp.Type == model.FileStorageTypeNone || settings.LoginWebApp.Type == model.FileStorageTypeDefault {
 		// if not set, use default value
 		lwas = defaultLoginWebAppFSSettings
 	}
@@ -133,7 +133,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	emailServiceSettings := settings.Services.Email
 	if ets.Type == model.FileStorageTypeNone {
-		//we are replacing the real email service with fake one, 
+		//we are replacing the real email service with fake one,
 		//if we have no templates to send
 		emailServiceSettings.Type = model.EmailServiceMock
 	}

@@ -5,7 +5,7 @@ import (
 	"path"
 	"testing"
 
-	"github.com/madappgang/identifo/storage/mem"
+	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/spf13/afero"
 )
 

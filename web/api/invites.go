@@ -8,8 +8,8 @@ import (
 	"path"
 	"strings"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 type InviteEmailData struct {

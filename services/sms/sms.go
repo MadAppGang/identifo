@@ -3,11 +3,11 @@ package sms
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/services/sms/mock"
-	"github.com/madappgang/identifo/services/sms/nexmo"
-	"github.com/madappgang/identifo/services/sms/routemobile"
-	"github.com/madappgang/identifo/services/sms/twilio"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/services/sms/mock"
+	"github.com/madappgang/identifo/v2/services/sms/nexmo"
+	"github.com/madappgang/identifo/v2/services/sms/routemobile"
+	"github.com/madappgang/identifo/v2/services/sms/twilio"
 )
 
 func NewService(settings model.SMSServiceSettings) (model.SMSService, error) {

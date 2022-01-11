@@ -14,8 +14,8 @@ import (
 
 	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
-	"github.com/madappgang/identifo/config"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/config"
+	"github.com/madappgang/identifo/v2/model"
 	"gopkg.in/h2non/baloo.v3"
 	"gopkg.in/h2non/baloo.v3/assert"
 )

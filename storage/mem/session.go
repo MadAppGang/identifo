@@ -4,7 +4,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 type memoryStorage struct {

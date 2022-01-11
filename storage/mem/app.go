@@ -5,7 +5,7 @@ import (
 	"log"
 	"strings"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
 

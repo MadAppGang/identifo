@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/madappgang/identifo/config/storage/file"
-	"github.com/madappgang/identifo/config/storage/s3"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/config/storage/file"
+	"github.com/madappgang/identifo/v2/config/storage/s3"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // InitConfigurationStorage initializes configuration storage.

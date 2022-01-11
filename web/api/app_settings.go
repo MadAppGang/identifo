@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 type appSettings struct {

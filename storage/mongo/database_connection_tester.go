@@ -1,7 +1,7 @@
 package mongo
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 type ConnectionTester struct {

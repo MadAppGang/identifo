@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/authorization"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 type registrationData struct {

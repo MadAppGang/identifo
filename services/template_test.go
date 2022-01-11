@@ -4,9 +4,9 @@ import (
 	"bytes"
 	"testing"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/services"
-	"github.com/madappgang/identifo/storage"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/services"
+	"github.com/madappgang/identifo/v2/storage"
 )
 
 func TestFSTemplate_Template(t *testing.T) {

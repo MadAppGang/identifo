@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"io/fs"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func NewFSConnectionTester(settings model.FileStorageLocal, expectedFiles []string) model.ConnectionTester {

@@ -5,8 +5,8 @@ import (
 	"io/fs"
 	"testing"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage"
 )
 
 func TestNewFSWithLocalFolder(t *testing.T) {
