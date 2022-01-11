@@ -4,8 +4,8 @@ import (
 	"encoding/json"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // RefreshTokens issues new access and, if requsted, refresh token for provided refresh token.

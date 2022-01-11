@@ -1,7 +1,7 @@
 package mem
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // NewTokenBlacklist creates an in-memory token storage.

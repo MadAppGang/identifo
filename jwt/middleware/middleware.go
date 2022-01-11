@@ -4,9 +4,9 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/jwt/validator"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/jwt/validator"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 const (

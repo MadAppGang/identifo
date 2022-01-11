@@ -11,8 +11,8 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/madappgang/identifo/config"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/config"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func main() {

@@ -5,7 +5,7 @@ import (
 	"net/http"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // Logout logs user out and deactivates their tokens.

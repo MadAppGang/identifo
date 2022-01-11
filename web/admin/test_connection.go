@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage"
 )
 
 // TestConnection validates different connection types, if server could connect to that.

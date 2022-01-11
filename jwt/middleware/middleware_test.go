@@ -5,8 +5,8 @@ import (
 	"os"
 	"testing"
 
-	"github.com/madappgang/identifo/jwt/middleware"
-	"github.com/madappgang/identifo/jwt/validator"
+	"github.com/madappgang/identifo/v2/jwt/middleware"
+	"github.com/madappgang/identifo/v2/jwt/validator"
 )
 
 const (

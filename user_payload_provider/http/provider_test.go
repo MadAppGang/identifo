@@ -6,7 +6,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	hu "github.com/madappgang/identifo/user_payload_provider/http"
+	hu "github.com/madappgang/identifo/v2/user_payload_provider/http"
 )
 
 const (

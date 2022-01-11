@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 type ServerSettingsAPI struct {

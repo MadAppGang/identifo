@@ -3,7 +3,7 @@ package admin
 import (
 	"net/http"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // GetApp fetches app by ID from the database.

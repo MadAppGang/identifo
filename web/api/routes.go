@@ -2,7 +2,7 @@ package api
 
 import (
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	"github.com/urfave/negroni"
 )
 

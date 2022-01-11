@@ -3,7 +3,7 @@ package boltdb
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
 

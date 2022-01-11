@@ -3,11 +3,11 @@ package storage
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage/boltdb"
-	"github.com/madappgang/identifo/storage/dynamodb"
-	"github.com/madappgang/identifo/storage/mem"
-	"github.com/madappgang/identifo/storage/mongo"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/boltdb"
+	"github.com/madappgang/identifo/v2/storage/dynamodb"
+	"github.com/madappgang/identifo/v2/storage/mem"
+	"github.com/madappgang/identifo/v2/storage/mongo"
 )
 
 // NewAppStorage creates new app storage from settings

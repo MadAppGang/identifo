@@ -3,10 +3,10 @@ package storage
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage/dynamodb"
-	"github.com/madappgang/identifo/storage/mem"
-	"github.com/madappgang/identifo/storage/redis"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/dynamodb"
+	"github.com/madappgang/identifo/v2/storage/mem"
+	"github.com/madappgang/identifo/v2/storage/redis"
 )
 
 // NewSessionStorage creates new sessions storage from settings

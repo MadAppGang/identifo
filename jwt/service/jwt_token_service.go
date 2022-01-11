@@ -11,9 +11,9 @@ import (
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	ijwt "github.com/madappgang/identifo/jwt"
-	jwtValidator "github.com/madappgang/identifo/jwt/validator"
-	"github.com/madappgang/identifo/model"
+	ijwt "github.com/madappgang/identifo/v2/jwt"
+	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 var (

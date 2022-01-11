@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 var supportedSignatureAlgorithms = [2]model.TokenSignatureAlgorithm{

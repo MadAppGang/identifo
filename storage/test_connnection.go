@@ -3,13 +3,13 @@ package storage
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage/boltdb"
-	"github.com/madappgang/identifo/storage/dynamodb"
-	"github.com/madappgang/identifo/storage/fs"
-	"github.com/madappgang/identifo/storage/mem"
-	"github.com/madappgang/identifo/storage/mongo"
-	"github.com/madappgang/identifo/storage/s3"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/boltdb"
+	"github.com/madappgang/identifo/v2/storage/dynamodb"
+	"github.com/madappgang/identifo/v2/storage/fs"
+	"github.com/madappgang/identifo/v2/storage/mem"
+	"github.com/madappgang/identifo/v2/storage/mongo"
+	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
 var spaFileStorageExpectedFiles = []string{"index.html"}

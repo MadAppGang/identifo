@@ -7,7 +7,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	"gopkg.in/yaml.v2"
 )
 

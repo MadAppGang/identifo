@@ -1,7 +1,7 @@
 package fake
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	"github.com/pallinder/go-randomdata"
 )
 

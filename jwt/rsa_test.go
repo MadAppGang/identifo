@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	"github.com/golang-jwt/jwt/v4"
-	jwti "github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	jwti "github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 var privateRSAKeyPEM = []byte(`-----BEGIN PRIVATE KEY-----

@@ -4,7 +4,7 @@ import (
 	"io/ioutil"
 	"os"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // Importer has a set of helper functions to import data

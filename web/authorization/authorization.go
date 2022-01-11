@@ -4,7 +4,7 @@ import (
 	"fmt"
 
 	"github.com/casbin/casbin"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 	strCasbin "github.com/qiangmzsx/string-adapter"
 )
 

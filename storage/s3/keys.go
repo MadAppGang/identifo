@@ -8,8 +8,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	"github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // KeyStorage is a wrapper over private key files

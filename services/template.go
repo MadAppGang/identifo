@@ -4,7 +4,7 @@ import (
 	"html/template"
 	"io/fs"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func NewTemplate(fss fs.FS) model.TemplateStorage {

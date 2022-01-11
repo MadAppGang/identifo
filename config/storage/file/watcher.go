@@ -4,7 +4,7 @@ import (
 	"log"
 
 	"github.com/fsnotify/fsnotify"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 type Watcher struct {

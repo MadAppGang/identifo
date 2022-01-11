@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"net/url"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // RequestResetPassword requests password reset

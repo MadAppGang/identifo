@@ -5,8 +5,8 @@ import (
 	"net/http"
 	"strings"
 
-	jwt "github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	jwt "github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 type keys struct {

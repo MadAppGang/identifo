@@ -1,7 +1,7 @@
 package mock
 
 import (
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func NewTokenPayloadProvider(payload map[string]interface{}) model.TokenPayloadProvider {

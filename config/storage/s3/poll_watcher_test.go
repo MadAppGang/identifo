@@ -9,9 +9,9 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	s3s "github.com/madappgang/identifo/config/storage/s3"
+	s3s "github.com/madappgang/identifo/v2/config/storage/s3"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // to start the test you need to configure AWS Key and Secret

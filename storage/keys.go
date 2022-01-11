@@ -3,9 +3,9 @@ package storage
 import (
 	"fmt"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/storage/fs"
-	"github.com/madappgang/identifo/storage/s3"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/fs"
+	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
 func NewKeyStorage(settings model.KeyStorageSettings) (model.KeyStorage, error) {

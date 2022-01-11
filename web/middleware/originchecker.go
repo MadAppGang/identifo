@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"sync"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // OriginCheckFunc the type of function that checks origin

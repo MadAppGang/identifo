@@ -10,9 +10,9 @@ import (
 	"strings"
 	"time"
 
-	ijwt "github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web/middleware"
+	ijwt "github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
 	"github.com/xlzd/gotp"
 )

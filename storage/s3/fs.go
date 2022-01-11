@@ -5,7 +5,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/jszwec/s3fs"
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 func NewFS(settings model.FileStorageS3) (fs.FS, error) {

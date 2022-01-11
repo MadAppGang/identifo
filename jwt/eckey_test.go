@@ -7,8 +7,8 @@ import (
 	"testing"
 
 	jwt "github.com/golang-jwt/jwt/v4"
-	jwti "github.com/madappgang/identifo/jwt"
-	"github.com/madappgang/identifo/model"
+	jwti "github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // SEC 1, ASN.1, DER format

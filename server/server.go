@@ -5,9 +5,9 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/madappgang/identifo/model"
-	"github.com/madappgang/identifo/web"
-	"github.com/madappgang/identifo/web/middleware"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // NewServer creates backend service.

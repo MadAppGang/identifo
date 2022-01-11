@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/madappgang/identifo/model"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 const baseURLuae = "https://sms.rmlconnect.net%s"
