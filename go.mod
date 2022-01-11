@@ -1,4 +1,4 @@
-module github.com/madappgang/identifo
+module github.com/madappgang/identifo/v2
 
 go 1.16
 
