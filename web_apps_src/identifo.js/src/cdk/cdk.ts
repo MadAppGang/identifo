@@ -15,6 +15,7 @@ import {
   State,
   StateCallback,
   StateError,
+  StateLogout,
   StatePasswordForgotTFASelect,
   StatePasswordForgotTFAVerify,
   States,
@@ -164,7 +165,7 @@ export class CDK {
     this.state.next({
       route: Routes.PASSWORD_FORGOT,
       restorePassword: async (email: string): Promise<void> => {
-        this.auth.api
+        return this.auth.api
           .requestResetPassword(email)
           .then(async (response) => {
             if (response.result === 'tfa-required') {
@@ -329,6 +330,13 @@ export class CDK {
           .catch((e) => this.processError(e));
       },
     } as StatePasswordForgotTFAVerify);
+  }
+
+  async logout(): Promise<void> {
+    this.state.next({
+      route: Routes.LOGOUT,
+      logout: async () => this.auth.api.logout(),
+    } as StateLogout);
   }
 
   // restorePassword(token: string): void {}

@@ -1,4 +1,4 @@
-import { ApiError, FederatedLoginProvider, LoginResponse, TFAStatus, TFAType } from '../api/model';
+import { ApiError, FederatedLoginProvider, LoginResponse, TFAStatus, TFAType, SuccessResponse } from '../api/model';
 
 export enum Routes {
   'LOGIN' = 'login',
@@ -162,6 +162,11 @@ export interface StatePasswordForgotTFAVerify extends State, StateWithError {
   email?: string;
   phone?: string;
   verifyTFA: (code: string) => Promise<void>;
+}
+
+export interface StateLogout extends State {
+  route: Routes.LOGOUT;
+  logout: () => Promise<SuccessResponse>;
 }
 
 export const typeToSetupRoute = {

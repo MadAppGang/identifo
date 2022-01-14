@@ -15,7 +15,9 @@ class IdentifoAuth {
 
   private token: ClientToken | null = null;
 
-  isAuth = false;
+  get isAuth(): boolean {
+    return !!this.tokenService?.isAuth;
+  }
 
   constructor(config?: IdentifoConfig) {
     if (config) {
@@ -36,7 +38,6 @@ class IdentifoAuth {
       if (tokenType === 'access') {
         const payload = this.tokenService.parseJWT(token);
         this.token = { token, payload };
-        this.isAuth = true;
         this.tokenService.saveToken(token);
       } else {
         this.tokenService.saveToken(token, 'refresh');
@@ -46,7 +47,6 @@ class IdentifoAuth {
 
   private resetAuthValues() {
     this.token = null;
-    this.isAuth = false;
     this.tokenService.removeToken();
     this.tokenService.removeToken('refresh');
   }

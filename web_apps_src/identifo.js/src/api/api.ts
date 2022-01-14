@@ -272,7 +272,11 @@ export class API {
           [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`,
         },
       },
-    );
+    ).then((r) => {
+      this.tokenService.removeToken();
+      this.tokenService.removeToken('refresh');
+      return r;
+    });
   }
 
   storeToken<T extends TokenResponse>(response: T): T {
