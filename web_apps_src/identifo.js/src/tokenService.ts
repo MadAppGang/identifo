@@ -1,10 +1,10 @@
 import { INVALID_TOKEN_ERROR } from './constants';
 import { LocalStorageManager } from './store-manager';
-import {
-  ClientToken, JWTPayload, TokenManager, TokenType,
-} from './types/types';
+import { ClientToken, JWTPayload, TokenManager, TokenType } from './types/types';
 
 class TokenService {
+  isAuth = false;
+
   private tokenManager: TokenManager;
 
   constructor(tokenManager?: TokenManager) {
@@ -56,18 +56,17 @@ class TokenService {
     return false;
   }
 
-  isAuthenticated(audience: string, issuer?: string): Promise<boolean> {
-    if (!this.tokenManager.isAccessible) return Promise.resolve(true);
-    const token = this.tokenManager.getToken('access');
-    // TODO: may be change to handleAuth instead validateToken
-    return this.validateToken(token, audience, issuer);
-  }
-
   saveToken(token: string, type: TokenType = 'access'): boolean {
+    if (type === 'access') {
+      this.isAuth = true;
+    }
     return this.tokenManager.saveToken(token, type);
   }
 
   removeToken(type: TokenType = 'access'): void {
+    if (type === 'access') {
+      this.isAuth = false;
+    }
     this.tokenManager.deleteToken(type);
   }
 
