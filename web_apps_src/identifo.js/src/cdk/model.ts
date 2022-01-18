@@ -54,7 +54,7 @@ export interface StateLogin extends State, StateWithError {
   registrationForbidden: boolean;
   federatedProviders: FederatedLoginProvider[];
   signup: () => Promise<void>;
-  signin: (email: string, password: string) => Promise<void>;
+  signin: (email: string, password: string, remember?: boolean) => Promise<void>;
   socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
   passwordForgot: () => Promise<void>;
 }

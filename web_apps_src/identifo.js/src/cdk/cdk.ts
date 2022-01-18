@@ -43,7 +43,7 @@ export class CDK {
 
   postLogoutRedirectUri?: string;
 
-  scopes: string[] = [];
+  scopes: Set<string> = new Set();
 
   state: BehaviorSubject<States> = new BehaviorSubject({ route: Routes.LOADING } as States);
 
@@ -52,11 +52,11 @@ export class CDK {
   }
 
   // eslint-disable-next-line max-statements
-  async configure(authConfig: IdentifoConfig, callbackUrl: string, scopes: string[]): Promise<void> {
+  async configure(authConfig: IdentifoConfig, callbackUrl: string): Promise<void> {
     this.state.next({ route: Routes.LOADING });
 
     this.callbackUrl = callbackUrl;
-    this.scopes = scopes;
+    this.scopes = new Set(authConfig.scopes ?? []);
 
     this.postLogoutRedirectUri = window.location.origin + window.location.pathname;
     // this.postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
@@ -121,12 +121,16 @@ export class CDK {
       signup: async (): Promise<void> => {
         this.register();
       },
-      signin: async (email: string, password: string): Promise<void> => {
+      signin: async (email: string, password: string, remember?: boolean): Promise<void> => {
         if (!this.validateEmail(email)) {
           return;
         }
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add('offline');
+        }
         await this.auth.api
-          .login(email, password, '', this.scopes)
+          .login(email, password, '', [...Array.from(scopes)])
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
@@ -134,7 +138,7 @@ export class CDK {
       socialLogin: async (provider: FederatedLoginProvider) => {
         this.state.next({ route: Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, this.scopes, federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
       },
       passwordForgot: async () => {
         this.forgotPassword();
@@ -150,7 +154,7 @@ export class CDK {
           return;
         }
         await this.auth.api
-          .register(email, password, this.scopes)
+          .register(email, password, [...this.scopes])
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
@@ -292,7 +296,7 @@ export class CDK {
       phone: loginResponse.user.phone,
       verifyTFA: async (code: string) => {
         await this.auth.api
-          .verifyTFA(code, this.scopes)
+          .verifyTFA(code, [...this.scopes])
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));

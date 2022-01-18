@@ -14,17 +14,130 @@
 
   &::-webkit-inner-spin-button {
     -webkit-appearance: none;
-    margin: 0; 
+    margin: 0;
   }
 
   &::placeholder {
     font-size: 18px;
     line-height: 26px;
-    color: #828282;
+    color: var(--text-gray);
   }
 
   &-danger {
-    border: 1px solid #F66161;
+    border: 1px solid #f66161;
+  }
+}
+
+.form-checkbox {
+  width: 100%;
+  max-width: var(--content-width);
+  color: var(--text-gray);
+  z-index: 0;
+  position: relative;
+  display: inline-block;
+  font-size: 16px;
+  line-height: 1.5;
+
+  /* Input */
+  & > input {
+    appearance: none;
+    -moz-appearance: none;
+    -webkit-appearance: none;
+    z-index: -1;
+    position: absolute;
+    left: -10px;
+    top: -8px;
+    display: block;
+    margin: 0;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    background-color: rgba(var(--text-gray), 0.6);
+    box-shadow: none;
+    outline: none;
+    opacity: 0;
+    transform: scale(1);
+    pointer-events: none;
+    transition: opacity 0.3s, transform 0.2s;
+  }
+
+  /* Span */
+  & > span {
+    display: inline-block;
+    width: 100%;
+    cursor: pointer;
+  }
+
+  /* Box */
+  & > span::before {
+    content: '';
+    display: inline-block;
+    box-sizing: border-box;
+    margin: 3px 11px 3px 1px;
+    border: solid 2px; /* Safari */
+    border-color: rgba(var(--text-gray), 0.6);
+    border-radius: 2px;
+    width: 18px;
+    height: 18px;
+    vertical-align: top;
+    transition: border-color 0.2s, background-color 0.2s;
+  }
+
+  /* Checkmark */
+  & > span::after {
+    content: '';
+    display: block;
+    position: absolute;
+    top: 3px;
+    left: 1px;
+    width: 10px;
+    height: 5px;
+    border: solid 2px transparent;
+    border-right: none;
+    border-top: none;
+    transform: translate(3px, 4px) rotate(-45deg);
+  }
+
+  /* Checked, Indeterminate */
+  & > input:checked,
+  & > input:indeterminate {
+    background-color: var(--blue-text);
+  }
+
+  & > input:checked + span::before,
+  & > input:indeterminate + span::before {
+    border-color: var(--blue-text);
+    background-color: var(--blue-text);
+  }
+
+  & > input:checked + span::after,
+  & > input:indeterminate + span::after {
+    border-color: #fff;
+  }
+
+  & > input:indeterminate + span::after {
+    border-left: none;
+    transform: translate(4px, 3px);
+  }
+
+  /* Disabled */
+  & > input:disabled {
+    opacity: 0;
+  }
+
+  & > input:disabled + span {
+    color: rgba(var(--text-gray), 0.38);
+    cursor: initial;
+  }
+
+  & > input:disabled + span::before {
+    border-color: currentColor;
+  }
+
+  & > input:checked:disabled + span::before,
+  & > input:indeterminate:disabled + span::before {
+    border-color: transparent;
+    background-color: currentColor;
   }
 }
 

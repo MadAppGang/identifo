@@ -5,7 +5,7 @@
   &__text {
     font-size: 14px;
     line-height: 21px;
-    color: #828282;
+    color: var(--text-gray);
     padding: 4px 8px;
     margin-bottom: 39px;
     text-align: center;
@@ -61,11 +61,11 @@
 
     &__text {
       margin-bottom: 36px;
-      
+
       &::before {
         width: 26%;
       }
-  
+
       &::after {
         width: 26%;
       }

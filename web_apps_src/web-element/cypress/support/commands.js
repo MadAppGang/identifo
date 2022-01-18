@@ -158,9 +158,12 @@ Cypress.Commands.add('visitLogin', options => {
   window.localStorage.setItem('debug', true);
   return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: appId, url: Cypress.config('serverUrl') }).toString()}`);
 });
-Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password') => {
+Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password', remember = false) => {
   cy.get('[placeholder=Email]').click().type(email);
   cy.get('[placeholder=Password]').click().type(password);
+  if (remember) {
+    cy.contains('Remember me').click();
+  }
   cy.screenshot();
   cy.get('button').contains('Login').click();
 });
@@ -189,5 +192,23 @@ Cypress.Commands.add('verifySuccessToken', () => {
       const token = parseJwt(text.trim());
       expect(token.scopes).equal(undefined);
       expect(token.type).equal('access');
+    });
+});
+
+Cypress.Commands.add('verifyRefreshSuccessToken', () => {
+  cy.contains('Success');
+  cy.get('#access_token')
+    .invoke('text')
+    .then(text => {
+      const token = parseJwt(text.trim());
+      expect(token.scopes).equal('offline');
+      expect(token.type).equal('access');
+    });
+  cy.get('#refresh_token')
+    .invoke('text')
+    .then(text => {
+      const token = parseJwt(text.trim());
+      expect(token.scopes).equal('offline');
+      expect(token.type).equal('refresh');
     });
 });

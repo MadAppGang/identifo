@@ -80,7 +80,7 @@ export class IdentifoForm {
     const callbackUrl = params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
     const scopes = (params.get('scopes') || '').split(',').map(s => s.trim());
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-    await CDKService.configure({ appId: this.appId, url: this.url, postLogoutRedirectUri }, callbackUrl, scopes);
+    await CDKService.configure({ appId: this.appId, url: this.url, postLogoutRedirectUri, scopes }, callbackUrl);
     console.log(CDKService.cdk.settings);
     CDKService.debug = this.debug;
     CDKService.cdk.state.subscribe((s: States) => {

@@ -6,8 +6,8 @@ class IdentifoCDKController {
   constructor() {
     this.cdk = new CDK();
   }
-  public configure(config: IdentifoConfig, callbackUrl: string, scopes: string[]): Promise<void> {
-    return this.cdk.configure(config, callbackUrl, scopes);
+  public configure(config: IdentifoConfig, callbackUrl: string): Promise<void> {
+    return this.cdk.configure(config, callbackUrl);
   }
 }
 export const CDKService = new IdentifoCDKController();

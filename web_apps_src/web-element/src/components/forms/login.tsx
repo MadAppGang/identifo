@@ -13,6 +13,7 @@ export class IdentifoFormLogin {
   @State() email: string;
   @State() password: string;
   @State() state: StateLogin;
+  @State() remember: boolean = false;
 
   subscription: Subscription;
   connectedCallback() {
@@ -28,9 +29,12 @@ export class IdentifoFormLogin {
   emailChange(event: InputEvent) {
     this.email = (event.target as HTMLInputElement).value;
   }
+  rememberChange(event: InputEvent) {
+    this.remember = (event.target as HTMLInputElement).checked;
+  }
 
   signin() {
-    this.state.signin(this.email, this.password);
+    this.state.signin(this.email, this.password, this.remember);
   }
 
   render() {
@@ -62,6 +66,10 @@ export class IdentifoFormLogin {
           onInput={event => this.passwordChange(event as InputEvent)}
           onKeyPress={e => !!(e.key === 'Enter' && this.email && this.password) && this.signin()}
         />
+        <label class="login-form__remember-me form-checkbox" htmlFor="remember">
+          <input type="checkbox" class="form-control" id="remember" checked={this.remember} onInput={event => this.rememberChange(event as InputEvent)} />
+          <span>Remember me</span>
+        </label>
 
         {!!this.state.error && (
           <div class="error" role="alert">
