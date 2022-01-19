@@ -284,6 +284,10 @@ class API {
         headers: {
           [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_c = this.tokenService.getToken()) == null ? void 0 : _c.token}`
         }
+      }).then((r) => {
+        this.tokenService.removeToken();
+        this.tokenService.removeToken("refresh");
+        return r;
       });
     });
   }
@@ -378,6 +382,7 @@ var __async$2 = (__this, __arguments, generator) => {
 };
 class TokenService {
   constructor(tokenManager) {
+    this.isAuth = false;
     this.tokenManager = tokenManager || new LocalStorage();
   }
   handleVerification(token, audience, issuer) {
@@ -422,16 +427,16 @@ class TokenService {
     }
     return false;
   }
-  isAuthenticated(audience, issuer) {
-    if (!this.tokenManager.isAccessible)
-      return Promise.resolve(true);
-    const token = this.tokenManager.getToken("access");
-    return this.validateToken(token, audience, issuer);
-  }
   saveToken(token, type = "access") {
+    if (type === "access") {
+      this.isAuth = true;
+    }
     return this.tokenManager.saveToken(token, type);
   }
   removeToken(type = "access") {
+    if (type === "access") {
+      this.isAuth = false;
+    }
     this.tokenManager.deleteToken(type);
   }
   getToken(type = "access") {
@@ -519,10 +524,13 @@ var __async$1 = (__this, __arguments, generator) => {
 class IdentifoAuth {
   constructor(config) {
     this.token = null;
-    this.isAuth = false;
     if (config) {
       this.configure(config);
     }
+  }
+  get isAuth() {
+    var _a;
+    return !!((_a = this.tokenService) == null ? void 0 : _a.isAuth);
   }
   configure(config) {
     var _a, _b;
@@ -537,7 +545,6 @@ class IdentifoAuth {
       if (tokenType === "access") {
         const payload = this.tokenService.parseJWT(token);
         this.token = { token, payload };
-        this.isAuth = true;
         this.tokenService.saveToken(token);
       } else {
         this.tokenService.saveToken(token, "refresh");
@@ -546,7 +553,6 @@ class IdentifoAuth {
   }
   resetAuthValues() {
     this.token = null;
-    this.isAuth = false;
     this.tokenService.removeToken();
     this.tokenService.removeToken("refresh");
   }
@@ -722,7 +728,7 @@ var __async = (__this, __arguments, generator) => {
 const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
 class CDK {
   constructor() {
-    this.scopes = [];
+    this.scopes = new Set();
     this.state = new rxjs.BehaviorSubject({ route: exports.Routes.LOADING });
     this.afterLoginRedirect = (loginResponse) => __async(this, null, function* () {
       if (loginResponse.require_2fa) {
@@ -757,11 +763,12 @@ class CDK {
     };
     this.auth = new IdentifoAuth();
   }
-  configure(authConfig, callbackUrl, scopes) {
+  configure(authConfig, callbackUrl) {
     return __async(this, null, function* () {
+      var _a;
       this.state.next({ route: exports.Routes.LOADING });
       this.callbackUrl = callbackUrl;
-      this.scopes = scopes;
+      this.scopes = new Set((_a = authConfig.scopes) != null ? _a : []);
       this.postLogoutRedirectUri = window.location.origin + window.location.pathname;
       if (!authConfig.appId) {
         this.state.next({
@@ -816,16 +823,20 @@ class CDK {
       signup: () => __async(this, null, function* () {
         this.register();
       }),
-      signin: (email, password) => __async(this, null, function* () {
+      signin: (email, password, remember) => __async(this, null, function* () {
         if (!this.validateEmail(email)) {
           return;
         }
-        yield this.auth.api.login(email, password, "", this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add("offline");
+        }
+        yield this.auth.api.login(email, password, "", [...Array.from(scopes)]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       }),
       socialLogin: (provider) => __async(this, null, function* () {
         this.state.next({ route: exports.Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, this.scopes, federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
       }),
       passwordForgot: () => __async(this, null, function* () {
         this.forgotPassword();
@@ -839,7 +850,7 @@ class CDK {
         if (!this.validateEmail(email)) {
           return;
         }
-        yield this.auth.api.register(email, password, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        yield this.auth.api.register(email, password, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       }),
       goback: () => __async(this, null, function* () {
         this.login();
@@ -850,7 +861,7 @@ class CDK {
     this.state.next({
       route: exports.Routes.PASSWORD_FORGOT,
       restorePassword: (email) => __async(this, null, function* () {
-        this.auth.api.requestResetPassword(email).then((response) => __async(this, null, function* () {
+        return this.auth.api.requestResetPassword(email).then((response) => __async(this, null, function* () {
           if (response.result === "tfa-required") {
             yield this.redirectTfaForgot(email);
             return;
@@ -969,7 +980,7 @@ class CDK {
         email: loginResponse.user.email,
         phone: loginResponse.user.phone,
         verifyTFA: (code) => __async(this, null, function* () {
-          yield this.auth.api.verifyTFA(code, this.scopes).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+          yield this.auth.api.verifyTFA(code, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
         })
       };
       switch (type) {
@@ -998,6 +1009,16 @@ class CDK {
           this.auth.api.requestResetPassword(email, code).then(() => {
             this.forgotPasswordSuccess();
           }).catch((e) => this.processError(e));
+        })
+      });
+    });
+  }
+  logout() {
+    return __async(this, null, function* () {
+      this.state.next({
+        route: exports.Routes.LOGOUT,
+        logout: () => __async(this, null, function* () {
+          return this.auth.api.logout();
         })
       });
     });

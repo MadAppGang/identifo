@@ -21,7 +21,9 @@ describe('Token Service: ', () => {
       expect(await tokenService.handleVerification(token, audience)).toBeTruthy();
     });
     test('Should return throw Error with inccorect token', () => {
-      expect(tokenService.handleVerification('token', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
+      expect(tokenService.handleVerification('token', audience, issuer)).rejects.toStrictEqual(
+        new Error(INVALID_TOKEN_ERROR),
+      );
       expect(tokenService.handleVerification('token', audience)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
     });
   });
@@ -32,9 +34,13 @@ describe('Token Service: ', () => {
       expect(await tokenService.validateToken(token, audience)).toBeTruthy();
     });
     test('Should return throw Error with inccorect token or issuer', () => {
-      expect(tokenService.validateToken('token', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
+      expect(tokenService.validateToken('token', audience, issuer)).rejects.toStrictEqual(
+        new Error(INVALID_TOKEN_ERROR),
+      );
       expect(tokenService.validateToken('', audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
-      expect(tokenService.validateToken(token, audience, 'issuer')).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
+      expect(tokenService.validateToken(token, audience, 'issuer')).rejects.toStrictEqual(
+        new Error(INVALID_TOKEN_ERROR),
+      );
     });
   });
 
@@ -49,7 +55,7 @@ describe('Token Service: ', () => {
     });
     test('Should return inccorect paylaod', () => {
       const parsedToken = tokenService.parseJWT('');
-      expect(parsedToken.aud).toBe('');
+      expect(parsedToken.aud).toEqual([]);
       expect(parsedToken.iss).toBe('');
     });
   });
@@ -62,16 +68,6 @@ describe('Token Service: ', () => {
       expect(isExpired).toBe(false);
       isExpired = tokenService.isJWTExpired(incorrectToken);
       expect(isExpired).toBe(true);
-    });
-  });
-
-  describe('isAuthenticated: ', () => {
-    test('Should return isAuthenticated status', () => {
-      expect(tokenService.isAuthenticated(audience, issuer)).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
-      tokenService.saveToken(token);
-      expect(tokenService.isAuthenticated(audience, issuer)).resolves.toBeTruthy();
-      expect(tokenService.isAuthenticated(audience)).resolves.toBeTruthy();
-      expect(tokenService.isAuthenticated(audience, 'issuer')).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
     });
   });
 
@@ -93,7 +89,7 @@ describe('Token Service: ', () => {
       tokenService.saveToken('not valid token');
       retrievedToken = tokenService.getToken();
       if (retrievedToken) {
-        expect(retrievedToken.payload).toEqual({ aud: '', exp: 10, iss: '' });
+        expect(retrievedToken.payload).toEqual({ aud: [], exp: 10, iss: '' });
         expect(retrievedToken.token).toBe('not valid token');
       }
     });

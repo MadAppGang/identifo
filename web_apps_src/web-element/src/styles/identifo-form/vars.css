@@ -1,4 +1,5 @@
-.wrapper, .wrapper-dark {
+.wrapper,
+.wrapper-dark {
   --content-width: 416px;
 }
 
@@ -9,6 +10,7 @@
   --gray-line: #e0e0e0;
   --social-button: #1b1b1b;
   --text: #1b1b1b;
+  --text-gray: #828282;
   --upload-photo: #e0e0e0;
   --content-width: 416px;
 }
@@ -20,6 +22,7 @@
   --gray-line: #423f3f;
   --social-button: #423f3f;
   --text: #fff;
+  --text-gray: #828282;
   --upload-photo: #423f3f;
   --content-width: 416px;
 }

@@ -1,4 +1,5 @@
-.wrapper, .wrapper-dark {
+.wrapper,
+.wrapper-dark {
   --content-width: 416px;
 }
 .wrapper {
@@ -8,6 +9,7 @@
   --gray-line: #e0e0e0;
   --social-button: #1b1b1b;
   --text: #1b1b1b;
+  --text-gray: #1b1b1b;
   --upload-photo: #e0e0e0;
   --content-width: 416px;
 }
@@ -18,6 +20,7 @@
   --gray-line: #423f3f;
   --social-button: #423f3f;
   --text: #fff;
+  --text-gray: #828282;
   --upload-photo: #423f3f;
   --content-width: 416px;
 }
@@ -65,7 +68,7 @@
   width: 100%;
   font-size: 14px;
   line-height: 21px;
-  color: #FF5160;
+  color: #ff5160;
 }
 .error-view {
   width: 100%;
@@ -84,7 +87,7 @@
   margin-bottom: 16px;
 }
 .error-view__details {
-  color: #828282;
+  color: var(--text-gray);
   font-size: 16px;
   line-height: 24px;
   text-align: center;
@@ -126,10 +129,10 @@
     width: 100%;
     max-width: var(--content-width);
     padding: 0 24px;
- }
+  }
   .forgot-password .primary-button {
     margin-top: 32px;
- }
+  }
 }
 .forgot-password-success {
   display: flex;
@@ -177,7 +180,7 @@
 @media (max-width: 599px) {
   .form-control {
     height: 64px;
- }
+  }
 }
 .info-card {
   border: 1px solid var(--gray-line);
@@ -218,7 +221,7 @@
   .info-card__text {
     font-size: 14px;
     line-height: 21px;
- }
+  }
 }
 .login-form {
   display: flex;
@@ -268,21 +271,21 @@
     width: 100%;
     max-width: var(--content-width);
     padding: 0 24px;
- }
+  }
   .login-form__register-text {
     font-size: 16px;
- }
+  }
   .login-form .form-control:first-of-type {
     margin-bottom: 24px;
- }
+  }
   .login-form__buttons {
     margin-top: 32px;
     flex-direction: column;
- }
+  }
   .login-form .primary-button {
     margin-right: 0;
     margin-bottom: 36px;
- }
+  }
 }
 .otp-login {
   display: flex;
@@ -339,18 +342,18 @@
     width: 100%;
     max-width: var(--content-width);
     padding: 48px 24px 32px;
- }
+  }
   .register-form .form-control {
     margin-bottom: 24px;
- }
+  }
   .register-form .primary-button {
     margin-right: 0;
     margin-bottom: 36px;
- }
+  }
   .register-form__buttons {
     flex-direction: column;
     margin-top: 32px;
- }
+  }
 }
 .reset-password {
   width: var(--content-width);
@@ -387,10 +390,10 @@
     width: 100%;
     max-width: var(--content-width);
     padding: 0 24px;
- }
+  }
   .reset-password .primary-button {
     margin-top: 32px;
- }
+  }
 }
 .social-buttons {
   width: 100%;
@@ -406,7 +409,7 @@
   position: static;
 }
 .social-buttons__text::before {
-  content: '';
+  content: "";
   position: absolute;
   height: 1px;
   width: 36%;
@@ -415,7 +418,7 @@
   background-color: var(--gray-line);
 }
 .social-buttons__text::after {
-  content: '';
+  content: "";
   position: absolute;
   height: 1px;
   width: 36%;
@@ -445,20 +448,20 @@
   .social-buttons__media {
     width: 44px;
     height: 44px;
- }
+  }
   .social-buttons__text {
     margin-bottom: 36px;
- }
+  }
   .social-buttons__text::before {
     width: 26%;
- }
+  }
   .social-buttons__text::after {
     width: 26%;
- }
+  }
   .social-buttons__image {
     width: 16px;
     height: 16px;
- }
+  }
 }
 .tfa-setup {
   padding: 48px 0 80px;
@@ -504,7 +507,7 @@
     width: 100%;
     max-width: var(--content-width);
     padding: 38px 24px 36px;
- }
+  }
 }
 .tfa-verify {
   padding: 48px 0 52px;
@@ -522,7 +525,8 @@
   flex-direction: column;
   align-items: center;
 }
-.tfa-verify__title, .tfa-verify__title_mb-40 {
+.tfa-verify__title,
+.tfa-verify__title_mb-40 {
   color: var(--text);
   font-size: 24px;
   line-height: 32px;
@@ -571,11 +575,11 @@
     padding: 102px 24px 41px;
     width: 100%;
     max-width: var(--content-width);
- }
+  }
   .tfa-verify .primary-button {
     margin-top: 32px;
- }
+  }
   .tfa-verify__qr-code {
     margin-bottom: 48px;
- }
+  }
 }

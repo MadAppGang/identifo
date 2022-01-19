@@ -1,5 +1,5 @@
 .primary-button {
-  background-color: #6163f6;
+  background-color: var(--blue-text);
   border: none;
   outline: none;
   display: flex;
@@ -12,14 +12,14 @@
   color: #fff;
   font-size: 18px;
   line-height: 26px;
-  transition: all .4s;
+  transition: all 0.4s;
 
   &:active {
     transform: translateY(-4px);
   }
 
   &:hover {
-    opacity: .8;
+    opacity: 0.8;
   }
 
   &:disabled {

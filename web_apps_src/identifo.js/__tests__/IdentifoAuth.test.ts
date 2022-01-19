@@ -1,6 +1,5 @@
 import { INVALID_TOKEN_ERROR } from '../src/constants';
 import IdentifoAuth from '../src/IdentifoAuth';
-import Iframe from '../src/iframe';
 
 const jwt = require('jwt-simple');
 
@@ -17,32 +16,39 @@ describe('IdentifoAuth: ', () => {
     type: 'access',
     aud: config.appId,
     iss: config.issuer,
-    exp: new Date().getTime() / 1000 + 3600,
+    exp: new Date().getTime() / 1000 + 7200,
   };
   const generatedToken = jwt.encode(payload, 'secret');
-  const hash = `#${generatedToken}`;
   const identifo = new IdentifoAuth(config);
 
-  test('should be defined', () => {
+  const falsyPayload = {
+    type: 'access',
+    aud: config.appId,
+    iss: config.issuer,
+    exp: new Date().getTime() / 1000 - 7200,
+  };
+  const falsyGeneratedToken = jwt.encode(falsyPayload, 'secret');
+
+  test('should be defined', async () => {
     expect(identifo).toBeDefined();
     expect(identifo.isAuth).toBe(false);
-    expect(identifo.getToken()).toBeNull();
+    expect(identifo.getToken()).resolves.toBeNull();
   });
 
   test('handleAuthentication should return false when has no token', () => {
-    expect(identifo.handleAuthentication()).resolves.toBe(false);
+    expect(identifo.handleAuthentication()).rejects.toBe(undefined);
   });
 
   test('handleAuthentication should return true if has correct url and token', async () => {
     Object.defineProperty(window, 'location', {
-      value: { href: config.redirectUri, hash },
+      value: { href: config.redirectUri, search: `?token=${generatedToken}` },
+      writable: true,
     });
-    const handleAuthenticationStatus = await identifo.handleAuthentication();
-    expect(handleAuthenticationStatus).toBe(true);
+    expect(identifo.handleAuthentication()).resolves.toBe(true);
   });
 
-  test('getToken should return token object', () => {
-    const tokenData = identifo.getToken();
+  test('getToken should return token object', async () => {
+    const tokenData = await identifo.getToken();
     if (tokenData) {
       expect(Object.keys(tokenData)).toEqual(['token', 'payload']);
       expect(typeof tokenData.token === 'string').toBe(true);
@@ -50,45 +56,17 @@ describe('IdentifoAuth: ', () => {
     }
   });
 
-  test('renewSession should return generated token', async () => {
-    jest.spyOn(Iframe, 'captureMessage')
-      .mockImplementation(() => Promise.resolve(generatedToken));
-    const createMock = jest.spyOn(Iframe, 'create');
-    expect(await identifo.renewSession()).toBe(generatedToken);
-    expect(createMock).toBeCalledTimes(1);
-    createMock.mockClear();
-  });
-
   describe('Falsy scenario:', () => {
-    const falsyPayload = { ...payload, exp: payload.exp - 7200 }; // EXP = current time - 1 hour
-    const falsyGeneratedToken = jwt.encode(falsyPayload, 'secret');
-    const falsyHash = `#${falsyGeneratedToken}`;
-    beforeAll(() => {
-      Object.defineProperty(window, 'location', {
-        value: { href: config.redirectUri, hash: 'falsyHash' },
-      });
-      window.localStorage.removeItem('identifo_access_token');
-    });
     test('handleAuthentication should be falsy', async () => {
-      const status = await identifo.handleAuthentication();
-      expect(status).toBe(false);
+      Object.defineProperty(window, 'location', {
+        value: { href: config.redirectUri, search: `?token=${falsyGeneratedToken}` },
+        writable: true,
+      });
+      expect(identifo.handleAuthentication()).rejects.toBe(undefined);
     });
 
-    test('getToken should return null if token is invalid', () => {
-      const tokenData = identifo.getToken();
-      expect(tokenData).toBeNull();
-    });
-
-    test('renewSession should be rejected', () => {
-      const createMock = jest.spyOn(Iframe, 'create');
-      jest.spyOn(Iframe, 'captureMessage')
-        .mockImplementation(() => Promise.resolve('token'));
-      expect(identifo.renewSession()).rejects.toStrictEqual(new Error(INVALID_TOKEN_ERROR));
-
-      jest.spyOn(Iframe, 'captureMessage')
-        .mockImplementation(() => Promise.reject(new Error('Some Error')));
-      expect(identifo.renewSession()).rejects.toBeInstanceOf(Error);
-      expect(createMock).toBeCalledTimes(2);
+    test('getToken should return null if token is invalid', async () => {
+      expect(identifo.getToken()).resolves.toBeNull();
     });
   });
 });

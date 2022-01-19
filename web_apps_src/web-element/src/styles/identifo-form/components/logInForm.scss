@@ -5,12 +5,16 @@
   justify-content: center;
   width: var(--content-width);
 
+  &__remember-me {
+    margin-top: 25px;
+  }
+
   &__register-text {
     margin-bottom: 32px;
     font-weight: 400;
     font-size: 14px;
     line-height: 24px;
-    color: #828282;
+    color: var(--text-gray);
   }
 
   &__register-link {
