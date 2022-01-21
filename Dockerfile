@@ -13,6 +13,7 @@ FROM golang:1.16-alpine3.13 as builder
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
 COPY . ./
 RUN go mod download
+RUN go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/..
 RUN go build -o /identifo .
 
 FROM alpine:3.13.2

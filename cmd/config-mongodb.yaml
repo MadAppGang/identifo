@@ -14,7 +14,13 @@ storage:
     mongo:
       database: identifo-test
       connection: mongodb://localhost:27017
-  userStorage: *storage_settings
+  userStorage:
+    type: grpc
+    grpc:
+      cmd: "./plugins/bin/mongo-user-storage"
+      params:
+        database: identifo-test
+        connection: mongodb://localhost:27017
   tokenStorage: *storage_settings
   tokenBlacklist: *storage_settings
   verificationCodeStorage: *storage_settings

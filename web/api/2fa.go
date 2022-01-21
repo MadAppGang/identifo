@@ -306,11 +306,6 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.server.Storages().User.UserExists(d.Email); !userExists {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestDisabledTFA.UserExists")
-			return
-		}
-
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
 			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
@@ -324,7 +319,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.IDByName")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.UserByEmail")
 			return
 		}
 
@@ -406,14 +401,9 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		if userExists := ar.server.Storages().User.UserExists(d.Email); !userExists {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, "User with this email does not exist", "RequestTFAReset.UserExists")
-			return
-		}
-
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.IDByName")
+			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.UserByEmail")
 			return
 		}
 

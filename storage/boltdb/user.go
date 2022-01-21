@@ -187,25 +187,6 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	return res, nil
 }
 
-// UserExists checks if user with provided name exists.
-func (us *UserStorage) UserExists(name string) bool {
-	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByUsername))
-		userID := unpb.Get([]byte(name))
-
-		if userID == nil {
-			return model.ErrUserNotFound
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		if u := ub.Get([]byte(userID)); u == nil {
-			return model.ErrUserNotFound
-		}
-		return nil
-	})
-	return err == nil
-}
-
 // AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	// BoltDB-backed implementation does not support user devices.
@@ -456,40 +437,6 @@ func (us *UserStorage) CheckPassword(id, password string) error {
 func (us *UserStorage) ResetUsername(id, username string) error {
 	// TODO: implement
 	return errors.New("ResetUsername is not implemented. ")
-}
-
-// IDByName returns userID by name.
-func (us *UserStorage) IDByName(name string) (string, error) {
-	var id string
-	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByUsername))
-		userID := unpb.Get([]byte(name))
-		if userID == nil {
-			return model.ErrUserNotFound
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		u := ub.Get([]byte(userID))
-		if u == nil {
-			return model.ErrUserNotFound
-		}
-
-		user, err := model.UserFromJSON(u)
-		if err != nil {
-			return err
-		}
-
-		if !user.Active {
-			return ErrorInactiveUser
-		}
-
-		id = user.ID
-		return nil
-	})
-	if err != nil {
-		return "", err
-	}
-	return id, nil
 }
 
 // FetchUsers fetches users which name satisfies provided filterString.

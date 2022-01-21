@@ -31,9 +31,11 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 		// Check that new username is not taken.
-		if d.updateUsername && ar.server.Storages().User.UserExists(d.NewUsername) {
-			ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, "", "UpdateUser.updateUsername && userStorage.UserExists")
-			return
+		if d.updateUsername {
+			if _, err := ar.server.Storages().User.UserByUsername(d.NewUsername); err == nil {
+				ar.Error(w, ErrorAPIUsernameTaken, http.StatusBadRequest, "", "UpdateUser.updateUsername && userStorage.UserExists")
+				return
+			}
 		}
 
 		// Check that email is not taken.

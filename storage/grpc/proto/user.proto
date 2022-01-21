@@ -1,0 +1,167 @@
+syntax = "proto3";
+package proto;
+option go_package = "github.com/madappgang/identifo/v2/storage/grpc/proto";
+
+import "google/protobuf/timestamp.proto";
+
+
+message Empty {}
+message Error {
+    string error = 1;
+}
+
+message User {
+    string id = 1;
+    string username = 2;
+    string email = 3;
+    string full_name = 4;
+    string phone = 5; 
+    string pswd = 6;
+    bool active = 7;
+    message TFAInfo {
+        bool is_enabled = 1;
+        int32 hotp_counter = 2;
+        google.protobuf.Timestamp hotp_expired_at = 3;
+        string secret = 4;
+    }
+    TFAInfo tfa_info = 8;
+    int32 num_of_logins = 9   ;
+    int64 latest_login_time =10; 
+    string access_role = 11;
+    bool anonymous = 12;   
+    repeated string federated_ids = 13;
+    repeated string scopes = 14;
+}
+
+message UserByPhoneRequest {
+    string phone = 1; 
+}
+
+message AddUserWithPasswordRequest {
+    User user = 1;
+    string password = 2;
+    string role = 3;
+    bool is_anonymous = 4;
+}
+
+message UserByIDRequest {
+    string id = 1;
+}
+
+message UserByEmailRequest {
+    string email = 1;
+}
+
+message UserByUsernameRequest {
+    string username = 1;
+}
+
+message UserByFederatedIDRequest {
+    string provider = 1;
+    string id = 2;
+}
+
+message AddUserWithFederatedIDRequest {
+    User user = 1;
+    string provider = 2;
+    string id = 3;
+    string role = 4;
+}
+
+message UpdateUserRequest {
+    string id = 1;
+    User user = 2;
+}
+
+message ResetPasswordRequest {
+    string id = 1;
+    string password = 2;
+}
+
+message CheckPasswordRequest {
+    string id = 1;
+    string password = 2;
+}
+
+message DeleteUserRequest {
+    string id = 1;
+}
+
+message FetchUsersRequest {
+    string search = 1;
+    int32 skip = 2;
+    int32 limit = 3;
+}
+message FetchUsersResponse {
+    repeated User users = 1;
+    int32 length = 2;
+}
+
+message UpdateLoginMetadataRequest {
+    string id = 1;
+}
+
+message AttachDeviceTokenRequest{
+    string id = 1;
+    string token = 2;
+}
+
+message DetachDeviceTokenRequest{
+    string token = 1;
+}
+
+message AllDeviceTokensRequest{
+    string id = 1;
+}
+message AllDeviceTokensResponse{
+    repeated string tokens = 1;
+}
+
+message ImportJSONRequest{
+    bytes data = 1;
+}
+
+message CloseRequest{}
+
+service UserStorage {
+    //UserByPhone(phone string) (model.User, error) {
+    rpc UserByPhone(UserByPhoneRequest) returns (User);
+    //AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
+    rpc AddUserWithPassword(AddUserWithPasswordRequest) returns (User);
+    //UserByID(id string) (model.User, error) {
+    rpc UserByID(UserByIDRequest) returns (User);
+    //UserByEmail(email string) (model.User, error) {
+    rpc UserByEmail(UserByEmailRequest) returns (User);
+    //UserByUsername(username string) (model.User, error) {
+    rpc UserByUsername(UserByUsernameRequest) returns (User);
+    //UserByFederatedID(provider string, id string) (model.User, error) {
+    rpc UserByFederatedID(UserByFederatedIDRequest) returns (User);
+    //AddUserWithFederatedID(user model.User, provider string, id, role string) (model.User, error) {
+    rpc AddUserWithFederatedID(AddUserWithFederatedIDRequest) returns (User);
+    //UpdateUser(userID string, newUser model.User) (model.User, error) {
+    rpc UpdateUser(UpdateUserRequest) returns (User);
+    //ResetPassword(id, password string) error {
+    rpc ResetPassword(ResetPasswordRequest) returns (Empty);
+    //CheckPassword(id, password string) error {
+    rpc CheckPassword(CheckPasswordRequest) returns (Empty);
+    //DeleteUser(id string) error {
+    rpc DeleteUser(DeleteUserRequest) returns (Empty);
+    //FetchUsers(search string, skip, limit int) ([]model.User, int, error) {
+    rpc FetchUsers(FetchUsersRequest) returns (FetchUsersResponse);
+    //UpdateLoginMetadata(userID string) {
+    rpc UpdateLoginMetadata(UpdateLoginMetadataRequest) returns (Empty);
+    
+    // push device tokens
+    //AttachDeviceToken(userID, token string) error {
+    rpc AttachDeviceToken(AttachDeviceTokenRequest) returns (Empty);
+    //DetachDeviceToken(token string) error {
+    rpc DetachDeviceToken(DetachDeviceTokenRequest) returns (Empty);
+    //AllDeviceTokens(userID string) ([]string, error) {
+    rpc AllDeviceTokens(AllDeviceTokensRequest) returns (AllDeviceTokensResponse);
+    
+    // import data
+    //ImportJSON(data []byte) error {
+    rpc ImportJSON(ImportJSONRequest) returns (Empty);
+    //Close() {
+    rpc Close(CloseRequest) returns (Empty);
+}

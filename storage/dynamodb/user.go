@@ -146,12 +146,6 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	return u, err
 }
 
-// UserExists checks if user with provided name exists.
-func (us *UserStorage) UserExists(name string) bool {
-	_, err := us.userIdxByName(name)
-	return err == nil
-}
-
 // AttachDeviceToken do nothing here
 // TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
@@ -486,25 +480,6 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	})
 
 	return err
-}
-
-// IDByName returns userID by name.
-func (us *UserStorage) IDByName(name string) (string, error) {
-	userIndex, err := us.userIdxByName(name)
-	if err != nil {
-		return "", err
-	}
-
-	user, err := us.UserByID(userIndex.ID)
-	if err != nil {
-		return "", err
-	}
-
-	if !user.Active {
-		return "", ErrorInactiveUser
-	}
-
-	return user.ID, nil
 }
 
 // FetchUsers fetches users which name satisfies provided filterString.

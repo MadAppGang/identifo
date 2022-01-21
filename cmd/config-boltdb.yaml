@@ -18,15 +18,11 @@ storage:
       region: ""
       endpoint: ""
   userStorage:
-    type: boltdb
-    boltdb:
-      path: ./data/db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
+    type: grpc
+    grpc:
+      cmd: "./plugins/bin/bolt-user-storage"
+      params:
+        path: ./data/user.db
   tokenStorage:
     type: boltdb
     boltdb:
