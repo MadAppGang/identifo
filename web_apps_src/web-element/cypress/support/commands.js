@@ -124,6 +124,7 @@ Cypress.Commands.add('serverSetLoginOptions', async data => {
     mode: 'cors',
     credentials: 'include',
   });
+  await new Promise(resolve => setTimeout(resolve, 2000));
 });
 
 // Delete test user using search

@@ -67,7 +67,7 @@ func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
 
 // Close closes underlying database.
 func (tb *TokenBlacklist) Close() {
-	if err := tb.db.Close(); err != nil {
+	if err := CloseDB(tb.db); err != nil {
 		log.Printf("Error closing token blacklist storage: %s\n", err)
 	}
 }

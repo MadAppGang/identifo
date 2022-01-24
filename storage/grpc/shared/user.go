@@ -5,6 +5,8 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/grpc/proto"
 	"golang.org/x/net/context"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -19,6 +21,9 @@ func (m GRPCClient) UserByPhone(phone string) (model.User, error) {
 		Phone: phone,
 	})
 	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return model.User{}, model.ErrUserNotFound
+		}
 		return model.User{}, err
 	}
 
@@ -43,6 +48,9 @@ func (m GRPCClient) UserByID(id string) (model.User, error) {
 		Id: id,
 	})
 	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return model.User{}, model.ErrUserNotFound
+		}
 		return model.User{}, err
 	}
 
@@ -53,6 +61,9 @@ func (m GRPCClient) UserByEmail(email string) (model.User, error) {
 		Email: email,
 	})
 	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return model.User{}, model.ErrUserNotFound
+		}
 		return model.User{}, err
 	}
 
@@ -63,6 +74,9 @@ func (m GRPCClient) UserByUsername(username string) (model.User, error) {
 		Username: username,
 	})
 	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return model.User{}, model.ErrUserNotFound
+		}
 		return model.User{}, err
 	}
 
@@ -74,6 +88,9 @@ func (m GRPCClient) UserByFederatedID(provider string, id string) (model.User, e
 		Provider: provider,
 	})
 	if err != nil {
+		if status.Convert(err).Code() == codes.NotFound {
+			return model.User{}, model.ErrUserNotFound
+		}
 		return model.User{}, err
 	}
 
@@ -255,6 +272,9 @@ type GRPCServer struct {
 
 func (m *GRPCServer) UserByPhone(ctx context.Context, in *proto.UserByPhoneRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByPhone(in.Phone)
+	if err == model.ErrUserNotFound {
+		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+	}
 	return toProto(user), err
 }
 
@@ -265,21 +285,33 @@ func (m *GRPCServer) AddUserWithPassword(ctx context.Context, in *proto.AddUserW
 
 func (m *GRPCServer) UserByID(ctx context.Context, in *proto.UserByIDRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByID(in.Id)
+	if err == model.ErrUserNotFound {
+		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+	}
 	return toProto(user), err
 }
 
 func (m *GRPCServer) UserByEmail(ctx context.Context, in *proto.UserByEmailRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByEmail(in.Email)
+	if err == model.ErrUserNotFound {
+		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+	}
 	return toProto(user), err
 }
 
 func (m *GRPCServer) UserByUsername(ctx context.Context, in *proto.UserByUsernameRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByUsername(in.Username)
+	if err == model.ErrUserNotFound {
+		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+	}
 	return toProto(user), err
 }
 
 func (m *GRPCServer) UserByFederatedID(ctx context.Context, in *proto.UserByFederatedIDRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByFederatedID(in.Provider, in.Id)
+	if err == model.ErrUserNotFound {
+		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+	}
 	return toProto(user), err
 }
 

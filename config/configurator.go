@@ -2,6 +2,7 @@ package config
 
 import (
 	"io/fs"
+	"log"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
@@ -38,47 +39,56 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	// read settings, if they empty or use cached version
 	settings, err := config.LoadServerSettings(false)
 	if err != nil {
+		log.Println("Error on Load Server Settings")
 		return nil, err
 	}
 
 	// Create all storages
 	app, err := storage.NewAppStorage(settings.Storage.AppStorage)
 	if err != nil {
+		log.Println("Error on Create New AppStorage")
 		return nil, err
 	}
 
 	user, err := storage.NewUserStorage(settings.Storage.UserStorage)
 	if err != nil {
+		log.Println("Error on Create New UserStorage")
 		return nil, err
 	}
 
 	token, err := storage.NewTokenStorage(settings.Storage.TokenStorage)
 	if err != nil {
+		log.Println("Error on Create New TokenStorage")
 		return nil, err
 	}
 
 	tokenBlacklist, err := storage.NewTokenBlacklistStorage(settings.Storage.TokenBlacklist)
 	if err != nil {
+		log.Println("Error on Create New TokenBlacklistStorage")
 		return nil, err
 	}
 
 	verification, err := storage.NewVerificationCodesStorage(settings.Storage.VerificationCodeStorage)
 	if err != nil {
+		log.Println("Error on Create New VerificationCodesStorage")
 		return nil, err
 	}
 
 	invite, err := storage.NewInviteStorage(settings.Storage.InviteStorage)
 	if err != nil {
+		log.Println("Error on Create New InviteStorage")
 		return nil, err
 	}
 
 	session, err := storage.NewSessionStorage(settings.SessionStorage)
 	if err != nil {
+		log.Println("Error on Create New SessionStorage")
 		return nil, err
 	}
 
 	key, err := storage.NewKeyStorage(settings.KeyStorage)
 	if err != nil {
+		log.Println("Error on Create New KeyStorage")
 		return nil, err
 	}
 
@@ -90,13 +100,15 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 	loginFS, err := storage.NewFS(lwas)
 	if err != nil {
+		log.Println("Error on Create login fs storage")
 		return nil, err
 	}
 
 	var adminPanelFS fs.FS
-	if settings.AdminPanel.Enabled == true {
+	if settings.AdminPanel.Enabled {
 		adminPanelFS, err = storage.NewFS(adminPanelFSSettings)
 		if err != nil {
+			log.Println("Error on Create admin panel fs storage")
 			return nil, err
 		}
 	}

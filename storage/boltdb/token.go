@@ -78,7 +78,7 @@ func (ts *TokenStorage) DeleteToken(token string) error {
 
 // Close closes underlying database.
 func (ts *TokenStorage) Close() {
-	if err := ts.db.Close(); err != nil {
+	if err := CloseDB(ts.db); err != nil {
 		log.Printf("Error closing token storage: %s\n", err)
 	}
 }

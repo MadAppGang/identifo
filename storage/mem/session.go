@@ -58,3 +58,8 @@ func (m *memoryStorage) ProlongSession(id string, newDuration model.SessionDurat
 	m.sessions[session.ID] = session
 	return nil
 }
+
+// Close closes underlying database.
+func (m *memoryStorage) Close() {
+
+}

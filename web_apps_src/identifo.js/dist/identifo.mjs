@@ -451,15 +451,15 @@ class UrlBuilder {
   getUrl(flow) {
     var _a, _b;
     const scopes = ((_a = this.config.scopes) == null ? void 0 : _a.join()) || "";
-    const redirectUri = encodeURIComponent((_b = this.config.redirectUri) != null ? _b : window.location.href);
+    const redirectUri = (_b = this.config.redirectUri) != null ? _b : window.location.href;
     const baseParams = `appId=${this.config.appId}&scopes=${scopes}`;
-    const urlParams = `${baseParams}&callbackUrl=${redirectUri}`;
-    const postLogoutRedirectUri = this.config.postLogoutRedirectUri ? `&callbackUrl=${encodeURIComponent(this.config.postLogoutRedirectUri)}` : `&callbackUrl=${redirectUri}&redirectUri=${this.config.url}/web/login?${encodeURIComponent(baseParams)}`;
+    const urlParams = `${baseParams}&callbackUrl=${encodeURIComponent(redirectUri)}`;
+    const postLogoutRedirectUri = this.config.postLogoutRedirectUri ? `${this.config.postLogoutRedirectUri}` : `${redirectUri}&redirectUri=${this.config.url}/web/login?${encodeURIComponent(baseParams)}`;
     const urls = {
       signup: `${this.config.url}/web/register?${urlParams}`,
       signin: `${this.config.url}/web/login?${urlParams}`,
-      logout: `${this.config.url}/web/logout?${baseParams}${postLogoutRedirectUri}`,
-      renew: `${this.config.url}/web/token/renew?${baseParams}&redirectUri=${redirectUri}`,
+      logout: `${this.config.url}/web/logout?${baseParams}&callbackUrl=${encodeURIComponent(postLogoutRedirectUri)}`,
+      renew: `${this.config.url}/web/token/renew?${baseParams}&redirectUri=${encodeURIComponent(redirectUri)}`,
       default: "default"
     };
     return urls[flow] || urls.default;
