@@ -17,6 +17,9 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
+    grpc:
+      cmd: ""
+      params: {}
   userStorage:
     type: grpc
     boltdb:
@@ -41,6 +44,9 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
+    grpc:
+      cmd: ""
+      params: {}
   tokenBlacklist:
     type: boltdb
     boltdb:
@@ -51,6 +57,9 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
+    grpc:
+      cmd: ""
+      params: {}
   verificationCodeStorage:
     type: boltdb
     boltdb:
@@ -61,6 +70,9 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
+    grpc:
+      cmd: ""
+      params: {}
   inviteStorage:
     type: boltdb
     boltdb:
@@ -71,6 +83,9 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
+    grpc:
+      cmd: ""
+      params: {}
 sessionStorage:
   type: memory
   sessionDuration: 300
@@ -110,7 +125,7 @@ login:
   loginWith:
     username: false
     phone: false
-    email: false
+    email: true
     federated: false
   tfaType: app
   tfaResendTimeout: 0
