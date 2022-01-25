@@ -12,4 +12,5 @@ type InviteStorage interface {
 	GetAll(withArchived bool, skip, limit int) ([]Invite, int, error)
 	ArchiveAllByEmail(email string) error
 	ArchiveByID(id string) error
+	Close()
 }

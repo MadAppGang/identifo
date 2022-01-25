@@ -89,7 +89,9 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (s *Server) Close() {
 	s.storages.App.Close()
 	s.storages.User.Close()
-	s.storages.Blocklist.Close()
 	s.storages.Token.Close()
+	s.storages.Blocklist.Close()
+	s.storages.Invite.Close()
 	s.storages.Verification.Close()
+	s.storages.Session.Close()
 }

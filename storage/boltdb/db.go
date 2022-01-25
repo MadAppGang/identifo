@@ -58,6 +58,7 @@ func CloseDB(db *bolt.DB) error {
 		// it is the last counter, remove it from counter and close it
 		if counter <= 1 {
 			poolCounter.Delete(db)
+			pool.Delete(db.Path())
 			return db.Close()
 		}
 		// if we have more than 1 reference, we just decrease the reference count

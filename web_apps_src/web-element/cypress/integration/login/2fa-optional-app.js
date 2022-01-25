@@ -2,13 +2,13 @@
 describe('2fa optional', () => {
   before(() => {
     cy.createAppAndUser();
+    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
+    cy.appSet({ tfa_status: 'optional' });
   });
   after(() => {
     cy.deleteAppAndUser();
   });
   beforeEach(() => {
-    cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
-    cy.appSet({ tfa_status: 'optional' });
     cy.visitLogin();
   });
   it('ask for setup 2fa and skip', () => {

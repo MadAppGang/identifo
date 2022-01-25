@@ -72,7 +72,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 
 // Close closes underlying database.
 func (vcs *VerificationCodeStorage) Close() {
-	if err := vcs.db.Close(); err != nil {
+	if err := CloseDB(vcs.db); err != nil {
 		log.Printf("Error closing verification code storage: %s\n", err)
 	}
 }

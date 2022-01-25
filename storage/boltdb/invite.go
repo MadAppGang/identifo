@@ -224,7 +224,7 @@ func (is *InviteStorage) ArchiveByID(id string) error {
 
 // Close closes underlying database.
 func (is *InviteStorage) Close() {
-	if err := is.db.Close(); err != nil {
+	if err := CloseDB(is.db); err != nil {
 		log.Printf("Error closing invite storage: %s\n", err)
 	}
 }

@@ -123,19 +123,6 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	return u, nil
 }
 
-// UserExists checks if user with provided name exists.
-func (us *UserStorage) UserExists(name string) bool {
-	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
-	defer cancel()
-
-	strictPattern := "^" + name + "$"
-	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
-
-	var u model.User
-	err := us.coll.FindOne(ctx, q).Decode(&u)
-	return err == nil
-}
-
 // AttachDeviceToken do nothing here
 // TODO: implement device storage
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
@@ -173,7 +160,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.M{"phone": phone}).Decode(&u); err != nil {
-		return model.User{}, err
+		return model.User{}, model.ErrUserNotFound
 	}
 	u.Pswd = ""
 	return u, nil
@@ -346,25 +333,6 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	var ud model.User
 	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
 	return err
-}
-
-// IDByName returns userID by name.
-func (us *UserStorage) IDByName(name string) (string, error) {
-	strictPattern := "^" + name + "$"
-	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
-
-	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
-	defer cancel()
-
-	var u model.User
-	if err := us.coll.FindOne(ctx, q).Decode(&u); err != nil {
-		return "", model.ErrorNotFound
-	}
-
-	if !u.Active {
-		return "", ErrorInactiveUser
-	}
-	return u.ID, nil
 }
 
 // DeleteUser deletes user by id.

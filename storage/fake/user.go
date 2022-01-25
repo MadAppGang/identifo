@@ -34,11 +34,6 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	return randUser(), nil
 }
 
-// UserExists always returns true.
-func (us *UserStorage) UserExists(name string) bool {
-	return true
-}
-
 // AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	return nil
@@ -98,11 +93,6 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 // CheckPassword does nothig here.
 func (us *UserStorage) CheckPassword(id, password string) error {
 	return nil
-}
-
-// IDByName returns random id.
-func (us *UserStorage) IDByName(name string) (string, error) {
-	return randomdata.StringNumber(2, "-"), nil
 }
 
 // DeleteUser does nothing here.

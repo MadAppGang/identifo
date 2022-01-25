@@ -18,6 +18,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/sessions v1.2.1
+	github.com/hashicorp/go-plugin v1.4.3 // indirect
 	github.com/jszwec/s3fs v0.3.1
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
@@ -44,7 +45,8 @@ require (
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/protobuf v1.27.1 // indirect
+	google.golang.org/grpc v1.32.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/go-playground/validator.v9 v9.29.1

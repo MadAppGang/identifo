@@ -47,7 +47,7 @@ func main() {
 	restartServer := func() {
 		ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
 		httpSrv.Shutdown(ctx)
-		// srv.Shutdown() TODO: implement gracefull server shutdown
+		srv.Close() // TODO: implement gracefull server shutdown
 		srv, httpSrv, err = initServer(*configFlag, restart)
 		if err != nil {
 			log.Fatalf("Unable to start Identifo with error: %v ", err)
@@ -75,6 +75,7 @@ func main() {
 			log.Println("Received termination signal, shutting down the server ⤵️...")
 			ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
 			httpSrv.Shutdown(ctx)
+			srv.Close()
 			log.Println("The server is down, good bye 👋👋👋.")
 			return
 		}

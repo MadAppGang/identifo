@@ -29,5 +29,8 @@ jobs:
       - name: Build
         run: go build -o ./identifo .
 
+      - name: Build plugins
+        run: go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
+
       - name: Build and test web-element
         run: ./web_apps_src/run-test-web.sh

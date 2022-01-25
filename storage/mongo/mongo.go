@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"fmt"
+	"log"
 	"strings"
 	"time"
 
@@ -43,8 +44,10 @@ type DB struct {
 }
 
 // Close closes database connection.
-func (db *DB) Close() error {
-	return db.Client.Disconnect(context.TODO())
+func (db *DB) Close() {
+	if err := db.Client.Disconnect(context.TODO()); err != nil {
+		log.Printf("Error closing mongo storage: %s\n", err)
+	}
 }
 
 // EnsureCollectionIndices creates indices on a collection.

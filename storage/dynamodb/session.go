@@ -207,3 +207,6 @@ func awsErrorNotFound(err error) bool {
 	}
 	return false
 }
+func (is *DynamoDBSessionStorage) Close() {
+
+}

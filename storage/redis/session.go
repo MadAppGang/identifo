@@ -95,3 +95,6 @@ func (r *RedisSessionStorage) ProlongSession(id string, newDuration model.Sessio
 	err = r.client.SetXX(session.ID, bs, newDuration.Duration).Err()
 	return err
 }
+func (r *RedisSessionStorage) Close() {
+	r.client.Close()
+}

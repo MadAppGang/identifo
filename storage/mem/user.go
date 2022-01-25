@@ -69,16 +69,6 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	return model.User{}, errors.New("not found")
 }
 
-// UserExists always returns true.
-func (us *UserStorage) UserExists(name string) bool {
-	for _, u := range us.users {
-		if strings.EqualFold(u.Username, name) {
-			return true
-		}
-	}
-	return false
-}
-
 // AttachDeviceToken does nothing here.
 func (us *UserStorage) AttachDeviceToken(id, token string) error {
 	us.userDevices[id] = token
@@ -214,16 +204,6 @@ func (us *UserStorage) CheckPassword(id, password string) error {
 		return model.ErrUserNotFound
 	}
 	return nil
-}
-
-// IDByName returns random id.
-func (us *UserStorage) IDByName(name string) (string, error) {
-	u, err := us.UserByUsername(name)
-	if err != nil {
-		return "", err
-	}
-
-	return u.ID, nil
 }
 
 // DeleteUser does nothing here.

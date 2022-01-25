@@ -38,7 +38,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			ar.ServeJSON(w, http.StatusOK, result)
 			return
 		} else if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, "Unable to get user with email", "RequestResetPassword.ErrorGettingUser")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, err.Error(), "RequestResetPassword.ErrorGettingUser")
 			return
 		}
 

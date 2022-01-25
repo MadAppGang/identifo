@@ -28,9 +28,7 @@ type UserStorage interface {
 	AddUserWithPassword(user User, password, role string, isAnonymous bool) (User, error)
 	UserByID(id string) (User, error)
 	UserByEmail(email string) (User, error)
-	IDByName(name string) (string, error)
 	UserByUsername(username string) (User, error)
-	UserExists(name string) bool
 	UserByFederatedID(provider string, id string) (User, error)
 	AddUserWithFederatedID(user User, provider string, id, role string) (User, error)
 	UpdateUser(userID string, newUser User) (User, error)

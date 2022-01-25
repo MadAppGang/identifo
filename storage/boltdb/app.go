@@ -206,7 +206,7 @@ func (as *AppStorage) ImportJSON(data []byte) error {
 
 // Close closes underlying database.
 func (as *AppStorage) Close() {
-	if err := as.db.Close(); err != nil {
+	if err := CloseDB(as.db); err != nil {
 		log.Printf("Error closing app storage: %s\n", err)
 	}
 }
