@@ -146,6 +146,7 @@ Cypress.Commands.add('userSet', async data => {
 });
 
 Cypress.Commands.add('getResetTokenURL', async () => {
+  await login();
   const resetTokenData = await fetch(`${adminUrl}/users/generate_new_reset_token`, {
     body: JSON.stringify({ user_id: userId, app_id: appId }),
     method: 'POST',
