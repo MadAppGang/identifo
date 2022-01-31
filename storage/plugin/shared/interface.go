@@ -6,6 +6,7 @@ import (
 	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/grpc/proto"
+	grpcShared "github.com/madappgang/identifo/v2/storage/grpc/shared"
 	"google.golang.org/grpc"
 )
 
@@ -29,10 +30,10 @@ type UserStoragePlugin struct {
 }
 
 func (p *UserStoragePlugin) GRPCServer(broker *plugin.GRPCBroker, s *grpc.Server) error {
-	proto.RegisterUserStorageServer(s, &GRPCServer{Impl: p.Impl})
+	proto.RegisterUserStorageServer(s, &grpcShared.GRPCServer{Impl: p.Impl})
 	return nil
 }
 
 func (p *UserStoragePlugin) GRPCClient(ctx context.Context, broker *plugin.GRPCBroker, c *grpc.ClientConn) (interface{}, error) {
-	return &GRPCClient{client: proto.NewUserStorageClient(c)}, nil
+	return &grpcShared.GRPCClient{Client: proto.NewUserStorageClient(c)}, nil
 }

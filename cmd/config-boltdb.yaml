@@ -21,16 +21,16 @@ storage:
       cmd: ""
       params: {}
   userStorage:
-    type: grpc
+    type: boltdb
     boltdb:
-      path: ""
+      path: ./data/db.db
     mongo:
       connection: ""
       database: ""
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ./plugins/bin/bolt-user-storage
       params:
         path: ./data/user.db

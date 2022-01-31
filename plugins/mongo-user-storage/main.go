@@ -9,8 +9,8 @@ import (
 
 	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/storage/grpc/shared"
 	"github.com/madappgang/identifo/v2/storage/mongo"
+	"github.com/madappgang/identifo/v2/storage/plugin/shared"
 )
 
 func main() {

@@ -1,7 +1,6 @@
 package shared
 
 import (
-	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/grpc/proto"
 	"golang.org/x/net/context"
@@ -12,12 +11,12 @@ import (
 
 // GRPCClient is an implementation of KV that talks over RPC.
 type GRPCClient struct {
-	client       proto.UserStorageClient
-	PluginClient *plugin.Client
+	Client         proto.UserStorageClient
+	ClosableClient ClosableClient
 }
 
 func (m GRPCClient) UserByPhone(phone string) (model.User, error) {
-	u, err := m.client.UserByPhone(context.Background(), &proto.UserByPhoneRequest{
+	u, err := m.Client.UserByPhone(context.Background(), &proto.UserByPhoneRequest{
 		Phone: phone,
 	})
 	if err != nil {
@@ -31,7 +30,7 @@ func (m GRPCClient) UserByPhone(phone string) (model.User, error) {
 }
 
 func (m GRPCClient) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
-	u, err := m.client.AddUserWithPassword(context.Background(), &proto.AddUserWithPasswordRequest{
+	u, err := m.Client.AddUserWithPassword(context.Background(), &proto.AddUserWithPasswordRequest{
 		User:        toProto(user),
 		Password:    password,
 		Role:        role,
@@ -44,7 +43,7 @@ func (m GRPCClient) AddUserWithPassword(user model.User, password, role string, 
 	return toModel(u), nil
 }
 func (m GRPCClient) UserByID(id string) (model.User, error) {
-	u, err := m.client.UserByID(context.Background(), &proto.UserByIDRequest{
+	u, err := m.Client.UserByID(context.Background(), &proto.UserByIDRequest{
 		Id: id,
 	})
 	if err != nil {
@@ -57,7 +56,7 @@ func (m GRPCClient) UserByID(id string) (model.User, error) {
 	return toModel(u), nil
 }
 func (m GRPCClient) UserByEmail(email string) (model.User, error) {
-	u, err := m.client.UserByEmail(context.Background(), &proto.UserByEmailRequest{
+	u, err := m.Client.UserByEmail(context.Background(), &proto.UserByEmailRequest{
 		Email: email,
 	})
 	if err != nil {
@@ -70,7 +69,7 @@ func (m GRPCClient) UserByEmail(email string) (model.User, error) {
 	return toModel(u), nil
 }
 func (m GRPCClient) UserByUsername(username string) (model.User, error) {
-	u, err := m.client.UserByUsername(context.Background(), &proto.UserByUsernameRequest{
+	u, err := m.Client.UserByUsername(context.Background(), &proto.UserByUsernameRequest{
 		Username: username,
 	})
 	if err != nil {
@@ -83,7 +82,7 @@ func (m GRPCClient) UserByUsername(username string) (model.User, error) {
 	return toModel(u), nil
 }
 func (m GRPCClient) UserByFederatedID(provider string, id string) (model.User, error) {
-	u, err := m.client.UserByFederatedID(context.Background(), &proto.UserByFederatedIDRequest{
+	u, err := m.Client.UserByFederatedID(context.Background(), &proto.UserByFederatedIDRequest{
 		Id:       id,
 		Provider: provider,
 	})
@@ -98,7 +97,7 @@ func (m GRPCClient) UserByFederatedID(provider string, id string) (model.User, e
 }
 
 func (m GRPCClient) AddUserWithFederatedID(user model.User, provider string, id, role string) (model.User, error) {
-	u, err := m.client.AddUserWithFederatedID(context.Background(), &proto.AddUserWithFederatedIDRequest{
+	u, err := m.Client.AddUserWithFederatedID(context.Background(), &proto.AddUserWithFederatedIDRequest{
 		User:     toProto(user),
 		Provider: provider,
 		Id:       id,
@@ -111,7 +110,7 @@ func (m GRPCClient) AddUserWithFederatedID(user model.User, provider string, id,
 	return toModel(u), nil
 }
 func (m GRPCClient) UpdateUser(userID string, newUser model.User) (model.User, error) {
-	u, err := m.client.UpdateUser(context.Background(), &proto.UpdateUserRequest{
+	u, err := m.Client.UpdateUser(context.Background(), &proto.UpdateUserRequest{
 		User: toProto(newUser),
 		Id:   userID,
 	})
@@ -122,7 +121,7 @@ func (m GRPCClient) UpdateUser(userID string, newUser model.User) (model.User, e
 	return toModel(u), nil
 }
 func (m GRPCClient) ResetPassword(id, password string) error {
-	_, err := m.client.ResetPassword(context.Background(), &proto.ResetPasswordRequest{
+	_, err := m.Client.ResetPassword(context.Background(), &proto.ResetPasswordRequest{
 		Id:       id,
 		Password: password,
 	})
@@ -132,7 +131,7 @@ func (m GRPCClient) ResetPassword(id, password string) error {
 	return nil
 }
 func (m GRPCClient) CheckPassword(id, password string) error {
-	_, err := m.client.CheckPassword(context.Background(), &proto.CheckPasswordRequest{
+	_, err := m.Client.CheckPassword(context.Background(), &proto.CheckPasswordRequest{
 		Id:       id,
 		Password: password,
 	})
@@ -142,7 +141,7 @@ func (m GRPCClient) CheckPassword(id, password string) error {
 	return nil
 }
 func (m GRPCClient) DeleteUser(id string) error {
-	_, err := m.client.DeleteUser(context.Background(), &proto.DeleteUserRequest{
+	_, err := m.Client.DeleteUser(context.Background(), &proto.DeleteUserRequest{
 		Id: id,
 	})
 	if err != nil {
@@ -151,7 +150,7 @@ func (m GRPCClient) DeleteUser(id string) error {
 	return nil
 }
 func (m GRPCClient) FetchUsers(search string, skip, limit int) ([]model.User, int, error) {
-	r, err := m.client.FetchUsers(context.Background(), &proto.FetchUsersRequest{
+	r, err := m.Client.FetchUsers(context.Background(), &proto.FetchUsersRequest{
 		Search: search,
 		Skip:   int32(skip),
 		Limit:  int32(limit),
@@ -169,14 +168,14 @@ func (m GRPCClient) FetchUsers(search string, skip, limit int) ([]model.User, in
 	return users, len(users), nil
 }
 func (m GRPCClient) UpdateLoginMetadata(userID string) {
-	m.client.UpdateLoginMetadata(context.Background(), &proto.UpdateLoginMetadataRequest{
+	m.Client.UpdateLoginMetadata(context.Background(), &proto.UpdateLoginMetadataRequest{
 		Id: userID,
 	})
 }
 
 // push device tokens
 func (m GRPCClient) AttachDeviceToken(userID, token string) error {
-	_, err := m.client.AttachDeviceToken(context.Background(), &proto.AttachDeviceTokenRequest{
+	_, err := m.Client.AttachDeviceToken(context.Background(), &proto.AttachDeviceTokenRequest{
 		Id:    userID,
 		Token: token,
 	})
@@ -186,7 +185,7 @@ func (m GRPCClient) AttachDeviceToken(userID, token string) error {
 	return nil
 }
 func (m GRPCClient) DetachDeviceToken(token string) error {
-	_, err := m.client.DetachDeviceToken(context.Background(), &proto.DetachDeviceTokenRequest{
+	_, err := m.Client.DetachDeviceToken(context.Background(), &proto.DetachDeviceTokenRequest{
 		Token: token,
 	})
 	if err != nil {
@@ -195,7 +194,7 @@ func (m GRPCClient) DetachDeviceToken(token string) error {
 	return nil
 }
 func (m GRPCClient) AllDeviceTokens(userID string) ([]string, error) {
-	r, err := m.client.AllDeviceTokens(context.Background(), &proto.AllDeviceTokensRequest{
+	r, err := m.Client.AllDeviceTokens(context.Background(), &proto.AllDeviceTokensRequest{
 		Id: userID,
 	})
 	if err != nil {
@@ -211,8 +210,10 @@ func (m GRPCClient) ImportJSON(data []byte) error {
 }
 
 func (m GRPCClient) Close() {
-	m.client.Close(context.Background(), &proto.CloseRequest{})
-	m.PluginClient.Kill()
+	m.Client.Close(context.Background(), &proto.CloseRequest{})
+	if m.ClosableClient != nil {
+		m.ClosableClient.Close()
+	}
 }
 
 func toModel(u *proto.User) model.User {
