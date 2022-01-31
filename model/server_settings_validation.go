@@ -118,10 +118,12 @@ func (dbs *DatabaseSettings) Validate() error {
 		if len(dbs.Mongo.DatabaseName) == 0 {
 			return fmt.Errorf("empty mongo database name")
 		}
-	case DBTypeGRPC:
-		if len(dbs.GRPC.Cmd) == 0 {
+	case DBTypePlugin:
+		if len(dbs.Plugin.Cmd) == 0 {
 			return fmt.Errorf("empty CMD for grpc")
 		}
+	case DBTypeGRPC:
+
 	default:
 		return fmt.Errorf("unsupported database type %s", dbs.Type)
 	}

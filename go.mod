@@ -18,7 +18,7 @@ require (
 	github.com/gorilla/mux v1.7.3
 	github.com/gorilla/schema v1.2.0 // indirect
 	github.com/gorilla/sessions v1.2.1
-	github.com/hashicorp/go-plugin v1.4.3 // indirect
+	github.com/hashicorp/go-plugin v1.4.3
 	github.com/jszwec/s3fs v0.3.1
 	github.com/leodido/go-urn v1.2.0 // indirect
 	github.com/mailgun/mailgun-go v1.1.1
@@ -33,19 +33,19 @@ require (
 	github.com/sirupsen/logrus v1.6.0 // indirect
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/afero v1.6.0
-	github.com/stretchr/testify v1.7.0 // indirect
+	github.com/stretchr/testify v1.7.0
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20181030022105-c8557ba2c119
 	github.com/youmark/pkcs8 v0.0.0-20201027041543-1326539a0a0a // indirect
 	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.8.2
 	golang.org/x/crypto v0.0.0-20210817164053-32db794688a5
-	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d // indirect
+	golang.org/x/net v0.0.0-20210813160813-60bc85c4be6d
 	golang.org/x/oauth2 v0.0.0-20210819190943-2bc19b11175f // indirect
 	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
 	golang.org/x/text v0.3.7 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/grpc v1.32.0
+	google.golang.org/grpc v1.44.0
 	google.golang.org/protobuf v1.27.1
 	gopkg.in/check.v1 v1.0.0-20190902080502-41f04d3bba15 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect

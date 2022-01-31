@@ -1,47 +1,32 @@
 package grpc
 
 import (
-	"os/exec"
-
-	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/grpc/proto"
 	"github.com/madappgang/identifo/v2/storage/grpc/shared"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 )
 
 // NewUserStorage creates and inits MongoDB user storage.
 func NewUserStorage(settings model.GRPCSettings) (model.UserStorage, error) {
-	var err error
-	err = nil
-
-	params := []string{}
-	for k, v := range settings.Params {
-		params = append(params, "-"+k)
-		params = append(params, v)
-	}
-
-	client := plugin.NewClient(&plugin.ClientConfig{
-		HandshakeConfig:  shared.Handshake,
-		Plugins:          shared.PluginMap,
-		Cmd:              exec.Command(settings.Cmd, params...),
-		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-	})
-	// defer client.Kill()
-
-	// Connect via RPC
-	rpcClient, err := client.Client()
+	// Set up a connection to the server.
+	conn, err := grpc.Dial(settings.Address, grpc.WithTransportCredentials(insecure.NewCredentials()))
 	if err != nil {
 		return nil, err
 	}
 
-	// Request the plugin
-	raw, err := rpcClient.Dispense("user-storage")
-	if err != nil {
-		return nil, err
-	}
+	uc := proto.NewUserStorageClient(&grpc.ClientConn{})
 
-	user := raw.(*shared.GRPCClient)
+	user := shared.GRPCClient{Client: uc, ClosableClient: grpcClosableClient{client: conn}}
 
-	user.PluginClient = client
+	return user, nil
+}
 
-	return user, err
+type grpcClosableClient struct {
+	client *grpc.ClientConn
+}
+
+func (g grpcClosableClient) Close() {
+	g.client.Close()
 }

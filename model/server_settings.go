@@ -54,6 +54,7 @@ type DatabaseSettings struct {
 	BoltDB BoltDBDatabaseSettings `yaml:"boltdb" json:"boltdb"`
 	Mongo  MongodDatabaseSettings `yaml:"mongo" json:"mongo"`
 	Dynamo DynamoDatabaseSettings `yaml:"dynamo" json:"dynamo"`
+	Plugin PluginSettings         `yaml:"plugin" json:"plugin"`
 	GRPC   GRPCSettings           `yaml:"grpc" json:"grpc"`
 }
 
@@ -71,9 +72,13 @@ type DynamoDatabaseSettings struct {
 	Endpoint string `yaml:"endpoint" json:"endpoint"`
 }
 
-type GRPCSettings struct {
+type PluginSettings struct {
 	Cmd    string            `yaml:"cmd" json:"cmd"`
 	Params map[string]string `yaml:"params" json:"params"`
+}
+
+type GRPCSettings struct {
+	Address string `yaml:"address" json:"address"`
 }
 
 // DatabaseType is a type of database.
@@ -84,7 +89,8 @@ const (
 	DBTypeMongoDB  DatabaseType = "mongo"  // DBTypeMongoDB is for MongoDB.
 	DBTypeDynamoDB DatabaseType = "dynamo" // DBTypeDynamoDB is for DynamoDB.
 	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
-	DBTypeGRPC     DatabaseType = "grpc"   // DBTypeGRPC is used.
+	DBTypePlugin   DatabaseType = "plugin" // DBTypePlugin is used for hashicorp/go-plugin.
+	DBTypeGRPC     DatabaseType = "grpc"   // DBTypeGRPC is used for pure grpc.
 )
 
 type FileStorageSettings struct {
