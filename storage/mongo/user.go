@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"log"
 	"strings"
 	"time"
@@ -73,7 +74,7 @@ type UserStorage struct {
 
 // UserByID returns user by its ID.
 func (us *UserStorage) UserByID(id string) (model.User, error) {
-	hexID, err := primitive.ObjectIDFromHex(id)
+	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return model.User{}, err
 	}
@@ -82,8 +83,12 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	defer cancel()
 
 	var u model.User
-	if err := us.coll.FindOne(ctx, bson.M{"_id": hexID.Hex()}).Decode(&u); err != nil {
-		return model.User{}, model.ErrUserNotFound
+	if err := us.coll.FindOne(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&u); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.User{}, model.ErrUserNotFound
+		}
+
+		return model.User{}, err
 	}
 	return u, nil
 }
@@ -99,8 +104,12 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	defer cancel()
 
 	var u model.User
-	if err := us.coll.FindOne(ctx, bson.M{"email": email}).Decode(&u); err != nil {
-		return model.User{}, model.ErrUserNotFound
+	if err := us.coll.FindOne(ctx, bson.D{{Key: "email", Value: email}}).Decode(&u); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.User{}, model.ErrUserNotFound
+		}
+
+		return model.User{}, err
 	}
 	// clear password hash
 	u.Pswd = ""
@@ -115,8 +124,12 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	defer cancel()
 
 	var u model.User
-	if err := us.coll.FindOne(ctx, bson.M{"federated_ids": sid}).Decode(&u); err != nil {
-		return model.User{}, model.ErrUserNotFound
+	if err := us.coll.FindOne(ctx, bson.D{{Key: "federated_ids", Value: sid}}).Decode(&u); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.User{}, model.ErrUserNotFound
+		}
+
+		return model.User{}, err
 	}
 	// clear password hash
 	u.Pswd = ""
@@ -159,8 +172,12 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	defer cancel()
 
 	var u model.User
-	if err := us.coll.FindOne(ctx, bson.M{"phone": phone}).Decode(&u); err != nil {
-		return model.User{}, model.ErrUserNotFound
+	if err := us.coll.FindOne(ctx, bson.D{{Key: "phone", Value: phone}}).Decode(&u); err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.User{}, model.ErrUserNotFound
+		}
+
+		return model.User{}, err
 	}
 	u.Pswd = ""
 	return u, nil
@@ -169,14 +186,18 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 // UserByUsername returns user by name.
 func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 	strictPattern := "^" + strings.ReplaceAll(username, "+", "\\+") + "$"
-	q := bson.D{primitive.E{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
+	q := bson.D{{Key: "username", Value: primitive.Regex{Pattern: strictPattern, Options: "i"}}}
 
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
 	var u model.User
 	if err := us.coll.FindOne(ctx, q).Decode(&u); err != nil {
-		return model.User{}, model.ErrUserNotFound
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.User{}, model.ErrUserNotFound
+		}
+
+		return model.User{}, err
 	}
 
 	// clear password hash
@@ -201,6 +222,7 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 		if isErrDuplication(err) {
 			return model.User{}, model.ErrorUserExists
 		}
+
 		return model.User{}, err
 	}
 	return user, nil
@@ -236,8 +258,14 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 // AddUserWithFederatedID adds new user with social ID.
 func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, federatedID, role string) (model.User, error) {
 	// If there is no error, it means user already exists.
-	if _, err := us.UserByFederatedID(provider, federatedID); err == nil {
+	_, err := us.UserByFederatedID(provider, federatedID)
+	if err == nil {
 		return model.User{}, model.ErrorUserExists
+	}
+
+	// unknown error during user existnce check
+	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
+		return model.User{}, err
 	}
 
 	user.ID = primitive.NewObjectID().Hex()
@@ -287,7 +315,7 @@ func (us *UserStorage) UpdateUser(userID string, newUser model.User) (model.User
 
 // ResetPassword sets new user's password.
 func (us *UserStorage) ResetPassword(id, password string) error {
-	hexID, err := primitive.ObjectIDFromHex(id)
+	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
@@ -299,8 +327,16 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	defer cancel()
 
 	var ud model.User
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
-	return err
+	err = us.coll.FindOneAndUpdate(ctx, bson.D{{Key: "_id", Value: id}}, update, opts).Decode(&ud)
+	if err != nil {
+		if errors.Is(err, mongo.ErrNoDocuments) {
+			return model.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	return nil
 }
 
 // CheckPassword check that password is valid for user id.
@@ -319,7 +355,7 @@ func (us *UserStorage) CheckPassword(id, password string) error {
 
 // ResetUsername sets new user's username.
 func (us *UserStorage) ResetUsername(id, username string) error {
-	hexID, err := primitive.ObjectIDFromHex(id)
+	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
@@ -331,13 +367,13 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ud model.User
-	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ud)
+	err = us.coll.FindOneAndUpdate(ctx, bson.M{"_id": id}, update, opts).Decode(&ud)
 	return err
 }
 
 // DeleteUser deletes user by id.
 func (us *UserStorage) DeleteUser(id string) error {
-	hexID, err := primitive.ObjectIDFromHex(id)
+	_, err := primitive.ObjectIDFromHex(id)
 	if err != nil {
 		return err
 	}
@@ -345,7 +381,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), us.timeout)
 	defer cancel()
 
-	_, err = us.coll.DeleteOne(ctx, bson.M{"_id": hexID.Hex()})
+	_, err = us.coll.DeleteOne(ctx, bson.M{"_id": id})
 	return err
 }
 
