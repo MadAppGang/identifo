@@ -196,7 +196,7 @@ func (ar *Router) sendOTPCode(user model.User) error {
 		}
 		switch ar.tfaType {
 		case model.TFATypeSMS:
-			return ar.sendTFACodeInSMS(user.Phone, otp)
+			return ar.sendTFACodeInSMS(user.TFAInfo.Phone, otp)
 		case model.TFATypeEmail:
 			return ar.sendTFACodeOnEmail(user, otp)
 		}
@@ -274,73 +274,6 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 		return "", "", err
 	}
 	return accessTokenString, refreshTokenString, nil
-}
-
-// check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
-// and decides if we require two-factor authentication after all checks are successfully passed.
-func (ar *Router) check2FA(appTFAStatus model.TFAStatus, serverTFAType model.TFAType, user model.User) (bool, bool, error) {
-	if appTFAStatus == model.TFAStatusMandatory && !user.TFAInfo.IsEnabled {
-		return true, false, errPleaseEnableTFA
-	}
-
-	if appTFAStatus == model.TFAStatusDisabled && user.TFAInfo.IsEnabled {
-		return false, true, errPleaseDisableTFA
-	}
-
-	// Request two-factor auth if user enabled it and app supports it.
-	if user.TFAInfo.IsEnabled && appTFAStatus != model.TFAStatusDisabled {
-		if user.Phone == "" && serverTFAType == model.TFATypeSMS {
-			// Server required sms tfa but user phone is empty
-			return true, false, errPleaseSetPhoneTFA
-		}
-		if user.Email == "" && serverTFAType == model.TFATypeEmail {
-			// Server required email tfa but user email is empty
-			return true, false, errPleaseSetEmailTFA
-		}
-		if user.TFAInfo.Secret == "" {
-			// Then admin must have enabled TFA for this user manually.
-			// User must obtain TFA secret, i.e send EnableTFA request.
-			return true, false, errPleaseEnableTFA
-		}
-		return true, true, nil
-	}
-	return false, false, nil
-}
-
-func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
-	if phone == "" {
-		return errors.New("unable to send SMS OTP, user has no phone number")
-	}
-
-	if err := ar.server.Services().SMS.SendSMS(phone, fmt.Sprintf(smsTFACode, otp)); err != nil {
-		return fmt.Errorf("unable to send sms. %s", err)
-	}
-	return nil
-}
-
-func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
-	if user.Email == "" {
-		return errors.New("unable to send email OTP, user has no email")
-	}
-
-	emailData := SendTFAEmailData{
-		User: user,
-		OTP:  otp,
-	}
-
-	if err := ar.server.Services().Email.SendTemplateEmail(
-		model.EmailTemplateTypeTFAWithCode,
-		"One-time password",
-		user.Email,
-		model.EmailData{
-			User: user,
-			Data: emailData,
-		},
-	); err != nil {
-		return fmt.Errorf("unable to send email with OTP with error: %s", err)
-	}
-
-	return nil
 }
 
 func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes []string) (AuthResponse, error) {

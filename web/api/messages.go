@@ -126,6 +126,8 @@ const (
 	ErrorAPIRequestPleaseSetPhoneForTFA = "error.api.request.2fa.set_phone"
 	// ErrorAPIRequestPleaseSetEmailForTFA means that user must set up their email address to be able to receive OTPs on the email.
 	ErrorAPIRequestPleaseSetEmailForTFA = "error.api.request.2fa.set_email"
+	// ErrorAPIRequestEnableTFAEmptyPhoneAndEmail means that the email and phone is empty
+	ErrorAPIRequestEnableTFAEmptyPhoneAndEmail = "error.api.request.enable_2fa.empty_phone_and_email"
 	// ErrorAPIRequestUnableToSendOTP means that there is error sending the otp code while login to user
 	ErrorAPIRequestUnableToSendOTP = "error.api.request.2fa.unable to send OTP code to email or sms"
 

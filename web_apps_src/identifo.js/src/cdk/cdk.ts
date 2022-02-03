@@ -250,7 +250,7 @@ export class CDK {
           provisioningQR: '',
           setupTFA: async () => {},
         });
-        const tfa = await this.auth.api.enableTFA();
+        const tfa = await this.auth.api.enableTFA({});
         if (tfa.provisioning_uri) {
           this.state.next({
             route: Routes.TFA_SETUP_APP,
@@ -266,8 +266,7 @@ export class CDK {
           route: Routes.TFA_SETUP_EMAIL,
           email: loginResponse.user.email || '',
           setupTFA: async (email: string) => {
-            await this.auth.api.updateUser({ new_email: email });
-            await this.auth.api.enableTFA();
+            await this.auth.api.enableTFA({ email });
             return this.tfaVerify({ ...loginResponse, user: { ...loginResponse.user, email } }, type);
           },
         });
@@ -278,8 +277,7 @@ export class CDK {
           route: Routes.TFA_SETUP_SMS,
           phone: loginResponse.user.phone || '',
           setupTFA: async (phone: string) => {
-            await this.auth.api.updateUser({ new_phone: phone });
-            await this.auth.api.enableTFA();
+            await this.auth.api.enableTFA({ phone });
             return this.tfaVerify({ ...loginResponse, user: { ...loginResponse.user, phone } }, type);
           },
         });
