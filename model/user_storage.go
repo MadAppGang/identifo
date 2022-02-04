@@ -121,6 +121,8 @@ type TFAInfo struct {
 	IsEnabled     bool      `json:"is_enabled" bson:"is_enabled"`
 	HOTPCounter   int       `json:"hotp_counter" bson:"hotp_counter"`
 	HOTPExpiredAt time.Time `json:"hotp_expired_at" bson:"hotp_expired_at"`
+	Email         string    `json:"email" bson:"email"`
+	Phone         string    `json:"phone" bson:"phone"`
 	Secret        string    `json:"secret" bson:"secret"`
 }
 

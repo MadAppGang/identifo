@@ -49,7 +49,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Check that phone is not taken.
 		if d.updatePhone {
 			if _, err := ar.server.Storages().User.UserByPhone(d.NewPhone); err == nil {
-				ar.Error(w, ErrorAPIEmailTaken, http.StatusBadRequest, "", "UpdateUser.updatePhone && UserByPhone")
+				ar.Error(w, ErrorAPIPhoneTaken, http.StatusBadRequest, "", "UpdateUser.updatePhone && UserByPhone")
 				return
 			}
 		}

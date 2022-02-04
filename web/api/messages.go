@@ -16,6 +16,7 @@ var messages = map[MessageID]string{
 	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
 	ErrorAPIUsernameEmailOrPhoneTaken:        "Username, email or/and phone is taken. Try to choose another one",
 	ErrorAPIEmailTaken:                       "Email is taken. Try to choose another one",
+	ErrorAPIPhoneTaken:                       "Phone is taken. Try to choose another one",
 	ErrorAPIInviteTokenServerError:           "Unable to create invite token. Try again or contact support team",
 	ErrorAPIInviteUnableToInvalidate:         "Unable to invalidate invite. Try again or contact support team",
 	ErrorAPIInviteUnableToSave:               "Unable to save invite. Try again or contact support team",
@@ -71,6 +72,8 @@ const (
 	ErrorAPIUsernameEmailOrPhoneTaken = "error.api.username_phone_email.taken"
 	// ErrorAPIEmailTaken is when email is already taken.
 	ErrorAPIEmailTaken = "error.api.email.taken"
+	// ErrorAPIPhoneTaken is when phone is already taken.
+	ErrorAPIPhoneTaken = "error.api.phone.taken"
 	// ErrorAPIInviteTokenServerError is for invite token creation issues.
 	ErrorAPIInviteTokenServerError = "error.api.invite_token.server_error"
 	// ErrorAPIInviteUnableToInvalidate is when invite cannot be invalidated.
@@ -123,6 +126,8 @@ const (
 	ErrorAPIRequestPleaseSetPhoneForTFA = "error.api.request.2fa.set_phone"
 	// ErrorAPIRequestPleaseSetEmailForTFA means that user must set up their email address to be able to receive OTPs on the email.
 	ErrorAPIRequestPleaseSetEmailForTFA = "error.api.request.2fa.set_email"
+	// ErrorAPIRequestEnableTFAEmptyPhoneAndEmail means that the email and phone is empty
+	ErrorAPIRequestEnableTFAEmptyPhoneAndEmail = "error.api.request.enable_2fa.empty_phone_and_email"
 	// ErrorAPIRequestUnableToSendOTP means that there is error sending the otp code while login to user
 	ErrorAPIRequestUnableToSendOTP = "error.api.request.2fa.unable to send OTP code to email or sms"
 

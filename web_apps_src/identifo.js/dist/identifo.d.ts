@@ -209,7 +209,10 @@ declare class API {
     requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(callbackUrl: string): Promise<AppSettingsResponse>;
-    enableTFA(): Promise<EnableTFAResponse>;
+    enableTFA(data: {
+        phone?: string;
+        email?: string;
+    }): Promise<EnableTFAResponse>;
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
     resendTFA(): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;

@@ -225,17 +225,13 @@ export class API {
     return this.get<AppSettingsResponse>(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
   }
 
-  async enableTFA(): Promise<EnableTFAResponse> {
+  async enableTFA(data: { phone?: string; email?: string }): Promise<EnableTFAResponse> {
     if (!this.tokenService.getToken()?.token) {
       throw new Error('No token in token service.');
     }
-    return this.put<EnableTFAResponse>(
-      '/auth/tfa/enable',
-      {},
-      {
-        headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` },
-      },
-    ).then((r) => this.storeToken(r));
+    return this.put<EnableTFAResponse>('/auth/tfa/enable', data, {
+      headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${this.tokenService.getToken()?.token}` },
+    }).then((r) => this.storeToken(r));
   }
 
   async verifyTFA(code: string, scopes: string[]): Promise<LoginResponse> {

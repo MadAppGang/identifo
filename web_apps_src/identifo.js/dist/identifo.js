@@ -241,13 +241,13 @@ class API {
       return this.get(`/auth/app_settings?${new URLSearchParams({ callbackUrl }).toString()}`);
     });
   }
-  enableTFA() {
+  enableTFA(data) {
     return __async$3(this, null, function* () {
       var _a, _b;
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
       }
-      return this.put("/auth/tfa/enable", {}, {
+      return this.put("/auth/tfa/enable", data, {
         headers: { [AUTHORIZATION_HEADER_KEY]: `BEARER ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}` }
       }).then((r) => this.storeToken(r));
     });
@@ -933,7 +933,7 @@ class CDK {
             setupTFA: () => __async(this, null, function* () {
             })
           });
-          const tfa = yield this.auth.api.enableTFA();
+          const tfa = yield this.auth.api.enableTFA({});
           if (tfa.provisioning_uri) {
             this.state.next({
               route: exports.Routes.TFA_SETUP_APP,
@@ -951,8 +951,7 @@ class CDK {
             route: exports.Routes.TFA_SETUP_EMAIL,
             email: loginResponse.user.email || "",
             setupTFA: (email) => __async(this, null, function* () {
-              yield this.auth.api.updateUser({ new_email: email });
-              yield this.auth.api.enableTFA();
+              yield this.auth.api.enableTFA({ email });
               return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { email }) }), type);
             })
           });
@@ -963,8 +962,7 @@ class CDK {
             route: exports.Routes.TFA_SETUP_SMS,
             phone: loginResponse.user.phone || "",
             setupTFA: (phone) => __async(this, null, function* () {
-              yield this.auth.api.updateUser({ new_phone: phone });
-              yield this.auth.api.enableTFA();
+              yield this.auth.api.enableTFA({ phone });
               return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { phone }) }), type);
             })
           });
