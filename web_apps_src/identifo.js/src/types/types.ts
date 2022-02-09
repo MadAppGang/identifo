@@ -1,3 +1,5 @@
+import { LoginTypes } from '..';
+
 export type TokenType = 'access' | 'refresh';
 
 export interface TokenManager {
@@ -20,6 +22,7 @@ export type IdentifoConfig = {
   postLogoutRedirectUri?: string;
   tokenManager?: TokenManager;
   autoRenew?: boolean;
+  loginWith?: keyof LoginTypes;
   // debugMode?: boolean,
 };
 

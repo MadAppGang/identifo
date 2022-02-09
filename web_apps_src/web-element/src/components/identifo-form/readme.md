@@ -32,6 +32,8 @@
 ### Depends on
 
 - [identifo-form-login](../forms)
+- [identifo-form-login-phone](../forms)
+- [identifo-form-login-phone-verify](../forms)
 - [identifo-form-error](../forms)
 - [identifo-form-callback](../forms)
 - [identifo-form-register](../forms)
@@ -46,6 +48,8 @@
 ```mermaid
 graph TD;
   identifo-form --> identifo-form-login
+  identifo-form --> identifo-form-login-phone
+  identifo-form --> identifo-form-login-phone-verify
   identifo-form --> identifo-form-error
   identifo-form --> identifo-form-callback
   identifo-form --> identifo-form-register
@@ -55,6 +59,10 @@ graph TD;
   identifo-form --> identifo-form-tfa-setup
   identifo-form --> identifo-form-tfa-select
   identifo-form --> identifo-form-tfa-verify
+  identifo-form-login --> identifo-form-login-ways
+  identifo-form-login-phone --> identifo-form-login-ways
+  identifo-form-login-phone-verify --> identifo-form-error-alert
+  identifo-form-login-phone-verify --> identifo-form-goback
   identifo-form-register --> identifo-form-error-alert
   identifo-form-register --> identifo-form-goback
   identifo-form-password-reset --> identifo-form-error-alert

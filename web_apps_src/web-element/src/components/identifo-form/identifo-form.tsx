@@ -38,6 +38,10 @@ export class IdentifoForm {
     switch (route) {
       case Routes.LOGIN:
         return <identifo-form-login></identifo-form-login>;
+      case Routes.LOGIN_PHONE:
+        return <identifo-form-login-phone></identifo-form-login-phone>;
+      case Routes.LOGIN_PHONE_VERIFY:
+        return <identifo-form-login-phone-verify></identifo-form-login-phone-verify>;
       case Routes.ERROR:
         return <identifo-form-error></identifo-form-error>;
       case Routes.CALLBACK:
@@ -80,8 +84,17 @@ export class IdentifoForm {
     const callbackUrl = params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
     const scopes = (params.get('scopes') || '').split(',').map(s => s.trim());
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
-    await CDKService.configure({ appId: this.appId, url: this.url, postLogoutRedirectUri, scopes }, callbackUrl);
-    console.log(CDKService.cdk.settings);
+
+    await CDKService.configure(
+      {
+        appId: this.appId,
+        url: this.url,
+        postLogoutRedirectUri,
+        scopes,
+      },
+      callbackUrl,
+    );
+
     CDKService.debug = this.debug;
     CDKService.cdk.state.subscribe((s: States) => {
       if (this.debug) {

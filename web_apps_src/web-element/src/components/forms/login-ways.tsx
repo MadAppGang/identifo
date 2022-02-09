@@ -1,50 +1,39 @@
-import { StateOTPLogin } from '@identifo/identifo-auth-js';
+import { StateLogin, StateLoginPhone } from '@identifo/identifo-auth-js';
 import { Component, getAssetPath, h, State } from '@stencil/core';
 import { Subscription } from 'rxjs';
 import { CDKService } from '../../services/cdk.service';
 
 @Component({
-  tag: 'identifo-form-otp-login',
+  tag: 'identifo-form-login-ways',
   styleUrl: '../../styles/identifo-form/main.scss',
   assetsDirs: ['assets'],
   shadow: false,
 })
-export class IdentifoFormOtpLogin {
-  @State() state: StateOTPLogin;
-  @State() phone: string;
+export class IdentifoFormLoginWays {
+  @State() state: StateLogin | StateLoginPhone;
 
   subscription: Subscription;
   connectedCallback() {
-    this.subscription = CDKService.cdk.state.subscribe(state => (this.state = state as StateOTPLogin));
+    this.subscription = CDKService.cdk.state.subscribe(state => (this.state = state as StateLogin | StateLoginPhone));
   }
   disconnectedCallback() {
     this.subscription.unsubscribe();
   }
 
-  phoneChange(event: InputEvent) {
-    this.phone = (event.target as HTMLInputElement).value;
-  }
-
-  signin() {
-    this.state.signin(this.phone);
-  }
-
   render() {
     return (
-      <div class="otp-login">
-        {!this.state.registrationForbidden && (
-          <p class="otp-login__register-text">
-            Don't have an account?&nbsp;
-            <a onClick={() => this.state.signup()} class="login-form__register-link">
-              Sign Up
-            </a>
-          </p>
+      <div>
+        {Object.values(this.state.loginTypes).length > 0 && (
+          <div class="login-types">
+            {Object.values(this.state.loginTypes).map(t => (
+              <a onClick={() => t.click()} class="login-type">
+                {t.type === 'phone' && 'login with phone'}
+                {t.type === 'email' && 'login with password'}
+              </a>
+            ))}
+          </div>
         )}
-        <input type="phone" class="form-control" id="login" value={this.phone} placeholder="Phone number" onInput={event => this.phoneChange(event as InputEvent)} />
-        <button onClick={() => this.signin()} class="primary-button" disabled={!this.phone}>
-          Continue
-        </button>
-        {this.state.federatedProviders.length > 0 && (
+        {this.state.federatedProviders?.length > 0 && (
           <div class="social-buttons">
             <p class="social-buttons__text">or continue with</p>
             <div class="social-buttons__social-medias">

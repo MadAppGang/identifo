@@ -52,7 +52,6 @@
   .error {
     margin-top: 12px;
   }
-
   @include for-phone-only {
     width: 100%;
     max-width: var(--content-width);
@@ -75,5 +74,17 @@
       margin-right: 0;
       margin-bottom: 36px;
     }
+  }
+}
+.login-types {
+  margin-bottom: 36px;
+  .login-type {
+    text-align: center;
+    display: block;
+    margin-top: 16px;
+    color: var(--blue-text);
+    font-size: 14px;
+    line-height: 24px;
+    cursor: pointer;
   }
 }

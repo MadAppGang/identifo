@@ -32,7 +32,11 @@ export namespace Components {
     }
     interface IdentifoFormLogin {
     }
-    interface IdentifoFormOtpLogin {
+    interface IdentifoFormLoginPhone {
+    }
+    interface IdentifoFormLoginPhoneVerify {
+    }
+    interface IdentifoFormLoginWays {
     }
     interface IdentifoFormPasswordReset {
     }
@@ -100,11 +104,23 @@ declare global {
         prototype: HTMLIdentifoFormLoginElement;
         new (): HTMLIdentifoFormLoginElement;
     };
-    interface HTMLIdentifoFormOtpLoginElement extends Components.IdentifoFormOtpLogin, HTMLStencilElement {
+    interface HTMLIdentifoFormLoginPhoneElement extends Components.IdentifoFormLoginPhone, HTMLStencilElement {
     }
-    var HTMLIdentifoFormOtpLoginElement: {
-        prototype: HTMLIdentifoFormOtpLoginElement;
-        new (): HTMLIdentifoFormOtpLoginElement;
+    var HTMLIdentifoFormLoginPhoneElement: {
+        prototype: HTMLIdentifoFormLoginPhoneElement;
+        new (): HTMLIdentifoFormLoginPhoneElement;
+    };
+    interface HTMLIdentifoFormLoginPhoneVerifyElement extends Components.IdentifoFormLoginPhoneVerify, HTMLStencilElement {
+    }
+    var HTMLIdentifoFormLoginPhoneVerifyElement: {
+        prototype: HTMLIdentifoFormLoginPhoneVerifyElement;
+        new (): HTMLIdentifoFormLoginPhoneVerifyElement;
+    };
+    interface HTMLIdentifoFormLoginWaysElement extends Components.IdentifoFormLoginWays, HTMLStencilElement {
+    }
+    var HTMLIdentifoFormLoginWaysElement: {
+        prototype: HTMLIdentifoFormLoginWaysElement;
+        new (): HTMLIdentifoFormLoginWaysElement;
     };
     interface HTMLIdentifoFormPasswordResetElement extends Components.IdentifoFormPasswordReset, HTMLStencilElement {
     }
@@ -163,7 +179,9 @@ declare global {
         "identifo-form-forgot-success": HTMLIdentifoFormForgotSuccessElement;
         "identifo-form-goback": HTMLIdentifoFormGobackElement;
         "identifo-form-login": HTMLIdentifoFormLoginElement;
-        "identifo-form-otp-login": HTMLIdentifoFormOtpLoginElement;
+        "identifo-form-login-phone": HTMLIdentifoFormLoginPhoneElement;
+        "identifo-form-login-phone-verify": HTMLIdentifoFormLoginPhoneVerifyElement;
+        "identifo-form-login-ways": HTMLIdentifoFormLoginWaysElement;
         "identifo-form-password-reset": HTMLIdentifoFormPasswordResetElement;
         "identifo-form-register": HTMLIdentifoFormRegisterElement;
         "identifo-form-tfa-select": HTMLIdentifoFormTfaSelectElement;
@@ -202,7 +220,11 @@ declare namespace LocalJSX {
     }
     interface IdentifoFormLogin {
     }
-    interface IdentifoFormOtpLogin {
+    interface IdentifoFormLoginPhone {
+    }
+    interface IdentifoFormLoginPhoneVerify {
+    }
+    interface IdentifoFormLoginWays {
     }
     interface IdentifoFormPasswordReset {
     }
@@ -229,7 +251,9 @@ declare namespace LocalJSX {
         "identifo-form-forgot-success": IdentifoFormForgotSuccess;
         "identifo-form-goback": IdentifoFormGoback;
         "identifo-form-login": IdentifoFormLogin;
-        "identifo-form-otp-login": IdentifoFormOtpLogin;
+        "identifo-form-login-phone": IdentifoFormLoginPhone;
+        "identifo-form-login-phone-verify": IdentifoFormLoginPhoneVerify;
+        "identifo-form-login-ways": IdentifoFormLoginWays;
         "identifo-form-password-reset": IdentifoFormPasswordReset;
         "identifo-form-register": IdentifoFormRegister;
         "identifo-form-tfa-select": IdentifoFormTfaSelect;
@@ -252,7 +276,9 @@ declare module "@stencil/core" {
             "identifo-form-forgot-success": LocalJSX.IdentifoFormForgotSuccess & JSXBase.HTMLAttributes<HTMLIdentifoFormForgotSuccessElement>;
             "identifo-form-goback": LocalJSX.IdentifoFormGoback & JSXBase.HTMLAttributes<HTMLIdentifoFormGobackElement>;
             "identifo-form-login": LocalJSX.IdentifoFormLogin & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginElement>;
-            "identifo-form-otp-login": LocalJSX.IdentifoFormOtpLogin & JSXBase.HTMLAttributes<HTMLIdentifoFormOtpLoginElement>;
+            "identifo-form-login-phone": LocalJSX.IdentifoFormLoginPhone & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginPhoneElement>;
+            "identifo-form-login-phone-verify": LocalJSX.IdentifoFormLoginPhoneVerify & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginPhoneVerifyElement>;
+            "identifo-form-login-ways": LocalJSX.IdentifoFormLoginWays & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginWaysElement>;
             "identifo-form-password-reset": LocalJSX.IdentifoFormPasswordReset & JSXBase.HTMLAttributes<HTMLIdentifoFormPasswordResetElement>;
             "identifo-form-register": LocalJSX.IdentifoFormRegister & JSXBase.HTMLAttributes<HTMLIdentifoFormRegisterElement>;
             "identifo-form-tfa-select": LocalJSX.IdentifoFormTfaSelect & JSXBase.HTMLAttributes<HTMLIdentifoFormTfaSelectElement>;

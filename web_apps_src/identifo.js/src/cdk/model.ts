@@ -1,4 +1,12 @@
-import { ApiError, FederatedLoginProvider, LoginResponse, TFAStatus, TFAType, SuccessResponse } from '../api/model';
+import {
+  ApiError,
+  FederatedLoginProvider,
+  LoginResponse,
+  ServerSettingsLoginTypes,
+  TFAStatus,
+  TFAType,
+  SuccessResponse,
+} from '../api/model';
 
 export enum Routes {
   'LOGIN' = 'login',
@@ -18,7 +26,8 @@ export enum Routes {
   'PASSWORD_FORGOT_TFA_APP' = 'password/forgot/tfa/app',
   'PASSWORD_FORGOT_TFA_SELECT' = 'password/forgot/tfa/select',
   'CALLBACK' = 'callback',
-  'OTP_LOGIN' = 'otp/login',
+  'LOGIN_PHONE' = 'login_phone',
+  'LOGIN_PHONE_VERIFY' = 'login_phone_verify',
   'ERROR' = 'error',
   'PASSWORD_FORGOT_SUCCESS' = 'password/forgot/success',
   'LOGOUT' = 'logout',
@@ -46,17 +55,39 @@ export interface State {
 }
 
 export interface StateWithError {
-  error: ApiError;
+  error?: ApiError;
 }
+
+export type LoginTypes = Partial<
+  Record<keyof ServerSettingsLoginTypes, { click: () => void; type: keyof ServerSettingsLoginTypes }>
+>;
 
 export interface StateLogin extends State, StateWithError {
   route: Routes.LOGIN;
   registrationForbidden: boolean;
   federatedProviders: FederatedLoginProvider[];
+  loginTypes: LoginTypes;
   signup: () => Promise<void>;
   signin: (email: string, password: string, remember?: boolean) => Promise<void>;
   socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
   passwordForgot: () => Promise<void>;
+}
+
+export interface StateLoginPhone extends State, StateWithError {
+  route: Routes.LOGIN_PHONE;
+  registrationForbidden: boolean;
+  federatedProviders: FederatedLoginProvider[];
+  loginTypes: LoginTypes;
+  requestCode: (phone: string) => Promise<void>;
+  socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
+}
+export interface StateLoginPhoneVerify extends State, StateWithError {
+  route: Routes.LOGIN_PHONE_VERIFY;
+  phone: string;
+  resendTimeout: number;
+  resendCode: () => Promise<void>;
+  login: (code: string) => Promise<void>;
+  goback: () => Promise<void>;
 }
 
 export interface StateRegister extends State, StateWithError {
@@ -81,7 +112,7 @@ export interface StateError extends State, StateWithError {
 
 export interface StateCallback extends State {
   route: Routes.CALLBACK;
-  callbackUrl: string;
+  callbackUrl?: string;
   result: LoginResponse;
 }
 
@@ -92,15 +123,6 @@ export interface StatePasswordReset extends State, StateWithError {
 
 export interface StateLoading extends State {
   route: Routes.LOADING;
-}
-
-export interface StateOTPLogin extends State {
-  route: Routes.OTP_LOGIN;
-  registrationForbidden: boolean;
-  federatedProviders: FederatedLoginProvider[];
-  signup: () => Promise<void>;
-  signin: (phone: string) => Promise<void>;
-  socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
 }
 
 interface StateTFASetup extends State, StateWithError {}
