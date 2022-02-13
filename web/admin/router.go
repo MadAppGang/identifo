@@ -51,6 +51,7 @@ func NewRouter(settings RouterSettings) (model.Router, error) {
 		cors:         settings.Cors,
 		RedirectURL:  "/login",
 		LoginAppPath: settings.LoginAppPath,
+		originUpdate: settings.OriginUpdate,
 	}
 
 	if settings.Logger == nil {
