@@ -1,16 +1,19 @@
 import { BehaviorSubject } from 'rxjs';
+import { StateLoginPhone, StateLoginPhoneVerify } from '..';
 import {
   ApiError,
   APIErrorCodes,
   AppSettingsResponse,
   FederatedLoginProvider,
   LoginResponse,
+  ServerSettingsLoginTypes,
   TFAStatus,
   TFAType,
 } from '../api/model';
 import IdentifoAuth from '../IdentifoAuth';
 import { IdentifoConfig } from '../types/types';
 import {
+  LoginTypes,
   Routes,
   State,
   StateCallback,
@@ -31,6 +34,8 @@ import {
 const emailRegex =
   // eslint-disable-next-line max-len
   /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+
+const phoneRegex = /^[\+][0-9]{9,15}$/;
 
 export class CDK {
   auth: IdentifoAuth;
@@ -113,11 +118,77 @@ export class CDK {
   }
 
   login(): void {
+    // check for allowed login with
+    switch (true) {
+      case (!this.auth.config.loginWith && this.settings.loginWith['phone']) ||
+        (this.auth.config.loginWith === 'phone' && this.settings.loginWith['phone']):
+        return this.loginWithPhone();
+      case (!this.auth.config.loginWith && this.settings.loginWith['email']) ||
+        (this.auth.config.loginWith === 'email' && this.settings.loginWith['email']):
+        return this.loginWithPassword();
+      default:
+        throw 'Unsupported login way';
+    }
+  }
+  loginWithPhone(): void {
+    this.state.next({
+      route: Routes.LOGIN_PHONE,
+      registrationForbidden: this.settings?.registrationForbidden,
+      error: this.lastError,
+      federatedProviders: this.settings?.federatedProviders,
+      loginTypes: this.getLoginTypes('phone'),
+      requestCode: async (phone: string, remember?: boolean): Promise<void> => {
+        if (!this.validatePhone(phone)) {
+          return;
+        }
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add('offline');
+        }
+        await this.auth.api
+          .requestPhoneCode(phone)
+          .then(() => this.loginWithPhoneVerify(phone, remember))
+          .catch((e) => this.processError(e));
+      },
+      socialLogin: async (provider: FederatedLoginProvider) => {
+        this.state.next({ route: Routes.LOADING });
+        const federatedRedirectUrl = window.location.origin + window.location.pathname;
+        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+      },
+    } as StateLoginPhone);
+  }
+  loginWithPhoneVerify(phone: string, remember?: boolean): void {
+    this.state.next({
+      route: Routes.LOGIN_PHONE_VERIFY,
+      error: this.lastError,
+      phone: phone,
+      resendTimeout: this.settings.tfaResendTimeout * 1000,
+      resendCode: async () => {
+        await this.auth.api.requestPhoneCode(phone);
+      },
+      login: async (code: string): Promise<void> => {
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add('offline');
+        }
+        await this.auth.api
+          .phoneLogin(phone, code, [...this.scopes])
+          .then(this.afterLoginRedirect)
+          .catch(this.loginCatchRedirect)
+          .catch((e) => this.processError(e));
+      },
+      goback: async (): Promise<void> => {
+        this.login();
+      },
+    } as StateLoginPhoneVerify);
+  }
+  loginWithPassword(): void {
     this.state.next({
       route: Routes.LOGIN,
       registrationForbidden: this.settings?.registrationForbidden,
       error: this.lastError,
       federatedProviders: this.settings?.federatedProviders,
+      loginTypes: this.getLoginTypes('email'),
       signup: async (): Promise<void> => {
         this.register();
       },
@@ -235,6 +306,18 @@ export class CDK {
         detailedMessage: 'Email address is not valid',
         name: 'Validation error',
         message: 'Email address is not valid',
+      } as ApiError);
+      return false;
+    }
+    return true;
+  }
+
+  validatePhone(email: string): boolean {
+    if (!phoneRegex.test(email)) {
+      this.processError({
+        detailedMessage: 'Phone is not valid',
+        name: 'Validation error',
+        message: 'Phone is not valid',
       } as ApiError);
       return false;
     }
@@ -420,7 +503,7 @@ export class CDK {
     // Ask about tfa on login only
     if (
       this.settings.tfaStatus === TFAStatus.OPTIONAL &&
-      [Routes.LOGIN, Routes.OTP_LOGIN, Routes.REGISTER].includes(this.state.getValue().route)
+      [Routes.LOGIN, Routes.REGISTER].includes(this.state.getValue().route)
     ) {
       this.tfaSetupSelect(loginResponse);
       return;
@@ -443,4 +526,19 @@ export class CDK {
     }
     throw data;
   };
+  private getLoginTypes(current: keyof ServerSettingsLoginTypes): LoginTypes {
+    const result: LoginTypes = {};
+    Object.entries(this.settings.loginWith)
+      .filter((v) => v[1] && v[0] !== current)
+      .forEach((v) => {
+        result[v[0] as keyof ServerSettingsLoginTypes] = {
+          type: v[0] as keyof ServerSettingsLoginTypes,
+          click: () => {
+            this.auth.config.loginWith = v[0] as keyof ServerSettingsLoginTypes;
+            this.login();
+          },
+        };
+      });
+    return result;
+  }
 }

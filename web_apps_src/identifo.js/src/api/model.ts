@@ -17,6 +17,13 @@ export enum TFAStatus {
   MANDATORY = 'mandatory',
 }
 
+export interface ServerSettingsLoginTypes {
+  email: boolean;
+  federated: boolean;
+  phone: boolean;
+  username: boolean;
+}
+
 export type FederatedLoginProvider = 'apple' | 'google' | 'facebook';
 export interface ApiRequestError {
   error: {
@@ -79,6 +86,7 @@ export interface AppSettingsResponse {
   tfaResendTimeout: number;
   tfaStatus: TFAStatus;
   federatedProviders: FederatedLoginProvider[];
+  loginWith: ServerSettingsLoginTypes;
 }
 
 export interface User {
@@ -102,6 +110,7 @@ export interface UpdateUser {
 }
 export interface SuccessResponse {
   result: 'ok';
+  message?: string;
 }
 
 export interface TFARequiredRespopnse {

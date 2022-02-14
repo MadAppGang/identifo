@@ -49,7 +49,8 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unable to send sms. %s", err), "RequestVerificationCode.SendSMS")
 			return
 		}
-		ar.ServeJSON(w, http.StatusOK, map[string]string{"message": "SMS code is sent"})
+		result := map[string]string{"result": "ok", "message": "SMS code is sent"}
+		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }
 

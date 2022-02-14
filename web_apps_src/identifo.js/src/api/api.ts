@@ -139,6 +139,24 @@ export class API {
     return this.post<LoginResponse>('/auth/login', data).then((r) => this.storeToken(r));
   }
 
+  async requestPhoneCode(phone: string): Promise<SuccessResponse> {
+    const data = {
+      phone_number: phone,
+    };
+
+    return this.post<SuccessResponse>('/auth/request_phone_code', data);
+  }
+
+  async phoneLogin(phone: string, code: string, scopes: string[]): Promise<LoginResponse> {
+    const data = {
+      phone_number: phone,
+      code,
+      scopes,
+    };
+
+    return this.post<LoginResponse>('/auth/phone_login', data).then((r) => this.storeToken(r));
+  }
+
   // After complete login on provider browser will be redirected to redirectUrl
   // callbackUrl will be stored in sesson and returned after successfull login complete
   async federatedLogin(

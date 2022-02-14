@@ -26,7 +26,7 @@
       "routemobile": { "username": "", "password": "", "source": "", "region": "" }
     }
   },
-  "login": { "login_with": { "username": false, "phone": false, "email": false, "federated": false }, "tfa_type": "app" },
+  "login": { "login_with": { "username": false, "phone": false, "email": true, "federated": false }, "tfa_type": "app" },
   "key_storage": { "type": "local", "s3": { "private_key_key": "" }, "file": { "private_key_path": "./jwt/test_artifacts/private.pem" } },
   "config": { "type": "file", "raw_string": "file://./cmd/config-boltdb.yaml", "s3": null, "file": { "file_name": "./cmd/config-boltdb.yaml" }, "etcd": null },
   "logger": { "dump_request": false }

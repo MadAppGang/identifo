@@ -412,7 +412,7 @@
   content: "";
   position: absolute;
   height: 1px;
-  width: 36%;
+  width: 24%;
   left: 0;
   top: 14px;
   background-color: var(--gray-line);
@@ -421,7 +421,7 @@
   content: "";
   position: absolute;
   height: 1px;
-  width: 36%;
+  width: 24%;
   right: 0;
   top: 14px;
   background-color: var(--gray-line);

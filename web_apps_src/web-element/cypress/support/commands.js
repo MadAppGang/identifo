@@ -94,6 +94,34 @@ Cypress.Commands.add('createAppAndUser', async (createUser = true) => {
       .then(result => (userId = result.id));
   }
 });
+Cypress.Commands.add('createUser', async u => {
+  await fetch(`${adminUrl}/users/`, {
+    body: JSON.stringify({ ...user, ...u }),
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+  })
+    .then(r => r.json())
+    .then(result => (userId = result.id));
+});
+Cypress.Commands.add('deleteUser', async searchString => {
+  const testUser = await fetch(`${adminUrl}/users?search=${searchString}`, {
+    body: null,
+    method: 'GET',
+    mode: 'cors',
+    credentials: 'include',
+  })
+    .then(r => r.json())
+    .then(result => result.users[0]);
+  if (testUser) {
+    return fetch(`${adminUrl}/users/${testUser.id}`, {
+      body: null,
+      method: 'DELETE',
+      mode: 'cors',
+      credentials: 'include',
+    });
+  }
+});
 // Cleanup test user and app
 Cypress.Commands.add('deleteAppAndUser', async data => {
   await login();
@@ -168,6 +196,22 @@ Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Pas
   }
   cy.screenshot();
   cy.get('button').contains('Login').click();
+});
+
+Cypress.Commands.add('loginWithPhone', (phone = '+0123456789', remember = false) => {
+  cy.get('[placeholder="Phone number"]').click().type(phone);
+  if (remember) {
+    cy.contains('Remember me').click();
+  }
+  cy.screenshot();
+  cy.get('button').contains('Continue').click();
+});
+
+Cypress.Commands.add('loginWithPhoneVerify', (code = '0000') => {
+  cy.get('[placeholder="Verify code"]').click().type('0000');
+  cy.contains('Go back to login');
+  cy.screenshot();
+  cy.contains('Confirm').click();
 });
 
 Cypress.Commands.add('registerWithEmail', (email = 'test@test.com', password = 'Password') => {

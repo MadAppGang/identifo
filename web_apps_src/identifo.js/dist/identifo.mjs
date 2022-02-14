@@ -162,6 +162,24 @@ class API {
       return this.post("/auth/login", data).then((r) => this.storeToken(r));
     });
   }
+  requestPhoneCode(phone) {
+    return __async$3(this, null, function* () {
+      const data = {
+        phone_number: phone
+      };
+      return this.post("/auth/request_phone_code", data);
+    });
+  }
+  phoneLogin(phone, code, scopes) {
+    return __async$3(this, null, function* () {
+      const data = {
+        phone_number: phone,
+        code,
+        scopes
+      };
+      return this.post("/auth/phone_login", data).then((r) => this.storeToken(r));
+    });
+  }
   federatedLogin(_0, _1, _2, _3) {
     return __async$3(this, arguments, function* (provider, scopes, redirectUrl, callbackUrl, opts = { width: 600, height: 800, popUp: false }) {
       const dataForm = document.createElement("form");
@@ -660,7 +678,8 @@ var Routes;
   Routes2["PASSWORD_FORGOT_TFA_APP"] = "password/forgot/tfa/app";
   Routes2["PASSWORD_FORGOT_TFA_SELECT"] = "password/forgot/tfa/select";
   Routes2["CALLBACK"] = "callback";
-  Routes2["OTP_LOGIN"] = "otp/login";
+  Routes2["LOGIN_PHONE"] = "login_phone";
+  Routes2["LOGIN_PHONE_VERIFY"] = "login_phone_verify";
   Routes2["ERROR"] = "error";
   Routes2["PASSWORD_FORGOT_SUCCESS"] = "password/forgot/success";
   Routes2["LOGOUT"] = "logout";
@@ -722,6 +741,7 @@ var __async = (__this, __arguments, generator) => {
   });
 };
 const emailRegex = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+const phoneRegex = /^[\+][0-9]{9,15}$/;
 class CDK {
   constructor() {
     this.scopes = new Set();
@@ -737,7 +757,7 @@ class CDK {
           return;
         }
       }
-      if (this.settings.tfaStatus === TFAStatus.OPTIONAL && [Routes.LOGIN, Routes.OTP_LOGIN, Routes.REGISTER].includes(this.state.getValue().route)) {
+      if (this.settings.tfaStatus === TFAStatus.OPTIONAL && [Routes.LOGIN, Routes.REGISTER].includes(this.state.getValue().route)) {
         this.tfaSetupSelect(loginResponse);
         return;
       }
@@ -810,12 +830,69 @@ class CDK {
     });
   }
   login() {
+    switch (true) {
+      case (!this.auth.config.loginWith && this.settings.loginWith["phone"] || this.auth.config.loginWith === "phone" && this.settings.loginWith["phone"]):
+        return this.loginWithPhone();
+      case (!this.auth.config.loginWith && this.settings.loginWith["email"] || this.auth.config.loginWith === "email" && this.settings.loginWith["email"]):
+        return this.loginWithPassword();
+      default:
+        throw "Unsupported login way";
+    }
+  }
+  loginWithPhone() {
+    var _a, _b;
+    this.state.next({
+      route: Routes.LOGIN_PHONE,
+      registrationForbidden: (_a = this.settings) == null ? void 0 : _a.registrationForbidden,
+      error: this.lastError,
+      federatedProviders: (_b = this.settings) == null ? void 0 : _b.federatedProviders,
+      loginTypes: this.getLoginTypes("phone"),
+      requestCode: (phone, remember) => __async(this, null, function* () {
+        if (!this.validatePhone(phone)) {
+          return;
+        }
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add("offline");
+        }
+        yield this.auth.api.requestPhoneCode(phone).then(() => this.loginWithPhoneVerify(phone, remember)).catch((e) => this.processError(e));
+      }),
+      socialLogin: (provider) => __async(this, null, function* () {
+        this.state.next({ route: Routes.LOADING });
+        const federatedRedirectUrl = window.location.origin + window.location.pathname;
+        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+      })
+    });
+  }
+  loginWithPhoneVerify(phone, remember) {
+    this.state.next({
+      route: Routes.LOGIN_PHONE_VERIFY,
+      error: this.lastError,
+      phone,
+      resendTimeout: this.settings.tfaResendTimeout * 1e3,
+      resendCode: () => __async(this, null, function* () {
+        yield this.auth.api.requestPhoneCode(phone);
+      }),
+      login: (code) => __async(this, null, function* () {
+        const scopes = new Set(this.scopes);
+        if (remember) {
+          scopes.add("offline");
+        }
+        yield this.auth.api.phoneLogin(phone, code, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+      }),
+      goback: () => __async(this, null, function* () {
+        this.login();
+      })
+    });
+  }
+  loginWithPassword() {
     var _a, _b;
     this.state.next({
       route: Routes.LOGIN,
       registrationForbidden: (_a = this.settings) == null ? void 0 : _a.registrationForbidden,
       error: this.lastError,
       federatedProviders: (_b = this.settings) == null ? void 0 : _b.federatedProviders,
+      loginTypes: this.getLoginTypes("email"),
       signup: () => __async(this, null, function* () {
         this.register();
       }),
@@ -913,6 +990,17 @@ class CDK {
         detailedMessage: "Email address is not valid",
         name: "Validation error",
         message: "Email address is not valid"
+      });
+      return false;
+    }
+    return true;
+  }
+  validatePhone(email) {
+    if (!phoneRegex.test(email)) {
+      this.processError({
+        detailedMessage: "Phone is not valid",
+        name: "Validation error",
+        message: "Phone is not valid"
       });
       return false;
     }
@@ -1078,6 +1166,19 @@ class CDK {
         })
       });
     });
+  }
+  getLoginTypes(current) {
+    const result = {};
+    Object.entries(this.settings.loginWith).filter((v) => v[1] && v[0] !== current).forEach((v) => {
+      result[v[0]] = {
+        type: v[0],
+        click: () => {
+          this.auth.config.loginWith = v[0];
+          this.login();
+        }
+      };
+    });
+    return result;
   }
 }
 
