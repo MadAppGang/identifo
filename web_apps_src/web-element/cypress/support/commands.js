@@ -184,6 +184,17 @@ Cypress.Commands.add('getResetTokenURL', async () => {
   return `${Cypress.config('baseUrl')}/password/reset/?appId=${appId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
 });
 
+Cypress.Commands.add('addInvite', async (email, role = 'user') => {
+  await login();
+  const invite = await fetch(`${adminUrl}/invites`, {
+    body: `{"email":"${email}", "app_id":"${appId}", "access_role":"${role}"}`,
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+  }).then(r => r.json());
+  return `${Cypress.config('baseUrl')}/register/?email=${email}&appId=${appId}&token=${invite.token}`;
+});
+
 Cypress.Commands.add('visitLogin', options => {
   window.localStorage.setItem('debug', true);
   return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: appId, url: Cypress.config('serverUrl') }).toString()}`);
@@ -256,5 +267,13 @@ Cypress.Commands.add('verifyRefreshSuccessToken', () => {
       const token = parseJwt(text.trim());
       expect(token.scopes).equal('offline');
       expect(token.type).equal('refresh');
+    });
+});
+Cypress.Commands.add('getUserData', () => {
+  return cy
+    .get('#user_data')
+    .invoke('text')
+    .then(text => {
+      return JSON.parse(text.trim());
     });
 });

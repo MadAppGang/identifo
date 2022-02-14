@@ -50,13 +50,14 @@ func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorag
 // Save creates and saves new invite to a database.
 func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string, expiresAt time.Time) error {
 	return is.db.Update(func(tx *bolt.Tx) error {
+		fmt.Println(expiresAt)
 		ib := tx.Bucket([]byte(InviteBucket))
 
 		invite := model.Invite{
 			ID:        xid.New().String(),
 			AppID:     appID,
 			Token:     inviteToken,
-			Archived:  true,
+			Archived:  false,
 			Email:     email,
 			Role:      role,
 			CreatedBy: createdBy,

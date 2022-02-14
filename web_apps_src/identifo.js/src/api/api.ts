@@ -1,3 +1,4 @@
+import { InviteResponse } from '..';
 import TokenService from '../tokenService';
 import { IdentifoConfig } from '../types/types';
 import {
@@ -205,12 +206,16 @@ export class API {
     return this.get<LoginResponse>(`/auth/federated/complete?${params.toString()}`).then((r) => this.storeToken(r));
   }
 
-  async register(email: string, password: string, scopes: string[]): Promise<LoginResponse> {
-    const data = {
+  async register(email: string, password: string, scopes: string[], invite?: string): Promise<LoginResponse> {
+    const data: Record<string, any> = {
       email,
       password,
       scopes,
     };
+
+    if (invite) {
+      data.invite = invite;
+    }
 
     return this.post<LoginResponse>('/auth/register', data).then((r) => this.storeToken(r));
   }
@@ -291,6 +296,25 @@ export class API {
       this.tokenService.removeToken('refresh');
       return r;
     });
+  }
+
+  async invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse> {
+    if (!this.tokenService.getToken()?.token) {
+      throw new Error('No token in token service.');
+    }
+    return this.post<InviteResponse>(
+      '/invite',
+      {
+        email,
+        access_role: role,
+        callback_url: callbackUrl,
+      },
+      {
+        headers: {
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${this.tokenService.getToken()?.token}`,
+        },
+      },
+    );
   }
 
   storeToken<T extends TokenResponse>(response: T): T {

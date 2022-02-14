@@ -113,6 +113,11 @@ export interface SuccessResponse {
   message?: string;
 }
 
+export interface InviteResponse {
+  result: 'ok';
+  link: string;
+}
+
 export interface TFARequiredRespopnse {
   result: 'tfa-required';
 }

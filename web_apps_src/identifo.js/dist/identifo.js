@@ -219,13 +219,16 @@ class API {
       return this.get(`/auth/federated/complete?${params.toString()}`).then((r) => this.storeToken(r));
     });
   }
-  register(email, password, scopes) {
+  register(email, password, scopes, invite) {
     return __async$3(this, null, function* () {
       const data = {
         email,
         password,
         scopes
       };
+      if (invite) {
+        data.invite = invite;
+      }
       return this.post("/auth/register", data).then((r) => this.storeToken(r));
     });
   }
@@ -306,6 +309,23 @@ class API {
         this.tokenService.removeToken();
         this.tokenService.removeToken("refresh");
         return r;
+      });
+    });
+  }
+  invite(email, role, callbackUrl) {
+    return __async$3(this, null, function* () {
+      var _a, _b;
+      if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
+        throw new Error("No token in token service.");
+      }
+      return this.post("/invite", {
+        email,
+        access_role: role,
+        callback_url: callbackUrl
+      }, {
+        headers: {
+          [AUTHORIZATION_HEADER_KEY]: `Bearer ${(_b = this.tokenService.getToken()) == null ? void 0 : _b.token}`
+        }
       });
     });
   }
@@ -923,11 +943,11 @@ class CDK {
   register() {
     this.state.next({
       route: exports.Routes.REGISTER,
-      signup: (email, password) => __async(this, null, function* () {
+      signup: (email, password, token) => __async(this, null, function* () {
         if (!this.validateEmail(email)) {
           return;
         }
-        yield this.auth.api.register(email, password, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        yield this.auth.api.register(email, password, [...this.scopes], token).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       }),
       goback: () => __async(this, null, function* () {
         this.login();

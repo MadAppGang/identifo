@@ -95,6 +95,11 @@ func (ar *Router) initRoutes() {
 		negroni.WrapFunc(ar.FetchInvites()),
 	)).Methods("GET")
 
+	ar.router.Path("/invites").Handler(negroni.New(
+		ar.Session(),
+		negroni.WrapFunc(ar.AddInvite()),
+	)).Methods("POST")
+
 	invites := mux.NewRouter().PathPrefix("/invites").Subrouter()
 	ar.router.PathPrefix("/invites").Handler(negroni.New(
 		ar.Session(),
