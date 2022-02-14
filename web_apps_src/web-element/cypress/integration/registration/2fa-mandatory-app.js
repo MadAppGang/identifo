@@ -1,6 +1,6 @@
 describe('2fa mandatory registration', () => {
   before(() => {
-    cy.createAppAndUser(false);
+    cy.createApp();
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
     cy.appSet({ tfa_status: 'mandatory' });
   });
