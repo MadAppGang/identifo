@@ -520,14 +520,15 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 
 // check2FA checks correspondence between app's TFAstatus and user's TFAInfo,
 // and decides if we require two-factor authentication after all checks are successfully passed.
+// require2FA, enabled2FA, err
 func (ar *Router) check2FA(appTFAStatus model.TFAStatus, serverTFAType model.TFAType, user model.User) (bool, bool, error) {
 	if appTFAStatus == model.TFAStatusMandatory && !user.TFAInfo.IsEnabled {
 		return true, false, errPleaseEnableTFA
 	}
 
-	if appTFAStatus == model.TFAStatusDisabled && user.TFAInfo.IsEnabled {
-		return false, true, errPleaseDisableTFA
-	}
+	// if appTFAStatus == model.TFAStatusDisabled && user.TFAInfo.IsEnabled {
+	// 	return false, true, errPleaseDisableTFA
+	// }
 
 	// Request two-factor auth if user enabled it and app supports it.
 	if user.TFAInfo.IsEnabled && appTFAStatus != model.TFAStatusDisabled {

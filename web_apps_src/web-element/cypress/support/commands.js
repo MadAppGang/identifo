@@ -2,7 +2,8 @@ import user from '../fixtures/user.json';
 import app from '../fixtures/app.json';
 import server from '../fixtures/server.json';
 const adminUrl = `${Cypress.config('serverUrl')}/admin`;
-let appId = '';
+let appId = [''];
+let lastAppId = '';
 let userId = '';
 const login = () => {
   return fetch(`${adminUrl}/login`, {
@@ -45,13 +46,19 @@ const deleteTestApp = async () => {
   if (!appId) {
     return;
   }
+  const p = [];
+  for (const t of appId) {
+    p.push(
+      fetch(`${adminUrl}/apps/${t}`, {
+        body: null,
+        method: 'DELETE',
+        mode: 'cors',
+        credentials: 'include',
+      }),
+    );
+  }
 
-  return fetch(`${adminUrl}/apps/${appId}`, {
-    body: null,
-    method: 'DELETE',
-    mode: 'cors',
-    credentials: 'include',
-  });
+  return Promise.all(p);
 };
 const parseJwt = token => {
   var base64Url = token.split('.')[1];
@@ -82,7 +89,10 @@ Cypress.Commands.add('createAppAndUser', async (createUser = true) => {
     credentials: 'include',
   })
     .then(r => r.json())
-    .then(result => (appId = result.id));
+    .then(result => {
+      appId.push(result.id);
+      lastAppId = result.id;
+    });
   if (createUser) {
     await fetch(`${adminUrl}/users/`, {
       body: JSON.stringify({ ...user }),
@@ -94,7 +104,25 @@ Cypress.Commands.add('createAppAndUser', async (createUser = true) => {
       .then(result => (userId = result.id));
   }
 });
+Cypress.Commands.add('createApp', async oApp => {
+  await login();
+  await fetch(`${adminUrl}/apps`, {
+    body: JSON.stringify({
+      ...app,
+      ...oApp,
+    }),
+    method: 'POST',
+    mode: 'cors',
+    credentials: 'include',
+  })
+    .then(r => r.json())
+    .then(result => {
+      appId.push(result.id);
+      lastAppId = result.id;
+    });
+});
 Cypress.Commands.add('createUser', async u => {
+  await login();
   await fetch(`${adminUrl}/users/`, {
     body: JSON.stringify({ ...user, ...u }),
     method: 'POST',
@@ -131,7 +159,7 @@ Cypress.Commands.add('deleteAppAndUser', async data => {
 // Change app settings
 Cypress.Commands.add('appSet', async data => {
   await login();
-  await fetch(`${adminUrl}/apps/${appId}`, {
+  await fetch(`${adminUrl}/apps/${lastAppId}`, {
     body: JSON.stringify({
       ...app,
       ...data,
@@ -176,17 +204,17 @@ Cypress.Commands.add('userSet', async data => {
 Cypress.Commands.add('getResetTokenURL', async () => {
   await login();
   const resetTokenData = await fetch(`${adminUrl}/users/generate_new_reset_token`, {
-    body: JSON.stringify({ user_id: userId, app_id: appId }),
+    body: JSON.stringify({ user_id: userId, app_id: lastAppId }),
     method: 'POST',
     mode: 'cors',
     credentials: 'include',
   }).then(r => r.json());
-  return `${Cypress.config('baseUrl')}/password/reset/?appId=${appId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
+  return `${Cypress.config('baseUrl')}/password/reset/?appId=${lastAppId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
 });
 
 Cypress.Commands.add('visitLogin', options => {
   window.localStorage.setItem('debug', true);
-  return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: appId, url: Cypress.config('serverUrl') }).toString()}`);
+  return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: lastAppId, url: Cypress.config('serverUrl') }).toString()}`);
 });
 Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password', remember = false) => {
   cy.get('[placeholder=Email]').click().type(email);
