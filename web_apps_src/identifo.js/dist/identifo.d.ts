@@ -183,6 +183,10 @@ interface SuccessResponse {
     result: 'ok';
     message?: string;
 }
+interface InviteResponse {
+    result: 'ok';
+    link: string;
+}
 interface TFARequiredRespopnse {
     result: 'tfa-required';
 }
@@ -216,7 +220,7 @@ declare class API {
         popUp?: boolean;
     }): Promise<void>;
     federatedLoginComplete(params: URLSearchParams): Promise<LoginResponse>;
-    register(email: string, password: string, scopes: string[]): Promise<LoginResponse>;
+    register(email: string, password: string, scopes: string[], invite?: string): Promise<LoginResponse>;
     requestResetPassword(email: string, tfaCode?: string): Promise<SuccessResponse | TFARequiredRespopnse>;
     resetPassword(password: string): Promise<SuccessResponse>;
     getAppSettings(callbackUrl: string): Promise<AppSettingsResponse>;
@@ -227,6 +231,7 @@ declare class API {
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
     resendTFA(): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;
+    invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse>;
     storeToken<T extends TokenResponse>(response: T): T;
 }
 
@@ -344,7 +349,7 @@ interface StateLoginPhoneVerify extends State, StateWithError {
 }
 interface StateRegister extends State, StateWithError {
     route: Routes.REGISTER;
-    signup: (email: string, password: string) => Promise<void>;
+    signup: (email: string, password: string, token?: string) => Promise<void>;
     goback: () => Promise<void>;
 }
 interface StatePasswordForgot extends State, StateWithError {
@@ -482,4 +487,4 @@ declare class CDK {
     private getLoginTypes;
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, InviteResponse, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };

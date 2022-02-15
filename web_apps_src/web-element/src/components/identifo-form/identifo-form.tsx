@@ -113,10 +113,16 @@ export class IdentifoForm {
     });
 
     if (CDKService.cdk.state.getValue().route !== Routes.ERROR) {
-      if (params.get('token')) {
-        CDKService.cdk.passwordReset();
-      } else {
-        CDKService.cdk.login();
+      switch (true) {
+        case location.pathname.indexOf(Routes.REGISTER) > -1:
+          CDKService.cdk.register();
+          break;
+        case location.pathname.indexOf(Routes.PASSWORD_RESET) > -1:
+          CDKService.cdk.passwordReset();
+          break;
+        default:
+          CDKService.cdk.login();
+          break;
       }
     }
 

@@ -17,6 +17,7 @@ type registrationData struct {
 	Password  string   `json:"password"`
 	Scopes    []string `json:"scopes"`
 	Anonymous bool     `json:"anonymous"`
+	Invite    string   `json:"invite"`
 }
 
 func (rd *registrationData) validate() error {
@@ -125,7 +126,30 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			Scopes:   scopes,
 		}
 
-		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, app.NewUserDefaultRole, rd.Anonymous)
+		userRole := app.NewUserDefaultRole
+
+		if rd.Invite != "" {
+			parsedInviteToken, err := ar.server.Services().Token.Parse(rd.Invite)
+			if err != nil {
+				ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusBadRequest, err.Error(), "RegisterWithPassword.ParseInviteToken")
+				return
+			}
+
+			email, ok := parsedInviteToken.Payload()["email"].(string)
+			if !ok || email != rd.Email {
+				ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusBadRequest, "Invite email not equal registration data email", "RegisterWithPassword.ParseInviteToken")
+				return
+			}
+
+			role, ok := parsedInviteToken.Payload()["role"].(string)
+			if !ok {
+				ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusBadRequest, "Can't get role from invite", "RegisterWithPassword.ParseInviteToken")
+				return
+			}
+			userRole = role
+		}
+
+		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, userRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
 			ar.Error(w, ErrorAPIUsernameEmailOrPhoneTaken, http.StatusBadRequest, err.Error(), "RegisterWithPassword.AddUserWithPassword")
 			return

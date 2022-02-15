@@ -17,6 +17,8 @@ export class IdentifoFormRegister {
   subscription: Subscription;
   connectedCallback() {
     this.subscription = CDKService.cdk.state.subscribe(state => (this.state = state as StateRegister));
+    const params = new URLSearchParams(window.location.search);
+    this.email = params.get('email') || '';
   }
   disconnectedCallback() {
     this.subscription.unsubscribe();
@@ -29,7 +31,10 @@ export class IdentifoFormRegister {
     this.email = (event.target as HTMLInputElement).value;
   }
   signUp() {
-    this.state.signup(this.email, this.password);
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+
+    this.state.signup(this.email, this.password, token);
   }
 
   render() {

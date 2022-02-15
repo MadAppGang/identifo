@@ -220,12 +220,12 @@ export class CDK {
   register(): void {
     this.state.next({
       route: Routes.REGISTER,
-      signup: async (email: string, password: string): Promise<void> => {
+      signup: async (email: string, password: string, token?: string): Promise<void> => {
         if (!this.validateEmail(email)) {
           return;
         }
         await this.auth.api
-          .register(email, password, [...this.scopes])
+          .register(email, password, [...this.scopes], token)
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));

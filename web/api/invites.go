@@ -74,7 +74,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes), " ", ",", -1)
-		query := url.PathEscape(fmt.Sprintf("appId=%s&scopes=%s&token=%s&callbackUrl=%s", app.ID, scopes, inviteTokenString, d.CallbackURL))
+		query := url.PathEscape(fmt.Sprintf("email=%s&appId=%s&scopes=%s&token=%s&callbackUrl=%s", d.Email, app.ID, scopes, inviteTokenString, d.CallbackURL))
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -126,7 +126,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			}
 
 		}
-		result := map[string]string{"link": u.String()}
+		result := map[string]string{"result": "ok", "link": u.String()}
 		ar.ServeJSON(w, http.StatusOK, result)
 	}
 }

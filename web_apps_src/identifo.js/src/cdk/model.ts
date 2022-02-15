@@ -92,7 +92,7 @@ export interface StateLoginPhoneVerify extends State, StateWithError {
 
 export interface StateRegister extends State, StateWithError {
   route: Routes.REGISTER;
-  signup: (email: string, password: string) => Promise<void>;
+  signup: (email: string, password: string, token?: string) => Promise<void>;
   goback: () => Promise<void>;
 }
 

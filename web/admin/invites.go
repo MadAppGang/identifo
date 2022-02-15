@@ -46,6 +46,49 @@ func (ar *Router) FetchInvites() http.HandlerFunc {
 	}
 }
 
+func (ar *Router) AddInvite() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		d := struct {
+			AppID string `json:"app_id"`
+			Email string `json:"email"`
+			Role  string `json:"access_role"`
+		}{}
+		if err := ar.mustParseJSON(w, r, &d); err != nil {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error())
+			return
+		}
+		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
+			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "")
+			return
+		}
+
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role)
+		if err != nil {
+			ar.Error(w, ErrorAPIInviteTokenGenerate, http.StatusInternalServerError, err.Error())
+			return
+		}
+
+		inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
+		if err != nil {
+			ar.Error(w, ErrorAPIInviteTokenGenerate, http.StatusInternalServerError, err.Error())
+			return
+		}
+		err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, d.AppID, "", inviteToken.ExpiresAt())
+		if err != nil {
+			ar.Error(w, ErrorAPISaveInvite, http.StatusInternalServerError, "")
+			return
+		}
+
+		invite, err := ar.server.Storages().Invite.GetByEmail(d.Email)
+		if err != nil {
+			ar.Error(w, ErrorAPIInviteNotFound, http.StatusInternalServerError, "")
+			return
+		}
+
+		ar.ServeJSON(w, http.StatusOK, invite)
+	}
+}
+
 // GetInviteByID returns specific invite by its id.
 func (ar *Router) GetInviteByID() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
