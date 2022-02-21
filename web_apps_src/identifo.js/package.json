@@ -1,6 +1,6 @@
 {
   "name": "@identifo/identifo-auth-js",
-  "version": "3.2.0",
+  "version": "3.3.0",
   "description": "Library for web-auth through Identifo",
   "main": "./dist/identifo.js",
   "module": "./dist/identifo.mjs",
