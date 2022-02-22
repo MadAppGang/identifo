@@ -314,7 +314,7 @@ class API {
       if (!((_a = this.tokenService.getToken()) == null ? void 0 : _a.token)) {
         throw new Error("No token in token service.");
       }
-      return this.post("/invite", {
+      return this.post("/auth/invite", {
         email,
         access_role: role,
         callback_url: callbackUrl

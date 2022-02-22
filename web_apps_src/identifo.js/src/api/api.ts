@@ -303,7 +303,7 @@ export class API {
       throw new Error('No token in token service.');
     }
     return this.post<InviteResponse>(
-      '/invite',
+      '/auth/invite',
       {
         email,
         access_role: role,
