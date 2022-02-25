@@ -267,7 +267,8 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 
 	refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
-		return "", "", err
+		ar.logger.Println(err)
+		return accessTokenString, "", nil
 	}
 	refreshTokenString, err := ar.server.Services().Token.String(refresh)
 	if err != nil {
