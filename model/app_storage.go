@@ -38,9 +38,9 @@ type AppData struct {
 	RolesBlacklist []string         `bson:"roles_blacklist" json:"roles_blacklist"`
 
 	// Token settings
-	TokenLifespan                     int64                                `bson:"refresh_token_lifespan" json:"refresh_token_lifespan"` // TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
+	TokenLifespan                     int64                                `bson:"token_lifespan" json:"token_lifespan"`                 // TokenLifespan is a token lifespan in seconds, if 0 - default one is used.
 	InviteTokenLifespan               int64                                `bson:"invite_token_lifespan" json:"invite_token_lifespan"`   // InviteTokenLifespan a inviteToken lifespan in seconds, if 0 - default one is used.
-	RefreshTokenLifespan              int64                                `bson:"token_lifespan" json:"token_lifespan"`                 // RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
+	RefreshTokenLifespan              int64                                `bson:"refresh_token_lifespan" json:"refresh_token_lifespan"` // RefreshTokenLifespan is a refreshToken lifespan in seconds, if 0 - default one is used.
 	TokenPayload                      []string                             `bson:"token_payload" json:"token_payload"`                   // Payload is a list of fields that are included in token. If it's empty, there are no fields in payload.
 	TokenPayloadService               TokenPayloadServiceType              `json:"token_payload_service" bson:"token_payload_service"`
 	TokenPayloadServicePluginSettings TokenPayloadServicePluginSettings    `json:"token_payload_service_plugin_settings" bson:"token_payload_service_plugin_settings"`
