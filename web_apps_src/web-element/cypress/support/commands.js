@@ -215,12 +215,12 @@ Cypress.Commands.add('getResetTokenURL', async () => {
 Cypress.Commands.add('addInvite', async (email, role = 'user') => {
   await login();
   const invite = await fetch(`${adminUrl}/invites`, {
-    body: `{"email":"${email}", "app_id":"${appId}", "access_role":"${role}"}`,
+    body: `{"email":"${email}", "app_id":"${lastAppId}", "access_role":"${role}"}`,
     method: 'POST',
     mode: 'cors',
     credentials: 'include',
   }).then(r => r.json());
-  return `${Cypress.config('baseUrl')}/register/?email=${email}&appId=${appId}&token=${invite.token}`;
+  return `${Cypress.config('baseUrl')}/register/?email=${email}&appId=${lastAppId}&token=${invite.token}`;
 });
 
 Cypress.Commands.add('visitLogin', options => {
