@@ -155,6 +155,7 @@ Cypress.Commands.add('deleteAppAndUser', async data => {
   await login();
   await deleteTestApp();
   await deleteTestUser();
+  await deleteTestUserBySearch();
 });
 // Change app settings
 Cypress.Commands.add('appSet', async data => {
@@ -203,6 +204,7 @@ Cypress.Commands.add('userSet', async data => {
 
 Cypress.Commands.add('getResetTokenURL', async () => {
   await login();
+  console.log(userId);
   const resetTokenData = await fetch(`${adminUrl}/users/generate_new_reset_token`, {
     body: JSON.stringify({ user_id: userId, app_id: lastAppId }),
     method: 'POST',
@@ -227,10 +229,11 @@ Cypress.Commands.add('visitLogin', options => {
   window.localStorage.setItem('debug', true);
   return cy.visit(`${Cypress.config('baseUrl')}/login/?${new URLSearchParams({ ...options, appId: lastAppId, url: Cypress.config('serverUrl') }).toString()}`);
 });
-Cypress.Commands.add('loginWithEmail', (email = 'test@test.com', password = 'Password', remember = false) => {
-  cy.get('[placeholder=Email]').click().type(email);
-  cy.get('[placeholder=Password]').click().type(password);
-  if (remember) {
+Cypress.Commands.add('loginWithEmail', p => {
+  const login = { ...{ email: 'test@test.com', password: 'Password', remember: false }, ...p };
+  cy.get('[placeholder=Email]').click().type(login.email);
+  cy.get('[placeholder=Password]').click().type(login.password);
+  if (login.remember) {
     cy.contains('Remember me').click();
   }
   cy.screenshot();

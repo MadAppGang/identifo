@@ -48,7 +48,9 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		if user.TFAInfo.IsEnabled && ar.tfaType != model.TFATypeEmail {
+		_, enabled2FA, _ := ar.check2FA(app.TFAStatus, ar.tfaType, user)
+
+		if enabled2FA && ar.tfaType != model.TFATypeEmail {
 			if d.TFACode != "" {
 				otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
 				if err != nil {
