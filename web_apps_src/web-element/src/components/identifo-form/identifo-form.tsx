@@ -81,7 +81,7 @@ export class IdentifoForm {
   async componentWillLoad() {
     // Get url params and configure CDK serivice
     const params = new URLSearchParams(window.location.search);
-    const callbackUrl = params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
+    const callbackUrl = this.callbackUrl || params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
     const scopes = (params.get('scopes') || '').split(',').map(s => s.trim());
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
 
