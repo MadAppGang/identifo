@@ -38,6 +38,7 @@ sessionStorage:
   #   address: http://localhost:2073
   #   password: redis_password
   #   db: admin_sessions
+  #   cluster: false
 
   # example for dynamo session storage
   # dynamo:

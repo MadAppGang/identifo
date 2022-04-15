@@ -2,7 +2,9 @@ package redis
 
 import (
 	"encoding/json"
+	"io"
 	"log"
+	"strings"
 	"time"
 
 	"github.com/go-redis/redis"
@@ -11,7 +13,7 @@ import (
 
 // RedisSessionStorage is a Redis-backed storage for admin sessions.
 type RedisSessionStorage struct {
-	client *redis.Client
+	client redis.Cmdable
 }
 
 // NewSessionStorage creates new Redis session storage.
@@ -31,11 +33,20 @@ func NewSessionStorage(settings model.RedisDatabaseSettings) (model.SessionStora
 		password = settings.Password
 	}
 
-	client := redis.NewClient(&redis.Options{
-		Addr:     addr,
-		Password: password,
-		DB:       db,
-	})
+	var client redis.Cmdable
+
+	if settings.Cluster {
+		client = redis.NewClusterClient(&redis.ClusterOptions{
+			Addrs:    strings.Split(settings.Address, ","),
+			Password: password,
+		})
+	} else {
+		client = redis.NewClient(&redis.Options{
+			Addr:     addr,
+			Password: password,
+			DB:       db,
+		})
+	}
 
 	if _, err := client.Ping().Result(); err != nil {
 		return nil, err
@@ -95,6 +106,9 @@ func (r *RedisSessionStorage) ProlongSession(id string, newDuration model.Sessio
 	err = r.client.SetXX(session.ID, bs, newDuration.Duration).Err()
 	return err
 }
+
 func (r *RedisSessionStorage) Close() {
-	r.client.Close()
+	if c, ok := r.client.(io.Closer); ok {
+		c.Close()
+	}
 }
