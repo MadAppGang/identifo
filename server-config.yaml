@@ -39,6 +39,7 @@ sessionStorage:
   #   password: redis_password
   #   db: admin_sessions
   #   cluster: false
+  #   prefix: myapp
 
   # example for dynamo session storage
   # dynamo:

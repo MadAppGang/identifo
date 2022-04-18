@@ -12,7 +12,7 @@ import (
 )
 
 func TestFetchUser(t *testing.T) {
-	if os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INGRATION") == "" {
+	if os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION") == "" {
 		t.SkipNow()
 	}
 
