@@ -170,6 +170,8 @@ type RedisDatabaseSettings struct {
 	DB int `yaml:"db" json:"db"`
 	// Cluster - if true will connect to redis cluster, address can be comma separated list of addresses.
 	Cluster bool `yaml:"cluster" json:"cluster"`
+	// Prefix for redis keys
+	Prefix string `yaml:"prefix" json:"prefix"`
 }
 
 type DynamoDBSessionStorageSettings struct{}

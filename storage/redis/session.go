@@ -14,6 +14,7 @@ import (
 // RedisSessionStorage is a Redis-backed storage for admin sessions.
 type RedisSessionStorage struct {
 	client redis.Cmdable
+	prefix string
 }
 
 // NewSessionStorage creates new Redis session storage.
@@ -52,14 +53,23 @@ func NewSessionStorage(settings model.RedisDatabaseSettings) (model.SessionStora
 		return nil, err
 	}
 
-	return &RedisSessionStorage{client: client}, nil
+	p := strings.TrimSpace(settings.Prefix)
+	if p != "" && !strings.HasSuffix(settings.Prefix, ":") {
+		p = p + ":"
+	}
+
+	return &RedisSessionStorage{
+		client: client,
+		prefix: p,
+	}, nil
 }
 
 // GetSession fetches session by ID.
 func (r *RedisSessionStorage) GetSession(id string) (model.Session, error) {
 	var session model.Session
 
-	bs, err := r.client.Get(id).Bytes()
+	key := r.prefix + id
+	bs, err := r.client.Get(key).Bytes()
 	if err != nil {
 		return session, err
 	}
@@ -75,13 +85,15 @@ func (r *RedisSessionStorage) InsertSession(session model.Session) error {
 		return err
 	}
 
-	err = r.client.SetNX(session.ID, bs, time.Until(time.Unix(session.ExpirationTime, 0))).Err()
+	key := r.prefix + session.ID
+	err = r.client.SetNX(key, bs, time.Until(time.Unix(session.ExpirationTime, 0))).Err()
 	return err
 }
 
 // DeleteSession deletes session from the storage.
 func (r *RedisSessionStorage) DeleteSession(id string) error {
-	count, err := r.client.Del(id).Result()
+	key := r.prefix + id
+	count, err := r.client.Del(key).Result()
 	if count == 0 {
 		log.Println("Tried to delete nonexistent session:", id)
 	}
@@ -103,7 +115,8 @@ func (r *RedisSessionStorage) ProlongSession(id string, newDuration model.Sessio
 		return err
 	}
 
-	err = r.client.SetXX(session.ID, bs, newDuration.Duration).Err()
+	key := r.prefix + session.ID
+	err = r.client.SetXX(key, bs, newDuration.Duration).Err()
 	return err
 }
 
