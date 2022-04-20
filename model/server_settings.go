@@ -168,6 +168,8 @@ type RedisDatabaseSettings struct {
 	Password string `yaml:"password" json:"password"`
 	// Database to be selected after connecting to the server.
 	DB int `yaml:"db" json:"db"`
+	// Cluster - if true will connect to redis cluster, address can be comma separated list of addresses.
+	Cluster bool `yaml:"cluster" json:"cluster"`
 }
 
 type DynamoDBSessionStorageSettings struct{}
