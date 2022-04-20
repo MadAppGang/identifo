@@ -77,18 +77,19 @@ func (w *PollWatcher) requestFileVersion() {
 		IfModifiedSince: w.watchingSince, // Return the object only if it has been modified since the specified time, otherwise return a 304 (not modified).
 	}
 
-	_, err := w.client.HeadObject(input)
+	output, err := w.client.HeadObject(input)
 	if err != nil {
 		if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ErrCodeNotModified {
 			// file has not been changed
 			// just silently returning
 			return
 		} else {
-			log.Printf("gettings error: %+v\n", err)
+			log.Printf("getting error: %+v\n", err)
 			// report error
 			w.err <- err
 		}
 	} else {
+		log.Printf("s3 config file has changed: request: %+v, response: %+v", input, output)
 		// no error received, it means file changed
 		// report file change
 		w.change <- true
