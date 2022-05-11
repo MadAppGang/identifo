@@ -10,8 +10,10 @@ import (
 	"github.com/madappgang/identifo/v2/web/admin"
 	"github.com/madappgang/identifo/v2/web/api"
 	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/madappgang/identifo/v2/web/spa"
 	"github.com/rs/cors"
+	"github.com/urfave/negroni"
 )
 
 const (
@@ -75,7 +77,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 			Root:       "/",
 			FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
 		}
-		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, nil, settings.Logger)
+		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, []negroni.Handler{middleware.NewCacheDisable()}, settings.Logger)
 		if err != nil {
 			return nil, err
 		}
