@@ -1,4 +1,4 @@
-import { StateCallback, States } from '@identifo/identifo-auth-js';
+import { LoginTypes, StateCallback, States } from '@identifo/identifo-auth-js';
 import { ApiError, CDK, LoginResponse, Routes } from '@identifo/identifo-auth-js';
 import { Component, Event, EventEmitter, h, Host, Prop, State } from '@stencil/core';
 import { CDKService } from '../../services/cdk.service';
@@ -14,6 +14,8 @@ export class IdentifoForm {
   @Prop({ reflect: true }) appId: string;
   @Prop({ reflect: true }) url: string;
   @Prop() theme: 'dark' | 'light' | 'auto' = 'auto';
+
+  @Prop() loginWith: keyof LoginTypes;
 
   // This url will be preserved when federated login will be completed
   @Prop() callbackUrl: string;
@@ -89,6 +91,7 @@ export class IdentifoForm {
       {
         appId: this.appId,
         url: this.url,
+        loginWith: this.loginWith,
         postLogoutRedirectUri,
         scopes,
       },

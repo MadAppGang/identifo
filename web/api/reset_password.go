@@ -87,7 +87,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			return
 		}
 
-		query := fmt.Sprintf("appId=%s&token=%s&route=password/reset", app.ID, resetTokenString)
+		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -98,7 +98,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     ar.LoginAppPath,
+			Path:     ar.LoginPasswordResetPath,
 			RawQuery: query,
 		}
 		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}

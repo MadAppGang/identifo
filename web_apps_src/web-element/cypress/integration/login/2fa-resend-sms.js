@@ -12,7 +12,7 @@ describe('2fa mandatory app', () => {
   });
   it('2fa flow mandatory with sms have resend', () => {
     cy.loginWithEmail();
-    cy.contains('Use phone as 2fa');
+    cy.contains('Your phone will be used for 2-step verification');
     cy.contains('Go back to login');
     cy.get('[placeholder=Phone]').click().type('+0123456789');
     cy.screenshot();

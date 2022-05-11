@@ -31,7 +31,10 @@ export class IdentifoFormTFASetupSMS {
   render() {
     return (
       <div class="tfa-setup__form">
-        <p class="tfa-setup__subtitle"> Use phone as 2fa, please check your phone bellow, we will send confirmation code to this phone</p>
+        <p class="tfa-setup__subtitle">
+          Your phone will be used for 2-step verification. Please enter your phone number below and click 'Setup Phone'. We will send a confirmation code to the phone number you
+          enter
+        </p>
         <input
           type="phone"
           class={`form-control ${this.state.error && 'form-control-danger'}`}

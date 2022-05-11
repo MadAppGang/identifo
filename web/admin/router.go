@@ -15,43 +15,46 @@ import (
 
 // Router is a router that handles admin requests.
 type Router struct {
-	server       model.Server
-	middleware   *negroni.Negroni
-	cors         *cors.Cors
-	logger       *log.Logger
-	router       *mux.Router
-	RedirectURL  string
-	PathPrefix   string
-	LoginAppPath string
-	Host         string
-	forceRestart chan<- bool
-	originUpdate func() error
+	server                 model.Server
+	middleware             *negroni.Negroni
+	cors                   *cors.Cors
+	logger                 *log.Logger
+	router                 *mux.Router
+	RedirectURL            string
+	PathPrefix             string
+	LoginAppPath           string
+	LoginPasswordResetPath string
+	Host                   string
+	forceRestart           chan<- bool
+	originUpdate           func() error
 }
 
 type RouterSettings struct {
-	Server       model.Server
-	Logger       *log.Logger
-	Host         string
-	Prefix       string
-	LoginAppPath string // this used to create invite link and reset password link for user
-	Cors         *cors.Cors
-	Restart      chan<- bool
-	OriginUpdate func() error
+	Server                 model.Server
+	Logger                 *log.Logger
+	Host                   string
+	Prefix                 string
+	LoginAppPath           string // this used to create invite link and reset password link for user
+	LoginPasswordResetPath string
+	Cors                   *cors.Cors
+	Restart                chan<- bool
+	OriginUpdate           func() error
 }
 
 // NewRouter creates and initializes new admin router.
 func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar := Router{
-		server:       settings.Server,
-		middleware:   negroni.New(middleware.NewNegroniLogger("ADMIN_API"), negroni.NewRecovery()),
-		router:       mux.NewRouter(),
-		Host:         settings.Host,
-		PathPrefix:   settings.Prefix,
-		forceRestart: settings.Restart,
-		cors:         settings.Cors,
-		RedirectURL:  "/login",
-		LoginAppPath: settings.LoginAppPath,
-		originUpdate: settings.OriginUpdate,
+		server:                 settings.Server,
+		middleware:             negroni.New(middleware.NewNegroniLogger("ADMIN_API"), negroni.NewRecovery()),
+		router:                 mux.NewRouter(),
+		Host:                   settings.Host,
+		PathPrefix:             settings.Prefix,
+		forceRestart:           settings.Restart,
+		cors:                   settings.Cors,
+		RedirectURL:            "/login",
+		LoginAppPath:           settings.LoginAppPath,
+		LoginPasswordResetPath: settings.LoginPasswordResetPath,
+		originUpdate:           settings.OriginUpdate,
 	}
 
 	if settings.Logger == nil {

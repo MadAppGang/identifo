@@ -332,6 +332,9 @@ export class CDK {
           provisioningURI: '',
           provisioningQR: '',
           setupTFA: async () => {},
+          goback: async (): Promise<void> => {
+            this.login();
+          },
         });
         const tfa = await this.auth.api.enableTFA({});
         if (tfa.provisioning_uri) {
@@ -340,6 +343,9 @@ export class CDK {
             provisioningURI: tfa.provisioning_uri,
             provisioningQR: tfa.provisioning_qr || '',
             setupTFA: async () => this.tfaVerify(loginResponse, type),
+            goback: async (): Promise<void> => {
+              this.login();
+            },
           });
         }
         break;
@@ -352,6 +358,9 @@ export class CDK {
             await this.auth.api.enableTFA({ email });
             return this.tfaVerify({ ...loginResponse, user: { ...loginResponse.user, email } }, type);
           },
+          goback: async (): Promise<void> => {
+            this.login();
+          },
         });
         break;
       }
@@ -362,6 +371,9 @@ export class CDK {
           setupTFA: async (phone: string) => {
             await this.auth.api.enableTFA({ phone });
             return this.tfaVerify({ ...loginResponse, user: { ...loginResponse.user, phone } }, type);
+          },
+          goback: async (): Promise<void> => {
+            this.login();
           },
         });
         break;

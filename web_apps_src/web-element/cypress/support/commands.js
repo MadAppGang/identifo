@@ -211,6 +211,9 @@ Cypress.Commands.add('getResetTokenURL', async () => {
     mode: 'cors',
     credentials: 'include',
   }).then(r => r.json());
+  if (resetTokenData.URL.indexOf('password/reset') === -1) {
+    throw new Error('Invalid reset token URL');
+  }
   return `${Cypress.config('baseUrl')}/password/reset/?appId=${lastAppId}&url=${Cypress.config('serverUrl')}&token=${resetTokenData.Token}`;
 });
 
