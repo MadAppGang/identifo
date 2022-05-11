@@ -23,7 +23,7 @@ export class IdentifoFormLoginWays {
   render() {
     return (
       <div>
-        {Object.values(this.state.loginTypes).length > 0 && (
+        {this.state.loginTypes && Object.values(this.state.loginTypes).length > 0 && (
           <div class="login-types">
             {Object.values(this.state.loginTypes).map(t => (
               <a onClick={() => t.click()} class="login-type">

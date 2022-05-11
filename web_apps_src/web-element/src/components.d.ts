@@ -5,13 +5,14 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
-import { ApiError, LoginResponse, Routes } from "@identifo/identifo-auth-js";
+import { ApiError, LoginResponse, LoginTypes, Routes } from "@identifo/identifo-auth-js";
 export namespace Components {
     interface IdentifoForm {
         "appId": string;
         "callbackUrl": string;
         "debug": boolean;
         "federatedRedirectUrl": string;
+        "loginWith": keyof LoginTypes;
         "postLogoutRedirectUri": string;
         "route": Routes;
         "theme": 'dark' | 'light' | 'auto';
@@ -198,6 +199,7 @@ declare namespace LocalJSX {
         "callbackUrl"?: string;
         "debug"?: boolean;
         "federatedRedirectUrl"?: string;
+        "loginWith"?: keyof LoginTypes;
         "onComplete"?: (event: CustomEvent<LoginResponse>) => void;
         "onError"?: (event: CustomEvent<ApiError>) => void;
         "postLogoutRedirectUri"?: string;

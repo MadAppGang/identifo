@@ -30,7 +30,10 @@ export class IdentifoFormTFASetupEmail {
   render() {
     return (
       <div class="tfa-setup__form">
-        <p class="tfa-setup__subtitle"> Use email as 2fa, please check your email bellow, we will send confirmation code to this email</p>
+        <p class="tfa-setup__subtitle">
+          Your email will be used for 2-step verification. Please enter your email address below and click 'Setup email'. We will send a confirmation code to the email address you
+          enter
+        </p>
         <input
           type="email"
           class={`form-control ${this.state.error && 'form-control-danger'}`}

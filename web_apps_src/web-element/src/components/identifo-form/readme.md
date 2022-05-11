@@ -7,16 +7,17 @@
 
 ## Properties
 
-| Property                | Attribute                  | Description | Type                          | Default     |
-| ----------------------- | -------------------------- | ----------- | ----------------------------- | ----------- |
-| `appId`                 | `app-id`                   |             | `string`                      | `undefined` |
-| `callbackUrl`           | `callback-url`             |             | `string`                      | `undefined` |
-| `debug`                 | `debug`                    |             | `boolean`                     | `undefined` |
-| `federatedRedirectUrl`  | `federated-redirect-url`   |             | `string`                      | `undefined` |
-| `postLogoutRedirectUri` | `post-logout-redirect-uri` |             | `string`                      | `undefined` |
-| `route`                 | `route`                    |             | `Routes`                      | `undefined` |
-| `theme`                 | `theme`                    |             | `"auto" \| "dark" \| "light"` | `'auto'`    |
-| `url`                   | `url`                      |             | `string`                      | `undefined` |
+| Property                | Attribute                  | Description | Type                                              | Default     |
+| ----------------------- | -------------------------- | ----------- | ------------------------------------------------- | ----------- |
+| `appId`                 | `app-id`                   |             | `string`                                          | `undefined` |
+| `callbackUrl`           | `callback-url`             |             | `string`                                          | `undefined` |
+| `debug`                 | `debug`                    |             | `boolean`                                         | `undefined` |
+| `federatedRedirectUrl`  | `federated-redirect-url`   |             | `string`                                          | `undefined` |
+| `loginWith`             | `login-with`               |             | `"email" \| "federated" \| "phone" \| "username"` | `undefined` |
+| `postLogoutRedirectUri` | `post-logout-redirect-uri` |             | `string`                                          | `undefined` |
+| `route`                 | `route`                    |             | `Routes`                                          | `undefined` |
+| `theme`                 | `theme`                    |             | `"auto" \| "dark" \| "light"`                     | `'auto'`    |
+| `url`                   | `url`                      |             | `string`                                          | `undefined` |
 
 
 ## Events

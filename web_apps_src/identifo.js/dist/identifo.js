@@ -1039,6 +1039,9 @@ class CDK {
             provisioningURI: "",
             provisioningQR: "",
             setupTFA: () => __async(this, null, function* () {
+            }),
+            goback: () => __async(this, null, function* () {
+              this.login();
             })
           });
           const tfa = yield this.auth.api.enableTFA({});
@@ -1049,6 +1052,9 @@ class CDK {
               provisioningQR: tfa.provisioning_qr || "",
               setupTFA: () => __async(this, null, function* () {
                 return this.tfaVerify(loginResponse, type);
+              }),
+              goback: () => __async(this, null, function* () {
+                this.login();
               })
             });
           }
@@ -1061,6 +1067,9 @@ class CDK {
             setupTFA: (email) => __async(this, null, function* () {
               yield this.auth.api.enableTFA({ email });
               return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { email }) }), type);
+            }),
+            goback: () => __async(this, null, function* () {
+              this.login();
             })
           });
           break;
@@ -1072,6 +1081,9 @@ class CDK {
             setupTFA: (phone) => __async(this, null, function* () {
               yield this.auth.api.enableTFA({ phone });
               return this.tfaVerify(__spreadProps(__spreadValues({}, loginResponse), { user: __spreadProps(__spreadValues({}, loginResponse.user), { phone }) }), type);
+            }),
+            goback: () => __async(this, null, function* () {
+              this.login();
             })
           });
           break;

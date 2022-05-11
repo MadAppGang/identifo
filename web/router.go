@@ -15,11 +15,12 @@ import (
 )
 
 const (
-	adminpanelPath    = "/adminpanel"
-	adminpanelAPIPath = "/admin"
-	apiPath           = "/api"
-	loginAppPath      = "/web"
-	loginAppErrorPath = "/web/misconfiguration"
+	adminpanelPath         = "/adminpanel"
+	adminpanelAPIPath      = "/admin"
+	apiPath                = "/api"
+	loginAppPath           = "/web"
+	loginPasswordResetPath = "/web/password/reset"
+	loginAppErrorPath      = "/web/misconfiguration"
 )
 
 // RouterSetting contains settings for root http router.
@@ -48,16 +49,17 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	apiCors := cors.New(apiCorsSettings)
 
 	apiSettings := api.RouterSettings{
-		Server:           settings.Server,
-		Logger:           settings.Logger,
-		LoggerSettings:   settings.LoggerSettings,
-		Authorizer:       authorizer,
-		Host:             settings.HostName,
-		LoginAppPath:     loginAppPath,
-		LoginWith:        settings.Server.Settings().Login.LoginWith,
-		TFAType:          settings.Server.Settings().Login.TFAType,
-		TFAResendTimeout: settings.Server.Settings().Login.TFAResendTimeout,
-		Cors:             apiCors,
+		Server:                 settings.Server,
+		Logger:                 settings.Logger,
+		LoggerSettings:         settings.LoggerSettings,
+		Authorizer:             authorizer,
+		Host:                   settings.HostName,
+		LoginAppPath:           loginAppPath,
+		LoginPasswordResetPath: loginPasswordResetPath,
+		LoginWith:              settings.Server.Settings().Login.LoginWith,
+		TFAType:                settings.Server.Settings().Login.TFAType,
+		TFAResendTimeout:       settings.Server.Settings().Login.TFAResendTimeout,
+		Cors:                   apiCors,
 	}
 
 	apiRouter, err := api.NewRouter(apiSettings)
@@ -84,12 +86,13 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	// Admin panel
 	if settings.ServeAdminPanel {
 		routerSettings := admin.RouterSettings{
-			Server:       settings.Server,
-			Logger:       settings.Logger,
-			Host:         settings.HostName,
-			Prefix:       adminpanelAPIPath,
-			Restart:      settings.RestartChan,
-			LoginAppPath: loginAppPath,
+			Server:                 settings.Server,
+			Logger:                 settings.Logger,
+			Host:                   settings.HostName,
+			Prefix:                 adminpanelAPIPath,
+			Restart:                settings.RestartChan,
+			LoginAppPath:           loginAppPath,
+			LoginPasswordResetPath: loginPasswordResetPath,
 			OriginUpdate: func() error {
 				return settings.AppOriginChecker.Update()
 			},

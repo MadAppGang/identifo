@@ -12,7 +12,7 @@ describe('2fa mandatory email', () => {
   });
   it('2fa flow mandatory with email', () => {
     cy.loginWithEmail();
-    cy.contains('Use email as 2fa');
+    cy.contains('Your email will be used');
     cy.screenshot();
     cy.get('button').contains('Setup email').click();
     cy.verifyTfa();

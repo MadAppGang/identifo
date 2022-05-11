@@ -235,7 +235,7 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 			return
 		}
 
-		query := fmt.Sprintf("appId=%s&token=%s&route=password/reset", resetData.AppID, resetTokenString)
+		query := fmt.Sprintf("appId=%s&token=%s", resetData.AppID, resetTokenString)
 
 		host, err := url.Parse(ar.Host)
 		if err != nil {
@@ -246,10 +246,10 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   host.Scheme,
 			Host:     host.Host,
-			Path:     ar.LoginAppPath,
+			Path:     ar.LoginPasswordResetPath,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}
+		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginPasswordResetPath}
 
 		resetEmailData := ResetEmailData{
 			Token: resetTokenString,
