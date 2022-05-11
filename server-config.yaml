@@ -64,6 +64,9 @@ login: # Supported login ways.
   # Type of two-factor authentication, if application enables it.
   # Supported values are: "app" (like Google Authenticator), "sms", "email".
   tfaType: app
+  # register new user with random password if he was not found by phone
+  # while login in by phone
+  allowRegisterMissing: true
 
 services:
   email: # Email service settings.

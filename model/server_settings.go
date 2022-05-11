@@ -109,9 +109,10 @@ const (
 )
 
 type FileStorageS3 struct {
-	Region string `yaml:"region" json:"region"`
-	Bucket string `yaml:"bucket" json:"bucket"`
-	Folder string `yaml:"folder" json:"folder"`
+	Region   string `yaml:"region" json:"region"`
+	Bucket   string `yaml:"bucket" json:"bucket"`
+	Folder   string `yaml:"folder" json:"folder"`
+	Endpoint string `yaml:"endpoint" json:"endpoint"`
 }
 
 type FileStorageLocal struct {
@@ -281,9 +282,10 @@ type RouteMobileServiceSettings struct {
 
 // LoginSettings are settings of login.
 type LoginSettings struct {
-	LoginWith        LoginWith `yaml:"loginWith" json:"login_with"`
-	TFAType          TFAType   `yaml:"tfaType" json:"tfa_type"`
-	TFAResendTimeout int       `yaml:"tfaResendTimeout" json:"tfa_resend_timeout"`
+	LoginWith            LoginWith `yaml:"loginWith" json:"login_with"`
+	TFAType              TFAType   `yaml:"tfaType" json:"tfa_type"`
+	TFAResendTimeout     int       `yaml:"tfaResendTimeout" json:"tfa_resend_timeout"`
+	AllowRegisterMissing bool      `yaml:"allowRegisterMissing" json:"allow_register_missing"`
 }
 
 // LoginWith is a type for configuring supported login ways.

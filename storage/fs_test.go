@@ -1,19 +1,32 @@
 package storage_test
 
 import (
+	"bytes"
 	"fmt"
 	"io/fs"
+	"os"
+	"path/filepath"
 	"testing"
 
+	"github.com/aws/aws-sdk-go/aws"
+	"github.com/aws/aws-sdk-go/aws/session"
+	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
+)
+
+const (
+	templPath  = "../test/artifacts/templates"
+	testRegion = "ap-southeast-2"
+	testBucket = "identifo-public"
+	testFolder = "test/templates"
 )
 
 func TestNewFSWithLocalFolder(t *testing.T) {
 	settings := model.FileStorageSettings{
 		Type: model.FileStorageTypeLocal,
 		Local: model.FileStorageLocal{
-			FolderPath: "../test/artifacts/templates",
+			FolderPath: templPath,
 		},
 	}
 
@@ -21,12 +34,19 @@ func TestNewFSWithLocalFolder(t *testing.T) {
 }
 
 func TestNewFSWithS3(t *testing.T) {
+	ep := os.Getenv("IDENTIFO_TEST_AWS_ENDPOINT")
+	if ep != "" {
+		// this is for local tests
+		putTestFileTOS3(t, ep)
+	}
+
 	settings := model.FileStorageSettings{
 		Type: model.FileStorageTypeS3,
 		S3: model.FileStorageS3{
-			Region: "ap-southeast-2",
-			Bucket: "identifo-public",
-			Folder: "test/templates",
+			Region:   testRegion,
+			Bucket:   testBucket,
+			Folder:   testFolder,
+			Endpoint: ep,
 		},
 	}
 
@@ -78,4 +98,35 @@ func printFolderContent(fss fs.FS, path string) {
 		fmt.Println("file:", path)
 		return nil
 	})
+}
+
+func putTestFileTOS3(t *testing.T, endpoint string) {
+	cfg := aws.NewConfig().
+		WithEndpoint(endpoint).
+		WithRegion(testRegion)
+
+	sess, err := session.NewSession(cfg)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	s := s3.New(sess, cfg)
+
+	d, err := os.ReadFile(filepath.Join(templPath, "mail1.template"))
+	if err != nil {
+		t.Error(err)
+		return
+	}
+
+	input := &s3.PutObjectInput{
+		Bucket:             aws.String(testBucket),
+		Key:                aws.String(filepath.Join(testFolder, "mail1.template")),
+		Body:               bytes.NewReader(d),
+		ContentDisposition: aws.String("attachment"),
+	}
+	_, err = s.PutObject(input)
+	if err != nil {
+		t.Error(err)
+	}
 }
