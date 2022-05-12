@@ -1,7 +1,9 @@
 package spa
 
 import (
+	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/url"
 	"os"
@@ -78,13 +80,22 @@ func NewSPAHandlerFunc(c SPASettings) http.HandlerFunc {
 				handleError(w, SPAHandlerError{s: "unable to fet file/dir stat", e: err})
 			}
 
+			buffer, err := ioutil.ReadAll(file)
+			if err != nil {
+				handleError(w, SPAHandlerError{s: "unable to fet file/dir stat", e: err})
+			}
+
 			// return the file
-			http.ServeContent(w, r, info.Name(), info.ModTime(), index)
+			http.ServeContent(w, r, info.Name(), info.ModTime(), bytes.NewReader(buffer))
 			return
 		}
 
 		// return the file
-		http.ServeContent(w, r, info.Name(), info.ModTime(), file)
+		buffer, err := ioutil.ReadAll(file)
+		if err != nil {
+			handleError(w, SPAHandlerError{s: "unable to fet file/dir stat", e: err})
+		}
+		http.ServeContent(w, r, info.Name(), info.ModTime(), bytes.NewReader(buffer))
 	}
 }
 
