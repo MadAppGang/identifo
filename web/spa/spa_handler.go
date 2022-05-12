@@ -80,7 +80,7 @@ func NewSPAHandlerFunc(c SPASettings) http.HandlerFunc {
 				handleError(w, SPAHandlerError{s: "unable to fet file/dir stat", e: err})
 			}
 
-			buffer, err := ioutil.ReadAll(file)
+			buffer, err := ioutil.ReadAll(index)
 			if err != nil {
 				handleError(w, SPAHandlerError{s: "unable to fet file/dir stat", e: err})
 			}
