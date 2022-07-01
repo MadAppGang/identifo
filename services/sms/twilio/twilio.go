@@ -2,6 +2,7 @@ package twilio
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/sfreiberg/gotwilio"
@@ -27,6 +28,14 @@ func (ss *SMSService) SendSMS(recipient, message string) error {
 	if ss.client == nil {
 		return errors.New("Twilio SMS service is not configured")
 	}
-	_, _, err := ss.client.SendSMSWithCopilot(ss.messagingServiceSid, recipient, message, "", "")
-	return err
+	_, ex, err := ss.client.SendSMSWithCopilot(ss.messagingServiceSid, recipient, message, "", "")
+	if err != nil {
+		return err
+	}
+
+	if ex != nil {
+		return fmt.Errorf("twillio error %v: %s", ex.Code, ex.Message)
+	}
+
+	return nil
 }
