@@ -10,7 +10,12 @@ const ensureAuthState = (expectedAuthState, Component, redirectPath) => {
   React.useEffect(() => {
     fetch('config.json')
       .then(r => r.json())
-      .then(r => localStorage.setItem('identifo-api-url', r.apiUrl));
+      .then(r => {
+        if (r.apiUrl !== localStorage.getItem('identifo-api-url')) {
+          localStorage.setItem('identifo-api-url', r.apiUrl);
+          window.location.reload();
+        }
+      });
   }, []);
 
   const ConnectedComponent = ({ location, ...props }) => {
