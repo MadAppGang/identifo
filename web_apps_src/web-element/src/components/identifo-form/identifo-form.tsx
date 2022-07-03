@@ -20,7 +20,8 @@ export class IdentifoForm {
   // This url will be preserved when federated login will be completed
   @Prop() callbackUrl: string;
 
-  @Prop() scopes: string[];
+  // Comma separated list of scopes
+  @Prop() scopes: string;
 
   // Used for redirect on federated login flow
   // default:window.location.origin + window.location.pathname
@@ -86,7 +87,7 @@ export class IdentifoForm {
     // Get url params and configure CDK serivice
     const params = new URLSearchParams(window.location.search);
     const callbackUrl = this.callbackUrl || params.get('callback-url') || params.get('callbackUrl') || params.get('callback_url') || '';
-    const scopes = this.scopes || (params.get('scopes') || '').split(',').map(s => s.trim());
+    const scopes = this.scopes || params.get('scopes') || '';
     const postLogoutRedirectUri = this.postLogoutRedirectUri || window.location.origin + window.location.pathname;
 
     await CDKService.configure(
@@ -95,7 +96,7 @@ export class IdentifoForm {
         url: this.url,
         loginWith: this.loginWith,
         postLogoutRedirectUri,
-        scopes,
+        scopes: scopes.split(',').map(s => s.trim()),
       },
       callbackUrl,
     );
