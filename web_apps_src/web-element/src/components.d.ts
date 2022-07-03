@@ -15,6 +15,7 @@ export namespace Components {
         "loginWith": keyof LoginTypes;
         "postLogoutRedirectUri": string;
         "route": Routes;
+        "scopes": string[];
         "theme": 'dark' | 'light' | 'auto';
         "url": string;
     }
@@ -204,6 +205,7 @@ declare namespace LocalJSX {
         "onError"?: (event: CustomEvent<ApiError>) => void;
         "postLogoutRedirectUri"?: string;
         "route"?: Routes;
+        "scopes"?: string[];
         "theme"?: 'dark' | 'light' | 'auto';
         "url"?: string;
     }
