@@ -16,7 +16,7 @@
 | `loginWith`             | `login-with`               |             | `"email" \| "federated" \| "phone" \| "username"` | `undefined` |
 | `postLogoutRedirectUri` | `post-logout-redirect-uri` |             | `string`                                          | `undefined` |
 | `route`                 | `route`                    |             | `Routes`                                          | `undefined` |
-| `scopes`                | --                         |             | `string[]`                                        | `undefined` |
+| `scopes`                | `scopes`                   |             | `string`                                          | `undefined` |
 | `theme`                 | `theme`                    |             | `"auto" \| "dark" \| "light"`                     | `'auto'`    |
 | `url`                   | `url`                      |             | `string`                                          | `undefined` |
 
