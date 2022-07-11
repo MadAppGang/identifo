@@ -153,7 +153,12 @@ export class CDK {
       socialLogin: async (provider: FederatedLoginProvider) => {
         this.state.next({ route: Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(
+          provider,
+          [...Array.from(this.scopes)],
+          federatedRedirectUrl,
+          this.callbackUrl,
+        );
       },
     } as StateLoginPhone);
   }
@@ -172,7 +177,7 @@ export class CDK {
           scopes.add('offline');
         }
         await this.auth.api
-          .phoneLogin(phone, code, [...this.scopes])
+          .phoneLogin(phone, code, [...Array.from(this.scopes)])
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
@@ -209,7 +214,12 @@ export class CDK {
       socialLogin: async (provider: FederatedLoginProvider) => {
         this.state.next({ route: Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(
+          provider,
+          [...Array.from(this.scopes)],
+          federatedRedirectUrl,
+          this.callbackUrl,
+        );
       },
       passwordForgot: async () => {
         this.forgotPassword();
@@ -225,7 +235,7 @@ export class CDK {
           return;
         }
         await this.auth.api
-          .register(email, password, [...this.scopes], token)
+          .register(email, password, [...Array.from(this.scopes)], token)
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
@@ -389,7 +399,7 @@ export class CDK {
       phone: loginResponse.user.phone,
       verifyTFA: async (code: string) => {
         await this.auth.api
-          .verifyTFA(code, [...this.scopes])
+          .verifyTFA(code, [...Array.from(this.scopes)])
           .then(this.afterLoginRedirect)
           .catch(this.loginCatchRedirect)
           .catch((e) => this.processError(e));
