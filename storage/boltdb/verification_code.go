@@ -48,9 +48,15 @@ type VerificationCodeStorage struct {
 func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) (bool, error) {
 	err := vcs.db.View(func(tx *bolt.Tx) error {
 		vcb := tx.Bucket([]byte(VerificationCodesBucket))
-		code := vcb.Get([]byte(phone))
-		if code == nil {
+		foundCode := vcb.Get([]byte(phone))
+		if foundCode == nil {
 			return model.ErrorNotFound
+		}
+		if string(foundCode) != code {
+			return model.ErrorNotFound
+		}
+		if err := vcb.Delete([]byte(phone)); err != nil {
+			return err
 		}
 		return nil
 	})
