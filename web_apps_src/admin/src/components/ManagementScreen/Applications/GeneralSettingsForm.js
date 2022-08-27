@@ -34,6 +34,7 @@ const ApplicationGeneralSettingsForm = (props) => {
   );
   const [tfaStatus, setTfaStatus] = useState(application.tfa_status || 'disabled');
   const [active, setActive] = useState(application.active || false);
+  const [customEmailTemplates, setCustomEmailTemplates] = useState(application.customEmailTemplates || false);
   const [debugTfaCode, setDebugTfaCode] = useState(application.debug_tfa_code || '');
   const [scopes, setScopes] = useState(application.scopes || []);
   const [userDefaultScopes, setUserDefaultScopes] = useState(application.new_user_default_scopes || []);
@@ -57,6 +58,7 @@ const ApplicationGeneralSettingsForm = (props) => {
     if (application.secret) setSecret(application.secret);
     if (application.tfa_status) setTfaStatus(application.tfa_status);
     if (application.active) setActive(application.active);
+    if (application.customEmailTemplates) setCustomEmailTemplates(application.customEmailTemplates);
     if (application.debug_tfa_code) setDebugTfaCode(application.debug_tfa_code);
     if (application.scopes) setScopes(application.scopes);
     if (application.new_user_default_scopes) setUserDefaultScopes(application.new_user_default_scopes);
@@ -100,6 +102,7 @@ const ApplicationGeneralSettingsForm = (props) => {
       scopes,
       secret,
       active,
+      customEmailTemplates,
       description,
       tfa_status: tfaStatus,
       redirect_urls: redirectUrls,
@@ -265,6 +268,9 @@ const ApplicationGeneralSettingsForm = (props) => {
           <Toggle label="Active" value={!!active} onChange={setActive} />
         )}
 
+        {!isExcluded('customEmailTemplates') && (
+          <Toggle label="Custom email templates" value={!!customEmailTemplates} onChange={setCustomEmailTemplates} />
+        )}
       </div>
 
       <footer className="iap-apps-form__footer">

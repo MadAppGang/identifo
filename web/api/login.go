@@ -181,7 +181,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	}
 }
 
-func (ar *Router) sendOTPCode(user model.User) error {
+func (ar *Router) sendOTPCode(app model.AppData, user model.User) error {
 	// we don't need to send any code for FTA Type App, it uses TOTP and generated on client side with the app
 	if ar.tfaType != model.TFATypeApp {
 
@@ -196,9 +196,9 @@ func (ar *Router) sendOTPCode(user model.User) error {
 		}
 		switch ar.tfaType {
 		case model.TFATypeSMS:
-			return ar.sendTFACodeInSMS(user.TFAInfo.Phone, otp)
+			return ar.sendTFACodeInSMS(app, user.TFAInfo.Phone, otp)
 		case model.TFATypeEmail:
-			return ar.sendTFACodeOnEmail(user, otp)
+			return ar.sendTFACodeOnEmail(app, user, otp)
 		}
 
 	}
@@ -319,7 +319,7 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes 
 	}
 
 	if require2FA && enabled2FA {
-		if err := ar.sendOTPCode(user); err != nil {
+		if err := ar.sendOTPCode(app, user); err != nil {
 			return AuthResponse{}, err
 		}
 	} else {

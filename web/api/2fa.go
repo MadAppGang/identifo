@@ -140,7 +140,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			}
 
 			// And send OTP code for 2fa
-			if err := ar.sendOTPCode(user); err != nil {
+			if err := ar.sendOTPCode(app, user); err != nil {
 				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "EnableTFA.sendOTP")
 				return
 			}
@@ -401,6 +401,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 
 		if err = ar.server.Services().Email.SendTemplateEmail(
 			model.EmailTemplateTypeResetPassword,
+			app.GetCustomEmailTemplatePath(),
 			"Disable Two-Factor Authentication",
 			d.Email,
 			model.EmailData{
@@ -497,6 +498,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 
 		if err = ar.server.Services().Email.SendTemplateEmail(
 			model.EmailTemplateTypeResetPassword,
+			app.GetCustomEmailTemplatePath(),
 			"Disable Two-Factor Authentication",
 			d.Email,
 			model.EmailData{
@@ -550,7 +552,7 @@ func (ar *Router) check2FA(appTFAStatus model.TFAStatus, serverTFAType model.TFA
 	return false, false, nil
 }
 
-func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
+func (ar *Router) sendTFACodeInSMS(app model.AppData, phone, otp string) error {
 	if phone == "" {
 		return errors.New("unable to send SMS OTP, user has no phone number")
 	}
@@ -561,7 +563,7 @@ func (ar *Router) sendTFACodeInSMS(phone, otp string) error {
 	return nil
 }
 
-func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
+func (ar *Router) sendTFACodeOnEmail(app model.AppData, user model.User, otp string) error {
 	if user.TFAInfo.Email == "" {
 		return errors.New("unable to send email OTP, user has no email")
 	}
@@ -573,6 +575,7 @@ func (ar *Router) sendTFACodeOnEmail(user model.User, otp string) error {
 
 	if err := ar.server.Services().Email.SendTemplateEmail(
 		model.EmailTemplateTypeTFAWithCode,
+		app.GetCustomEmailTemplatePath(),
 		"One-time password",
 		user.TFAInfo.Email,
 		model.EmailData{
