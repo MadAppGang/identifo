@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
+	"path"
 	"text/template"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -56,24 +57,25 @@ func (es *EmailService) SendHTML(subject, html, recipient string) error {
 	return es.transport.SendHTML(subject, html, recipient)
 }
 
-func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, subject string, recipient string, data model.EmailData) error {
+func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, templatePath string, subject string, recipient string, data model.EmailData) error {
 	var template template.Template
 
+	p := path.Join(templatePath, emailType.FileName())
 	// check template in cache
-	template, ok := es.cache[emailType.String()]
+	template, ok := es.cache[p]
 
 	// if no, let's try to load it and save to cache
 	if !ok {
-		data, err := fs.ReadFile(es.fs, emailType.FileName())
+		data, err := fs.ReadFile(es.fs, p)
 		if err != nil {
 			return err
 		}
-		tmpl, err := template.New(emailType.String()).Parse(string(data))
+		tmpl, err := template.New(p).Parse(string(data))
 		if err != nil {
 			return err
 		}
 		template = *tmpl
-		es.cache[emailType.String()] = template
+		es.cache[p] = template
 	}
 
 	// read template, parse it and send it with underlying service

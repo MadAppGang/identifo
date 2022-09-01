@@ -65,7 +65,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 					return
 				}
 			} else {
-				if err := ar.sendOTPCode(user); err != nil {
+				if err := ar.sendOTPCode(app, user); err != nil {
 					ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.SendOTPCode")
 					return
 				}
@@ -112,6 +112,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		if err = ar.server.Services().Email.SendTemplateEmail(
 			model.EmailTemplateTypeResetPassword,
+			app.GetCustomEmailTemplatePath(),
 			"Reset Password",
 			d.Email,
 			model.EmailData{

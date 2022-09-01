@@ -110,6 +110,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 
 			if err = ar.server.Services().Email.SendTemplateEmail(
 				model.EmailTemplateTypeInvite,
+				app.GetCustomEmailTemplatePath(),
 				"Invitation",
 				d.Email,
 				model.EmailData{

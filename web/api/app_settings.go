@@ -21,6 +21,7 @@ type appSettings struct {
 	TfaResendTimeout            int             `json:"tfaResendTimeout"`
 	LoginWith                   model.LoginWith `json:"loginWith"`
 	FederatedProviders          []string        `json:"federatedProviders"`
+	CustomEmailTemplates        bool            `json:"customEmailTemplates"`
 }
 
 // GetAppSettings return app settings
@@ -53,6 +54,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 			TfaResendTimeout:            ar.tfaResendTimeout,
 			LoginWith:                   ar.SupportedLoginWays,
 			FederatedProviders:          make([]string, 0, len(app.FederatedProviders)),
+			CustomEmailTemplates:        app.CustomEmailTemplates,
 		}
 
 		for k := range app.FederatedProviders {
