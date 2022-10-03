@@ -159,6 +159,24 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
+		// if err = ar.server.Services().Email.SendTemplateEmail(
+		// 	model.EmailTemplateTypeResetPassword,
+		// 	app.GetCustomEmailTemplatePath(),
+		// 	"Reset Password",
+		// 	user.Email,
+		// 	model.EmailData{
+		// 		User: user,
+		// 		Data: resetEmailData,
+		// 	},
+		// ); err != nil {
+		// 	ar.Error(
+		// 		w,
+		// 		err,
+		// 		http.StatusInternalServerError,
+		// 		"Email sending error: "+err.Error(),
+		// 	)
+		// 	return
+
 		// Do login flow.
 		authResult, err := ar.loginFlow(app, user, rd.Scopes)
 		if err != nil {

@@ -359,6 +359,8 @@ func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, erro
 }
 
 func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, error) {
+	// FIXME: Jack user regex to extract groups: ^s3://(?P<region>[a-zA-Z0-9\-]{5,})@(?P<bucket>[a-z0-9\.\-]{3,63})(?P<key>[^\r\n\t\f\v|]+)\|?(?P<endpoint>\S+)?$
+	// and use pipe "|" to extract S3 endpoint
 	components := strings.Split(config[5:], "@")
 	var pathComponents []string
 	region := ""
