@@ -3,10 +3,15 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"regexp"
 	"strings"
 )
 
-const defaultEtcdKey = "identifo"
+const (
+	defaultEtcdKey = "identifo"
+)
+
+var s3ServerFlagRegexp = regexp.MustCompile(`^s3://(?P<region>[a-zA-Z0-9\-]{5,})@(?P<bucket>[a-z0-9\.\-]{3,63})(?P<key>[^\r\n\t\f\v|]+)\|?(?P<endpoint>\S+)?$`)
 
 // ServerSettings are server settings.
 type ServerSettings struct {
@@ -358,31 +363,29 @@ func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, erro
 	}
 }
 
+// example of s3 config could be:
+// s3://ap-southwest-2@my-favorite-bucket/identifo/config/config.yaml
+// or with endpoint for local testing or non AWS S3 storage:
+// s3://ap-southwest-2@my-favorite-bucket/identifo/config/config.yaml|https://10.10.10.19:1122
+
 func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, error) {
-	components := strings.Split(config[5:], "@")
-	var pathComponents []string
-	region := ""
-	if len(components) == 2 {
-		region = components[0]
-		pathComponents = strings.Split(components[1], "/")
-	} else if len(components) == 1 {
-		pathComponents = strings.Split(components[0], "/")
-	} else {
-		return ConfigStorageSettings{}, fmt.Errorf("could not get s3 file path from config: %s", config)
+	if match := s3ServerFlagRegexp.MatchString(config); !match {
+		return ConfigStorageSettings{}, fmt.Errorf("error parsing S3 config location: %s", config)
 	}
-	if len(pathComponents) < 2 {
-		return ConfigStorageSettings{}, fmt.Errorf("could not get s3 file path from config: %s", config)
-	}
-	bucket := pathComponents[0]
-	path := strings.Join(pathComponents[1:], "/")
+	matches := s3ServerFlagRegexp.FindStringSubmatch(config)
+	region := matches[s3ServerFlagRegexp.SubexpIndex("region")]
+	bucket := matches[s3ServerFlagRegexp.SubexpIndex("bucket")]
+	key := matches[s3ServerFlagRegexp.SubexpIndex("key")]
+	endpoint := matches[s3ServerFlagRegexp.SubexpIndex("endpoint")]
 
 	return ConfigStorageSettings{
 		Type:      ConfigStorageTypeS3,
 		RawString: config,
 		S3: &S3StorageSettings{
-			Region: region,
-			Bucket: bucket,
-			Key:    path,
+			Region:   region,
+			Bucket:   bucket,
+			Key:      key,
+			Endpoint: endpoint,
 		},
 	}, nil
 }
@@ -392,6 +395,7 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
 		filename = filename[7:]
 	}
+
 	return ConfigStorageSettings{
 		Type:      ConfigStorageTypeFile,
 		RawString: config,

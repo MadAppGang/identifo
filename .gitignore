@@ -17,6 +17,8 @@ db.db
 shared-local-instance.db
 debug
 *__debug_bin
+.vscode/configurationCache.log
+.vscode/dryrun.log
 
 data
 static/apple/*

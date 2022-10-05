@@ -36,10 +36,7 @@ func main() {
 	if err != nil {
 		log.Fatalf("Unable to start Identifo with error: %v ", err)
 	}
-	go func() {
-		time.Sleep(time.Second)
-		watcher.Watch()
-	}()
+	watcher.Watch()
 
 	osch := make(chan os.Signal, 1)
 	signal.Notify(osch, syscall.SIGINT, syscall.SIGTERM)
@@ -47,7 +44,7 @@ func main() {
 	restartServer := func() {
 		ctx, _ := context.WithTimeout(context.Background(), time.Minute*3)
 		httpSrv.Shutdown(ctx)
-		srv.Close() // TODO: implement gracefull server shutdown
+		srv.Close() // TODO: implement graceful server shutdown
 		srv, httpSrv, err = initServer(*configFlag, restart)
 		if err != nil {
 			log.Fatalf("Unable to start Identifo with error: %v ", err)
