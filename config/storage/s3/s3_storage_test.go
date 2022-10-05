@@ -9,10 +9,12 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	s3s "github.com/madappgang/identifo/v2/config/storage/s3"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func TestS3ConfigSource(t *testing.T) {
-	if os.Getenv("IDENTIFO_TEST_INGRATION") == "" {
+	if os.Getenv("IDENTIFO_TEST_INTEGRATION") == "" {
 		t.SkipNow()
 	}
 
@@ -29,26 +31,16 @@ func TestS3ConfigSource(t *testing.T) {
 			Endpoint: awsEndpoint,
 		},
 	})
-	if err != nil {
-		t.Fatal(err)
-	}
-
+	require.NoError(t, err)
 	settings, err := c.LoadServerSettings(true)
-	if err != nil {
-		t.Fatal(err)
-	}
-
-	if settings.General.Host != "example.com" {
-		t.Fatal("wrong config")
-	}
+	require.NoError(t, err)
+	assert.Equal(t, settings.General.Host, "example.com")
 }
 
 func putTestFileTOS3(t *testing.T, endpoint string) {
 	s3client, err := s3s.NewS3Client(settings.Region, endpoint)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
+
 	_, _ = s3client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String("identifo-public"),
 	})
@@ -63,8 +55,7 @@ general:
 		Body:               strings.NewReader(configFile),
 		ContentDisposition: aws.String("attachment"),
 	}
+
 	_, err = s3client.PutObject(input)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err)
 }

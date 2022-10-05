@@ -395,6 +395,7 @@ func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, 
 	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
 		filename = filename[7:]
 	}
+
 	return ConfigStorageSettings{
 		Type:      ConfigStorageTypeFile,
 		RawString: config,

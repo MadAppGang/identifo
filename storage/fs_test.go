@@ -13,6 +13,7 @@ import (
 	"github.com/aws/aws-sdk-go/service/s3"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -106,18 +107,16 @@ func putTestFileTOS3(t *testing.T, endpoint string) {
 		WithRegion(testRegion)
 
 	sess, err := session.NewSession(cfg)
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	s := s3.New(sess, cfg)
 
+	_, _ = s.CreateBucket(&s3.CreateBucketInput{
+		Bucket: aws.String("identifo-public"),
+	})
+
 	d, err := os.ReadFile(filepath.Join(templPath, "mail1.template"))
-	if err != nil {
-		t.Error(err)
-		return
-	}
+	require.NoError(t, err)
 
 	input := &s3.PutObjectInput{
 		Bucket:             aws.String(testBucket),
@@ -126,7 +125,5 @@ func putTestFileTOS3(t *testing.T, endpoint string) {
 		ContentDisposition: aws.String("attachment"),
 	}
 	_, err = s.PutObject(input)
-	if err != nil {
-		t.Error(err)
-	}
+	require.NoError(t, err)
 }

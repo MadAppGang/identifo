@@ -33,7 +33,7 @@ var settings = model.S3StorageSettings{
 }
 
 func TestWatcher(t *testing.T) {
-	if os.Getenv("IDENTIFO_TEST_INGRATION") == "" {
+	if os.Getenv("IDENTIFO_TEST_INTEGRATION") == "" {
 		t.SkipNow()
 	}
 
