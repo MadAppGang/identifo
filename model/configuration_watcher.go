@@ -4,7 +4,7 @@ package model
 type ConfigurationWatcher interface {
 	Watch()
 	IsWatching() bool
-	WatchChan() <-chan bool
+	WatchChan() <-chan []string
 	ErrorChan() <-chan error
 	Stop()
 }

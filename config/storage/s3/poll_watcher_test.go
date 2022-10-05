@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
 	s3s "github.com/madappgang/identifo/v2/config/storage/s3"
+	"github.com/stretchr/testify/assert"
 
 	"github.com/madappgang/identifo/v2/model"
 )
@@ -72,19 +73,31 @@ func TestWatcher(t *testing.T) {
 		}
 	}()
 
+	updatedCount := 0
 	select {
 	case err := <-watcher.ErrorChan():
 		t.Error(err)
 		return
 	case <-watcher.WatchChan():
 		fileChanged = true
+		updatedCount++
 		t.Log("getting file changed")
 	case <-time.After(time.Second * 30):
 		t.Error("timeout waiting file update")
 	}
 
-	// let's check if file has been changed after select finished
-	if !fileChanged {
-		t.Error("no file change handled")
+	select {
+	case err := <-watcher.ErrorChan():
+		t.Error(err)
+		return
+	case <-watcher.WatchChan():
+		updatedCount++
+		t.Log("getting file changed")
+	case <-time.After(time.Second * 5):
+		// wait for second update here
 	}
+
+	assert.True(t, fileChanged)
+	// should fire update only once!
+	assert.Equal(t, updatedCount, 1)
 }

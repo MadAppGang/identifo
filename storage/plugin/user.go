@@ -12,8 +12,6 @@ import (
 // NewUserStorage creates and inits MongoDB user storage.
 func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
 	var err error
-	err = nil
-
 	params := []string{}
 	for k, v := range settings.Params {
 		params = append(params, "-"+k)

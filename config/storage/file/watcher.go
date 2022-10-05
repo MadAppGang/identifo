@@ -8,8 +8,8 @@ import (
 )
 
 type Watcher struct {
-	file       string
-	change     chan bool
+	files      []string
+	change     chan []string
 	err        chan error
 	done       chan bool
 	isWatching bool
@@ -17,8 +17,8 @@ type Watcher struct {
 
 func NewWatcher(file string) model.ConfigurationWatcher {
 	return &Watcher{
-		file:       file,
-		change:     make(chan bool),
+		files:      []string{file},
+		change:     make(chan []string),
 		err:        make(chan error),
 		done:       make(chan bool),
 		isWatching: false,
@@ -37,7 +37,9 @@ func (w *Watcher) runWatch() {
 		w.err <- err
 		return
 	}
-	watcher.Add(w.file)
+	for _, k := range w.files {
+		watcher.Add(k)
+	}
 	w.isWatching = true
 	defer func() {
 		watcher.Close()
@@ -54,7 +56,7 @@ func (w *Watcher) runWatch() {
 			if (event.Op&fsnotify.Write == fsnotify.Write) ||
 				(event.Op&fsnotify.Create == fsnotify.Create) {
 				log.Println("file watched handled modified file:", event.Name)
-				w.change <- true
+				w.change <- []string{event.Name}
 			}
 		case err, ok := <-watcher.Errors:
 			if !ok {
@@ -72,7 +74,7 @@ func (w *Watcher) IsWatching() bool {
 	return w.isWatching
 }
 
-func (w *Watcher) WatchChan() <-chan bool {
+func (w *Watcher) WatchChan() <-chan []string {
 	return w.change
 }
 

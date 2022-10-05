@@ -9,7 +9,6 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "remotePath": "",
       "port": 2345,
       "host": "127.0.0.1",
       "program": "${workspaceFolder}/main.go",
@@ -27,7 +26,6 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "remotePath": "",
       "port": 2345,
       "host": "127.0.0.1",
       "program": "${workspaceFolder}/main.go",
@@ -45,7 +43,6 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "remotePath": "",
       "port": 2345,
       "host": "127.0.0.1",
       "program": "${workspaceFolder}/main.go",
@@ -56,6 +53,7 @@
         "IDENTIFO_ADMIN_PASSWORD": "password"
       },
       "args": ["--config=file://./cmd/config-boltdb.yaml"],
+      // "args": ["--config=s3://ap-southeast-2@identifo/config.yaml|http://localhost:5001"], //debug with local S3
       "showLog": true
     },
     {
@@ -63,7 +61,6 @@
       "type": "go",
       "request": "launch",
       "mode": "debug",
-      "remotePath": "",
       "port": 2345,
       "host": "127.0.0.1",
       "program": "${workspaceFolder}/main.go",
@@ -75,7 +72,25 @@
       },
       "args": ["--config=file://./cmd/config-mongodb.yaml"],
       "showLog": true
-    }
+    },
+    {
+      "name": "BoltDBLocalS3",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "port": 2345,
+      "host": "127.0.0.1",
+      "program": "${workspaceFolder}/main.go",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password"
+      },
+      "args": ["--config=s3://ap-southeast-2@identifo/config.yaml|http://localhost:5001"], 
+      "showLog": true
+    },
+
 
   ]
 }
