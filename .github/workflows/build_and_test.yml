@@ -26,6 +26,11 @@ jobs:
           AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
           AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
 
+      - name: Integration Test
+        run: |
+          cd test
+          ./test.sh
+
       - name: Build
         run: go build -o ./identifo .
 
