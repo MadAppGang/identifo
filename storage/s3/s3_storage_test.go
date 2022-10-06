@@ -7,8 +7,8 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
-	s3s "github.com/madappgang/identifo/v2/config/storage/s3"
 	"github.com/madappgang/identifo/v2/model"
+	s3s "github.com/madappgang/identifo/v2/storage/s3"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -42,7 +42,7 @@ func putTestFileTOS3(t *testing.T, endpoint string) {
 	require.NoError(t, err)
 
 	_, _ = s3client.CreateBucket(&s3.CreateBucketInput{
-		Bucket: aws.String("identifo-public"),
+		Bucket: aws.String(settings.Bucket),
 	})
 
 	configFile := `

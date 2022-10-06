@@ -27,6 +27,7 @@ func NewFS(settings model.FileStorageSettings) (fs.FS, error) {
 	}
 }
 
+// RootReplacedFS add root prefix on top of every url of underlying fs.FS
 type RootReplacedFS struct {
 	Root string
 	FS   fs.FS

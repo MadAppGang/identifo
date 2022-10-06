@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/madappgang/identifo/v2/config/storage/file"
-	"github.com/madappgang/identifo/v2/config/storage/s3"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/fs"
+	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
 // InitConfigurationStorage initializes configuration storage.
@@ -17,7 +17,7 @@ func InitConfigurationStorage(config model.ConfigStorageSettings) (model.Configu
 	case model.ConfigStorageTypeS3:
 		return s3.NewConfigurationStorage(config)
 	case model.ConfigStorageTypeFile:
-		return file.NewConfigurationStorage(config)
+		return fs.NewConfigurationStorage(config)
 	default:
 		return nil, fmt.Errorf("config type is not supported")
 	}
@@ -25,7 +25,7 @@ func InitConfigurationStorage(config model.ConfigStorageSettings) (model.Configu
 
 // DefaultStorage trying to create a default storage with default file
 func DefaultStorage() (model.ConfigurationStorage, error) {
-	return file.NewDefaultConfigurationStorage()
+	return fs.NewDefaultConfigurationStorage()
 }
 
 func InitConfigurationStorageFromFlag(configFlag string) (model.ConfigurationStorage, error) {

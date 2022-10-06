@@ -11,17 +11,19 @@ import (
 )
 
 // NewS3Client creates and returns new S3 client.
-func NewS3Client(region string) (*s3.S3, error) {
-	cfg := getConfig(region)
-	sess, err := NewSession(region)
+func NewS3Client(region, endpoint string) (*s3.S3, error) {
+	cfg := getConfig(region, endpoint)
+
+	sess, err := session.NewSession(cfg)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("error creating new s3 session: %s", err)
 	}
+
 	return s3.New(sess, cfg), nil
 }
 
-func NewSession(region string) (*session.Session, error) {
-	cfg := getConfig(region)
+func NewSession(region, endpoint string) (*session.Session, error) {
+	cfg := getConfig(region, endpoint)
 	sess, err := session.NewSession(cfg.WithCredentialsChainVerboseErrors(true))
 	if err != nil {
 		return nil, fmt.Errorf("error creating new s3 session: %s", err)
@@ -29,14 +31,20 @@ func NewSession(region string) (*session.Session, error) {
 	return sess, err
 }
 
-func getConfig(region string) *aws.Config {
-	cfg := aws.NewConfig()
-	if len(region) > 0 {
-		cfg = cfg.WithRegion(region)
+func getConfig(region, endpoint string) *aws.Config {
+	cfg := aws.NewConfig().
+		WithHTTPClient(&http.Client{
+			Timeout: 10 * time.Second,
+		}).
+		WithCredentialsChainVerboseErrors(true)
+
+	if len(endpoint) > 0 {
+		cfg.WithEndpoint(endpoint)
 	}
 
-	cfg.HTTPClient = http.DefaultClient
-	cfg.HTTPClient.Timeout = 10 * time.Second
+	if len(region) > 0 {
+		cfg.WithRegion(region)
+	}
 
 	return cfg
 }

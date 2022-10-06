@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/madappgang/identifo/v2/config/storage/file"
-	"github.com/madappgang/identifo/v2/config/storage/s3"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage/fs"
+	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
 const defaultS3PollInterval = time.Minute // poll new updates every minute
@@ -23,7 +23,7 @@ func NewConfigWatcher(settings model.ConfigStorageSettings) (model.Configuration
 		if settings.File == nil {
 			return nil, errors.New("empty storage settings for File storage type")
 		}
-		return file.NewWatcher(settings.File.FileName), nil
+		return fs.NewWatcher(settings.File.FileName), nil
 	}
 	return nil, fmt.Errorf("Unsupported config storage type: %v", settings.Type)
 }

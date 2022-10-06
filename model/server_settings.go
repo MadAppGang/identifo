@@ -196,6 +196,7 @@ type KeyStorageFileSettings struct {
 type S3KeyStorageSettings struct {
 	Region        string `yaml:"region" json:"region,omitempty" bson:"region"`
 	Bucket        string `yaml:"bucket" json:"bucket,omitempty" bson:"bucket"`
+	Endpoint      string `yaml:"endpoint" json:"endpoint,omitempty" bson:"endpoint"`
 	PrivateKeyKey string `yaml:"private_key_key" json:"private_key_key" bson:"private_key_key"`
 }
 

@@ -1,4 +1,4 @@
-package file_test
+package fs_test
 
 import (
 	"fmt"
@@ -7,26 +7,26 @@ import (
 	"testing"
 	"time"
 
-	"github.com/madappgang/identifo/v2/config/storage/file"
+	"github.com/madappgang/identifo/v2/storage/fs"
 )
 
 // TestWatcher test file watcher
 func TestWatcher(t *testing.T) {
 	// let's create temp file, and use current time to create random file name
 	filename := fmt.Sprintf("/tmp/file_ratcher_test_%v.txt", time.Now().Unix())
-	if err := ioutil.WriteFile(filename, []byte("Hello"), 0755); err != nil {
+	if err := ioutil.WriteFile(filename, []byte("Hello"), 0o755); err != nil {
 		t.Fatalf("error creating test file: %v", err)
 	}
 
 	// create and start watcher
-	watcher := file.NewWatcher(filename)
+	watcher := fs.NewWatcher(filename)
 	fileChanged := false
 	watcher.Watch()
 
 	// this go-routine is adding some data to file after 1 second, letting us to start select statement
 	go func() {
 		time.Sleep(time.Second * 1)
-		f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0644)
+		f, err := os.OpenFile(filename, os.O_APPEND|os.O_WRONLY, 0o644)
 		if err != nil {
 			t.Errorf("error opening file for changes: %v", err)
 			return

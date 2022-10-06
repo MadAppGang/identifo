@@ -1,4 +1,4 @@
-package file
+package fs
 
 import (
 	"fmt"
@@ -78,7 +78,7 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 		return fmt.Errorf("Cannot marshall configuration: %s", err)
 	}
 
-	if err = ioutil.WriteFile(cs.ServerConfigPath, ss, 0644); err != nil {
+	if err = ioutil.WriteFile(cs.ServerConfigPath, ss, 0o644); err != nil {
 		return fmt.Errorf("Cannot write configuration file: %s", err)
 	}
 

@@ -21,7 +21,7 @@ type KeyStorage struct {
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
 func NewKeyStorage(settings model.S3KeyStorageSettings) (*KeyStorage, error) {
-	s3Client, err := NewS3Client(settings.Region)
+	s3Client, err := NewS3Client(settings.Region, settings.Endpoint)
 	if err != nil {
 		return nil, err
 	}

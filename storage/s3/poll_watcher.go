@@ -83,7 +83,7 @@ func (w *PollWatcher) runWatch() {
 	for {
 		select {
 		case <-time.After(w.poll):
-			log.Println("s3 config poll watcher checking the config file ...")
+			log.Println("s3 config poll watcher checking the files ...")
 			go w.checkUpdatedFiles()
 		case <-w.done:
 			log.Println("s3 config poll watcher has received done signal and stopping itself ...")
@@ -95,7 +95,6 @@ func (w *PollWatcher) runWatch() {
 func (w *PollWatcher) checkUpdatedFiles() {
 	var modifiedKeys []string
 	for _, key := range w.keys {
-		log.Printf("Checking file: %s, updatedTime: %s", key, w.watchingSince[key])
 		input := &s3.HeadObjectInput{
 			Bucket: aws.String(w.settings.Bucket),
 			Key:    aws.String(key),
@@ -103,7 +102,7 @@ func (w *PollWatcher) checkUpdatedFiles() {
 			IfModifiedSince: aws.Time(w.watchingSince[key]),
 		}
 
-		d, err := w.client.HeadObject(input)
+		_, err := w.client.HeadObject(input)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ErrCodeNotModified {
 				// file has not been changed
@@ -115,7 +114,6 @@ func (w *PollWatcher) checkUpdatedFiles() {
 				w.err <- err
 			}
 		} else {
-			log.Printf(">>>>> The file has been modified: %s, lastUpdated: %s, lastModified: %s", *input.Key, w.watchingSince[key], *d.LastModified)
 			w.watchingSince[key] = time.Now()
 			modifiedKeys = append(modifiedKeys, key)
 		}
