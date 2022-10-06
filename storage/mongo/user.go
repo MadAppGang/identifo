@@ -465,3 +465,13 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 
 // Close is a no-op.
 func (us *UserStorage) Close() {}
+
+// ClearAllUserData - clears the database, used for integration testing
+func (us *UserStorage) ClearAllUserData() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*us.timeout)
+	defer cancel()
+
+	if _, err := us.coll.DeleteMany(ctx, bson.M{}); err != nil {
+		log.Printf("Error cleaning all user data: %s\n", err)
+	}
+}

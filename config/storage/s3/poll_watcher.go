@@ -58,6 +58,7 @@ func NewPollWatcherForKeyList(settings model.S3StorageSettings, keys []string, p
 		err:        make(chan error),
 		done:       make(chan bool),
 		isWatching: false,
+		keys:       keys,
 	}, nil
 }
 
@@ -94,24 +95,27 @@ func (w *PollWatcher) runWatch() {
 func (w *PollWatcher) checkUpdatedFiles() {
 	var modifiedKeys []string
 	for _, key := range w.keys {
+		log.Printf("Checking file: %s, updatedTime: %s", key, w.watchingSince[key])
 		input := &s3.HeadObjectInput{
 			Bucket: aws.String(w.settings.Bucket),
-			Key:    aws.String(w.settings.Key),
+			Key:    aws.String(key),
 			// Return the object only if it has been modified since the specified time, otherwise return a 304 (not modified).
 			IfModifiedSince: aws.Time(w.watchingSince[key]),
 		}
 
-		_, err := w.client.HeadObject(input)
+		d, err := w.client.HeadObject(input)
 		if err != nil {
 			if aerr, ok := err.(awserr.Error); ok && aerr.Code() == ErrCodeNotModified {
 				// file has not been changed
 				// just silently ignore
+				// log.Printf("The file has not been modified: %s", *input.Key)
 			} else {
 				log.Printf("getting error: %+v\n", err)
 				// report error
 				w.err <- err
 			}
 		} else {
+			log.Printf(">>>>> The file has been modified: %s, lastUpdated: %s, lastModified: %s", *input.Key, w.watchingSince[key], *d.LastModified)
 			w.watchingSince[key] = time.Now()
 			modifiedKeys = append(modifiedKeys, key)
 		}

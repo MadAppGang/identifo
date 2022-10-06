@@ -24,6 +24,7 @@ func TestFetchUser(t *testing.T) {
 	})
 	require.NoError(t, err)
 
+	s.(*mongo.UserStorage).ClearAllUserData()
 	testUser := model.User{
 		Username:   "test",
 		Email:      "test@examplle.com",
