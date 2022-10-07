@@ -2,7 +2,6 @@ describe('2fa mandatory email', () => {
   before(() => {
     cy.createApp();
     cy.appSet({ tfa_status: 'mandatory' });
-
     cy.serverSetLoginOptions({ login_with: { username: false, phone: false, email: true, federated: false }, tfa_type: 'app' });
   });
   after(() => {

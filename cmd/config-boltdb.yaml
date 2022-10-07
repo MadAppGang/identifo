@@ -138,8 +138,8 @@ services:
 login:
   loginWith:
     username: false
-    phone: false
-    email: true
+    phone: true
+    email: false
     federated: false
   tfaType: app
   tfaResendTimeout: 0

@@ -41,6 +41,7 @@ func TestBoltDBAppCreateApp(t *testing.T) {
 		Path: dbpath,
 	}
 	apps, err := boltdb.NewAppStorage(sts)
+	defer apps.Close()
 	require.NoError(t, err)
 
 	a, err := apps.CreateApp(testApp)
@@ -63,6 +64,7 @@ func TestBoltDBAppFindAppById(t *testing.T) {
 		Path: dbpath,
 	}
 	apps, err := boltdb.NewAppStorage(sts)
+	defer apps.Close()
 	require.NoError(t, err)
 
 	testApp2 := testApp
@@ -78,10 +80,13 @@ func TestBoltDBAppFindAppById(t *testing.T) {
 }
 
 func TestBoltDBAppFindAppFetchApps(t *testing.T) {
+	shutdown()
+
 	sts := model.BoltDBDatabaseSettings{
 		Path: dbpath,
 	}
 	apps, err := boltdb.NewAppStorage(sts)
+	defer apps.Close()
 	require.NoError(t, err)
 
 	a, err := apps.CreateApp(testApp)
