@@ -19,7 +19,7 @@ const (
 // NewAppStorage creates new BoltDB AppStorage implementation.
 func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, error) {
 	if len(settings.Path) == 0 {
-		return nil, fmt.Errorf("unable to find init boldb storage with empty database path")
+		return nil, fmt.Errorf("unable to find init boltdb storage with empty database path")
 	}
 
 	// init database
