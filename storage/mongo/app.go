@@ -39,16 +39,11 @@ type AppStorage struct {
 
 // AppByID returns app from MongoDB by ID.
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
-	hexID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return model.AppData{}, err
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
 	var ad model.AppData
-	if err := as.coll.FindOne(ctx, bson.M{"_id": hexID.Hex()}).Decode(&ad); err != nil {
+	if err := as.coll.FindOne(ctx, bson.M{"_id": id}).Decode(&ad); err != nil {
 		return model.AppData{}, err
 	}
 	return ad, nil
@@ -102,15 +97,10 @@ func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 
 // DeleteApp deletes app by id.
 func (as *AppStorage) DeleteApp(id string) error {
-	hexID, err := primitive.ObjectIDFromHex(id)
-	if err != nil {
-		return err
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
-	if _, err := as.coll.DeleteOne(ctx, bson.M{"_id": hexID.Hex()}); err != nil {
+	if _, err := as.coll.DeleteOne(ctx, bson.M{"_id": id}); err != nil {
 		return err
 	}
 	return nil
@@ -118,7 +108,7 @@ func (as *AppStorage) DeleteApp(id string) error {
 
 // CreateApp creates new app in MongoDB.
 func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
-	if objID, err := primitive.ObjectIDFromHex(app.ID); err != nil || objID == primitive.NilObjectID {
+	if app.ID == "" {
 		app.ID = primitive.NewObjectID().Hex()
 	}
 
@@ -133,11 +123,6 @@ func (as *AppStorage) CreateApp(app model.AppData) (model.AppData, error) {
 
 // DisableApp disables app in MongoDB storage.
 func (as *AppStorage) DisableApp(app model.AppData) error {
-	hexID, err := primitive.ObjectIDFromHex(app.ID)
-	if err != nil {
-		return err
-	}
-
 	ctx, cancel := context.WithTimeout(context.Background(), as.timeout)
 	defer cancel()
 
@@ -145,7 +130,7 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ad model.AppData
-	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ad); err != nil {
+	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": app.ID}, update, opts).Decode(&ad); err != nil {
 		return err
 	}
 	// maybe return updated data?
@@ -154,11 +139,6 @@ func (as *AppStorage) DisableApp(app model.AppData) error {
 
 // UpdateApp updates app in MongoDB storage.
 func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppData, error) {
-	hexID, err := primitive.ObjectIDFromHex(appID)
-	if err != nil {
-		return model.AppData{}, err
-	}
-
 	// use ID from the request if it's not set
 	if len(newApp.ID) == 0 {
 		newApp.ID = appID
@@ -171,7 +151,7 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 	opts := options.FindOneAndUpdate().SetReturnDocument(options.After)
 
 	var ad model.AppData
-	if err = as.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update, opts).Decode(&ad); err != nil {
+	if err := as.coll.FindOneAndUpdate(ctx, bson.M{"_id": appID}, update, opts).Decode(&ad); err != nil {
 		return model.AppData{}, err
 	}
 
