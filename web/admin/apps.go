@@ -39,13 +39,7 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		filterStr := strings.TrimSpace(r.URL.Query().Get("search"))
 
-		skip, limit, err := ar.parseSkipAndLimit(r, defaultAppSkip, defaultAppLimit, 0)
-		if err != nil {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
-			return
-		}
-
-		apps, total, err := ar.server.Storages().App.FetchApps(filterStr, skip, limit)
+		apps, err := ar.server.Storages().App.FetchApps(filterStr)
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
 			return
@@ -55,11 +49,9 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 		}
 
 		searchResponse := struct {
-			Apps  []model.AppData `json:"apps"`
-			Total int             `json:"total"`
+			Apps []model.AppData `json:"apps"`
 		}{
-			Apps:  apps,
-			Total: total,
+			Apps: apps,
 		}
 		ar.ServeJSON(w, http.StatusOK, &searchResponse)
 	}
@@ -144,7 +136,7 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 // now we are using it for tests
 func (ar *Router) DeleteAllApps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		apps, _, err := ar.server.Storages().App.FetchApps("", 0, 1_000_000) // just fetch one million, looks ugly, but ...
+		apps, err := ar.server.Storages().App.FetchApps("")
 		if err != nil {
 			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
 		}

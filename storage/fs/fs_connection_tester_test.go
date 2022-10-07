@@ -10,7 +10,7 @@ import (
 
 func TestNewFSConnectionTesterWithOneExpectedFile(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts/spa",
+		Path: "../../test/artifacts/spa",
 	}
 	tester := NewFSConnectionTester(settings, []string{"index.html"})
 
@@ -22,7 +22,7 @@ func TestNewFSConnectionTesterWithOneExpectedFile(t *testing.T) {
 
 func TestNewFSConnectionTesterWithNoFiles(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts",
+		Path: "../../test/artifacts",
 	}
 	tester := NewFSConnectionTester(settings, nil)
 
@@ -34,7 +34,7 @@ func TestNewFSConnectionTesterWithNoFiles(t *testing.T) {
 
 func TestNewFSConnectionTesterWithFile(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts/templates",
+		Path: "../../test/artifacts/templates",
 	}
 	tester := NewFSConnectionTester(settings, []string{"mail1.template", "mail2.template"})
 
@@ -46,7 +46,7 @@ func TestNewFSConnectionTesterWithFile(t *testing.T) {
 
 func TestNewFSConnectionTesterWithNoFilesFail(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts/failpath",
+		Path: "../../test/artifacts/failpath",
 	}
 	tester := NewFSConnectionTester(settings, nil)
 
@@ -58,7 +58,7 @@ func TestNewFSConnectionTesterWithNoFilesFail(t *testing.T) {
 
 func TestNewFSConnectionTesterWithFileWhichIsAbsent(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts",
+		Path: "../../test/artifacts",
 	}
 	tester := NewFSConnectionTester(settings, []string{"index.html"})
 
@@ -70,7 +70,7 @@ func TestNewFSConnectionTesterWithFileWhichIsAbsent(t *testing.T) {
 
 func TestNewFSConnectionTesterWithFilesAndOneIsAbsent(t *testing.T) {
 	settings := model.FileStorageLocal{
-		FolderPath: "../../test/artifacts/templates",
+		Path: "../../test/artifacts/templates",
 	}
 	tester := NewFSConnectionTester(settings, []string{"mail1.template", "mail2.template", "mail3.template"})
 

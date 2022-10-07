@@ -10,7 +10,7 @@ import (
 )
 
 func NewFS(settings model.FileStorageS3) (fs.FS, error) {
-	session, err := NewSession(settings.Region)
+	session, err := NewSession(settings.Region, settings.Endpoint)
 	if err != nil {
 		return nil, err
 	}

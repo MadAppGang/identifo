@@ -5,12 +5,12 @@ import (
 )
 
 type KeyStorageConnectionTester struct {
-	settings model.S3KeyStorageSettings
+	settings model.FileStorageS3
 }
 
 // NewConnectionTester creates a BoltDB connection tester
 
-func NewKeyStorageConnectionTester(settings model.S3KeyStorageSettings) model.ConnectionTester {
+func NewKeyStorageConnectionTester(settings model.FileStorageS3) model.ConnectionTester {
 	return &KeyStorageConnectionTester{settings: settings}
 }
 

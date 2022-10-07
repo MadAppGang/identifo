@@ -69,37 +69,30 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
+func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 2*as.timeout)
 	defer cancel()
 
 	q := bson.D{primitive.E{Key: "name", Value: primitive.Regex{Pattern: filterString, Options: "i"}}}
 
-	total, err := as.coll.CountDocuments(ctx, q)
-	if err != nil {
-		return []model.AppData{}, 0, err
-	}
-
 	findOptions := options.Find()
 	findOptions.SetSort(bson.D{primitive.E{Key: "name", Value: 1}})
-	findOptions.SetLimit(int64(limit))
-	findOptions.SetSkip(int64(skip))
 
 	curr, err := as.coll.Find(ctx, q, findOptions)
 	if err != nil {
-		return []model.AppData{}, 0, err
+		return []model.AppData{}, err
 	}
 
 	var appsData []model.AppData
 	if err = curr.All(ctx, &appsData); err != nil {
-		return []model.AppData{}, 0, err
+		return []model.AppData{}, err
 	}
 
 	apps := make([]model.AppData, len(appsData))
 	for i := 0; i < len(appsData); i++ {
 		apps[i] = appsData[i]
 	}
-	return apps, int(total), nil
+	return apps, nil
 }
 
 // DeleteApp deletes app by id.

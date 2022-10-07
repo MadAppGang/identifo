@@ -196,14 +196,9 @@ const maxAppsLimit = 20
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination. Search is case-sensitive for now.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
-	if limit == 0 || limit > maxAppsLimit {
-		limit = maxAppsLimit
-	}
-
+func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 	scanInput := &dynamodb.ScanInput{
 		TableName: aws.String(appsTableName),
-		Limit:     aws.Int64(int64(limit)),
 	}
 
 	if len(filterString) != 0 {
@@ -219,22 +214,19 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 	result, err := as.db.C.Scan(scanInput)
 	if err != nil {
 		log.Println("Error querying for apps:", err)
-		return []model.AppData{}, 0, ErrorInternalError
+		return []model.AppData{}, ErrorInternalError
 	}
 
 	apps := make([]model.AppData, len(result.Items))
 	for i := 0; i < len(result.Items); i++ {
-		if i < skip {
-			continue // TODO: use internal pagination mechanism
-		}
 		appData := model.AppData{}
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &appData); err != nil {
 			log.Println("error while unmarshal app: ", err)
-			return []model.AppData{}, 0, ErrorInternalError
+			return []model.AppData{}, ErrorInternalError
 		}
 		apps[i] = appData
 	}
-	return apps, len(result.Items), nil
+	return apps, nil
 }
 
 // DeleteApp deletes app by id.

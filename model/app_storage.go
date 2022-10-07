@@ -9,7 +9,7 @@ type AppStorage interface {
 	CreateApp(app AppData) (AppData, error)
 	DisableApp(app AppData) error
 	UpdateApp(appID string, newApp AppData) (AppData, error)
-	FetchApps(filterString string, skip, limit int) ([]AppData, int, error)
+	FetchApps(filter string) ([]AppData, error)
 	DeleteApp(id string) error
 	ImportJSON(data []byte) error
 	TestDatabaseConnection() error

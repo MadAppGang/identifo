@@ -7,7 +7,7 @@ type ConnectionTester interface {
 type TestConnection struct {
 	Type        TestType             `json:"type"`
 	Database    *DatabaseSettings    `json:"database,omitempty"`
-	KeyStorage  *KeyStorageSettings  `json:"key_storage,omitempty"`
+	KeyStorage  *FileStorageSettings `json:"key_storage,omitempty"`
 	FileStorage *FileStorageSettings `json:"file_storage,omitempty"`
 }
 

@@ -2,7 +2,10 @@ package model
 
 // EmailService manages sending emails.
 type EmailService interface {
-	SendTemplateEmail(emailType EmailTemplateType, path string, subject string, recipient string, data EmailData) error
+	SendTemplateEmail(emailType EmailTemplateType, subfolder, subject, recipient string, data EmailData) error
+	Transport() EmailTransport
+	Start()
+	Stop()
 }
 
 type EmailTransport interface {

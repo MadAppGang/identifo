@@ -8,11 +8,11 @@ import (
 	"github.com/madappgang/identifo/v2/storage/s3"
 )
 
-func NewKeyStorage(settings model.KeyStorageSettings) (model.KeyStorage, error) {
+func NewKeyStorage(settings model.FileStorageSettings) (model.KeyStorage, error) {
 	switch settings.Type {
-	case model.KeyStorageTypeLocal:
-		return fs.NewKeyStorage(settings.File)
-	case model.KeyStorageTypeS3:
+	case model.FileStorageTypeLocal:
+		return fs.NewKeyStorage(settings.Local)
+	case model.FileStorageTypeS3:
 		return s3.NewKeyStorage(settings.S3)
 	default:
 		return nil, fmt.Errorf("unknown key storage type: %s", settings.Type)

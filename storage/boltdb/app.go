@@ -19,7 +19,7 @@ const (
 // NewAppStorage creates new BoltDB AppStorage implementation.
 func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, error) {
 	if len(settings.Path) == 0 {
-		return nil, fmt.Errorf("unable to find init boldb storage with empty database path")
+		return nil, fmt.Errorf("unable to find init boltdb storage with empty database path")
 	}
 
 	// init database
@@ -136,20 +136,14 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
+func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 	apps := []model.AppData{}
-	var total int
 
 	err := as.db.View(func(tx *bolt.Tx) error {
 		ab := tx.Bucket([]byte(AppBucket))
 
 		if iterErr := ab.ForEach(func(k, v []byte) error {
 			if strings.Contains(strings.ToLower(string(k)), strings.ToLower(filterString)) {
-				total++
-				skip--
-				if skip > -1 || (limit != 0 && len(apps) == limit) {
-					return nil
-				}
 				app, err := model.AppDataFromJSON(v)
 				if err != nil {
 					return err
@@ -163,9 +157,9 @@ func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.A
 		return nil
 	})
 	if err != nil {
-		return []model.AppData{}, 0, err
+		return []model.AppData{}, err
 	}
-	return apps, total, nil
+	return apps, nil
 }
 
 // DeleteApp deletes app by ID.
