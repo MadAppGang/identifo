@@ -1,9 +1,0 @@
-{
-  "projectId": "9g4zv8",
-  "video": false,
-  "viewportHeight": 800,
-  "viewportWidth": 600,
-  "serverUrl": "http://localhost:8081",
-  "baseUrl": "http://localhost:8081/web",
-  "chromeWebSecurity": false
-}

@@ -22,13 +22,14 @@ type FSWatcher struct {
 
 func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
 	return &FSWatcher{
-		f:          f,
-		keys:       keys,
-		poll:       poll,
-		change:     make(chan []string),
-		err:        make(chan error),
-		done:       make(chan bool),
-		isWatching: false,
+		f:             f,
+		keys:          keys,
+		poll:          poll,
+		change:        make(chan []string),
+		err:           make(chan error),
+		done:          make(chan bool),
+		watchingSince: make(map[string]time.Time),
+		isWatching:    false,
 	}
 }
 
@@ -38,7 +39,6 @@ func (w *FSWatcher) Watch() {
 	}
 
 	w.isWatching = true
-	w.watchingSince = make(map[string]time.Time)
 	for _, k := range w.keys {
 		w.watchingSince[k] = time.Now()
 	}
@@ -50,7 +50,7 @@ func (w *FSWatcher) Watch() {
 func (w *FSWatcher) runWatch() {
 	defer func() {
 		w.isWatching = false
-		w.watchingSince = nil
+		w.watchingSince = make(map[string]time.Time)
 	}()
 
 	for {

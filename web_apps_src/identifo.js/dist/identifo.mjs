@@ -880,7 +880,7 @@ class CDK {
       socialLogin: (provider) => __async(this, null, function* () {
         this.state.next({ route: Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(provider, [...Array.from(this.scopes)], federatedRedirectUrl, this.callbackUrl);
       })
     });
   }
@@ -898,7 +898,7 @@ class CDK {
         if (remember) {
           scopes.add("offline");
         }
-        yield this.auth.api.phoneLogin(phone, code, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        yield this.auth.api.phoneLogin(phone, code, [...Array.from(this.scopes)]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       }),
       goback: () => __async(this, null, function* () {
         this.login();
@@ -929,7 +929,7 @@ class CDK {
       socialLogin: (provider) => __async(this, null, function* () {
         this.state.next({ route: Routes.LOADING });
         const federatedRedirectUrl = window.location.origin + window.location.pathname;
-        return this.auth.api.federatedLogin(provider, [...this.scopes], federatedRedirectUrl, this.callbackUrl);
+        return this.auth.api.federatedLogin(provider, [...Array.from(this.scopes)], federatedRedirectUrl, this.callbackUrl);
       }),
       passwordForgot: () => __async(this, null, function* () {
         this.forgotPassword();
@@ -943,7 +943,7 @@ class CDK {
         if (!this.validateEmail(email)) {
           return;
         }
-        yield this.auth.api.register(email, password, [...this.scopes], token).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+        yield this.auth.api.register(email, password, [...Array.from(this.scopes)], token).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       }),
       goback: () => __async(this, null, function* () {
         this.login();
@@ -1094,7 +1094,7 @@ class CDK {
         email: loginResponse.user.email,
         phone: loginResponse.user.phone,
         verifyTFA: (code) => __async(this, null, function* () {
-          yield this.auth.api.verifyTFA(code, [...this.scopes]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
+          yield this.auth.api.verifyTFA(code, [...Array.from(this.scopes)]).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
         })
       };
       switch (type) {

@@ -17,9 +17,11 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ""
       params: {}
+    grpc:
+      address: ""
   userStorage:
     type: boltdb
     boltdb:
@@ -34,6 +36,8 @@ storage:
       cmd: ./plugins/bin/bolt-user-storage
       params:
         path: ./data/user.db
+    grpc:
+      address: ""
   tokenStorage:
     type: boltdb
     boltdb:
@@ -44,9 +48,11 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ""
       params: {}
+    grpc:
+      address: ""
   tokenBlacklist:
     type: boltdb
     boltdb:
@@ -57,9 +63,11 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ""
       params: {}
+    grpc:
+      address: ""
   verificationCodeStorage:
     type: boltdb
     boltdb:
@@ -70,9 +78,11 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ""
       params: {}
+    grpc:
+      address: ""
   inviteStorage:
     type: boltdb
     boltdb:
@@ -83,9 +93,11 @@ storage:
     dynamo:
       region: ""
       endpoint: ""
-    grpc:
+    plugin:
       cmd: ""
       params: {}
+    grpc:
+      address: ""
 sessionStorage:
   type: memory
   sessionDuration: 300
@@ -93,6 +105,8 @@ sessionStorage:
     address: ""
     password: ""
     db: 0
+    cluster: false
+    prefix: ""
   dynamo:
     region: ""
     endpoint: ""
@@ -129,6 +143,7 @@ login:
     federated: false
   tfaType: app
   tfaResendTimeout: 0
+  allowRegisterMissing: false
 keyStorage:
   type: local
   local:

@@ -43,21 +43,14 @@ const deleteTestUser = async () => {
   });
 };
 const deleteTestApp = async () => {
-  if (!appId) {
-    return;
-  }
-  const p = [];
-  for (const t of appId) {
-    p.push(
-      fetch(`${adminUrl}/apps/${t}`, {
-        body: null,
-        method: 'DELETE',
-        mode: 'cors',
-        credentials: 'include',
-      }),
-    );
-  }
-
+  var p = appId.filter( a => a ).map( t => 
+    fetch(`${adminUrl}/apps/${t}`, {
+      body: null,
+      method: 'DELETE',
+      mode: 'cors',
+      credentials: 'include',
+    })
+  )
   return Promise.all(p);
 };
 const parseJwt = token => {
