@@ -28,6 +28,7 @@ func TestEmailService_SendMessage(t *testing.T) {
 	service.Start()
 	service.SendTemplateEmail(
 		model.EmailTemplateTypeVerifyEmail,
+		"",
 		"SUBJECT1",
 		"mail@mail.com",
 		model.EmailData{},
@@ -43,6 +44,7 @@ func TestEmailService_SendMessage(t *testing.T) {
 	time.Sleep(time.Second * 2)
 	service.SendTemplateEmail(
 		model.EmailTemplateTypeVerifyEmail,
+		"",
 		"SUBJECT1",
 		"mail@mail.com",
 		model.EmailData{},

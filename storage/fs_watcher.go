@@ -4,6 +4,8 @@ import (
 	"io/fs"
 	"log"
 	"time"
+
+	"golang.org/x/exp/slices"
 )
 
 // FSWatcher watch for files changes in FS and notifies on file change
@@ -31,18 +33,21 @@ func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
 }
 
 func (w *FSWatcher) Watch() {
+	if w.isWatching == true {
+		return
+	}
+
+	w.isWatching = true
+	w.watchingSince = make(map[string]time.Time)
+	for _, k := range w.keys {
+		w.watchingSince[k] = time.Now()
+	}
 	// non blocking run of watch function
 	go w.runWatch()
 }
 
 // watch runloop using go channels
 func (w *FSWatcher) runWatch() {
-	w.isWatching = true
-	w.watchingSince = make(map[string]time.Time)
-	for _, k := range w.keys {
-		w.watchingSince[k] = time.Now()
-	}
-
 	defer func() {
 		w.isWatching = false
 		w.watchingSince = nil
@@ -54,6 +59,7 @@ func (w *FSWatcher) runWatch() {
 			log.Println("fs watcher checking the files ...")
 			go w.checkUpdatedFiles()
 		case <-w.done:
+			w.isWatching = false
 			log.Println("fs watcher has received done signal and stopping itself ...")
 			return
 		}
@@ -93,8 +99,18 @@ func (w *FSWatcher) ErrorChan() <-chan error {
 }
 
 func (w *FSWatcher) Stop() {
+	if !w.isWatching {
+		return
+	}
 	// non blocking stop
 	go func() {
 		w.done <- true
 	}()
+}
+
+func (w *FSWatcher) AppendForWatching(path string) {
+	if !slices.Contains(w.keys, path) {
+		w.keys = append(w.keys, path)
+		w.watchingSince[path] = time.Now()
+	}
 }

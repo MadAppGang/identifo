@@ -257,15 +257,15 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 			Host:  uu.String(),
 		}
 
-		// app, err := ar.server.Storages().App.AppByID(resetData.AppID)
-		// if err != nil {
-		// 	ar.Error(w, err, http.StatusInternalServerError, "")
-		// 	return
-		// }
+		app, err := ar.server.Storages().App.AppByID(resetData.AppID)
+		if err != nil {
+			ar.Error(w, err, http.StatusInternalServerError, "")
+			return
+		}
 
 		if err = ar.server.Services().Email.SendTemplateEmail(
 			model.EmailTemplateTypeResetPassword,
-			// app.GetCustomEmailTemplatePath(),
+			app.GetCustomEmailTemplatePath(),
 			"Reset Password",
 			user.Email,
 			model.EmailData{
