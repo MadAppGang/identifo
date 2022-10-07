@@ -27,7 +27,7 @@ import (
 // 3. If your application uses an ECS task definition or RunTask API operation, IAM role for tasks.
 // 4. If your application is running on an Amazon EC2 instance, IAM role for Amazon EC2.
 
-var settings = model.S3StorageSettings{
+var settings = model.FileStorageS3{
 	Region: "ap-southeast-2",
 	Bucket: "identifo-public",
 	Key:    "test/config-boltdb.yaml",
@@ -42,7 +42,7 @@ func getS3Client(t *testing.T, endpoint string) *s3.S3 {
 	return s3client
 }
 
-func uploadS3File(t *testing.T, s3client *s3.S3, s model.S3StorageSettings, key string) {
+func uploadS3File(t *testing.T, s3client *s3.S3, s model.FileStorageS3, key string) {
 	newFilecontent := []byte(fmt.Sprintf("This content has been changed at %v", time.Now().Unix()))
 	input := &s3.PutObjectInput{
 		Bucket:             aws.String(settings.Bucket),

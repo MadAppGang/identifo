@@ -12,12 +12,11 @@ func TestConfigStorageSettingsFromStringS3HappyDay(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringS3(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeS3)
+	assert.Equal(t, config.Type, FileStorageTypeS3)
 	assert.Equal(t, config.S3.Region, "ap-southwest-2")
 	assert.Equal(t, config.S3.Bucket, "my-bucket1t")
 	assert.Equal(t, config.S3.Key, "/dev/config.yaml")
 	assert.Empty(t, config.S3.Endpoint)
-	assert.Equal(t, config.RawString, flag)
 }
 
 func TestConfigStorageSettingsFromStringS3EndpointEmpty(t *testing.T) {
@@ -25,12 +24,11 @@ func TestConfigStorageSettingsFromStringS3EndpointEmpty(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringS3(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeS3)
+	assert.Equal(t, config.Type, FileStorageTypeS3)
 	assert.Equal(t, config.S3.Region, "ap-southwest-2")
 	assert.Equal(t, config.S3.Bucket, "my-bucket1t")
 	assert.Equal(t, config.S3.Key, "/dev/config.yaml")
 	assert.Empty(t, config.S3.Endpoint)
-	assert.Equal(t, config.RawString, flag)
 }
 
 func TestConfigStorageSettingsFromStringS3Endpoint(t *testing.T) {
@@ -38,12 +36,11 @@ func TestConfigStorageSettingsFromStringS3Endpoint(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringS3(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeS3)
+	assert.Equal(t, config.Type, FileStorageTypeS3)
 	assert.Equal(t, config.S3.Region, "ap-southwest-2")
 	assert.Equal(t, config.S3.Bucket, "my-bucket1t")
 	assert.Equal(t, config.S3.Key, "/dev/config.yaml")
 	assert.Equal(t, config.S3.Endpoint, "http://localhost:2020")
-	assert.Equal(t, config.RawString, flag)
 }
 
 func TestConfigStorageSettingsFromStringS3Wrong(t *testing.T) {
@@ -62,10 +59,9 @@ func TestConfigStorageSettingsFromStringFileHappyDay(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringFile(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeFile)
-	assert.Equal(t, config.RawString, flag)
+	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
-	assert.Equal(t, config.File.FileName, flag)
+	assert.Equal(t, config.Local.Path, flag)
 }
 
 func TestConfigStorageSettingsFromStringFileHappyDayPrefix(t *testing.T) {
@@ -73,10 +69,9 @@ func TestConfigStorageSettingsFromStringFileHappyDayPrefix(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringFile(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeFile)
-	assert.Equal(t, config.RawString, flag)
+	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
-	assert.Equal(t, config.File.FileName, "myfolder/subfolder/config.yaml")
+	assert.Equal(t, config.Local.Path, "myfolder/subfolder/config.yaml")
 }
 
 func TestConfigStorageSettingsFromStringFileHappyDayPrefixCase(t *testing.T) {
@@ -84,10 +79,9 @@ func TestConfigStorageSettingsFromStringFileHappyDayPrefixCase(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringFile(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeFile)
-	assert.Equal(t, config.RawString, flag)
+	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
-	assert.Equal(t, config.File.FileName, "myfolder/subfolder/config.yaml")
+	assert.Equal(t, config.Local.Path, "myfolder/subfolder/config.yaml")
 }
 
 func TestConfigStorageSettingsFromStringFileHappyDayRoot(t *testing.T) {
@@ -95,10 +89,9 @@ func TestConfigStorageSettingsFromStringFileHappyDayRoot(t *testing.T) {
 	config, err := ConfigStorageSettingsFromStringFile(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeFile)
-	assert.Equal(t, config.RawString, flag)
+	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
-	assert.Equal(t, config.File.FileName, "/myfolder/subfolder/config.yaml")
+	assert.Equal(t, config.Local.Path, "/myfolder/subfolder/config.yaml")
 }
 
 func TestConfigStorageSettingsFromString(t *testing.T) {
@@ -106,12 +99,11 @@ func TestConfigStorageSettingsFromString(t *testing.T) {
 	config, err := ConfigStorageSettingsFromString(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeS3)
+	assert.Equal(t, config.Type, FileStorageTypeS3)
 	assert.Equal(t, config.S3.Region, "ap-southwest-2")
 	assert.Equal(t, config.S3.Bucket, "my-bucket1t")
 	assert.Equal(t, config.S3.Key, "/dev/config.yaml")
 	assert.Equal(t, config.S3.Endpoint, "http://localhost:2020")
-	assert.Equal(t, config.RawString, flag)
 }
 
 func TestConfigStorageSettingsFromStringFile(t *testing.T) {
@@ -119,8 +111,7 @@ func TestConfigStorageSettingsFromStringFile(t *testing.T) {
 	config, err := ConfigStorageSettingsFromString(flag)
 
 	require.NoError(t, err)
-	assert.Equal(t, config.Type, ConfigStorageTypeFile)
-	assert.Equal(t, config.RawString, flag)
+	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
-	assert.Equal(t, config.File.FileName, "myfolder/subfolder/config.yaml")
+	assert.Equal(t, config.Local.Path, "myfolder/subfolder/config.yaml")
 }

@@ -165,44 +165,6 @@ func (sss *SessionStorageSettings) Validate() error {
 	return nil
 }
 
-// Validate validates configuration storage settings.
-func (css *ConfigStorageSettings) Validate() error {
-	subject := "ConfigurationStorageSettings"
-	if css == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
-
-	switch css.Type {
-	case ConfigStorageTypeFile:
-		if css.File == nil {
-			return fmt.Errorf("%s. empty file key", subject)
-		}
-		if len(css.File.FileName) == 0 {
-			return fmt.Errorf("%s. empty file key ", subject)
-		}
-	case ConfigStorageTypeS3:
-		if css.S3 == nil {
-			return fmt.Errorf("%s. empty s3 settings key", subject)
-		}
-		if len(css.S3.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
-		}
-		if bucket := os.Getenv(identifoConfigBucketEnvName); len(bucket) != 0 {
-			css.S3.Bucket = bucket
-		}
-		if len(css.S3.Bucket) == 0 {
-			return fmt.Errorf("%s. S3 Bucket for config is not set", subject)
-		}
-		if len(css.S3.Key) == 0 {
-			return fmt.Errorf("%s. S3 Key for config is not set", subject)
-		}
-	default:
-		return fmt.Errorf("%s. Unknown type", subject)
-	}
-
-	return nil
-}
-
 // Validate validates login web app settings
 func (sfs *FileStorageSettings) Validate() error {
 	subject := "LoginWebAppSettings"
@@ -216,7 +178,7 @@ func (sfs *FileStorageSettings) Validate() error {
 	case FileStorageTypeNone:
 		return nil
 	case FileStorageTypeLocal:
-		if len(sfs.Local.FolderPath) == 0 {
+		if len(sfs.Local.Path) == 0 {
 			return fmt.Errorf("%s. empty folder", subject)
 		}
 		return nil
@@ -238,37 +200,6 @@ func (sfs *FileStorageSettings) Validate() error {
 
 func (kss *AdminPanelSettings) Validate() error {
 	// not it has just one bool field which is always valid
-	return nil
-}
-
-// Validate validates key storage settings.
-func (kss *KeyStorageSettings) Validate() error {
-	subject := "KeyStorageSettings"
-	if len(kss.Type) == 0 {
-		return fmt.Errorf("%s. Empty key storage type", subject)
-	}
-
-	switch kss.Type {
-	case KeyStorageTypeLocal:
-		if len(kss.File.PrivateKeyPath) == 0 {
-			return fmt.Errorf("%s. empty File settings key", subject)
-		}
-	case KeyStorageTypeS3:
-		if len(kss.S3.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
-		}
-		if bucket := os.Getenv(identifoJWTKeysBucketEnvName); len(bucket) != 0 {
-			kss.S3.Bucket = bucket
-		}
-		if len(kss.S3.Bucket) == 0 {
-			return fmt.Errorf("%s. Bucket for keys is not set", subject)
-		}
-		if len(kss.S3.PrivateKeyKey) == 0 {
-			return fmt.Errorf("%s. Private key  key is not set", subject)
-		}
-	default:
-		return fmt.Errorf("%s. Unknown type '%s'", subject, kss.Type)
-	}
 	return nil
 }
 

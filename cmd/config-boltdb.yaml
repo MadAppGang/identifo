@@ -131,12 +131,8 @@ login:
   tfaResendTimeout: 0
 keyStorage:
   type: local
-  s3:
-    region: ""
-    bucket: ""
-    private_key_key: ""
-  file:
-    private_key_path: ./jwt/test_artifacts/private.pem
+  local:
+    path: ./jwt/test_artifacts/private.pem
 logger:
   dumpRequest: false
 adminPanel:

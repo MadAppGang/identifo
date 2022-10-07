@@ -151,6 +151,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
 	}
 }
+
 func (ar *Router) ResendTFA() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		tfaToken, ok := r.Context().Value(model.TokenRawContextKey).([]byte)

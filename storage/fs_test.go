@@ -19,7 +19,7 @@ func TestNewFSWithLocalFolder(t *testing.T) {
 	settings := model.FileStorageSettings{
 		Type: model.FileStorageTypeLocal,
 		Local: model.FileStorageLocal{
-			FolderPath: templPath,
+			Path: templPath,
 		},
 	}
 

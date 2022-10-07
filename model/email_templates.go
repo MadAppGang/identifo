@@ -9,11 +9,11 @@ const (
 	EmailTemplateTypeVerifyEmail   EmailTemplateType = "verify-email"
 	// EmailTemplateTypeWelcome       EmailTemplateType = "welcome-email"
 
-	DefaultTemplateExtention = "html"
+	DefaultTemplateExtension = "html"
 )
 
 func (t EmailTemplateType) FileName() string {
-	return string(t) + "." + DefaultTemplateExtention
+	return string(t) + "." + DefaultTemplateExtension
 }
 
 func (t EmailTemplateType) String() string {

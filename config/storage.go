@@ -10,13 +10,13 @@ import (
 )
 
 // InitConfigurationStorage initializes configuration storage.
-func InitConfigurationStorage(config model.ConfigStorageSettings) (model.ConfigurationStorage, error) {
+func InitConfigurationStorage(config model.FileStorageSettings) (model.ConfigurationStorage, error) {
 	switch config.Type {
 	// case model.ConfigStorageTypeEtcd:
 	// 	return etcd.NewConfigurationStorage(config)
-	case model.ConfigStorageTypeS3:
+	case model.FileStorageTypeS3:
 		return s3.NewConfigurationStorage(config)
-	case model.ConfigStorageTypeFile:
+	case model.FileStorageTypeLocal:
 		return fs.NewConfigurationStorage(config)
 	default:
 		return nil, fmt.Errorf("config type is not supported")

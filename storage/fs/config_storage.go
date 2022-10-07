@@ -21,7 +21,7 @@ type ConfigurationStorage struct {
 	updateChanClosed bool
 	cache            model.ServerSettings
 	cached           bool
-	config           model.ConfigStorageSettings
+	config           model.FileStorageSettings
 }
 
 func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
@@ -54,19 +54,19 @@ func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
 }
 
 // NewConfigurationStorage creates and returns new file configuration storage.
-func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from specified file...")
 
-	if config.Type != model.ConfigStorageTypeFile {
-		return nil, fmt.Errorf("cold not create file config storage from non-file settings")
+	if config.Type != model.FileStorageTypeLocal {
+		return nil, fmt.Errorf("could not create file config storage from non-file settings")
 	}
 
 	cs := &ConfigurationStorage{
 		config:           config,
-		ServerConfigPath: config.File.FileName,
+		ServerConfigPath: config.Local.Path,
 		UpdateChan:       make(chan interface{}, 1),
 	}
-	log.Printf("Successfully loaded config data from %s\n", config.File.FileName)
+	log.Printf("Successfully loaded config data from %s\n", config.Local.Path)
 
 	return cs, nil
 }

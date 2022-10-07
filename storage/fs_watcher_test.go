@@ -17,7 +17,7 @@ func TestNewFSWatcher(t *testing.T) {
 	settings := model.FileStorageSettings{
 		Type: model.FileStorageTypeLocal,
 		Local: model.FileStorageLocal{
-			FolderPath: "../fs_test",
+			Path: "../fs_test",
 		},
 	}
 	fss, err := storage.NewFS(settings)

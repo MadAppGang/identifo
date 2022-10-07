@@ -17,24 +17,24 @@ func NewFS(settings model.FileStorageLocal) fs.FS {
 	return afero.NewIOFS(
 		afero.NewBasePathFs(
 			afero.NewOsFs(),
-			settings.FolderPath,
+			settings.Path,
 		),
 	)
 }
 
 // NewFSWithFiles creates the fs which already has predefined files on top of the base fs
 func NewFSWithFiles(settings model.FileStorageLocal, files map[string][]byte) fs.FS {
-	base := afero.NewBasePathFs(afero.NewOsFs(), settings.FolderPath)
+	base := afero.NewBasePathFs(afero.NewOsFs(), settings.Path)
 	layer := afero.NewMemMapFs()
 	for filename, data := range files {
-		afero.WriteFile(layer, path.Join(settings.FolderPath, filename), data, 0644)
+		afero.WriteFile(layer, path.Join(settings.Path, filename), data, 0o644)
 	}
 	combined := afero.NewCopyOnWriteFs(base, layer)
 
 	return afero.NewIOFS(
 		afero.NewBasePathFs(
 			combined,
-			settings.FolderPath,
+			settings.Path,
 		),
 	)
 }

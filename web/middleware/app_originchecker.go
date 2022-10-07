@@ -35,7 +35,7 @@ func NewAppOriginChecker(appstorage model.AppStorage) (*AppOriginChecker, error)
 }
 
 func (aoc *AppOriginChecker) Update() error {
-	apps, _, err := aoc.apps.FetchApps("", 0, 0)
+	apps, err := aoc.apps.FetchApps("")
 	if err != nil {
 		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
 	}

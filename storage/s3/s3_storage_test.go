@@ -22,9 +22,9 @@ func TestS3ConfigSource(t *testing.T) {
 
 	putTestFileTOS3(t, awsEndpoint)
 
-	c, err := s3s.NewConfigurationStorage(model.ConfigStorageSettings{
-		Type: model.ConfigStorageTypeS3,
-		S3: &model.S3StorageSettings{
+	c, err := s3s.NewConfigurationStorage(model.FileStorageSettings{
+		Type: model.FileStorageTypeS3,
+		S3: model.FileStorageS3{
 			Region:   settings.Region,
 			Bucket:   settings.Bucket,
 			Key:      settings.Key,

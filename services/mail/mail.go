@@ -4,20 +4,24 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
+	"log"
 	"path"
+	"path/filepath"
 	"text/template"
+	"time"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/services/mail/mailgun"
 	"github.com/madappgang/identifo/v2/services/mail/mock"
 	"github.com/madappgang/identifo/v2/services/mail/ses"
+	"github.com/madappgang/identifo/v2/storage"
 )
 
 const (
 	DefaultEmailTemplatePath string = "./email_templates"
 )
 
-func NewService(ess model.EmailServiceSettings, fs fs.FS) (model.EmailService, error) {
+func NewService(ess model.EmailServiceSettings, fs fs.FS, updIntrv time.Duration, templatesPath string) (model.EmailService, error) {
 	var t model.EmailTransport
 
 	switch ess.Type {
@@ -35,17 +39,27 @@ func NewService(ess model.EmailServiceSettings, fs fs.FS) (model.EmailService, e
 		return nil, fmt.Errorf("Email service of type '%s' is not supported", ess.Type)
 	}
 
+	watchFiles := []string{}
+	for _, f := range model.AllEmailTemplatesFileNames() {
+		watchFiles = append(watchFiles, filepath.Join(templatesPath, f))
+	}
+	watcher := storage.NewFSWatcher(fs, watchFiles, updIntrv)
+
 	return &EmailService{
-		cache:     make(map[string]template.Template),
-		transport: t,
-		fs:        fs,
+		cache:         make(map[string]template.Template),
+		transport:     t,
+		fs:            fs,
+		watcher:       watcher,
+		templatesPath: templatesPath,
 	}, nil
 }
 
 type EmailService struct {
-	transport model.EmailTransport
-	fs        fs.FS
-	cache     map[string]template.Template
+	transport     model.EmailTransport
+	fs            fs.FS
+	cache         map[string]template.Template
+	watcher       *storage.FSWatcher
+	templatesPath string
 }
 
 // proxy to underlying service
@@ -57,10 +71,10 @@ func (es *EmailService) SendHTML(subject, html, recipient string) error {
 	return es.transport.SendHTML(subject, html, recipient)
 }
 
-func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, templatePath string, subject string, recipient string, data model.EmailData) error {
+func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, subject string, recipient string, data model.EmailData) error {
 	var template template.Template
 
-	p := path.Join(templatePath, emailType.FileName())
+	p := path.Join(es.templatesPath, emailType.FileName())
 	// check template in cache
 	template, ok := es.cache[p]
 
@@ -84,4 +98,33 @@ func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, tem
 		return err
 	}
 	return es.SendHTML(subject, tpl.String(), recipient)
+}
+
+func (es *EmailService) Start() {
+	if !es.watcher.IsWatching() {
+		es.watcher.Watch()
+		go es.watch()
+	}
+}
+
+func (es *EmailService) Stop() {
+	es.watcher.Stop()
+}
+
+func (es *EmailService) Transport() model.EmailTransport {
+	return es.transport
+}
+
+func (es *EmailService) watch() {
+	for {
+		select {
+		case files, ok := <-es.watcher.WatchChan():
+			// the channel is closed
+			if ok == false {
+				return
+			}
+			es.cache = make(map[string]template.Template)
+			log.Printf("email template changed, the email template cache has been invalidated: %v", files)
+		}
+	}
 }

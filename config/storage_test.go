@@ -8,10 +8,10 @@ import (
 )
 
 func TestInitConfigurationStorage(t *testing.T) {
-	config := model.ConfigStorageSettings{
-		Type:      model.ConfigStorageTypeS3,
-		RawString: "s3://region@bucket/folder/file.ext",
-		S3: &model.S3StorageSettings{
+	//"s3://region@bucket/folder/file.ext"
+	config := model.FileStorageSettings{
+		Type: model.FileStorageTypeS3,
+		S3: model.FileStorageS3{
 			Region: "region",
 			Bucket: "bucket",
 			Key:    "folder/file.ext",

@@ -21,7 +21,7 @@ func NewFS(settings model.FileStorageSettings) (fs.FS, error) {
 		if err != nil {
 			return nil, err
 		}
-		return &RootReplacedFS{Root: settings.S3.Folder, FS: ss}, nil
+		return &RootReplacedFS{Root: settings.S3.Key, FS: ss}, nil
 	default:
 		return nil, fmt.Errorf("file storage type is not supported %s ", settings.Type)
 	}

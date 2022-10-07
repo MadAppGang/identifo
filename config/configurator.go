@@ -3,6 +3,7 @@ package config
 import (
 	"io/fs"
 	"log"
+	"time"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
@@ -16,21 +17,21 @@ import (
 var adminPanelFSSettings = model.FileStorageSettings{
 	Type: model.FileStorageTypeLocal,
 	Local: model.FileStorageLocal{
-		FolderPath: "./static/admin_panel",
+		Path: "./static/admin_panel",
 	},
 }
 
 var defaultLoginWebAppFSSettings = model.FileStorageSettings{
 	Type: model.FileStorageTypeLocal,
 	Local: model.FileStorageLocal{
-		FolderPath: "./static/web",
+		Path: "./static/web",
 	},
 }
 
 var defaultEmailTemplateFSSettings = model.FileStorageSettings{
 	Type: model.FileStorageTypeLocal,
 	Local: model.FileStorageLocal{
-		FolderPath: "./static/email_templates",
+		Path: "./static/email_templates",
 	},
 }
 
@@ -92,7 +93,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	//maybe just not serve login web app if type is none?
+	// maybe just not serve login web app if type is none?
 	lwas := settings.LoginWebApp
 	if settings.LoginWebApp.Type == model.FileStorageTypeNone || settings.LoginWebApp.Type == model.FileStorageTypeDefault {
 		// if not set, use default value
@@ -133,7 +134,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		return nil, err
 	}
 
-	//maybe not use email templates if type is None?
+	// maybe not use email templates if type is None?
 	ets := settings.EmailTemplates
 	if ets.Type == model.FileStorageTypeNone || ets.Type == model.FileStorageTypeDefault {
 		ets = defaultEmailTemplateFSSettings
@@ -144,12 +145,8 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	emailServiceSettings := settings.Services.Email
-	if ets.Type == model.FileStorageTypeNone {
-		//we are replacing the real email service with fake one,
-		//if we have no templates to send
-		emailServiceSettings.Type = model.EmailServiceMock
-	}
-	email, err := mail.NewService(emailServiceSettings, emailTemplateFS)
+	// update templates every five minutes and look templates in a root folder of FS
+	email, err := mail.NewService(emailServiceSettings, emailTemplateFS, time.Minute*5, "")
 	if err != nil {
 		return nil, err
 	}

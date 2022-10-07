@@ -19,9 +19,9 @@ type KeyStorage struct {
 }
 
 // NewKeyStorage creates and returns new key files storage.
-func NewKeyStorage(settings model.KeyStorageFileSettings) (*KeyStorage, error) {
+func NewKeyStorage(settings model.FileStorageLocal) (*KeyStorage, error) {
 	return &KeyStorage{
-		PrivateKeyPath: settings.PrivateKeyPath,
+		PrivateKeyPath: settings.Path,
 	}, nil
 }
 
@@ -30,7 +30,7 @@ func (ks *KeyStorage) ReplaceKey(keyPEM []byte) error {
 	if keyPEM == nil {
 		return fmt.Errorf("Cannot insert empty key")
 	}
-	err := os.WriteFile(ks.PrivateKeyPath, keyPEM, 0600)
+	err := os.WriteFile(ks.PrivateKeyPath, keyPEM, 0o600)
 	if err != nil {
 		return fmt.Errorf("%s cannot written: %v", ks.PrivateKeyPath, err)
 	}

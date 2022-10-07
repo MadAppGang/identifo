@@ -28,8 +28,8 @@ sessionStorage:
 keyStorage: # Storage for keys used for signing and verifying JWTs.
   type: local # Key storage type. Supported values are "local" and "s3".
   #file/local key storage settings
-  file:
-    private_key_path: ./jwt/test_artifacts/private.pem
+  local:
+    path: ./jwt/test_artifacts/private.pem
 
 login: # Supported login ways.
   loginWith:

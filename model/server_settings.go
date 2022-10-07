@@ -3,6 +3,7 @@ package model
 import (
 	"fmt"
 	"net/url"
+	"path/filepath"
 	"regexp"
 	"strings"
 )
@@ -21,8 +22,8 @@ type ServerSettings struct {
 	SessionStorage SessionStorageSettings `yaml:"sessionStorage" json:"session_storage"`
 	Services       ServicesSettings       `yaml:"services" json:"external_services"`
 	Login          LoginSettings          `yaml:"login" json:"login"`
-	KeyStorage     KeyStorageSettings     `yaml:"keyStorage" json:"key_storage"`
-	Config         ConfigStorageSettings  `yaml:"-" json:"config"`
+	KeyStorage     FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
+	Config         FileStorageSettings    `yaml:"-" json:"config"`
 	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
 	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
@@ -116,34 +117,35 @@ const (
 type FileStorageS3 struct {
 	Region   string `yaml:"region" json:"region"`
 	Bucket   string `yaml:"bucket" json:"bucket"`
-	Folder   string `yaml:"folder" json:"folder"`
+	Key      string `yaml:"key" json:"key"`
 	Endpoint string `yaml:"endpoint" json:"endpoint"`
 }
 
 type FileStorageLocal struct {
-	FolderPath string `yaml:"folder" json:"folder"`
+	Path string `yaml:"path" json:"path"`
 }
 
-type ConfigStorageSettings struct {
-	Type      ConfigStorageType         `json:"type"`
-	RawString string                    `json:"raw_string"`
-	S3        *S3StorageSettings        `json:"s3"`
-	File      *LocalFileStorageSettings `json:"file"`
-	Etcd      *EtcdStorageSettings      `json:"etcd"`
+// if key or path has folder and filename joined, this function returns filename part only
+func (fs FileStorageSettings) FileName() string {
+	path := ""
+	if fs.Type == FileStorageTypeLocal {
+		path = fs.Local.Path
+	} else if fs.Type == FileStorageTypeS3 {
+		path = fs.S3.Key
+	}
+	return filepath.Base(path)
 }
 
-// ConfigStorageType describes type of configuration storage.
-type ConfigStorageType string
-
-const (
-	// ConfigStorageTypeEtcd is an etcd storage.
-	// TODO: etcd not supported now
-	// ConfigStorageTypeEtcd ConfigStorageType = "etcd"
-	// ConfigurationStorageTypeS3 is an AWS S3 storage.
-	ConfigStorageTypeS3 ConfigStorageType = "s3"
-	// ConfigurationStorageTypeFile is a config file.
-	ConfigStorageTypeFile ConfigStorageType = "file"
-)
+// if key or path has folder and filename joined, this function returns path part only
+func (fs FileStorageSettings) Dir() string {
+	path := ""
+	if fs.Type == FileStorageTypeLocal {
+		path = fs.Local.Path
+	} else if fs.Type == FileStorageTypeS3 {
+		path = fs.S3.Key
+	}
+	return filepath.Dir(path)
+}
 
 // SessionStorageSettings holds together session storage settings.
 type SessionStorageSettings struct {
@@ -181,34 +183,6 @@ type RedisDatabaseSettings struct {
 }
 
 type DynamoDBSessionStorageSettings struct{}
-
-// KeyStorageSettings are settings for the key storage.
-type KeyStorageSettings struct {
-	Type KeyStorageType         `yaml:"type" json:"type"`
-	S3   S3KeyStorageSettings   `yaml:"s3" json:"s3"`
-	File KeyStorageFileSettings `yaml:"file" json:"file"`
-}
-
-type KeyStorageFileSettings struct {
-	PrivateKeyPath string `json:"private_key_path" yaml:"private_key_path"`
-}
-
-type S3KeyStorageSettings struct {
-	Region        string `yaml:"region" json:"region,omitempty" bson:"region"`
-	Bucket        string `yaml:"bucket" json:"bucket,omitempty" bson:"bucket"`
-	Endpoint      string `yaml:"endpoint" json:"endpoint,omitempty" bson:"endpoint"`
-	PrivateKeyKey string `yaml:"private_key_key" json:"private_key_key" bson:"private_key_key"`
-}
-
-// KeyStorageType is a type of the key storage.
-type KeyStorageType string
-
-const (
-	// KeyStorageTypeLocal is for storing keys locally.
-	KeyStorageTypeLocal = "local"
-	// KeyStorageTypeS3 is for storing keys in the S3 bucket.
-	KeyStorageTypeS3 = "s3"
-)
 
 // ServicesSettings are settings for external services.
 type ServicesSettings struct {
@@ -324,34 +298,15 @@ type LoggerSettings struct {
 	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
 }
 
-type LocalFileStorageSettings struct {
-	// just a file name
-	FileName string `yaml:"file_name" json:"file_name" bson:"file_name"`
-}
-
-type S3StorageSettings struct {
-	Region   string `yaml:"region" json:"region" bson:"region"`
-	Bucket   string `yaml:"bucket" json:"bucket" bson:"bucket"`
-	Endpoint string `yaml:"endpoint" json:"endpoint" bson:"endpoint"`
-	Key      string `yaml:"key" json:"key" bson:"key"`
-}
-
-type EtcdStorageSettings struct {
-	Endpoints []string `json:"endpoints" yaml:"endpoints"`
-	Key       string   `json:"key" yaml:"key"`
-	Username  string   `json:"username" yaml:"username"`
-	Password  string   `json:"password" yaml:"password"`
-}
-
 type AdminPanelSettings struct {
 	Enabled bool `json:"enabled" yaml:"enabled"`
 }
 
-func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, error) {
+func ConfigStorageSettingsFromString(config string) (FileStorageSettings, error) {
 	// Parse the URL and ensure there are no errors.
 	u, err := url.Parse(config)
 	if err != nil {
-		return ConfigStorageSettings{}, fmt.Errorf("Unable to parse config string: %s", config)
+		return FileStorageSettings{}, fmt.Errorf("Unable to parse config string: %s", config)
 	}
 
 	switch strings.ToLower(u.Scheme) {
@@ -369,9 +324,9 @@ func ConfigStorageSettingsFromString(config string) (ConfigStorageSettings, erro
 // or with endpoint for local testing or non AWS S3 storage:
 // s3://ap-southwest-2@my-favorite-bucket/identifo/config/config.yaml|https://10.10.10.19:1122
 
-func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, error) {
+func ConfigStorageSettingsFromStringS3(config string) (FileStorageSettings, error) {
 	if match := s3ServerFlagRegexp.MatchString(config); !match {
-		return ConfigStorageSettings{}, fmt.Errorf("error parsing S3 config location: %s", config)
+		return FileStorageSettings{}, fmt.Errorf("error parsing S3 config location: %s", config)
 	}
 	matches := s3ServerFlagRegexp.FindStringSubmatch(config)
 	region := matches[s3ServerFlagRegexp.SubexpIndex("region")]
@@ -379,10 +334,9 @@ func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, er
 	key := matches[s3ServerFlagRegexp.SubexpIndex("key")]
 	endpoint := matches[s3ServerFlagRegexp.SubexpIndex("endpoint")]
 
-	return ConfigStorageSettings{
-		Type:      ConfigStorageTypeS3,
-		RawString: config,
-		S3: &S3StorageSettings{
+	return FileStorageSettings{
+		Type: FileStorageTypeS3,
+		S3: FileStorageS3{
 			Region:   region,
 			Bucket:   bucket,
 			Key:      key,
@@ -391,17 +345,16 @@ func ConfigStorageSettingsFromStringS3(config string) (ConfigStorageSettings, er
 	}, nil
 }
 
-func ConfigStorageSettingsFromStringFile(config string) (ConfigStorageSettings, error) {
+func ConfigStorageSettingsFromStringFile(config string) (FileStorageSettings, error) {
 	filename := config
 	if strings.HasPrefix(strings.ToUpper(filename), "FILE://") {
 		filename = filename[7:]
 	}
 
-	return ConfigStorageSettings{
-		Type:      ConfigStorageTypeFile,
-		RawString: config,
-		File: &LocalFileStorageSettings{
-			FileName: filename,
+	return FileStorageSettings{
+		Type: FileStorageTypeLocal,
+		Local: FileStorageLocal{
+			Path: filename,
 		},
 	}, nil
 }

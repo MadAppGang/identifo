@@ -55,11 +55,11 @@ func NewDatabaseConnectionTester(settings model.DatabaseSettings) model.Connecti
 	return nil
 }
 
-func NewKeyStorageConnectionTester(settings model.KeyStorageSettings) model.ConnectionTester {
+func NewKeyStorageConnectionTester(settings model.FileStorageSettings) model.ConnectionTester {
 	switch settings.Type {
-	case model.KeyStorageTypeLocal:
-		return fs.NewKeyStorageConnectionTester(settings.File)
-	case model.KeyStorageTypeS3:
+	case model.FileStorageTypeLocal:
+		return fs.NewKeyStorageConnectionTester(settings.Local)
+	case model.FileStorageTypeS3:
 		return s3.NewKeyStorageConnectionTester(settings.S3)
 	}
 	return nil

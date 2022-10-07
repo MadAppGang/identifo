@@ -31,7 +31,7 @@ func TestNewFSWithS3(t *testing.T) {
 		S3: model.FileStorageS3{
 			Region:   settings.Region,
 			Bucket:   settings.Bucket,
-			Folder:   testFolder,
+			Key:      testFolder,
 			Endpoint: ep,
 		},
 	}

@@ -71,24 +71,17 @@ func (as *AppStorage) UpdateApp(appID string, newApp model.AppData) (model.AppDa
 
 // FetchApps fetches apps which name satisfies provided filterString.
 // Supports pagination.
-func (as *AppStorage) FetchApps(filterString string, skip, limit int) ([]model.AppData, int, error) {
+func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 	apps := []model.AppData{}
 	var total int
 
 	for _, app := range as.storage {
 		total++
-		skip--
-		if skip > -1 {
-			continue
-		}
-		if limit != 0 && len(apps) == limit {
-			break
-		}
 		if strings.Contains(strings.ToLower(app.Name), strings.ToLower(filterString)) {
 			apps = append(apps, app)
 		}
 	}
-	return apps, total, nil
+	return apps, nil
 }
 
 // DeleteApp does nothing here.

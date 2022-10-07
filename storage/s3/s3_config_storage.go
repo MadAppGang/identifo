@@ -18,16 +18,16 @@ type ConfigurationStorage struct {
 	ObjectName       string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
-	config           model.ConfigStorageSettings
+	config           model.FileStorageSettings
 	cache            model.ServerSettings
 	cached           bool
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
-func NewConfigurationStorage(config model.ConfigStorageSettings) (*ConfigurationStorage, error) {
+func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationStorage, error) {
 	log.Println("Loading server configuration from the S3 bucket...")
 
-	if config.Type != model.ConfigStorageTypeS3 {
+	if config.Type != model.FileStorageTypeS3 {
 		return nil, fmt.Errorf("Configuration file from S3 specifies configuration type %s", config.Type)
 	}
 
