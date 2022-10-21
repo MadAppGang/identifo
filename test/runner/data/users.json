@@ -5,7 +5,8 @@
         "active": false,
         "email":"test@madappgang.com",
         "phone":"+61450111111",
-        "pswd":"Secret1"
+        "pswd":"Secret1",
+        "scopes": ["smartrun"]
     },
     {
         "id": "abcdef",
@@ -13,6 +14,7 @@
         "email":"test@madappgang.com",
         "phone":"+61450111111",
         "active":true,
-        "pswd":"Secret3"
+        "pswd":"Secret3",
+        "scopes": ["smartrun"]
     }
 ]

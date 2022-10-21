@@ -37,5 +37,10 @@ jobs:
       - name: Build plugins
         run: go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 
-      - name: Build and test web-element
-        run: ./web_apps_src/run-test-web.sh
+      - name: Run API integration tests with runner
+        run: |
+          cd test/runner
+          go test -v .
+
+      # - name: Build and test web-element
+      #   run: ./web_apps_src/run-test-web.sh

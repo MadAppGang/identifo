@@ -13,7 +13,7 @@ func TestRegisterWithEmail(t *testing.T) {
 	{
 		"username": "%s",
 		"password": "%s",
-		"scopes": ["offline"]
+		"scopes": ["offline", "smartrun"]
 	}`, cfg.User2, cfg.User2Pswd)
 
 	signature, _ := runner.Signature(data, cfg.AppSecret)
@@ -37,7 +37,7 @@ func TestRegisterWithEmailAndLogout(t *testing.T) {
 	{
 		"username": "%s",
 		"password": "%s",
-		"scopes": ["offline"]
+		"scopes": ["offline", "smartrun"]
 	}`, cfg.User3, cfg.User3Pswd)
 
 	signature, _ := runner.Signature(data, cfg.AppSecret)

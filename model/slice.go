@@ -24,3 +24,15 @@ func SliceContains(s []string, e string) bool {
 	}
 	return false
 }
+
+func SliceExcluding(a []string, exclude string) []string {
+	res := make([]string, 0)
+
+	for _, e := range a {
+		if e != exclude {
+			res = append(res, e)
+		}
+	}
+
+	return res
+}
