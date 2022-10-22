@@ -48,7 +48,7 @@ func TestMain(m *testing.M) {
 	env.Parse(&cfg)
 	request = baloo.New(cfg.ServerURL)
 
-	var httpServer http.Server
+	var httpServer *http.Server
 	if cfg.RunTestServer == true {
 		_, httpServer = runServer()
 	}
@@ -63,7 +63,7 @@ func TestMain(m *testing.M) {
 }
 
 // run identifo server and import test data
-func runServer() (model.Server, http.Server) {
+func runServer() (model.Server, *http.Server) {
 	os.Remove("./db.db")
 	settings, _ := model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
 	configStorage, err := config.InitConfigurationStorage(settings)
@@ -95,11 +95,11 @@ func runServer() (model.Server, http.Server) {
 	}()
 
 	// maybe move the te
-	return srv, *httpSrv
+	return srv, httpSrv
 }
 
 // stop server and clear the data
-func stopServer(server http.Server) {
+func stopServer(server *http.Server) {
 	server.Shutdown(context.Background())
 	log.Println("the server is gracefully stopped, bye 👋")
 	log.Println("Stop server")
