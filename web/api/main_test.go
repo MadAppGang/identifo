@@ -1,4 +1,4 @@
-package runner_test
+package api_test
 
 import (
 	"bytes"
@@ -65,7 +65,7 @@ func TestMain(m *testing.M) {
 // run identifo server and import test data
 func runServer() (model.Server, http.Server) {
 	os.Remove("./db.db")
-	settings, _ := model.ConfigStorageSettingsFromString("file://config.yaml")
+	settings, _ := model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
 	configStorage, err := config.InitConfigurationStorage(settings)
 	if err != nil {
 		log.Fatalf("Unable to load config with error: %v", err)
@@ -76,10 +76,10 @@ func runServer() (model.Server, http.Server) {
 		log.Fatalf("error creating server: %v", err)
 	}
 
-	if err := config.ImportApps("data/apps.json", srv.Storages().App); err != nil {
+	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
 	}
-	if err := config.ImportUsers("data/users.json", srv.Storages().User); err != nil {
+	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
 

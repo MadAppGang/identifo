@@ -262,8 +262,6 @@ const (
 	// mailgunPrivateKey is a name of env variable that contains Mailgun private key value.
 	mailgunPrivateKey = "MAILGUN_PRIVATE_KEY"
 	// mailgunPublicKey is a name of env variable that contains Mailgun public key value.
-	mailgunPublicKey = "MAILGUN_PUBLIC_KEY"
-	// mailgunSenderKey is a name of env variable that contains Mailgun sender key value.
 	mailgunSenderKey = "MAILGUN_SENDER"
 
 	// awsSESSenderKey is a name of env variable that contains AWS SWS sender value.
@@ -302,9 +300,6 @@ func (ess *EmailServiceSettings) Validate() error {
 		if domain := os.Getenv(mailgunDomainKey); len(domain) != 0 {
 			ess.Mailgun.Domain = domain
 		}
-		if publicKey := os.Getenv(mailgunPublicKey); len(publicKey) != 0 {
-			ess.Mailgun.PublicKey = publicKey
-		}
 		if privateKey := os.Getenv(mailgunPrivateKey); len(privateKey) != 0 {
 			ess.Mailgun.PrivateKey = privateKey
 		}
@@ -315,8 +310,8 @@ func (ess *EmailServiceSettings) Validate() error {
 		if len(ess.Mailgun.Domain) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun domain", subject)
 		}
-		if len(ess.Mailgun.PublicKey) == 0 || len(ess.Mailgun.PrivateKey) == 0 {
-			return fmt.Errorf("%s. At least one of the keys is empty", subject)
+		if len(ess.Mailgun.PrivateKey) == 0 {
+			return fmt.Errorf("%s. Mailgun private key is empty", subject)
 		}
 		if len(ess.Mailgun.Sender) == 0 {
 			return fmt.Errorf("%s. Empty Mailgun sender", subject)

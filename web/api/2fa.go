@@ -317,7 +317,7 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 	result := false
 	if ar.tfaType == model.TFATypeApp {
 		totp := gotp.NewDefaultTOTP(user.TFAInfo.Secret)
-		result = totp.Verify(otp, int(time.Now().Unix()))
+		result = totp.Verify(otp, time.Now().Unix())
 	} else {
 		if user.TFAInfo.HOTPExpiredAt.Before(time.Now()) {
 			return false, errors.New("OTP token expired, please get the new one and try again")

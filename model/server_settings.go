@@ -212,7 +212,6 @@ type EmailServiceSettings struct {
 type MailgunEmailServiceSettings struct {
 	Domain     string `yaml:"domain" json:"domain"`
 	PrivateKey string `yaml:"privateKey" json:"private_key"`
-	PublicKey  string `yaml:"publicKey" json:"public_key"`
 	Sender     string `yaml:"sender" json:"sender"`
 }
 

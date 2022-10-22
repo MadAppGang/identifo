@@ -12,7 +12,7 @@ type emailService struct {
 
 // NewTransport creates and inits new mailgun transport
 func NewTransport(ess model.MailgunEmailServiceSettings) model.EmailTransport {
-	mg := mailgun.NewMailgun(ess.Domain, ess.PrivateKey, ess.PublicKey)
+	mg := mailgun.NewMailgun(ess.Domain, ess.PrivateKey)
 	return emailService{mailgun: mg, sender: ess.Sender}
 }
 
