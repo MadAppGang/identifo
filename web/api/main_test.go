@@ -67,7 +67,6 @@ func TestMain(m *testing.M) {
 // run identifo server and import test data
 func runServer() (model.Server, *http.Server) {
 	var settings model.FileStorageSettings
-	os.Setenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION", "1")
 
 	// if we do regular isolated tests - use boldtb as a storage
 	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
