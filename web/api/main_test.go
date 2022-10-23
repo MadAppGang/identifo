@@ -88,10 +88,10 @@ func runServer() (model.Server, *http.Server) {
 		log.Fatalf("error creating server: %v", err)
 	}
 
-	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App); err != nil {
+	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
 	}
-	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User); err != nil {
+	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
 

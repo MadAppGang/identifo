@@ -251,7 +251,11 @@ func (as *AppStorage) TestDatabaseConnection() error {
 }
 
 // ImportJSON imports data from JSON.
-func (as *AppStorage) ImportJSON(data []byte) error {
+func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	if cleanOldData {
+		as.db.DeleteTable(appsTableName)
+		as.ensureTable()
+	}
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
 		log.Println("error while unmarshal app data: ", err)

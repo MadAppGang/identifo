@@ -35,7 +35,7 @@ func NewUserStorage(settings model.MongodDatabaseSettings) (model.UserStorage, e
 	us := &UserStorage{coll: coll, timeout: 30 * time.Second}
 
 	userNameIndexOptions := &options.IndexOptions{}
-	userNameIndexOptions.SetUnique(true)
+	userNameIndexOptions.SetUnique(false)
 	userNameIndexOptions.SetSparse(true)
 	userNameIndexOptions.SetCollation(&options.Collation{Locale: "en", Strength: 1})
 
@@ -45,7 +45,7 @@ func NewUserStorage(settings model.MongodDatabaseSettings) (model.UserStorage, e
 	}
 
 	emailIndexOptions := &options.IndexOptions{}
-	emailIndexOptions.SetUnique(true)
+	emailIndexOptions.SetUnique(false)
 	emailIndexOptions.SetSparse(true)
 
 	emailIndex := &mongo.IndexModel{
@@ -54,7 +54,7 @@ func NewUserStorage(settings model.MongodDatabaseSettings) (model.UserStorage, e
 	}
 
 	phoneIndexOptions := &options.IndexOptions{}
-	phoneIndexOptions.SetUnique(true)
+	phoneIndexOptions.SetUnique(false)
 	phoneIndexOptions.SetSparse(true)
 
 	phoneIndex := &mongo.IndexModel{
@@ -230,14 +230,20 @@ func (us *UserStorage) AddNewUser(user model.User, password string) (model.User,
 
 // AddUserWithPassword creates new user and saves it in the database.
 func (us *UserStorage) AddUserWithPassword(user model.User, password, role string, isAnonymous bool) (model.User, error) {
-	if _, err := us.UserByUsername(user.Username); err == nil {
-		return model.User{}, model.ErrorUserExists
+	if len(user.Username) > 0 {
+		if _, err := us.UserByUsername(user.Username); err == nil {
+			return model.User{}, model.ErrorUserExists
+		}
 	}
-	if _, err := us.UserByEmail(user.Email); err == nil {
-		return model.User{}, model.ErrorUserExists
+	if len(user.Email) > 0 {
+		if _, err := us.UserByEmail(user.Email); err == nil {
+			return model.User{}, model.ErrorUserExists
+		}
 	}
-	if _, err := us.UserByPhone(user.Phone); err == nil {
-		return model.User{}, model.ErrorUserExists
+	if len(user.Phone) > 0 {
+		if _, err := us.UserByPhone(user.Phone); err == nil {
+			return model.User{}, model.ErrorUserExists
+		}
 	}
 
 	u := model.User{
