@@ -170,8 +170,21 @@ func (as *AppStorage) TestDatabaseConnection() error {
 	return err
 }
 
+func (as *AppStorage) ClearAllData() {
+	ctx, cancel := context.WithTimeout(context.Background(), 2*as.timeout)
+	defer cancel()
+
+	if _, err := as.coll.DeleteMany(ctx, bson.M{}); err != nil {
+		log.Printf("Error cleaning all user data: %s\n", err)
+	}
+}
+
 // ImportJSON imports data from JSON.
-func (as *AppStorage) ImportJSON(data []byte) error {
+func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	if cleanOldData {
+		as.ClearAllData()
+	}
+
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
 		log.Println(err)

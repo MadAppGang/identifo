@@ -1,4 +1,4 @@
-package runner
+package api_test
 
 import (
 	"crypto/hmac"

@@ -1,4 +1,4 @@
-package runner_test
+package api_test
 
 import (
 	"bytes"
@@ -31,6 +31,8 @@ type Config struct {
 	User2Pswd     string `env:"USER2_PSWD" envDefault:"Secret321"`
 	User3         string `env:"USER3" envDefault:"new_user3@madappgang.com"`
 	User3Pswd     string `env:"USER3_PSWD" envDefault:"Secret321"`
+	User4         string `env:"USER4" envDefault:"new_user4@madappgang.com"`
+	User4Pswd     string `env:"USER4_PSWD" envDefault:"Secret321_4"`
 }
 
 var cfg = Config{}
@@ -48,7 +50,7 @@ func TestMain(m *testing.M) {
 	env.Parse(&cfg)
 	request = baloo.New(cfg.ServerURL)
 
-	var httpServer http.Server
+	var httpServer *http.Server
 	if cfg.RunTestServer == true {
 		_, httpServer = runServer()
 	}
@@ -63,9 +65,18 @@ func TestMain(m *testing.M) {
 }
 
 // run identifo server and import test data
-func runServer() (model.Server, http.Server) {
-	os.Remove("./db.db")
-	settings, _ := model.ConfigStorageSettingsFromString("file://config.yaml")
+func runServer() (model.Server, *http.Server) {
+	var settings model.FileStorageSettings
+
+	// if we do regular isolated tests - use boldtb as a storage
+	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
+		os.Remove("./db.db")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
+	} else {
+		// if we do integration tests with mongodb - run tests with mongodb
+		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config-mongo.yaml")
+	}
+
 	configStorage, err := config.InitConfigurationStorage(settings)
 	if err != nil {
 		log.Fatalf("Unable to load config with error: %v", err)
@@ -76,10 +87,10 @@ func runServer() (model.Server, http.Server) {
 		log.Fatalf("error creating server: %v", err)
 	}
 
-	if err := config.ImportApps("data/apps.json", srv.Storages().App); err != nil {
+	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
 	}
-	if err := config.ImportUsers("data/users.json", srv.Storages().User); err != nil {
+	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
 
@@ -95,11 +106,11 @@ func runServer() (model.Server, http.Server) {
 	}()
 
 	// maybe move the te
-	return srv, *httpSrv
+	return srv, httpSrv
 }
 
 // stop server and clear the data
-func stopServer(server http.Server) {
+func stopServer(server *http.Server) {
 	server.Shutdown(context.Background())
 	log.Println("the server is gracefully stopped, bye 👋")
 	log.Println("Stop server")

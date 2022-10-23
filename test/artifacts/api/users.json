@@ -3,16 +3,18 @@
         "id": "123456",
         "username":"user@madappgang.com",
         "active": false,
-        "email":"test@madappgang.com",
+        "email":"user@madappgang.com",
         "phone":"+61450111111",
-        "pswd":"Secret1"
+        "pswd":"Secret1",
+        "scopes": ["smartrun"]
     },
     {
         "id": "abcdef",
         "username":"test@madappgang.com",
         "email":"test@madappgang.com",
-        "phone":"+61450111111",
+        "phone":"+61450111112",
         "active":true,
-        "pswd":"Secret3"
+        "pswd":"Secret3",
+        "scopes": ["smartrun"]
     }
 ]

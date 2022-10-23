@@ -53,6 +53,16 @@ func (db *DB) IsTableExists(table string) (bool, error) {
 	return true, nil
 }
 
+func (db *DB) DeleteTable(table string) error {
+	svc := dynamodb.New(session.New())
+	input := &dynamodb.DeleteTableInput{
+		TableName: aws.String(table),
+	}
+
+	_, err := svc.DeleteTable(input)
+	return err
+}
+
 // AwsErrorErrorNotFound checks if error has type dynamodb.ErrCodeResourceNotFoundException.
 func AwsErrorErrorNotFound(err error) bool {
 	if err == nil {

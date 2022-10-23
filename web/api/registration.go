@@ -123,7 +123,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			Email:    rd.Email,
 			Phone:    rd.Phone,
 			FullName: rd.FullName,
-			Scopes:   scopes,
+			Scopes:   model.SliceIntersect(app.Scopes, scopes), // add scopes to user which are limited by app only
 		}
 
 		userRole := app.NewUserDefaultRole

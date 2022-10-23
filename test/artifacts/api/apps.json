@@ -10,6 +10,7 @@
 		"redirect_urls": ["http://localhost:3000/callback"],
 		"refresh_token_lifespan":9000000,
 		"token_lifespan":9000,
+		"debug_tfa_code": "314159",
 		"token_payload":["name", "email"]
 	}
 ]

@@ -1,0 +1,43 @@
+general:
+  host: http://localhost:8081
+  port: "8081"
+  issuer: http://localhost
+  supported_scopes: [smartrun, offline]
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+storage:
+  appStorage: &mongo_settings
+    type: mongo
+    mongo:
+      database: identifo-test
+      connection: mongodb://admin:password@localhost:27017/billing-local?authSource=admin
+  userStorage: *mongo_settings
+  tokenStorage: *mongo_settings
+  tokenBlacklist: *mongo_settings
+  verificationCodeStorage: *mongo_settings
+  inviteStorage: *mongo_settings
+sessionStorage:
+  type: memory
+  sessionDuration: 300
+services:
+  email:
+    type: mock
+  sms:
+    type: mock
+login:
+  loginWith:
+    username: true
+    phone: true
+    email: true
+    federated: true
+  tfaType: app
+  allowRegisterMissing: true
+keyStorage:
+  type: local
+  local:
+    path: ../../jwt/test_artifacts/private.pem
+logger:
+  dumpRequest: false
+adminPanel:
+  enabled: true

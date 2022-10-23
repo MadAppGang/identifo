@@ -1,10 +1,8 @@
-package runner_test
+package api_test
 
 import (
 	"fmt"
 	"testing"
-
-	"github.com/madappgang/identifo/v2/test/runner"
 
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -22,7 +20,7 @@ func TestLogin(t *testing.T) {
 		"password": "%s",
 		"scopes": ["offline"]
 	}`, cfg.User1, cfg.User1Pswd)
-	signature, _ := runner.Signature(data, cfg.AppSecret)
+	signature, _ := Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", cfg.AppID).
@@ -33,7 +31,7 @@ func TestLogin(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("data/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 }
 
@@ -48,7 +46,7 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		"scopes": []
 	}`, cfg.User1, cfg.User1Pswd)
 
-	signature, _ := runner.Signature(data, cfg.AppSecret)
+	signature, _ := Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", cfg.AppID).
@@ -66,7 +64,7 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		})).
 		Type("json").
 		Status(200).
-		JSONSchema("data/jwt_token_scheme.json").
+		JSONSchema("../../test/artifacts/api/jwt_token_scheme.json").
 		Done()
 }
 
@@ -103,7 +101,7 @@ func TestLoginWithWrongSignature(t *testing.T) {
 		"scopes": ["offline"]
 	}`, cfg.User1, cfg.User1Pswd)
 
-	signature, _ := runner.Signature(data, cfg.AppSecret)
+	signature, _ := Signature(data, cfg.AppSecret)
 
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", cfg.AppID).

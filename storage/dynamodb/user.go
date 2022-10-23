@@ -467,7 +467,6 @@ func (us *UserStorage) ResetUsername(id, username string) error {
 	}
 
 	_, err = us.db.C.UpdateItem(&dynamodb.UpdateItemInput{
-
 		TableName: aws.String(usersTableName),
 		Key: map[string]*dynamodb.AttributeValue{
 			"id": {S: aws.String(idx.String())},
@@ -519,7 +518,13 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 }
 
 // ImportJSON imports data from JSON.
-func (us *UserStorage) ImportJSON(data []byte) error {
+func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
+	if clearOldData {
+		us.db.DeleteTable(usersTableName)
+		us.db.DeleteTable(usersFederatedIDTableName)
+		us.ensureTable()
+	}
+
 	ud := []model.User{}
 	if err := json.Unmarshal(data, &ud); err != nil {
 		return err

@@ -13,21 +13,21 @@ import (
 // more details in docs
 
 // ImportApps imports apps from file.
-func ImportApps(filename string, storage model.AppStorage) error {
+func ImportApps(filename string, storage model.AppStorage, cleanOldData bool) error {
 	data, err := dataFromFile(filename)
 	if err != nil {
 		return err
 	}
-	return storage.ImportJSON(data)
+	return storage.ImportJSON(data, cleanOldData)
 }
 
 // ImportUsers imports users from file.
-func ImportUsers(filename string, storage model.UserStorage) error {
+func ImportUsers(filename string, storage model.UserStorage, cleanOldData bool) error {
 	data, err := dataFromFile(filename)
 	if err != nil {
 		return err
 	}
-	return storage.ImportJSON(data)
+	return storage.ImportJSON(data, cleanOldData)
 }
 
 func dataFromFile(filename string) ([]byte, error) {

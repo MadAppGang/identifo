@@ -1,8 +1,0 @@
-
-version: "3"
-services:
-  identifo:
-    image: motoserver/moto:2.2.0
-    ports:
-      - "5000:5000"
-    entrypoint: ["/usr/local/bin/moto_server", "s3", "-H", "0.0.0.0"]

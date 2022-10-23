@@ -184,7 +184,19 @@ func (as *AppStorage) TestDatabaseConnection() error {
 }
 
 // ImportJSON imports data from JSON.
-func (as *AppStorage) ImportJSON(data []byte) error {
+func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	if cleanOldData {
+		if err := as.db.Update(func(tx *bolt.Tx) error {
+			tx.DeleteBucket([]byte(AppBucket))
+			if _, err := tx.CreateBucketIfNotExists([]byte(AppBucket)); err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
 		log.Println(err)

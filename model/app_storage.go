@@ -11,7 +11,7 @@ type AppStorage interface {
 	UpdateApp(appID string, newApp AppData) (AppData, error)
 	FetchApps(filter string) ([]AppData, error)
 	DeleteApp(id string) error
-	ImportJSON(data []byte) error
+	ImportJSON(data []byte, cleanOldData bool) error
 	TestDatabaseConnection() error
 	Close()
 }
