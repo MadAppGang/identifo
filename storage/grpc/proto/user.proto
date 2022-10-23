@@ -119,6 +119,7 @@ message AllDeviceTokensResponse{
 
 message ImportJSONRequest{
     bytes data = 1;
+    bool clearOldData =2;
 }
 
 message CloseRequest{}

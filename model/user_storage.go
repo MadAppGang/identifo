@@ -44,7 +44,7 @@ type UserStorage interface {
 	AllDeviceTokens(userID string) ([]string, error)
 
 	// import data
-	ImportJSON(data []byte) error
+	ImportJSON(data []byte, clearOldData bool) error
 
 	Close()
 }

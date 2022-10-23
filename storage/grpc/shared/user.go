@@ -42,6 +42,7 @@ func (m GRPCClient) AddUserWithPassword(user model.User, password, role string, 
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) UserByID(id string) (model.User, error) {
 	u, err := m.Client.UserByID(context.Background(), &proto.UserByIDRequest{
 		Id: id,
@@ -55,6 +56,7 @@ func (m GRPCClient) UserByID(id string) (model.User, error) {
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) UserByEmail(email string) (model.User, error) {
 	u, err := m.Client.UserByEmail(context.Background(), &proto.UserByEmailRequest{
 		Email: email,
@@ -68,6 +70,7 @@ func (m GRPCClient) UserByEmail(email string) (model.User, error) {
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) UserByUsername(username string) (model.User, error) {
 	u, err := m.Client.UserByUsername(context.Background(), &proto.UserByUsernameRequest{
 		Username: username,
@@ -81,6 +84,7 @@ func (m GRPCClient) UserByUsername(username string) (model.User, error) {
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) UserByFederatedID(provider string, id string) (model.User, error) {
 	u, err := m.Client.UserByFederatedID(context.Background(), &proto.UserByFederatedIDRequest{
 		Id:       id,
@@ -109,6 +113,7 @@ func (m GRPCClient) AddUserWithFederatedID(user model.User, provider string, id,
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) UpdateUser(userID string, newUser model.User) (model.User, error) {
 	u, err := m.Client.UpdateUser(context.Background(), &proto.UpdateUserRequest{
 		User: toProto(newUser),
@@ -120,6 +125,7 @@ func (m GRPCClient) UpdateUser(userID string, newUser model.User) (model.User, e
 
 	return toModel(u), nil
 }
+
 func (m GRPCClient) ResetPassword(id, password string) error {
 	_, err := m.Client.ResetPassword(context.Background(), &proto.ResetPasswordRequest{
 		Id:       id,
@@ -130,6 +136,7 @@ func (m GRPCClient) ResetPassword(id, password string) error {
 	}
 	return nil
 }
+
 func (m GRPCClient) CheckPassword(id, password string) error {
 	_, err := m.Client.CheckPassword(context.Background(), &proto.CheckPasswordRequest{
 		Id:       id,
@@ -140,6 +147,7 @@ func (m GRPCClient) CheckPassword(id, password string) error {
 	}
 	return nil
 }
+
 func (m GRPCClient) DeleteUser(id string) error {
 	_, err := m.Client.DeleteUser(context.Background(), &proto.DeleteUserRequest{
 		Id: id,
@@ -149,6 +157,7 @@ func (m GRPCClient) DeleteUser(id string) error {
 	}
 	return nil
 }
+
 func (m GRPCClient) FetchUsers(search string, skip, limit int) ([]model.User, int, error) {
 	r, err := m.Client.FetchUsers(context.Background(), &proto.FetchUsersRequest{
 		Search: search,
@@ -167,6 +176,7 @@ func (m GRPCClient) FetchUsers(search string, skip, limit int) ([]model.User, in
 
 	return users, len(users), nil
 }
+
 func (m GRPCClient) UpdateLoginMetadata(userID string) {
 	m.Client.UpdateLoginMetadata(context.Background(), &proto.UpdateLoginMetadataRequest{
 		Id: userID,
@@ -184,6 +194,7 @@ func (m GRPCClient) AttachDeviceToken(userID, token string) error {
 	}
 	return nil
 }
+
 func (m GRPCClient) DetachDeviceToken(token string) error {
 	_, err := m.Client.DetachDeviceToken(context.Background(), &proto.DetachDeviceTokenRequest{
 		Token: token,
@@ -193,6 +204,7 @@ func (m GRPCClient) DetachDeviceToken(token string) error {
 	}
 	return nil
 }
+
 func (m GRPCClient) AllDeviceTokens(userID string) ([]string, error) {
 	r, err := m.Client.AllDeviceTokens(context.Background(), &proto.AllDeviceTokensRequest{
 		Id: userID,
@@ -205,7 +217,7 @@ func (m GRPCClient) AllDeviceTokens(userID string) ([]string, error) {
 }
 
 // import data
-func (m GRPCClient) ImportJSON(data []byte) error {
+func (m GRPCClient) ImportJSON(data []byte, clearOldData bool) error {
 	return nil
 }
 
@@ -343,7 +355,6 @@ func (m *GRPCServer) DeleteUser(ctx context.Context, in *proto.DeleteUserRequest
 
 func (m *GRPCServer) FetchUsers(ctx context.Context, in *proto.FetchUsersRequest) (*proto.FetchUsersResponse, error) {
 	users, total, err := m.Impl.FetchUsers(in.Search, int(in.Skip), int(in.Limit))
-
 	if err != nil {
 		return &proto.FetchUsersResponse{}, err
 	}
@@ -379,7 +390,7 @@ func (m *GRPCServer) AllDeviceTokens(ctx context.Context, in *proto.AllDeviceTok
 }
 
 func (m *GRPCServer) ImportJSON(ctx context.Context, in *proto.ImportJSONRequest) (*proto.Empty, error) {
-	err := m.Impl.ImportJSON(in.Data)
+	err := m.Impl.ImportJSON(in.Data, in.ClearOldData)
 	return &proto.Empty{}, err
 }
 

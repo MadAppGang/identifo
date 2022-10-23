@@ -66,8 +66,18 @@ func TestMain(m *testing.M) {
 
 // run identifo server and import test data
 func runServer() (model.Server, *http.Server) {
-	os.Remove("./db.db")
-	settings, _ := model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
+	var settings model.FileStorageSettings
+	os.Setenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION", "1")
+
+	// if we do regular isolated tests - use boldtb as a storage
+	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
+		os.Remove("./db.db")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
+	} else {
+		// if we do integration tests with mongodb - run tests with mongodb
+		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config-mongo.yaml")
+	}
+
 	configStorage, err := config.InitConfigurationStorage(settings)
 	if err != nil {
 		log.Fatalf("Unable to load config with error: %v", err)

@@ -109,7 +109,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 }
 
 // ImportJSON imports data from JSON.
-func (us *UserStorage) ImportJSON(data []byte) error {
+func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 	return nil
 }
 

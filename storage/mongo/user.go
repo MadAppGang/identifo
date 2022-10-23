@@ -426,7 +426,10 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 }
 
 // ImportJSON imports data from JSON.
-func (us *UserStorage) ImportJSON(data []byte) error {
+func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
+	if clearOldData {
+		us.ClearAllUserData()
+	}
 	ud := []model.User{}
 	if err := json.Unmarshal(data, &ud); err != nil {
 		return err

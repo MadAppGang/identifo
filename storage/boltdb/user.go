@@ -36,7 +36,20 @@ func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, e
 
 	us := UserStorage{db: db}
 
-	if err := db.Update(func(tx *bolt.Tx) error {
+	if err := us.createBuckets(); err != nil {
+		return nil, err
+	}
+
+	return &us, nil
+}
+
+// UserStorage implements user storage interface for BoltDB.
+type UserStorage struct {
+	db *bolt.DB
+}
+
+func (us *UserStorage) createBuckets() error {
+	return us.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -53,16 +66,7 @@ func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, e
 			return fmt.Errorf("create bucket: %s", err)
 		}
 		return nil
-	}); err != nil {
-		return nil, err
-	}
-
-	return &us, nil
-}
-
-// UserStorage implements user storage interface for BoltDB.
-type UserStorage struct {
-	db *bolt.DB
+	})
 }
 
 // UserByID returns user by ID.
@@ -477,7 +481,21 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 }
 
 // ImportJSON imports data from JSON.
-func (us *UserStorage) ImportJSON(data []byte) error {
+func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
+	if clearOldData {
+		us.db.Update(func(tx *bolt.Tx) error {
+			tx.DeleteBucket([]byte(UserBucket))
+			tx.DeleteBucket([]byte(UserBySocialIDBucket))
+			tx.DeleteBucket([]byte(UserByUsername))
+			tx.DeleteBucket([]byte(UserByPhoneNumberBucket))
+			tx.DeleteBucket([]byte(UserByEmailBucket))
+			return nil
+		})
+		if err := us.createBuckets(); err != nil {
+			return err
+		}
+	}
+
 	ud := []model.User{}
 	if err := json.Unmarshal(data, &ud); err != nil {
 		return err
