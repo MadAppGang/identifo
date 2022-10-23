@@ -97,7 +97,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 			// Generate random password for feature reset if needed
 			user, err = ar.server.Storages().User.AddUserWithPassword(
-				model.User{Phone: authData.PhoneNumber},
+				model.User{Phone: authData.PhoneNumber, Scopes: model.SliceIntersect(app.Scopes, authData.Scopes)},
 				model.RandomPassword(15),
 				app.NewUserDefaultRole,
 				false)

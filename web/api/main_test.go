@@ -31,6 +31,8 @@ type Config struct {
 	User2Pswd     string `env:"USER2_PSWD" envDefault:"Secret321"`
 	User3         string `env:"USER3" envDefault:"new_user3@madappgang.com"`
 	User3Pswd     string `env:"USER3_PSWD" envDefault:"Secret321"`
+	User4         string `env:"USER4" envDefault:"new_user4@madappgang.com"`
+	User4Pswd     string `env:"USER4_PSWD" envDefault:"Secret321_4"`
 }
 
 var cfg = Config{}

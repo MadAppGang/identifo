@@ -122,6 +122,7 @@ login:
     email: true
     federated: true
   tfaType: app
+  allowRegisterMissing: true
 keyStorage:
   type: local
   local:

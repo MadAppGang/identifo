@@ -12,6 +12,6 @@ func NewSMSService() (*SMSServiceMock, error) {
 
 // SendSMS implements SMSService.
 func (ss *SMSServiceMock) SendSMS(recipient, message string) error {
-	fmt.Printf("📱: MOCK SMS SERVICE: Sending SMS \recipient: %s\nmessage: %s\n\n", recipient, message)
+	fmt.Printf("📱: MOCK SMS SERVICE: Sending SMS: \nrecipient: %s\nmessage: %s\n\n", recipient, message)
 	return nil
 }
