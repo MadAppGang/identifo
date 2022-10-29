@@ -40,9 +40,14 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		hostName = settings.General.Host
 	}
 
-	originChecker, err := middleware.NewAppOriginChecker(storages.App)
-	if err != nil {
-		return nil, err
+	var originChecker *middleware.AppOriginChecker
+	if len(errs) == 0 {
+		// we have valid config loaded and we can do origin checker
+		var err error
+		originChecker, err = middleware.NewAppOriginChecker(storages.App)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, storages.Session)

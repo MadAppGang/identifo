@@ -31,6 +31,7 @@ func TestInitConfigurationWithEmptyFlags(t *testing.T) {
 
 func TestInitConfigurationWithFile(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
+	os.Mkdir("../data", os.ModePerm)
 	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_default_storage.yaml")
 	require.NoError(t, err)
 
@@ -49,6 +50,7 @@ func TestInitConfigurationWithFile(t *testing.T) {
 	require.NotNil(t, server)
 	require.Empty(t, server.Errors())
 	require.True(t, reflect.DeepEqual(s, server.Settings()))
+	os.RemoveAll("../data")
 }
 
 func TestInitConfigurationWithWrongFilePath(t *testing.T) {
@@ -136,4 +138,45 @@ func TestInitConfigurationWithBrokenSettingsAPICall(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	assert.Contains(t, rr.Body.String(), "DefaultStorage settings could not be of type Default") // actual error is there as well
 	assert.Contains(t, rr.Body.String(), "Private key file not found")                           // keys unable to load as well
+}
+
+func TestInitConfigurationWithWithGoodConfigAndFailedStorages(t *testing.T) {
+	os.Unsetenv(model.IdentifoConfigPathEnvName)
+	// storages will failed to create as folder does not exists
+	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_wrong_file_path.yaml")
+	require.NoError(t, err)
+
+	// the settings are not loaded yet, should be empty
+	assert.Nil(t, stor.LoadedSettings())
+
+	// load settings and check the settings are default and no errors
+	s, errs := stor.LoadServerSettings(true)
+	// assert.True(t, reflect.DeepEqual(settings, model.DefaultServerSettings))
+	assert.Empty(t, errs)
+	assert.Equal(t, s.Storage.DefaultStorage.Type, model.DBTypeBoltDB)
+	assert.Equal(t, s.Storage.DefaultStorage.BoltDB.Path, "/I/am/wrong/folder/db.db")
+
+	server, err := config.NewServer(stor, nil)
+	require.NoError(t, err)
+	require.NotNil(t, server)
+	require.NotEmpty(t, server.Errors())
+	require.True(t, reflect.DeepEqual(s, server.Settings()))
+
+	// PING
+	// let's make HTTP api call
+	// Ping should be OK, even if configuration is wrong, indicating that server is running as expected
+	req, _ := http.NewRequest("GET", "/ping", nil)
+	rr := httptest.NewRecorder()
+	server.Router().ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusOK, rr.Code)
+	assert.Contains(t, rr.Body.String(), "Pong")
+
+	// login request
+	// the response should be error with settings are wrong
+	req, _ = http.NewRequest("POST", "/auth/login", nil)
+	rr = httptest.NewRecorder()
+	server.Router().ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Contains(t, rr.Body.String(), "error creating app storage") // actual error is there as well
+	assert.Contains(t, rr.Body.String(), "no such file or directory")
 }
