@@ -32,8 +32,8 @@ func TestS3ConfigSource(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	settings, err := c.LoadServerSettings(true)
-	require.NoError(t, err)
+	settings, errs := c.LoadServerSettings(true)
+	require.Empty(t, errs)
 	assert.Equal(t, settings.General.Host, "example.com")
 }
 

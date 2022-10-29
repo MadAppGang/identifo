@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -114,4 +115,14 @@ func TestConfigStorageSettingsFromStringFile(t *testing.T) {
 	assert.Equal(t, config.Type, FileStorageTypeLocal)
 	assert.Empty(t, config.S3)
 	assert.Equal(t, config.Local.Path, "myfolder/subfolder/config.yaml")
+}
+
+func TestDatabaseSettings_UnmarshalJSON(t *testing.T) {
+	// empty database storage means we are using database
+	myJsonString := `{}`
+
+	var dbs DatabaseSettings
+	json.Unmarshal([]byte(myJsonString), &dbs)
+
+	assert.Equal(t, dbs.Type, DBTypeDefault)
 }

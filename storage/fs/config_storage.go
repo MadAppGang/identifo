@@ -11,22 +11,18 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
-// config path for server name
-const serverConfigPathEnvName = "SERVER_CONFIG_PATH"
-
 // ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
 	ServerConfigPath string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
-	cache            model.ServerSettings
-	cached           bool
+	cache            *model.ServerSettings
 	config           model.FileStorageSettings
+	errors           []error
 }
 
-func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
+func NewDefaultConfigurationStorage() model.ConfigurationStorage {
 	configPaths := []string{
-		os.Getenv(serverConfigPathEnvName),
 		"./server-config.yaml",
 		"../../server/server-config.yaml",
 	}
@@ -44,13 +40,12 @@ func NewDefaultConfigurationStorage() (*ConfigurationStorage, error) {
 				continue
 			} else {
 				log.Printf("Successfully loaded default config from  file %s", p)
-				return c, nil
+				return c
 			}
 		}
 	}
-	err := fmt.Errorf("Unable to load default config file from the following candidates: %+v", configPaths)
-	log.Println(err)
-	return nil, err
+	// ok there is not default config files, the last line is to set up in right here in the code:
+	return NewBuildingConfigurationStorage()
 }
 
 // NewConfigurationStorage creates and returns new file configuration storage.
@@ -66,7 +61,6 @@ func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationSt
 		ServerConfigPath: config.Local.Path,
 		UpdateChan:       make(chan interface{}, 1),
 	}
-	log.Printf("Successfully loaded config data from %s\n", config.Local.Path)
 
 	return cs, nil
 }
@@ -94,30 +88,34 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 }
 
 // LoadServerSettings loads server settings from the file.
-func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.ServerSettings, error) {
-	if !forceReload && cs.cached {
-		return cs.cache, nil
-	}
+func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerSettings, []error) {
+	cs.errors = nil
 
 	dir, err := os.Getwd()
 	if err != nil {
-		return model.ServerSettings{}, fmt.Errorf("Cannot get server configuration file: %s", err)
+		cs.errors = append(cs.errors, fmt.Errorf("Cannot get server configuration file: %s", err))
+		return model.ServerSettings{}, cs.errors
 	}
 
 	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
 	if err != nil {
-		return model.ServerSettings{}, fmt.Errorf("Cannot read server configuration file: %s", err)
+		cs.errors = append(cs.errors, fmt.Errorf("Cannot read server configuration file: %s", err))
+		return model.ServerSettings{}, cs.errors
 	}
 
 	var settings model.ServerSettings
 	if err = yaml.Unmarshal(yamlFile, &settings); err != nil {
-		return model.ServerSettings{}, fmt.Errorf("Cannot unmarshal server configuration file: %s", err)
+		cs.errors = append(cs.errors, fmt.Errorf("Cannot unmarshal server configuration file: %s", err))
+		return model.ServerSettings{}, cs.errors
 	}
 
 	settings.Config = cs.config
-	cs.cache = settings
-	cs.cached = true
-	return settings, settings.Validate(true)
+	cs.cache = &settings
+
+	if validate {
+		cs.errors = settings.Validate(true)
+	}
+	return settings, cs.errors
 }
 
 // GetUpdateChan returns update channel.
@@ -133,6 +131,14 @@ func (cs *ConfigurationStorage) CloseUpdateChan() {
 
 func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
 	return false
+}
+
+func (cs *ConfigurationStorage) LoadedSettings() *model.ServerSettings {
+	return cs.cache
+}
+
+func (cs *ConfigurationStorage) Errors() []error {
+	return cs.errors
 }
 
 // fileExists check if file exists

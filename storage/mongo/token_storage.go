@@ -13,7 +13,7 @@ import (
 const tokensCollectionName = "RefreshTokens"
 
 // NewTokenStorage creates a MongoDB token storage.
-func NewTokenStorage(settings model.MongodDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.MongoDatabaseSettings) (model.TokenStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}

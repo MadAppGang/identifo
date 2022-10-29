@@ -16,7 +16,7 @@ import (
 const appsCollectionName = "Applications"
 
 // NewAppStorage creates new MongoDB AppStorage implementation.
-func NewAppStorage(settings model.MongodDatabaseSettings) (model.AppStorage, error) {
+func NewAppStorage(settings model.MongoDatabaseSettings) (model.AppStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}

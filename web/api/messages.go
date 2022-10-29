@@ -161,4 +161,6 @@ const (
 	ErrorAPIAppLoginWithUsernameNotSupported = "api.app.username.login.not_supported"
 	// ErrorAPIAppPhoneLoginNotSupported means that the app does not support login by phone number.
 	ErrorAPIAppPhoneLoginNotSupported = "api.app.phone.login.not_supported"
+	// ErrorAPIServerInitializedWithErrors errors while initializing the identifo
+	ErrorAPIServerInitializedWithErrors = "error.api.unable_to_initialize_identifo"
 )

@@ -11,6 +11,7 @@ type Server interface {
 	Storages() ServerStorageCollection
 	Services() ServerServices
 	Settings() ServerSettings
+	Errors() []error
 	Close()
 }
 

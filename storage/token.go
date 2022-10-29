@@ -20,6 +20,8 @@ func NewTokenStorage(settings model.DatabaseSettings) (model.TokenStorage, error
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewTokenStorage(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewTokenStorage()
 	default:
 		return nil, fmt.Errorf("token storage type is not supported %s ", settings.Type)

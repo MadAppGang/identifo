@@ -20,6 +20,8 @@ func NewInviteStorage(settings model.DatabaseSettings) (model.InviteStorage, err
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewInviteStorage(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewInviteStorage()
 	default:
 		return nil, fmt.Errorf("invite storage type is not supported %s ", settings.Type)

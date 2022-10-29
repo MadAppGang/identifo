@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/url"
 	"path/filepath"
@@ -9,7 +10,8 @@ import (
 )
 
 const (
-	defaultEtcdKey = "identifo"
+	defaultEtcdKey            = "identifo"
+	IdentifoConfigPathEnvName = "IDENTIFO_CONFIG"
 )
 
 var s3ServerFlagRegexp = regexp.MustCompile(`^s3://(?P<region>[a-zA-Z0-9\-]{5,})@(?P<bucket>[a-z0-9\.\-]{3,63})(?P<key>[^\r\n\t\f\v|]+)\|?(?P<endpoint>\S+)?$`)
@@ -27,7 +29,7 @@ type ServerSettings struct {
 	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
 	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
-	EmailTemplates FileStorageSettings    `yaml:"emailTemplaits" json:"email_templaits"`
+	EmailTemplates FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -46,6 +48,7 @@ type AdminAccountSettings struct {
 
 // StorageSettings holds together storage settings for different services.
 type StorageSettings struct {
+	DefaultStorage          DatabaseSettings `yaml:"default" json:"default"`
 	AppStorage              DatabaseSettings `yaml:"appStorage" json:"app_storage"`
 	UserStorage             DatabaseSettings `yaml:"userStorage" json:"user_storage"`
 	TokenStorage            DatabaseSettings `yaml:"tokenStorage" json:"token_storage"`
@@ -58,17 +61,32 @@ type StorageSettings struct {
 type DatabaseSettings struct {
 	Type   DatabaseType           `yaml:"type" json:"type"`
 	BoltDB BoltDBDatabaseSettings `yaml:"boltdb" json:"boltdb"`
-	Mongo  MongodDatabaseSettings `yaml:"mongo" json:"mongo"`
+	Mongo  MongoDatabaseSettings  `yaml:"mongo" json:"mongo"`
 	Dynamo DynamoDatabaseSettings `yaml:"dynamo" json:"dynamo"`
 	Plugin PluginSettings         `yaml:"plugin" json:"plugin"`
 	GRPC   GRPCSettings           `yaml:"grpc" json:"grpc"`
+}
+
+func (ds *DatabaseSettings) UnmarshalJSON(b []byte) error {
+	type DSAlias DatabaseSettings
+	aux := struct{ *DSAlias }{DSAlias: (*DSAlias)(ds)}
+
+	if err := json.Unmarshal(b, &aux); err != nil {
+		return err
+	}
+
+	// if database type is not specified, we assumed to use default one
+	if len(ds.Type) == 0 {
+		ds.Type = DBTypeDefault
+	}
+	return nil
 }
 
 type BoltDBDatabaseSettings struct {
 	Path string `yaml:"path" json:"path"`
 }
 
-type MongodDatabaseSettings struct {
+type MongoDatabaseSettings struct {
 	ConnectionString string `yaml:"connection" json:"connection"`
 	DatabaseName     string `yaml:"database" json:"database"`
 }
@@ -91,12 +109,14 @@ type GRPCSettings struct {
 type DatabaseType string
 
 const (
-	DBTypeBoltDB   DatabaseType = "boltdb" // DBTypeBoltDB is for BoltDB.
-	DBTypeMongoDB  DatabaseType = "mongo"  // DBTypeMongoDB is for MongoDB.
-	DBTypeDynamoDB DatabaseType = "dynamo" // DBTypeDynamoDB is for DynamoDB.
-	DBTypeFake     DatabaseType = "fake"   // DBTypeFake is for in-memory storage.
-	DBTypePlugin   DatabaseType = "plugin" // DBTypePlugin is used for hashicorp/go-plugin.
-	DBTypeGRPC     DatabaseType = "grpc"   // DBTypeGRPC is used for pure grpc.
+	DBTypeDefault  DatabaseType = "default" // DBTypeDefault it means the settings should be referenced from default database settings.
+	DBTypeBoltDB   DatabaseType = "boltdb"  // DBTypeBoltDB is for BoltDB.
+	DBTypeMongoDB  DatabaseType = "mongo"   // DBTypeMongoDB is for MongoDB.
+	DBTypeDynamoDB DatabaseType = "dynamo"  // DBTypeDynamoDB is for DynamoDB.
+	DBTypeFake     DatabaseType = "fake"    // DBTypeFake is return some predefined const data.
+	DBTypeMem      DatabaseType = "mem"     // DBTypeMem is for in-memory storage.
+	DBTypePlugin   DatabaseType = "plugin"  // DBTypePlugin is used for hashicorp/go-plugin.
+	DBTypeGRPC     DatabaseType = "grpc"    // DBTypeGRPC is used for pure grpc.
 )
 
 type FileStorageSettings struct {

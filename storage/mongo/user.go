@@ -20,7 +20,7 @@ import (
 const usersCollectionName = "Users"
 
 // NewUserStorage creates and inits MongoDB user storage.
-func NewUserStorage(settings model.MongodDatabaseSettings) (model.UserStorage, error) {
+func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}

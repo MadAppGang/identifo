@@ -13,7 +13,7 @@ import (
 const blacklistedTokensCollectionName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new MongoDB-backed token blacklist.
-func NewTokenBlacklist(settings model.MongodDatabaseSettings) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(settings model.MongoDatabaseSettings) (model.TokenBlacklist, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}

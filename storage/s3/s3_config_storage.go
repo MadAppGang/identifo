@@ -19,8 +19,8 @@ type ConfigurationStorage struct {
 	UpdateChan       chan interface{}
 	updateChanClosed bool
 	config           model.FileStorageSettings
-	cache            model.ServerSettings
-	cached           bool
+	cache            *model.ServerSettings
+	errors           []error
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
@@ -48,11 +48,10 @@ func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationSt
 }
 
 // LoadServerSettings loads server configuration from S3.
-func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.ServerSettings, error) {
-	if !forceReload && cs.cached {
-		return cs.cache, nil
-	}
+func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerSettings, []error) {
+	cs.errors = nil
 
+	cs.errors = nil
 	getObjInput := &s3.GetObjectInput{
 		Bucket: aws.String(cs.Bucket),
 		Key:    aws.String(cs.ObjectName),
@@ -60,20 +59,25 @@ func (cs *ConfigurationStorage) LoadServerSettings(forceReload bool) (model.Serv
 
 	resp, err := cs.Client.GetObject(getObjInput)
 	if err != nil {
-		return model.ServerSettings{}, fmt.Errorf("Cannot get object from S3: %s", err)
+		e := fmt.Errorf("Cannot get object from S3: %s", err)
+		cs.errors = append(cs.errors, e)
+		return model.ServerSettings{}, cs.errors
 	}
 	defer resp.Body.Close()
 
 	var settings model.ServerSettings
 	if err = yaml.NewDecoder(resp.Body).Decode(&settings); err != nil {
-		return model.ServerSettings{}, fmt.Errorf("Cannot decode S3 response: %s", err)
+		cs.errors = append(cs.errors, fmt.Errorf("Cannot decode S3 response: %s", err))
+		return model.ServerSettings{}, cs.errors
 	}
 
 	settings.Config = cs.config
-	cs.cache = settings
-	cs.cached = true
+	cs.cache = &settings
+	if validate {
+		cs.errors = settings.Validate(true)
+	}
 
-	return settings, nil
+	return settings, cs.errors
 }
 
 // WriteConfig puts new configuration into the storage.
@@ -124,4 +128,12 @@ func (cs *ConfigurationStorage) CloseUpdateChan() {
 
 func (cs *ConfigurationStorage) ForceReloadOnWriteConfig() bool {
 	return true
+}
+
+func (cs *ConfigurationStorage) LoadedSettings() *model.ServerSettings {
+	return cs.cache
+}
+
+func (cs *ConfigurationStorage) Errors() []error {
+	return cs.errors
 }

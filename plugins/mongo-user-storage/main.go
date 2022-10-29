@@ -18,11 +18,10 @@ func main() {
 	databaseName := flag.String("database", "", "name of database")
 	flag.Parse()
 
-	s, err := mongo.NewUserStorage(model.MongodDatabaseSettings{
+	s, err := mongo.NewUserStorage(model.MongoDatabaseSettings{
 		ConnectionString: *connectionString,
 		DatabaseName:     *databaseName,
 	})
-
 	if err != nil {
 		panic(err)
 	}
