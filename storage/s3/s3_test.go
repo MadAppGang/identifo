@@ -35,17 +35,12 @@ var settings = model.FileStorageS3{
 }
 
 func getS3Client(t *testing.T, endpoint string) *s3.S3 {
-	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	s3client, err := s3s.NewS3Client(settings.Region, endpoint)
 	require.NoError(t, err)
 	_, err = s3client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(settings.Bucket),
 	})
 	if err != nil && !strings.Contains(err.Error(), "BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.") {
-		fmt.Printf("key: |%s|\n", os.Getenv("AWS_ACCESS_KEY_ID"))
-		fmt.Printf("secret: |%s|\n", os.Getenv("AWS_SECRET_ACCESS_KEY"))
-		fmt.Printf("Error: %+v\n", err)
-		fmt.Printf("Endpoint %s:%s\n", endpoint, settings.Region)
 		require.NoError(t, err)
 	}
 	return s3client
