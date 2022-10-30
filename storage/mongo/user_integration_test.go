@@ -18,7 +18,7 @@ func TestFetchUser(t *testing.T) {
 
 	connStr := os.Getenv("IDENTIFO_STORAGE_MONGO_CONN")
 
-	s, err := mongo.NewUserStorage(model.MongodDatabaseSettings{
+	s, err := mongo.NewUserStorage(model.MongoDatabaseSettings{
 		ConnectionString: connStr,
 		DatabaseName:     "test_users",
 	})

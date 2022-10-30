@@ -19,7 +19,7 @@ type ServerSettingsAPI struct {
 	Logger         *model.LoggerSettings         `json:"logger,omitempty"`
 	AdminPanel     *model.AdminPanelSettings     `json:"admin_panel"`
 	LoginWebApp    *model.FileStorageSettings    `json:"login_web_app"`
-	EmailTemplates *model.FileStorageSettings    `json:"email_templaits"`
+	EmailTemplates *model.FileStorageSettings    `json:"email_templates"`
 }
 
 type StorageSettingsAPI struct {
@@ -34,7 +34,7 @@ type StorageSettingsAPI struct {
 // FetchSettings returns server settings.
 func (ar *Router) FetchSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		s := ar.server.Settings()
+		s := ar.server.Storages().Config.LoadedSettings()
 		ar.ServeJSON(w, http.StatusOK, s)
 	}
 }
@@ -79,7 +79,7 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 	}
 }
 
-// mergeSettings merges updatedSettings with settings and produces the new setttings
+// mergeSettings merges updatedSettings with settings and produces the new settings
 func mergeSettings(settings model.ServerSettings, updatedSettings ServerSettingsAPI) (model.ServerSettings, bool) {
 	changed := false
 	if updatedSettings.General != nil {

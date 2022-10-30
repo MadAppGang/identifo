@@ -5,12 +5,12 @@ import (
 )
 
 type ConnectionTester struct {
-	settings model.MongodDatabaseSettings
+	settings model.MongoDatabaseSettings
 }
 
 // NewConnectionTester creates a BoltDB connection tester
 
-func NewConnectionTester(settings model.MongodDatabaseSettings) model.ConnectionTester {
+func NewConnectionTester(settings model.MongoDatabaseSettings) model.ConnectionTester {
 	return &ConnectionTester{settings: settings}
 }
 

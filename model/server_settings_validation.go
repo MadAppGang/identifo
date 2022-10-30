@@ -15,90 +15,96 @@ const (
 )
 
 // Validate makes sure that all crucial fields are set.
-func (ss *ServerSettings) Validate(rewriteDefaults bool) error {
+func (ss *ServerSettings) Validate(rewriteDefaults bool) []error {
+	result := []error{}
 	if rewriteDefaults == true {
 		ss.RewriteDefaults()
 	}
 
-	if len(ss.AdminAccount.LoginEnvName) == 0 {
-		return fmt.Errorf("Admin login env variable name not specified")
+	if err := ss.General.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-	if len(ss.AdminAccount.PasswordEnvName) == 0 {
-		return fmt.Errorf("Admin password env variable name not specified")
+	if err := ss.Storage.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-
-	if err := ss.General.Validate(); err != nil {
-		return err
+	if err := ss.SessionStorage.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-	if err := ss.Storage.Validate(); err != nil {
-		return err
-	}
-	if err := ss.SessionStorage.Validate(); err != nil {
-		return err
-	}
-	if err := ss.LoginWebApp.Validate(); err != nil {
-		return err
+	if err := ss.LoginWebApp.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
 	if err := ss.AdminPanel.Validate(); err != nil {
-		return err
+		result = append(result, err)
 	}
-	if err := ss.EmailTemplates.Validate(); err != nil {
-		return err
+	if err := ss.EmailTemplates.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
 
-	if err := ss.Services.Validate(); err != nil {
-		return err
+	if err := ss.Services.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-	return nil
+	return result
 }
 
 // Validate validates general services settings.
-func (gss *GeneralServerSettings) Validate() error {
+func (gss *GeneralServerSettings) Validate() []error {
 	subject := "GeneralServerSettings"
-	if gss == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+	result := []error{}
 
 	if _, err := url.ParseRequestURI(gss.Host); err != nil {
-		return fmt.Errorf("%s. Host is invalid. %s", subject, err)
+		result = append(result, fmt.Errorf("%s. Host is invalid. %s", subject, err))
 	}
 	if len(gss.Issuer) == 0 {
-		return fmt.Errorf("%s. Issuer is not set", subject)
+		result = append(result, fmt.Errorf("%s. Issuer is not set", subject))
 	}
-	return nil
+	return result
 }
 
 // Validate validates storage settings.
-func (ss *StorageSettings) Validate() error {
-	if ss == nil {
-		return fmt.Errorf("Nil StorageSettings")
-	}
+func (ss *StorageSettings) Validate() []error {
+	result := []error{}
+
 	if err := ss.AppStorage.Validate(); err != nil {
-		return fmt.Errorf("AppStorage: %s", err)
+		result = append(result, fmt.Errorf("AppStorage settings: %s", err))
 	}
 	if err := ss.UserStorage.Validate(); err != nil {
-		return fmt.Errorf("UserStorage: %s", err)
+		result = append(result, fmt.Errorf("AppStorage settings: %s", err))
 	}
 	if err := ss.TokenStorage.Validate(); err != nil {
-		return fmt.Errorf("TokenStorage: %s", err)
+		result = append(result, fmt.Errorf("TokenStorage settings: %s", err))
 	}
 	if err := ss.TokenBlacklist.Validate(); err != nil {
-		return fmt.Errorf("TokenBlacklist: %s", err)
+		result = append(result, fmt.Errorf("TokenBlacklist settings: %s", err))
 	}
 	if err := ss.VerificationCodeStorage.Validate(); err != nil {
-		return fmt.Errorf("VerificationCodeStorage: %s", err)
+		result = append(result, fmt.Errorf("VerificationCodeStorage settings: %s", err))
 	}
-	return nil
+	if err := ss.InviteStorage.Validate(); err != nil {
+		result = append(result, fmt.Errorf("InviteStorage settings: %s", err))
+	}
+	if ss.AppStorage.Type == DBTypeDefault ||
+		ss.UserStorage.Type == DBTypeDefault ||
+		ss.TokenStorage.Type == DBTypeDefault ||
+		ss.TokenBlacklist.Type == DBTypeDefault ||
+		ss.VerificationCodeStorage.Type == DBTypeDefault ||
+		ss.InviteStorage.Type == DBTypeDefault {
+		// if one of the storages is reference default storage, let' validate default storage
+		if err := ss.DefaultStorage.Validate(); err != nil {
+			result = append(result, fmt.Errorf("DefaultStorage settings: %s", err))
+		}
+		if ss.DefaultStorage.Type == DBTypeDefault {
+			result = append(result, fmt.Errorf("DefaultStorage settings could not be of type Default"))
+		}
+	}
+	return result
 }
 
 // Validate validates database settings.
 func (dbs *DatabaseSettings) Validate() error {
-	if len(dbs.Type) == 0 {
-		return fmt.Errorf("empty database type")
-	}
-
 	switch dbs.Type {
 	case DBTypeFake:
+	case DBTypeDefault:
+	case DBTypeMem:
 		return nil
 	case DBTypeBoltDB:
 		if len(dbs.BoltDB.Path) == 0 {
@@ -131,71 +137,66 @@ func (dbs *DatabaseSettings) Validate() error {
 }
 
 // Validate validates admin session storage settings.
-func (sss *SessionStorageSettings) Validate() error {
+func (sss *SessionStorageSettings) Validate() []error {
 	subject := "SessionStorageSettings"
-	if sss == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+	result := []error{}
 
 	if len(sss.Type) == 0 {
-		return fmt.Errorf("Empty session storage type")
+		result = append(result, fmt.Errorf("Empty session storage type"))
 	}
 	if sss.SessionDuration.Duration == 0 {
-		return fmt.Errorf("%s. Session duration is 0 seconds", subject)
+		result = append(result, fmt.Errorf("%s. Session duration is 0 seconds", subject))
 	}
 
 	switch sss.Type {
 	case SessionStorageMem:
-		return nil
+		break
 	case SessionStorageRedis:
 		if _, err := url.ParseRequestURI(sss.Redis.Address); err != nil {
-			return fmt.Errorf("%s. Invalid address. %s", subject, err)
+			result = append(result, fmt.Errorf("%s. Invalid address. %s", subject, err))
 		}
 	case SessionStorageDynamoDB:
 		if len(sss.Dynamo.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
+			result = append(result, fmt.Errorf("%s. Empty AWS region", subject))
 		}
 		if len(sss.Dynamo.Endpoint) == 0 {
-			return fmt.Errorf("%s. Empty AWS Dynamo endpoint", subject)
+			result = append(result, fmt.Errorf("%s. Empty AWS Dynamo endpoint", subject))
 		}
 
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		result = append(result, fmt.Errorf("%s. Unknown type", subject))
 	}
-	return nil
+	return result
 }
 
 // Validate validates login web app settings
-func (sfs *FileStorageSettings) Validate() error {
+func (sfs *FileStorageSettings) Validate() []error {
 	subject := "LoginWebAppSettings"
-	if sfs == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+	result := []error{}
 
 	switch sfs.Type {
 	case FileStorageTypeDefault:
-		return nil
+		break
 	case FileStorageTypeNone:
-		return nil
+		break
 	case FileStorageTypeLocal:
 		if len(sfs.Local.Path) == 0 {
-			return fmt.Errorf("%s. empty folder", subject)
+			result = append(result, fmt.Errorf("%s. empty folder", subject))
 		}
-		return nil
 	case FileStorageTypeS3:
 		if len(sfs.S3.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
+			result = append(result, fmt.Errorf("%s. Empty AWS region", subject))
 		}
 		if bucket := os.Getenv(identifoLoginWebAppBucket); len(bucket) != 0 {
 			sfs.S3.Bucket = bucket
 		}
 		if len(sfs.S3.Bucket) == 0 {
-			return fmt.Errorf("%s. empty s3 bucket for login web app", subject)
+			result = append(result, fmt.Errorf("%s. empty s3 bucket for login web app", subject))
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		result = append(result, fmt.Errorf("%s. Unknown type", subject))
 	}
-	return nil
+	return result
 }
 
 func (kss *AdminPanelSettings) Validate() error {
@@ -204,56 +205,63 @@ func (kss *AdminPanelSettings) Validate() error {
 }
 
 // Validate validates external services settings.
-func (ess *ServicesSettings) Validate() error {
-	subject := "ExternalServicesSettings"
-	if ess == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+func (ess *ServicesSettings) Validate() []error {
+	result := []error{}
 
-	if err := ess.Email.Validate(); err != nil {
-		return fmt.Errorf("%s. %s", subject, err)
+	if err := ess.Email.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-	if err := ess.SMS.Validate(); err != nil {
-		return fmt.Errorf("%s. %s", subject, err)
+	if err := ess.SMS.Validate(); len(err) > 0 {
+		result = append(result, err...)
 	}
-	return nil
+	return result
 }
 
 // Validate validates SMS service settings.
-func (sss *SMSServiceSettings) Validate() error {
+func (sss *SMSServiceSettings) Validate() []error {
 	subject := "SMSServiceSettings"
-	if sss == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+	result := []error{}
 	if len(sss.Type) == 0 {
-		return fmt.Errorf("Empty SMS service type")
+		return []error{fmt.Errorf("Empty SMS service type")}
 	}
 
 	switch sss.Type {
 	case SMSServiceMock:
-		return nil
+		break
 	case SMSServiceNexmo:
-		if len(sss.Nexmo.APIKey) == 0 || len(sss.Nexmo.APISecret) == 0 {
-			return fmt.Errorf("%s. Error creating Nexmo SMS service, missing at least one of the parameters:"+
-				"\n apiKey : %v\n apiSecret : %v\n", subject, sss.Nexmo.APIKey, sss.Nexmo.APISecret)
+		if len(sss.Nexmo.APIKey) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Nexmo SMS service, API key is empty", subject))
+		}
+		if len(sss.Nexmo.APISecret) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Nexmo SMS service, Nexmo secret is empty", subject))
 		}
 	case SMSServiceTwilio:
-		if len(sss.Twilio.AccountSid) == 0 || len(sss.Twilio.AuthToken) == 0 || len(sss.Twilio.ServiceSid) == 0 {
-			return fmt.Errorf("%s. Error creating Twilio SMS service, missing at least one of the parameters:"+
-				"\n sidKey : %v\n tokenKey : %v\n ServiceSidKey : %v\n", subject, sss.Twilio.AccountSid, sss.Twilio.AuthToken, sss.Twilio.ServiceSid)
+		if len(sss.Twilio.AccountSid) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Account SID", subject))
+		}
+		if len(sss.Twilio.AuthToken) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Auth Token", subject))
+		}
+		if len(sss.Twilio.ServiceSid) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Service SID", subject))
 		}
 	case SMSServiceRouteMobile:
-		if len(sss.Routemobile.Username) == 0 || len(sss.Routemobile.Password) == 0 || len(sss.Routemobile.Source) == 0 {
-			return fmt.Errorf("%s. Error creating RouteMobile SMS service, missing at least one of the parameters:"+
-				"\n username : %v\n password : %v\n", subject, sss.Routemobile.Username, sss.Routemobile.Password)
+		if len(sss.Routemobile.Username) == 0 {
+			result = append(result, fmt.Errorf("%s. Error creating RouteMobile SMS service, missing username", subject))
+		}
+		if len(sss.Routemobile.Password) == 0 {
+			result = append(result, fmt.Errorf("%s. Error creating RouteMobile SMS service, missing password", subject))
+		}
+		if len(sss.Routemobile.Source) == 0 {
+			result = append(result, fmt.Errorf("%s. Error creating RouteMobile SMS service, missing source", subject))
 		}
 		if sss.Routemobile.Region != RouteMobileRegionUAE {
-			return fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Routemobile.Region)
+			result = append(result, fmt.Errorf("%s. Error creating RouteMobile SMS service, region %s is not supported", subject, sss.Routemobile.Region))
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		result = append(result, fmt.Errorf("%s. Unknown type", subject))
 	}
-	return nil
+	return result
 }
 
 const (
@@ -271,18 +279,17 @@ const (
 )
 
 // Validate validates email service settings.
-func (ess *EmailServiceSettings) Validate() error {
+func (ess *EmailServiceSettings) Validate() []error {
 	subject := "EmailServiceSettings"
-	if ess == nil {
-		return fmt.Errorf("Nil %s", subject)
-	}
+	result := []error{}
+
 	if len(ess.Type) == 0 {
-		return fmt.Errorf("%s. Empty email service type", subject)
+		return []error{fmt.Errorf("%s. Empty email service type", subject)}
 	}
 
 	switch ess.Type {
 	case EmailServiceMock:
-		return nil
+		break
 	case EmailServiceAWS:
 		if region := os.Getenv(awsSESRegionKey); len(region) != 0 {
 			ess.SES.Region = region
@@ -291,10 +298,10 @@ func (ess *EmailServiceSettings) Validate() error {
 			ess.SES.Sender = sender
 		}
 		if len(ess.SES.Sender) == 0 {
-			return fmt.Errorf("%s. Empty AWS sender", subject)
+			result = append(result, fmt.Errorf("%s. Empty AWS sender", subject))
 		}
 		if len(ess.SES.Region) == 0 {
-			return fmt.Errorf("%s. Empty AWS region", subject)
+			result = append(result, fmt.Errorf("%s. Empty AWS region", subject))
 		}
 	case EmailServiceMailgun:
 		if domain := os.Getenv(mailgunDomainKey); len(domain) != 0 {
@@ -308,16 +315,16 @@ func (ess *EmailServiceSettings) Validate() error {
 		}
 
 		if len(ess.Mailgun.Domain) == 0 {
-			return fmt.Errorf("%s. Empty Mailgun domain", subject)
+			result = append(result, fmt.Errorf("%s. Empty Mailgun domain", subject))
 		}
 		if len(ess.Mailgun.PrivateKey) == 0 {
-			return fmt.Errorf("%s. Mailgun private key is empty", subject)
+			result = append(result, fmt.Errorf("%s. Mailgun private key is empty", subject))
 		}
 		if len(ess.Mailgun.Sender) == 0 {
-			return fmt.Errorf("%s. Empty Mailgun sender", subject)
+			result = append(result, fmt.Errorf("%s. Empty Mailgun sender", subject))
 		}
 	default:
-		return fmt.Errorf("%s. Unknown type", subject)
+		result = append(result, fmt.Errorf("%s. Unknown type", subject))
 	}
-	return nil
+	return result
 }

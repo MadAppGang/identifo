@@ -20,6 +20,8 @@ func NewVerificationCodesStorage(settings model.DatabaseSettings) (model.Verific
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewVerificationCodeStorage(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewVerificationCodeStorage()
 	default:
 		return nil, fmt.Errorf("verification code storage type is not supported %s ", settings.Type)

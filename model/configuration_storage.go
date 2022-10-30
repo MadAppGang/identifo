@@ -3,7 +3,9 @@ package model
 // ConfigurationStorage stores server configuration.
 type ConfigurationStorage interface {
 	WriteConfig(ServerSettings) error
-	LoadServerSettings(forceReload bool) (ServerSettings, error)
+	LoadServerSettings(validate bool) (ServerSettings, []error)
+	LoadedSettings() *ServerSettings
+	Errors() []error
 	GetUpdateChan() chan interface{}
 	CloseUpdateChan()
 

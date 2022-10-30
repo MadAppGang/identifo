@@ -20,6 +20,8 @@ func NewAppStorage(settings model.DatabaseSettings) (model.AppStorage, error) {
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewAppStorage(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewAppStorage()
 	default:
 		return nil, fmt.Errorf("App storage type is not supported")

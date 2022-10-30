@@ -18,7 +18,7 @@ const (
 )
 
 // NewVerificationCodeStorage creates and inits MongoDB verification code storage.
-func NewVerificationCodeStorage(settings model.MongodDatabaseSettings) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(settings model.MongoDatabaseSettings) (model.VerificationCodeStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}

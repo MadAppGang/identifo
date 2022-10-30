@@ -14,6 +14,7 @@ func (ar *Router) initRoutes() {
 
 	// All requests to the API router should contain appID.
 	handlers := make([]negroni.Handler, 0)
+	handlers = append(handlers, ar.ConfigCheck())
 
 	if ar.LoggerSettings.DumpRequest {
 		handlers = append(handlers, ar.DumpRequest())
@@ -91,6 +92,7 @@ func (ar *Router) initRoutes() {
 	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
 
 	wellKnownHandlers := make([]negroni.Handler, 0)
+	wellKnownHandlers = append(wellKnownHandlers, ar.ConfigCheck())
 
 	if ar.LoggerSettings.DumpRequest {
 		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())

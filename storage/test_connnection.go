@@ -50,6 +50,8 @@ func NewDatabaseConnectionTester(settings model.DatabaseSettings) model.Connecti
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewConnectionTester(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewConnectionTester()
 	}
 	return nil

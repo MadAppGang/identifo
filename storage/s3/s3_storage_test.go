@@ -14,12 +14,15 @@ import (
 )
 
 func TestS3ConfigSource(t *testing.T) {
-	if os.Getenv("IDENTIFO_TEST_INTEGRATION") == "" {
+	// localS3Debug()
+
+	ep := os.Getenv("IDENTIFO_TEST_AWS_ENDPOINT")
+	if ep == "" {
 		t.SkipNow()
 	}
 
 	awsEndpoint := os.Getenv("IDENTIFO_TEST_AWS_ENDPOINT")
-
+	_ = getS3Client(t, ep)
 	putTestFileTOS3(t, awsEndpoint)
 
 	c, err := s3s.NewConfigurationStorage(model.FileStorageSettings{
@@ -32,8 +35,8 @@ func TestS3ConfigSource(t *testing.T) {
 		},
 	})
 	require.NoError(t, err)
-	settings, err := c.LoadServerSettings(true)
-	require.NoError(t, err)
+	settings, errs := c.LoadServerSettings(false)
+	require.Empty(t, errs)
 	assert.Equal(t, settings.General.Host, "example.com")
 }
 

@@ -20,6 +20,8 @@ func NewTokenBlacklistStorage(settings model.DatabaseSettings) (model.TokenBlack
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewTokenBlacklist(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewTokenBlacklist()
 	default:
 		return nil, fmt.Errorf("token blacklist storage type is not supported %s ", settings.Type)

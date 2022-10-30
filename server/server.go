@@ -11,31 +11,43 @@ import (
 )
 
 // NewServer creates backend service.
-func NewServer(storages model.ServerStorageCollection, services model.ServerServices, restartChan chan<- bool) (model.Server, error) {
+func NewServer(storages model.ServerStorageCollection, services model.ServerServices, errs []error, restartChan chan<- bool) (model.Server, error) {
 	if storages.Config == nil {
 		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}
 
-	settings, err := storages.Config.LoadServerSettings(false)
-	if err != nil {
-		return nil, err
+	// should be loaded and validates
+	settings := storages.Config.LoadedSettings()
+	if settings == nil {
+		// no settings and no errors
+		if len(errs) == 0 {
+			return nil, fmt.Errorf("New Server could not be created, no settings loaded and no errors detected")
+		} else {
+			settings = &model.DefaultServerSettings
+		}
 	}
 
 	s := Server{
 		storages: storages,
 		services: services,
-		settings: settings,
+		settings: *settings,
+		errs:     errs, // keep the list of errors which keep server invalid but working
 	}
 
 	// env variable can rewrite host option
-	hostName := os.Getenv("HOST_NAME")
+	hostName := os.Getenv("IDENTIFO_HOST_NAME")
 	if len(hostName) == 0 {
 		hostName = settings.General.Host
 	}
 
-	originChecker, err := middleware.NewAppOriginChecker(storages.App)
-	if err != nil {
-		return nil, err
+	var originChecker *middleware.AppOriginChecker
+	if len(errs) == 0 {
+		// we have valid config loaded and we can do origin checker
+		var err error
+		originChecker, err = middleware.NewAppOriginChecker(storages.App)
+		if err != nil {
+			return nil, err
+		}
 	}
 
 	// sessionService := model.NewSessionManager(settings.SessionStorage.SessionDuration, storages.Session)
@@ -62,6 +74,7 @@ type Server struct {
 	storages   model.ServerStorageCollection
 	services   model.ServerServices
 	settings   model.ServerSettings
+	errs       []error
 }
 
 // Router returns server's main router.
@@ -94,4 +107,8 @@ func (s *Server) Close() {
 	s.storages.Invite.Close()
 	s.storages.Verification.Close()
 	s.storages.Session.Close()
+}
+
+func (s *Server) Errors() []error {
+	return s.errs
 }

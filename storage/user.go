@@ -22,6 +22,8 @@ func NewUserStorage(settings model.DatabaseSettings) (model.UserStorage, error) 
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewUserStorage(settings.Dynamo)
 	case model.DBTypeFake:
+		fallthrough
+	case model.DBTypeMem:
 		return mem.NewUserStorage()
 	case model.DBTypePlugin:
 		return plugin.NewUserStorage(settings.Plugin)

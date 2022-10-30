@@ -2,11 +2,29 @@
 
 version: "3"
 services:
-  moto:
-    image: motoserver/moto:4.0.6
+  # moto:
+  #   image: motoserver/moto:4.0.6
+  #   ports:
+  #     - "5001:5001"
+  #   entrypoint: ["/usr/local/bin/moto_server", "-H", "0.0.0.0", "-p", "5001"]
+  minio:
+    image: quay.io/minio/minio:latest
+    command: server /data --console-address ":9090"
+    volumes:
+      - miniodata:/data
     ports:
-      - "5001:5001"
-    entrypoint: ["/usr/local/bin/moto_server", "-H", "0.0.0.0", "-p", "5001"]
+      - "9000:9000"
+      - "9090:9090"
+    environment:
+      MINIO_ROOT_USER: testing
+      MINIO_ROOT_PASSWORD: testing_secret
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+
 
   store_mongo:
     image: mongo:6
@@ -34,3 +52,6 @@ services:
       timeout: 10s
       retries: 5
       start_period: 40s
+
+volumes:
+  miniodata:

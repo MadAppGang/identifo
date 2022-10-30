@@ -21,7 +21,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a MongoDB invite storage.
-func NewInviteStorage(settings model.MongodDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.MongoDatabaseSettings) (model.InviteStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
