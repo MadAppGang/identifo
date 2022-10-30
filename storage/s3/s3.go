@@ -3,6 +3,7 @@ package s3
 import (
 	"fmt"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -37,6 +38,12 @@ func getConfig(region, endpoint string) *aws.Config {
 			Timeout: 10 * time.Second,
 		}).
 		WithCredentialsChainVerboseErrors(true)
+
+	// critically important for local tests, as we could not create localhost subdomains
+	// https://docs.aws.amazon.com/AmazonS3/latest/userguide/VirtualHosting.html
+	if len(os.Getenv("IDENTIFO_FORCE_S3_PATH_STYLE")) > 0 {
+		cfg.WithS3ForcePathStyle(true)
+	}
 
 	if len(endpoint) > 0 {
 		cfg.WithEndpoint(endpoint)

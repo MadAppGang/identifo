@@ -24,7 +24,7 @@ func TestNewFSWithS3(t *testing.T) {
 	}
 
 	s3client := getS3Client(t, ep)
-	uploadS3File(t, s3client, settings, "test/templates/file_whatever.txt")
+	uploadS3File(t, s3client, settings, "/test/templates/file_whatever.txt")
 
 	settings := model.FileStorageSettings{
 		Type: model.FileStorageTypeS3,

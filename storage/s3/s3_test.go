@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"os"
+	"strings"
 	"testing"
 	"time"
 
@@ -29,16 +30,24 @@ import (
 
 var settings = model.FileStorageS3{
 	Region: "ap-southeast-2",
-	Bucket: "identifo-public",
+	Bucket: "identifo",
 	Key:    "test/config-boltdb.yaml",
 }
 
 func getS3Client(t *testing.T, endpoint string) *s3.S3 {
+	fmt.Println("++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 	s3client, err := s3s.NewS3Client(settings.Region, endpoint)
 	require.NoError(t, err)
-	_, _ = s3client.CreateBucket(&s3.CreateBucketInput{
+	_, err = s3client.CreateBucket(&s3.CreateBucketInput{
 		Bucket: aws.String(settings.Bucket),
 	})
+	if err != nil && !strings.Contains(err.Error(), "BucketAlreadyOwnedByYou: Your previous request to create the named bucket succeeded and you already own it.") {
+		fmt.Printf("key: |%s|\n", os.Getenv("AWS_ACCESS_KEY_ID"))
+		fmt.Printf("secret: |%s|\n", os.Getenv("AWS_SECRET_ACCESS_KEY"))
+		fmt.Printf("Error: %+v\n", err)
+		fmt.Printf("Endpoint %s:%s\n", endpoint, settings.Region)
+		require.NoError(t, err)
+	}
 	return s3client
 }
 
@@ -56,9 +65,8 @@ func uploadS3File(t *testing.T, s3client *s3.S3, s model.FileStorageS3, key stri
 
 func localS3Debug() {
 	os.Setenv("IDENTIFO_TEST_INTEGRATION", "1")
-	os.Setenv("IDENTIFO_TEST_AWS_ENDPOINT", "http://localhost:5001")
+	os.Setenv("IDENTIFO_TEST_AWS_ENDPOINT", "http://localhost:9000")
 	os.Setenv("AWS_ACCESS_KEY_ID", "testing")
-	os.Setenv("AWS_SECRET_ACCESS_KEY", "testing")
-	os.Setenv("AWS_SECURITY_TOKEN", "testing")
-	os.Setenv("AWS_SESSION_TOKEN", "testing")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "testing_secret")
+	os.Setenv("IDENTIFO_FORCE_S3_PATH_STYLE", "1")
 }
