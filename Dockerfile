@@ -7,7 +7,7 @@ RUN web_apps_src/update-admin.sh
 RUN web_apps_src/update-web.sh
 
 
-FROM golang:1.16-alpine3.13 as builder
+FROM golang:1.19.2-alpine3.16 as builder
 
 # Copy the code from the host and compile it
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
