@@ -360,14 +360,13 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.To
 }
 
 // NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken(email, role string) (model.Token, error) {
-	payload := make(map[string]interface{})
+func (ts *JWTokenService) NewInviteToken(email, role string, data map[string]interface{}) (model.Token, error) {
 	// add payload data here
 	if email != "" {
-		payload["email"] = email
+		data["email"] = email
 	}
 	if role != "" {
-		payload["role"] = role
+		data["role"] = role
 	}
 
 	now := ijwt.TimeFunc().Unix()
@@ -375,7 +374,7 @@ func (ts *JWTokenService) NewInviteToken(email, role string) (model.Token, error
 	lifespan := InviteTokenLifespan
 
 	claims := &model.Claims{
-		Payload: payload,
+		Payload: data,
 		Type:    model.TokenTypeInvite,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: now + lifespan,

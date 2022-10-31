@@ -70,7 +70,7 @@ func runServer() (model.Server, *http.Server) {
 
 	// if we do regular isolated tests - use boldtb as a storage
 	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
-		os.Remove("./db.db")
+		os.Remove("../data/db.db")
 		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
 	} else {
 		// if we do integration tests with mongodb - run tests with mongodb

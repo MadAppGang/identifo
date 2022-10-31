@@ -7,114 +7,22 @@ adminAccount:
   loginEnvName: IDENTIFO_ADMIN_LOGIN
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 storage:
-  appStorage:
+  default:
     type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ""
-      params: {}
-    grpc:
-      address: ""
-  userStorage:
-    type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ./plugins/bin/bolt-user-storage
-      params:
-        path: ./user.db
-    grpc:
-      address: ""
-  tokenStorage:
-    type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ""
-      params: {}
-    grpc:
-      address: ""
-  tokenBlacklist:
-    type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ""
-      params: {}
-    grpc:
-      address: ""
-  verificationCodeStorage:
-    type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ""
-      params: {}
-    grpc:
-      address: ""
-  inviteStorage:
-    type: boltdb
-    boltdb:
-      path: ./db.db
-    mongo:
-      connection: ""
-      database: ""
-    dynamo:
-      region: ""
-      endpoint: ""
-    plugin:
-      cmd: ""
-      params: {}
-    grpc:
-      address: ""
+    boltdb: 
+      path: ../../db.db
 sessionStorage:
   type: memory
   sessionDuration: 300
-  redis:
-    address: ""
-    password: ""
-    db: 0
-    cluster: false
-    prefix: ""
-  dynamo:
-    region: ""
-    endpoint: ""
 services:
   email:
     type: mock
   sms:
     type: mock
+emailTemplates:
+  type: local
+  local:
+    path: ../../static/email_templates
 login:
   loginWith:
     username: true

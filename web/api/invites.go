@@ -36,9 +36,10 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 
 		d := struct {
-			Email       string `json:"email"`
-			Role        string `json:"access_role"`
-			CallbackURL string `json:"callback_url"`
+			Email       string                 `json:"email"`
+			Role        string                 `json:"access_role"`
+			CallbackURL string                 `json:"callback_url"`
+			Data        map[string]interface{} `json:"data"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
@@ -60,7 +61,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role)
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, d.Data)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return
