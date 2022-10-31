@@ -3,6 +3,7 @@ package storage
 import (
 	"io/fs"
 	"log"
+	"strings"
 	"time"
 
 	"golang.org/x/exp/slices"
@@ -20,10 +21,23 @@ type FSWatcher struct {
 	watchingSince map[string]time.Time
 }
 
+// KeysWithFixedSlashed remove prefixed or postfixed slashed in a path
+// because it is not valid path and will fail fs.ValidPath validation
+func KeysWithFixedSlashed(keys []string) []string {
+	result := []string{}
+	for _, k := range keys {
+		k = strings.TrimPrefix(k, "/")
+		k = strings.TrimSuffix(k, "/")
+		result = append(result, k)
+	}
+	return result
+}
+
 func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
+	// let's remove trailing
 	return &FSWatcher{
 		f:             f,
-		keys:          keys,
+		keys:          KeysWithFixedSlashed(keys),
 		poll:          poll,
 		change:        make(chan []string),
 		err:           make(chan error),
@@ -73,6 +87,7 @@ func (w *FSWatcher) checkUpdatedFiles() {
 		if err != nil {
 			log.Printf("getting error: %+v\n", err)
 			w.err <- err
+			continue
 		}
 		if stat.ModTime().After(w.watchingSince[key]) {
 			w.watchingSince[key] = time.Now()

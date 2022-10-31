@@ -10,6 +10,7 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
 	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 const (
@@ -74,4 +75,12 @@ func printFolderContent(fss fs.FS, path string) {
 		fmt.Println("file:", path)
 		return nil
 	})
+}
+
+func TestNewS3FSPath(t *testing.T) {
+	v := fs.ValidPath("/server-config-prod.yaml")
+	require.False(t, v)
+
+	v2 := fs.ValidPath("server-config-prod.yaml")
+	require.True(t, v2)
 }
