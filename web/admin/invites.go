@@ -49,9 +49,10 @@ func (ar *Router) FetchInvites() http.HandlerFunc {
 func (ar *Router) AddInvite() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		d := struct {
-			AppID string `json:"app_id"`
-			Email string `json:"email"`
-			Role  string `json:"access_role"`
+			AppID string                 `json:"app_id"`
+			Email string                 `json:"email"`
+			Role  string                 `json:"access_role"`
+			Data  map[string]interface{} `json:"data"`
 		}{}
 		if err := ar.mustParseJSON(w, r, &d); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error())
@@ -62,7 +63,7 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role)
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, d.Data)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenGenerate, http.StatusInternalServerError, err.Error())
 			return

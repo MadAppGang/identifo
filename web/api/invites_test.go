@@ -2,8 +2,12 @@ package api_test
 
 import (
 	"fmt"
+	"regexp"
 	"testing"
 
+	"github.com/madappgang/identifo/v2/jwt"
+
+	"github.com/madappgang/identifo/v2/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -45,7 +49,10 @@ func TestInvite(t *testing.T) {
 	{ 
 		"email": "%s",
 		"access_role": "%s",
-		"callback_url": "%s"
+		"callback_url": "%s",
+		"data": {
+			"company_id": "19283"
+		}
 	}`, "invitee@madappgang.com", "admin", "http://localhost:3322")
 	signature, _ = Signature(data, cfg.AppSecret)
 
@@ -57,7 +64,7 @@ func TestInvite(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			link = data["link"].(string)
 			return nil
@@ -67,6 +74,19 @@ func TestInvite(t *testing.T) {
 		Done()
 
 	assert.NotEmpty(t, link)
-	assert.Contains(t, link, "email=invitee@madappgang.com")
-	assert.Contains(t, link, `callbackUrl=http:%2F%2Flocalhost:3322`)
+	assert.Contains(t, link, "email=invitee@madappgang.com")          // email
+	assert.Contains(t, link, `callbackUrl=http:%2F%2Flocalhost:3322`) // callback
+
+	jwtRegex := regexp.MustCompile(`http:\/\/.+token=(?P<token>\S+)(\\u0026|\&)callbackUrl.+`)
+	matches := jwtRegex.FindStringSubmatch(link)
+	tokenString := matches[jwtRegex.SubexpIndex("token")]
+
+	token, err := jwt.ParseTokenString(tokenString)
+	require.NoError(t, err)
+	require.NotNil(t, token)
+
+	require.Equal(t, string(model.TokenTypeInvite), token.Type())
+	assert.Equal(t, "invitee@madappgang.com", token.Payload()["email"])
+	assert.Equal(t, "admin", token.Payload()["role"])
+	assert.Equal(t, "19283", token.Payload()["company_id"])
 }

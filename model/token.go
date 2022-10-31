@@ -121,6 +121,10 @@ func (t *JWToken) ID() string {
 	return claims.Id
 }
 
+func (t *JWToken) Claims() *Claims {
+	return t.JWT.Claims.(*Claims)
+}
+
 // IssuedAt standard token claim
 func (t *JWToken) IssuedAt() time.Time {
 	claims, ok := t.JWT.Claims.(*Claims)
