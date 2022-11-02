@@ -138,6 +138,16 @@ func TestInitConfigurationWithBrokenSettingsAPICall(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, rr.Code)
 	assert.Contains(t, rr.Body.String(), "DefaultStorage settings could not be of type Default") // actual error is there as well
 	assert.Contains(t, rr.Body.String(), "Private key file not found")                           // keys unable to load as well
+
+	// CORS request
+	// the response should be allow for any app
+	// to be able to get the config error from any location
+	req, _ = http.NewRequest("OPTIONS", "/auth/app_settings", nil)
+	rr = httptest.NewRecorder()
+	server.Router().ServeHTTP(rr, req)
+	assert.Equal(t, http.StatusInternalServerError, rr.Code)
+	assert.Contains(t, rr.Body.String(), "DefaultStorage settings could not be of type Default") // actual error is there as well
+	assert.Contains(t, rr.Body.String(), "Private key file not found")                           // keys unable to load as well
 }
 
 func TestInitConfigurationWithWithGoodConfigAndFailedStorages(t *testing.T) {

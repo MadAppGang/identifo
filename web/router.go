@@ -95,9 +95,12 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 			Restart:                settings.RestartChan,
 			LoginAppPath:           loginAppPath,
 			LoginPasswordResetPath: loginPasswordResetPath,
-			OriginUpdate: func() error {
+		}
+
+		if settings.AppOriginChecker != nil {
+			routerSettings.OriginUpdate = func() error {
 				return settings.AppOriginChecker.Update()
-			},
+			}
 		}
 
 		// init admin panel api router

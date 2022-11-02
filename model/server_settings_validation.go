@@ -242,8 +242,8 @@ func (sss *SMSServiceSettings) Validate() []error {
 		if len(sss.Twilio.AuthToken) == 0 {
 			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Auth Token", subject))
 		}
-		if len(sss.Twilio.ServiceSid) == 0 {
-			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Service SID", subject))
+		if len(sss.Twilio.ServiceSid) == 0 || len(sss.Twilio.SendFrom) == 0 {
+			result = append(result, fmt.Errorf("%s. error creating Twilio SMS service, missing Service SID or SendFrom", subject))
 		}
 	case SMSServiceRouteMobile:
 		if len(sss.Routemobile.Username) == 0 {

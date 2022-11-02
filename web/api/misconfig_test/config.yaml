@@ -1,0 +1,41 @@
+general:
+  host: http://localhost:8081
+  port: "8081"
+  issuer: http://localhost
+  supported_scopes: []
+adminAccount:
+  loginEnvName: IDENTIFO_ADMIN_LOGIN
+  passwordEnvName: IDENTIFO_ADMIN_PASSWORD
+storage:
+  default:
+    type: wrong_type
+    boltdb: 
+      path: ../../db.db
+sessionStorage:
+  type: memory
+  sessionDuration: 300
+services:
+  email:
+    type: mock
+  sms:
+    type: mock
+emailTemplates:
+  type: local
+  local:
+    path: ../../../static/email_templates
+login:
+  loginWith:
+    username: true
+    phone: true
+    email: true
+    federated: true
+  tfaType: app
+  allowRegisterMissing: true
+keyStorage:
+  type: local
+  local:
+    path: ../../../jwt/test_artifacts/private.pem
+logger:
+  dumpRequest: false
+adminPanel:
+  enabled: true

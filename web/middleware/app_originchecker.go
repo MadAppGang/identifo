@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 
@@ -35,6 +36,9 @@ func NewAppOriginChecker(appstorage model.AppStorage) (*AppOriginChecker, error)
 }
 
 func (aoc *AppOriginChecker) Update() error {
+	if aoc.apps == nil {
+		return errors.New("AppOriginChecker has no apps storage configured")
+	}
 	apps, err := aoc.apps.FetchApps("")
 	if err != nil {
 		return fmt.Errorf("error occurred during fetching apps: %s", err.Error())
