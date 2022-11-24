@@ -26,8 +26,9 @@ type registrationData struct {
 }
 
 type passwordResetData struct {
-	UserID string `json:"user_id,omitempty"`
-	AppID  string `json:"app_id,omitempty"`
+	UserID       string `json:"user_id,omitempty"`
+	AppID        string `json:"app_id,omitempty"`
+	ResetPageURL string `json:"reset_page_url,omitempty"`
 }
 
 type ResetEmailData struct {

@@ -37,10 +37,11 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 
 		d := struct {
-			Email       string                 `json:"email"`
-			Role        string                 `json:"access_role"`
-			CallbackURL string                 `json:"callback_url"`
-			Data        map[string]interface{} `json:"data"`
+			Email         string                 `json:"email"`
+			Role          string                 `json:"access_role"`
+			CallbackURL   string                 `json:"callback_url"`
+			InvitePageURL string                 `json:"invite_page_url"`
+			Data          map[string]interface{} `json:"data"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
 			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
@@ -78,7 +79,13 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes), " ", ",", -1)
 		query := url.PathEscape(fmt.Sprintf("email=%s&appId=%s&scopes=%s&token=%s&callbackUrl=%s", d.Email, app.ID, scopes, inviteTokenString, d.CallbackURL))
 
-		host, err := url.Parse(ar.Host)
+		var host *url.URL
+		if len(d.InvitePageURL) > 0 {
+			host, err = ar.resolveRedirectURI(r, d.InvitePageURL)
+		} else {
+			host, err = url.ParseRequestURI(ar.Host)
+		}
+
 		if err != nil {
 			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
 			return

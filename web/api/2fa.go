@@ -331,7 +331,8 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 // RequestDisabledTFA requests link for disabling TFA.
 func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 	type requestBody struct {
-		Email string `json:"email,omitempty"`
+		Email             string `json:"email,omitempty"`
+		TFADisablePageURL string `json:"tfa_disable_page_url,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -374,9 +375,15 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		host, err := url.Parse(ar.Host)
+		var host *url.URL
+		if len(d.TFADisablePageURL) > 0 {
+			host, err = ar.resolveRedirectURI(r, d.TFADisablePageURL)
+		} else {
+			host, err = url.ParseRequestURI(ar.Host)
+		}
+
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.URL_parse")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
 			return
 		}
 
@@ -427,7 +434,8 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 // RequestTFAReset requests link for resetting TFA: deleting old shared secret and establishing the new one.
 func (ar *Router) RequestTFAReset() http.HandlerFunc {
 	type requestBody struct {
-		Email string `json:"email,omitempty"`
+		Email        string `json:"email,omitempty"`
+		ResetPageURL string `json:"reset_page_url,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -470,9 +478,15 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		host, err := url.Parse(ar.Host)
+		var host *url.URL
+		if len(d.ResetPageURL) > 0 {
+			host, err = ar.resolveRedirectURI(r, d.ResetPageURL)
+		} else {
+			host, err = url.ParseRequestURI(ar.Host)
+		}
+
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestTFAReset.URL_parse")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
 			return
 		}
 

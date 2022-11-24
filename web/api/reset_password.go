@@ -13,7 +13,8 @@ import (
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequest struct {
 		login
-		TFACode string `json:"tfa_code,omitempty"`
+		TFACode      string `json:"tfa_code,omitempty"`
+		ResetPageURL string `json:"reset_page_url,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -89,9 +90,15 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
 
-		host, err := url.Parse(ar.Host)
+		var host *url.URL
+		if len(d.ResetPageURL) > 0 {
+			host, err = ar.resolveRedirectURI(r, d.ResetPageURL)
+		} else {
+			host, err = url.ParseRequestURI(ar.Host)
+		}
+
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.URL_parse")
+			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
 			return
 		}
 
