@@ -29,6 +29,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		// get requester data
 		requesterID := tokenFromContext(r.Context()).UserID()
+		audience := tokenFromContext(r.Context()).Audience()
 		requester, err := ar.server.Storages().User.UserByID(requesterID)
 		if err != nil {
 			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "RequestInviteLink.UserByID")
@@ -61,7 +62,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, d.Data)
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, audience, d.Data)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
 			return

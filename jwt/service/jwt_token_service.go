@@ -360,12 +360,18 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.To
 }
 
 // NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken(email, role string, data map[string]interface{}) (model.Token, error) {
+func (ts *JWTokenService) NewInviteToken(email, role, audience string, data map[string]interface{}) (model.Token, error) {
 	// add payload data here
-	if email != "" {
+	if len(email) > 0 {
+		if data == nil {
+			data = make(map[string]interface{})
+		}
 		data["email"] = email
 	}
-	if role != "" {
+	if len(role) > 0 {
+		if data == nil {
+			data = make(map[string]interface{})
+		}
 		data["role"] = role
 	}
 
@@ -379,8 +385,8 @@ func (ts *JWTokenService) NewInviteToken(email, role string, data map[string]int
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
-			// Subject:   u.ID(), //TODO: investigate why are we suppressing subject id from here?
-			Audience: "identifo",
+			// Subject:   u.ID(), //we are suppressing user ID, because there is not user crated yet.
+			Audience: audience,
 			IssuedAt: now,
 		},
 	}

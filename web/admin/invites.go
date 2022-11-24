@@ -63,7 +63,7 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, d.Data)
+		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, "identifo", d.Data)
 		if err != nil {
 			ar.Error(w, ErrorAPIInviteTokenGenerate, http.StatusInternalServerError, err.Error())
 			return

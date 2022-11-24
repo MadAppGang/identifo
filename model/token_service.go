@@ -10,7 +10,7 @@ type TokenService interface {
 	NewAccessToken(u User, scopes []string, app AppData, requireTFA bool, tokenPayload map[string]interface{}) (Token, error)
 	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
 	RefreshAccessToken(token Token) (Token, error)
-	NewInviteToken(email, role string, data map[string]interface{}) (Token, error)
+	NewInviteToken(email, role, audience string, data map[string]interface{}) (Token, error)
 	NewResetToken(userID string) (Token, error)
 	NewWebCookieToken(u User) (Token, error)
 	Parse(string) (Token, error)
