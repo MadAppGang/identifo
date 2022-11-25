@@ -2,6 +2,7 @@ package api_test
 
 import (
 	"fmt"
+	"net/url"
 	"regexp"
 	"testing"
 
@@ -76,6 +77,85 @@ func TestInvite(t *testing.T) {
 	assert.NotEmpty(t, link)
 	assert.Contains(t, link, "email=invitee@madappgang.com")          // email
 	assert.Contains(t, link, `callbackUrl=http:%2F%2Flocalhost:3322`) // callback
+
+	jwtRegex := regexp.MustCompile(`http:\/\/.+token=(?P<token>\S+)(\\u0026|\&)callbackUrl.+`)
+	matches := jwtRegex.FindStringSubmatch(link)
+	tokenString := matches[jwtRegex.SubexpIndex("token")]
+
+	token, err := jwt.ParseTokenString(tokenString)
+	require.NoError(t, err)
+	require.NotNil(t, token)
+
+	require.Equal(t, string(model.TokenTypeInvite), token.Type())
+	assert.Equal(t, "invitee@madappgang.com", token.Payload()["email"])
+	assert.Equal(t, "admin", token.Payload()["role"])
+	assert.Equal(t, "19283", token.Payload()["company_id"])
+}
+
+func TestInviteWithCustomLoginAppURL(t *testing.T) {
+	data := fmt.Sprintf(`
+	{
+		"username": "%s",
+		"password": "%s",
+		"scopes": ["offline"]
+	}`, cfg.User1, cfg.User1Pswd)
+	signature, _ := Signature(data, cfg.AppSecret2)
+
+	at := ""
+	request.Post("/auth/login").
+		SetHeader("X-Identifo-ClientID", cfg.AppID2).
+		SetHeader("Digest", "SHA-256="+signature).
+		SetHeader("Content-Type", "application/json").
+		BodyString(data).
+		Expect(t).
+		// AssertFunc(dumpResponse).
+		Type("json").
+		Status(200).
+		AssertFunc(validateJSON(func(data map[string]interface{}) error {
+			at = data["access_token"].(string)
+			return nil
+		})).
+		JSONSchema("../../test/artifacts/api/jwt_token_scheme.json"). // no refresh token for this app, because it says offline = false
+		Done()
+
+	require.NotEmpty(t, at)
+	data = fmt.Sprintf(`
+	{ 
+		"email": "%s",
+		"access_role": "%s",
+		"callback_url": "%s",
+		"data": {
+			"company_id": "19283"
+		}
+	}`, "invitee@madappgang.com", "admin", "http://localhost:3322")
+	signature, _ = Signature(data, cfg.AppSecret2)
+
+	link := ""
+	request.Post("/auth/invite").
+		SetHeader("X-Identifo-ClientID", cfg.AppID2).
+		SetHeader("Digest", "SHA-256="+signature).
+		SetHeader("Authorization", "Bearer "+at).
+		SetHeader("Content-Type", "application/json").
+		BodyString(data).
+		Expect(t).
+		AssertFunc(dumpResponse).
+		AssertFunc(validateJSON(func(data map[string]interface{}) error {
+			link = data["link"].(string)
+			return nil
+		})).
+		Type("json").
+		Status(200).
+		Done()
+
+	assert.NotEmpty(t, link)
+	assert.Contains(t, link, "email=invitee@madappgang.com")        // email
+	assert.Contains(t, link, `http://madappgang.com/identifo/web?`) // custom app login app url
+
+	l, err := url.ParseRequestURI(link)
+	require.NoError(t, err)
+	assert.Equal(t, "http", l.Scheme)
+	assert.Equal(t, "madappgang.com", l.Host)
+	assert.Equal(t, "/identifo/web", l.Path)
 
 	jwtRegex := regexp.MustCompile(`http:\/\/.+token=(?P<token>\S+)(\\u0026|\&)callbackUrl.+`)
 	matches := jwtRegex.FindStringSubmatch(link)

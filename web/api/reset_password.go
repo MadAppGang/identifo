@@ -13,7 +13,8 @@ import (
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequest struct {
 		login
-		TFACode string `json:"tfa_code,omitempty"`
+		TFACode      string `json:"tfa_code,omitempty"`
+		ResetPageURL string `json:"reset_page_url,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -88,20 +89,31 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
-
-		host, err := url.Parse(ar.Host)
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.URL_parse")
-			return
-		}
-
 		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     ar.LoginPasswordResetPath,
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.ResetPasswordURL,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}
+
+		// rewrite path for app, if app has specific web app login settings
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
+			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
+				return
+			}
+
+			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+			if appSpecificURL.IsAbs() {
+				u.Scheme = appSpecificURL.Scheme
+				u.Host = appSpecificURL.Host
+			}
+
+			u.Path = appSpecificURL.Path
+		}
+
+		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
 		resetEmailData := ResetEmailData{
 			User:  user,

@@ -18,18 +18,19 @@ type AppStorage interface {
 
 // AppData represents Application data information.
 type AppData struct {
-	ID                   string    `bson:"_id" json:"id"` // TODO: use string?
-	Secret               string    `bson:"secret" json:"secret"`
-	Active               bool      `bson:"active" json:"active"`
-	Name                 string    `bson:"name" json:"name"`
-	Description          string    `bson:"description" json:"description"`
-	Scopes               []string  `bson:"scopes" json:"scopes"`   // Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
-	Offline              bool      `bson:"offline" json:"offline"` // Offline is a boolean value that indicates whether on not the app supports refresh tokens. Do not use refresh tokens with apps that does not have secure storage.
-	Type                 AppType   `bson:"type" json:"type"`
-	RedirectURLs         []string  `bson:"redirect_urls" json:"redirect_urls"` // RedirectURLs is the list of allowed urls where user will be redirected after successfull login. Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
-	TFAStatus            TFAStatus `bson:"tfa_status" json:"tfa_status"`
-	DebugTFACode         string    `bson:"debug_tfa_code" json:"debug_tfa_code"`
-	CustomEmailTemplates bool      `bson:"customEmailTemplates" json:"customEmailTemplates"`
+	ID                   string               `bson:"_id" json:"id"` // TODO: use string?
+	Secret               string               `bson:"secret" json:"secret"`
+	Active               bool                 `bson:"active" json:"active"`
+	Name                 string               `bson:"name" json:"name"`
+	Description          string               `bson:"description" json:"description"`
+	Scopes               []string             `bson:"scopes" json:"scopes"`   // Scopes is the list of all allowed scopes. If it's empty, no limitations (opaque scope).
+	Offline              bool                 `bson:"offline" json:"offline"` // Offline is a boolean value that indicates whether on not the app supports refresh tokens. Do not use refresh tokens with apps that does not have secure storage.
+	Type                 AppType              `bson:"type" json:"type"`
+	RedirectURLs         []string             `bson:"redirect_urls" json:"redirect_urls"`           // RedirectURLs is the list of allowed urls where user will be redirected after successful login. Useful not only for web apps, mobile and desktop apps could use custom scheme for that.
+	LoginAppSettings     *LoginWebAppSettings `bson:"login_app_settings" json:"login_app_settings"` // Rewrite login app settings for custom login, reset password and other settings
+	TFAStatus            TFAStatus            `bson:"tfa_status" json:"tfa_status"`
+	DebugTFACode         string               `bson:"debug_tfa_code" json:"debug_tfa_code"`
+	CustomEmailTemplates bool                 `bson:"customEmailTemplates" json:"customEmailTemplates"`
 
 	// Authorization
 	AuthzWay       AuthorizationWay `bson:"authorization_way" json:"authorization_way"`

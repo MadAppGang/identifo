@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -78,22 +77,33 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		scopes := strings.Replace(fmt.Sprintf("%q", app.Scopes), " ", ",", -1)
 		query := url.PathEscape(fmt.Sprintf("email=%s&appId=%s&scopes=%s&token=%s&callbackUrl=%s", d.Email, app.ID, scopes, inviteTokenString, d.CallbackURL))
 
-		host, err := url.Parse(ar.Host)
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
-			return
+		u := &url.URL{
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.RegisterURL,
+			RawQuery: query,
 		}
 
-		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     path.Join(ar.LoginAppPath, "register"),
-			RawQuery: query,
+		// rewrite path for app, if app has specific web app login settings
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.RegisterURL) > 0 {
+			appSpecificURL, err := url.Parse(app.LoginAppSettings.RegisterURL)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.app_register_url_parse_error")
+				return
+			}
+
+			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+			if appSpecificURL.IsAbs() {
+				u.Scheme = appSpecificURL.Scheme
+				u.Host = appSpecificURL.Host
+			}
+
+			u.Path = appSpecificURL.Path
 		}
 
 		// Send email only if it's specified.
 		if d.Email != "" {
-			uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path.Join(ar.LoginAppPath, "register")}
+			uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 			err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
 			if err != nil {
 				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")

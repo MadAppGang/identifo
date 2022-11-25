@@ -3,6 +3,7 @@ package server
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -40,6 +41,11 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		hostName = settings.General.Host
 	}
 
+	host, err := url.ParseRequestURI(hostName)
+	if err != nil {
+		return nil, err
+	}
+
 	var originChecker *middleware.AppOriginChecker
 	if len(errs) == 0 {
 		// we have valid config loaded and we can do origin checker
@@ -54,7 +60,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 	routerSettings := web.RouterSetting{
 		Server:           &s,
 		ServeAdminPanel:  settings.AdminPanel.Enabled,
-		HostName:         hostName,
+		Host:             host,
 		AppOriginChecker: originChecker,
 		RestartChan:      restartChan,
 		LoggerSettings:   settings.Logger,

@@ -70,7 +70,7 @@ func (os *OriginChecker) AddRawURLs(urls []string) {
 	defer os.Unlock()
 
 	for _, u := range urls {
-		parsed, err := url.Parse(u)
+		parsed, err := url.ParseRequestURI(u)
 		if err == nil {
 			os.origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = true
 		}
