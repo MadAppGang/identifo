@@ -2,11 +2,6 @@
 
 version: "3"
 services:
-  # moto:
-  #   image: motoserver/moto:4.0.6
-  #   ports:
-  #     - "5001:5001"
-  #   entrypoint: ["/usr/local/bin/moto_server", "-H", "0.0.0.0", "-p", "5001"]
   minio:
     image: quay.io/minio/minio:latest
     command: server /data --console-address ":9090"

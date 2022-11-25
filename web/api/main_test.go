@@ -24,6 +24,8 @@ type Config struct {
 	ServerURL     string `env:"SERVER" envDefault:"http://localhost:8081"`
 	AppID         string `env:"APP_ID" envDefault:"59fd884d8f6b180001f5b4e2"`
 	AppSecret     string `env:"APP_SECRET" envDefault:"app_secret"`
+	AppID2        string `env:"APP_ID2" envDefault:"59fd884d8f6b180001f5b4e3"`
+	AppSecret2    string `env:"APP_SECRET2" envDefault:"app_secret_2"`
 	RunTestServer bool   `env:"RUN_TEST_SERVER" envDefault:"true"`
 	User1         string `env:"USER1" envDefault:"test@madappgang.com"`
 	User1Pswd     string `env:"USER1_PSWD" envDefault:"Secret3"`

@@ -12,5 +12,24 @@
 		"token_lifespan":9000,
 		"debug_tfa_code": "314159",
 		"token_payload":["name", "email"]
+	},
+	{
+		"id":"59fd884d8f6b180001f5b4e3",
+		"secret":"app_secret_2",
+		"name":"Test app 2",
+		"active":true, 
+		"description":"Amazing web app", 
+		"scopes":["smartrun"],
+		"offline":false,
+		"redirect_urls": ["http://localhost:3000/callback"],
+		"refresh_token_lifespan":9000000,
+		"token_lifespan":9000,
+		"debug_tfa_code": "314159",
+		"token_payload":["name", "email"],
+		"login_app_settings": {
+			"register_url" : "http://madappgang.com/identifo/web",
+			"reset_password_url" : "/identifo/web/reset"
+		}
 	}
+
 ]
