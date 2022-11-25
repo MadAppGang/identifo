@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 
 	"github.com/gorilla/mux"
@@ -16,53 +17,47 @@ import (
 
 // Router is a router that handles all API requests.
 type Router struct {
-	server                 model.Server
-	middleware             *negroni.Negroni
-	cors                   *cors.Cors
-	logger                 *log.Logger
-	router                 *mux.Router
-	tfaType                model.TFAType
-	tfaResendTimeout       int
-	oidcConfiguration      *OIDCConfiguration
-	jwk                    *jwk
-	Authorizer             *authorization.Authorizer
-	Host                   string
-	SupportedLoginWays     model.LoginWith
-	LoginAppPath           string
-	LoginPasswordResetPath string
-	tokenPayloadServices   map[string]model.TokenPayloadProvider
-	LoggerSettings         model.LoggerSettings
+	server               model.Server
+	middleware           *negroni.Negroni
+	cors                 *cors.Cors
+	logger               *log.Logger
+	router               *mux.Router
+	tfaType              model.TFAType
+	tfaResendTimeout     int
+	oidcConfiguration    *OIDCConfiguration
+	jwk                  *jwk
+	Authorizer           *authorization.Authorizer
+	Host                 *url.URL
+	SupportedLoginWays   model.LoginWith
+	tokenPayloadServices map[string]model.TokenPayloadProvider
+	LoggerSettings       model.LoggerSettings
 }
 
 type RouterSettings struct {
-	Server                 model.Server
-	Logger                 *log.Logger
-	LoggerSettings         model.LoggerSettings
-	Authorizer             *authorization.Authorizer
-	Host                   string
-	LoginAppPath           string
-	LoginPasswordResetPath string
-	TFAType                model.TFAType
-	TFAResendTimeout       int
-	LoginWith              model.LoginWith
-	Cors                   *cors.Cors
+	Server           model.Server
+	Logger           *log.Logger
+	LoggerSettings   model.LoggerSettings
+	Authorizer       *authorization.Authorizer
+	Host             *url.URL
+	TFAType          model.TFAType
+	TFAResendTimeout int
+	LoginWith        model.LoginWith
+	Cors             *cors.Cors
 }
 
 // NewRouter creates and inits new router.
 func NewRouter(settings RouterSettings) (*Router, error) {
 	ar := Router{
-		server:                 settings.Server,
-		middleware:             negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
-		router:                 mux.NewRouter(),
-		Authorizer:             settings.Authorizer,
-		LoggerSettings:         settings.LoggerSettings,
-		Host:                   settings.Host,
-		LoginAppPath:           settings.LoginAppPath,
-		LoginPasswordResetPath: settings.LoginPasswordResetPath,
-		tfaType:                settings.TFAType,
-		tfaResendTimeout:       settings.TFAResendTimeout,
-		SupportedLoginWays:     settings.LoginWith,
-		cors:                   settings.Cors,
+		server:             settings.Server,
+		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
+		router:             mux.NewRouter(),
+		Authorizer:         settings.Authorizer,
+		LoggerSettings:     settings.LoggerSettings,
+		Host:               settings.Host,
+		tfaType:            settings.TFAType,
+		tfaResendTimeout:   settings.TFAResendTimeout,
+		SupportedLoginWays: settings.LoginWith,
+		cors:               settings.Cors,
 	}
 
 	// setup logger to stdout.

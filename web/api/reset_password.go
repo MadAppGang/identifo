@@ -89,26 +89,31 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
-
-		var host *url.URL
-		if len(d.ResetPageURL) > 0 {
-			host, err = ar.resolveRedirectURI(r, d.ResetPageURL)
-		} else {
-			host, err = url.ParseRequestURI(ar.Host)
-		}
-
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
-			return
-		}
-
 		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     ar.LoginPasswordResetPath,
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.ResetPasswordURL,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginAppPath}
+
+		// rewrite path for app, if app has specific web app login settings
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
+			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
+				return
+			}
+
+			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+			if appSpecificURL.IsAbs() {
+				u.Scheme = appSpecificURL.Scheme
+				u.Host = appSpecificURL.Host
+			}
+
+			u.Path = appSpecificURL.Path
+		}
+
+		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
 		resetEmailData := ResetEmailData{
 			User:  user,

@@ -4,6 +4,7 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
+	"net/url"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mem"
@@ -17,12 +18,9 @@ import (
 )
 
 const (
-	adminpanelPath         = "/adminpanel"
-	adminpanelAPIPath      = "/admin"
-	apiPath                = "/api"
-	loginAppPath           = "/web"
-	loginPasswordResetPath = "/web/password/reset"
-	loginAppErrorPath      = "/web/misconfiguration"
+	adminpanelPath    = "/adminpanel"
+	adminpanelAPIPath = "/admin"
+	apiPath           = "/api"
 )
 
 // RouterSetting contains settings for root http router.
@@ -30,7 +28,7 @@ type RouterSetting struct {
 	Server           model.Server
 	Logger           *log.Logger
 	ServeAdminPanel  bool
-	HostName         string
+	Host             *url.URL
 	LoggerSettings   model.LoggerSettings
 	AppOriginChecker model.OriginChecker
 	APICors          *cors.Cors
@@ -51,17 +49,15 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	apiCors := cors.New(apiCorsSettings)
 
 	apiSettings := api.RouterSettings{
-		Server:                 settings.Server,
-		Logger:                 settings.Logger,
-		LoggerSettings:         settings.LoggerSettings,
-		Authorizer:             authorizer,
-		Host:                   settings.HostName,
-		LoginAppPath:           loginAppPath,
-		LoginPasswordResetPath: loginPasswordResetPath,
-		LoginWith:              settings.Server.Settings().Login.LoginWith,
-		TFAType:                settings.Server.Settings().Login.TFAType,
-		TFAResendTimeout:       settings.Server.Settings().Login.TFAResendTimeout,
-		Cors:                   apiCors,
+		Server:           settings.Server,
+		Logger:           settings.Logger,
+		LoggerSettings:   settings.LoggerSettings,
+		Authorizer:       authorizer,
+		Host:             settings.Host,
+		LoginWith:        settings.Server.Settings().Login.LoginWith,
+		TFAType:          settings.Server.Settings().Login.TFAType,
+		TFAResendTimeout: settings.Server.Settings().Login.TFAResendTimeout,
+		Cors:             apiCors,
 	}
 
 	apiRouter, err := api.NewRouter(apiSettings)
@@ -88,13 +84,11 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 	// Admin panel
 	if settings.ServeAdminPanel {
 		routerSettings := admin.RouterSettings{
-			Server:                 settings.Server,
-			Logger:                 settings.Logger,
-			Host:                   settings.HostName,
-			Prefix:                 adminpanelAPIPath,
-			Restart:                settings.RestartChan,
-			LoginAppPath:           loginAppPath,
-			LoginPasswordResetPath: loginPasswordResetPath,
+			Server:  settings.Server,
+			Logger:  settings.Logger,
+			Host:    settings.Host,
+			Prefix:  adminpanelAPIPath,
+			Restart: settings.RestartChan,
 		}
 
 		if settings.AppOriginChecker != nil {
@@ -151,7 +145,7 @@ func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
 	if ar.LoginAppRouter != nil {
-		ar.RootRouter.Handle(loginAppPath+"/", http.StripPrefix(loginAppPath, ar.LoginAppRouter))
+		ar.RootRouter.Handle(model.DefaultLoginWebAppSettings.LoginURL+"/", http.StripPrefix(model.DefaultLoginWebAppSettings.LoginURL, ar.LoginAppRouter))
 	}
 	if ar.AdminRouter != nil && ar.AdminPanelRouter != nil {
 		ar.RootRouter.Handle(adminpanelAPIPath+"/", http.StripPrefix(adminpanelAPIPath, ar.AdminRouter))

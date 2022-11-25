@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
-	"path"
 	"strings"
 	"time"
 
@@ -331,8 +330,7 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 // RequestDisabledTFA requests link for disabling TFA.
 func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 	type requestBody struct {
-		Email             string `json:"email,omitempty"`
-		TFADisablePageURL string `json:"tfa_disable_page_url,omitempty"`
+		Email string `json:"email,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -375,31 +373,34 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 			return
 		}
 
-		var host *url.URL
-		if len(d.TFADisablePageURL) > 0 {
-			host, err = ar.resolveRedirectURI(r, d.TFADisablePageURL)
-		} else {
-			host, err = url.ParseRequestURI(ar.Host)
-		}
-
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
-			return
-		}
-
 		query := fmt.Sprintf("token=%s", resetTokenString)
 
 		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     path.Join(ar.LoginAppPath, "tfa/disable"),
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.TFADisableURL,
 			RawQuery: query,
 		}
-		uu := &url.URL{
-			Scheme: host.Scheme,
-			Host:   host.Host,
-			Path:   path.Join(ar.LoginAppPath, "tfa/disable"),
+
+		// rewrite path for app, if app has specific web app login settings
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFADisableURL) > 0 {
+			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFADisableURL)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.app_tfa_disable_url_parse_error")
+				return
+			}
+
+			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+			if appSpecificURL.IsAbs() {
+				u.Scheme = appSpecificURL.Scheme
+				u.Host = appSpecificURL.Host
+			}
+
+			u.Path = appSpecificURL.Path
 		}
+
+		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
+
 		resetEmailData := ResetEmailData{
 			User:  user,
 			Token: resetTokenString,
@@ -434,8 +435,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 // RequestTFAReset requests link for resetting TFA: deleting old shared secret and establishing the new one.
 func (ar *Router) RequestTFAReset() http.HandlerFunc {
 	type requestBody struct {
-		Email        string `json:"email,omitempty"`
-		ResetPageURL string `json:"reset_page_url,omitempty"`
+		Email string `json:"email,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -478,31 +478,33 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 			return
 		}
 
-		var host *url.URL
-		if len(d.ResetPageURL) > 0 {
-			host, err = ar.resolveRedirectURI(r, d.ResetPageURL)
-		} else {
-			host, err = url.ParseRequestURI(ar.Host)
-		}
-
-		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.URL_parse")
-			return
-		}
-
 		query := fmt.Sprintf("token=%s", resetTokenString)
 
 		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     path.Join(ar.LoginAppPath, "tfa/reset"),
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.TFAResetURL,
 			RawQuery: query,
 		}
-		uu := &url.URL{
-			Scheme: host.Scheme,
-			Host:   host.Host,
-			Path:   path.Join(ar.LoginAppPath, "tfa/reset"),
+
+		// rewrite path for app, if app has specific web app login settings
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
+			appResetURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
+			if err != nil {
+				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.app_tfa_reset_url_parse_error")
+				return
+			}
+
+			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+			if appResetURL.IsAbs() {
+				u.Scheme = appResetURL.Scheme
+				u.Host = appResetURL.Host
+			}
+
+			u.Path = appResetURL.Path
 		}
+
+		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
 		resetEmailData := ResetEmailData{
 			URL:   u.String(),

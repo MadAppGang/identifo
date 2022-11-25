@@ -238,19 +238,13 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 
 		query := fmt.Sprintf("appId=%s&token=%s", resetData.AppID, resetTokenString)
 
-		host, err := url.Parse(ar.Host)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
-			return
-		}
-
 		u := &url.URL{
-			Scheme:   host.Scheme,
-			Host:     host.Host,
-			Path:     ar.LoginPasswordResetPath,
+			Scheme:   ar.Host.Scheme,
+			Host:     ar.Host.Host,
+			Path:     model.DefaultLoginWebAppSettings.ResetPasswordURL,
 			RawQuery: query,
 		}
-		uu := &url.URL{Scheme: host.Scheme, Host: host.Host, Path: ar.LoginPasswordResetPath}
+		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
 		resetEmailData := ResetEmailData{
 			Token: resetTokenString,
