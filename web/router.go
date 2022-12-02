@@ -92,8 +92,12 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		}
 
 		if settings.AppOriginChecker != nil {
+			checker := settings.AppOriginChecker // keep reference to origin checker, not settings
 			routerSettings.OriginUpdate = func() error {
-				return settings.AppOriginChecker.Update()
+				return checker.Update()
+			}
+			r.UpdateCORS = func() {
+				checker.Update()
 			}
 		}
 
@@ -133,6 +137,7 @@ type Router struct {
 	AdminRouter      model.Router
 	AdminPanelRouter model.Router
 	RootRouter       *http.ServeMux
+	UpdateCORS       func()
 }
 
 // ServeHTTP implements identifo.Router interface.

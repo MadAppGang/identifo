@@ -88,6 +88,12 @@ func (s *Server) Router() model.Router {
 	return s.MainRouter
 }
 
+func (s *Server) UpdateCORS() {
+	if s.MainRouter.UpdateCORS != nil {
+		s.MainRouter.UpdateCORS()
+	}
+}
+
 func (s *Server) Settings() model.ServerSettings {
 	return s.settings
 }

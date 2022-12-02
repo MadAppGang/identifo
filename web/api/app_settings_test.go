@@ -57,3 +57,5 @@ func TestAppSettingsCORS(t *testing.T) {
 	assert.Contains(t, header.Get("Access-Control-Allow-Origin"), "http://localhost:3000")
 	assert.Contains(t, header.Get("Access-Control-Allow-Methods"), "GET")
 }
+
+
