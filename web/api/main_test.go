@@ -46,6 +46,8 @@ var request *baloo.Client
 // Some test helper function here to setup test environment
 // ============================================================
 func TestMain(m *testing.M) {
+	// forceIntegrationTests()
+
 	// try to load dotenv file. If failed - just ignore. Dotenv file is optional
 	_ = godotenv.Load()
 
@@ -95,6 +97,8 @@ func runServer() (model.Server, *http.Server) {
 	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
+	// updates CORS after apps import
+	srv.UpdateCORS()
 
 	httpSrv := &http.Server{
 		Addr:    srv.Settings().GetPort(),
@@ -145,4 +149,15 @@ func validateJSON(validator validatorFunc) assert.Func {
 		json.Unmarshal(body, &data)
 		return validator(data)
 	}
+}
+
+func forceIntegrationTests() {
+	os.Setenv("IDENTIFO_TEST_INTEGRATION", "1")
+	os.Setenv("IDENTIFO_TEST_AWS_ENDPOINT", "http://localhost:9000")
+	os.Setenv("AWS_ACCESS_KEY_ID", "testing")
+	os.Setenv("AWS_SECRET_ACCESS_KEY", "testing_secret")
+	os.Setenv("IDENTIFO_FORCE_S3_PATH_STYLE", "1")
+	os.Setenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION", "1")
+	os.Setenv("IDENTIFO_STORAGE_MONGO_CONN", "mongodb://admin:password@localhost:27017/billing-local?authSource=admin")
+	os.Setenv("IDENTIFO_REDIS_HOST", "127.0.0.1:6379")
 }

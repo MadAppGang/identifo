@@ -8,6 +8,7 @@ import (
 // Server holds together all dependencies.
 type Server interface {
 	Router() Router
+	UpdateCORS()
 	Storages() ServerStorageCollection
 	Services() ServerServices
 	Settings() ServerSettings

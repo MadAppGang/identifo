@@ -1,0 +1,64 @@
+{
+    "$schema": "http://json-schema.org/draft-04/schema#",
+    "type": "object",
+    "properties": {
+      "anonymousRegistrationAllowed": {
+        "type": "boolean"
+      },
+      "active": {
+        "type": "boolean"
+      },
+      "description": {
+        "type": "string"
+      },
+      "id": {
+        "type": "string"
+      },
+      "newUserDefaultRole": {
+        "type": "string"
+      },
+      "offline": {
+        "type": "boolean"
+      },
+      "registrationForbidden": {
+        "type": "boolean"
+      },
+      "tfaType": {
+        "type": "string"
+      },
+      "tfaStatus": {
+        "type": "string"
+      },
+      "loginWith": {
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "boolean"
+          },
+          "phone": {
+            "type": "boolean"
+          },
+          "email": {
+            "type": "boolean"
+          },
+          "federated": {
+            "type": "boolean"
+          }
+        }
+      },
+      "customEmailTemplates":{
+        "type":"boolean"
+      },
+      "federatedProviders": {
+        "type": "array"
+      }
+    },
+    "required": [
+      "id",
+      "active",
+      "loginWith",
+      "registrationForbidden",
+      "tfaType"
+    ]
+  }
+  

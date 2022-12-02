@@ -52,7 +52,13 @@ func (os *OriginChecker) IsPresent(origin string) bool {
 	os.RLock()
 	defer os.RUnlock()
 
-	_, ok := os.origins[origin]
+	clean, err := cleanOrigin(origin)
+	if err != nil {
+		return false
+	}
+
+	_, ok := os.origins[clean]
+	fmt.Printf(">>>>>>OriginChecker:IsPresent ok: %v with origins map: %+v\n", ok, os.origins)
 	return ok
 }
 
@@ -61,7 +67,11 @@ func (os *OriginChecker) Add(origin string) {
 	os.Lock()
 	defer os.Unlock()
 
-	os.origins[origin] = true
+	clean, err := cleanOrigin(origin)
+	if err != nil {
+		return
+	}
+	os.origins[clean] = true
 }
 
 // AddRawURLs parses and adds urls to the list of allowed origins.
@@ -70,9 +80,9 @@ func (os *OriginChecker) AddRawURLs(urls []string) {
 	defer os.Unlock()
 
 	for _, u := range urls {
-		parsed, err := url.ParseRequestURI(u)
+		clean, err := cleanOrigin(u)
 		if err == nil {
-			os.origins[fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host)] = true
+			os.origins[clean] = true
 		}
 	}
 }
@@ -82,7 +92,11 @@ func (os *OriginChecker) Delete(origin string) {
 	os.Lock()
 	defer os.Unlock()
 
-	delete(os.origins, origin)
+	clean, err := cleanOrigin(origin)
+	if err != nil {
+		return
+	}
+	delete(os.origins, clean)
 }
 
 // DeleteAll removes all origins from the global origin map.
@@ -107,4 +121,13 @@ func (os *OriginChecker) CheckOrigin(r *http.Request, origin string) bool {
 		}
 	}
 	return false
+}
+
+func cleanOrigin(dirty string) (string, error) {
+	parsed, err := url.ParseRequestURI(dirty)
+	if err != nil {
+		return dirty, fmt.Errorf("unable to parse origin: %s with error: %s", dirty, err.Error())
+	}
+
+	return fmt.Sprintf("%s://%s", parsed.Scheme, parsed.Host), nil
 }
