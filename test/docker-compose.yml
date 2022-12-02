@@ -6,7 +6,7 @@ services:
     image: quay.io/minio/minio:latest
     command: server /data --console-address ":9090"
     volumes:
-      - miniodata:/data
+      - identifo_miniodata:/data
     ports:
       - "9000:9000"
       - "9090:9090"
@@ -21,7 +21,7 @@ services:
 
 
 
-  store_mongo:
+  mongo:
     image: mongo:6
     ports:
       - "27017:27017"
@@ -30,6 +30,8 @@ services:
       - MONGO_LOG_DIR=/dev/null
       - MONGO_INITDB_ROOT_USERNAME=admin
       - MONGO_INITDB_ROOT_PASSWORD=password
+    volumes:
+      - identifo_mongo:/data/db
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongo mongo:27017/test --quiet
       interval: 10s
@@ -49,4 +51,5 @@ services:
       start_period: 40s
 
 volumes:
-  miniodata:
+  identifo_miniodata:
+  identifo_mongo:
