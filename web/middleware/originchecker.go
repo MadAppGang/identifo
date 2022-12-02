@@ -52,9 +52,7 @@ func (os *OriginChecker) IsPresent(origin string) bool {
 	os.RLock()
 	defer os.RUnlock()
 
-	fmt.Printf(">>>>>>OriginChecker:IsPresent starts with origin: %s\n", origin)
 	clean, err := cleanOrigin(origin)
-	fmt.Printf(">>>>>>OriginChecker:IsPresent clean: %s with error: %s\n", clean, err)
 	if err != nil {
 		return false
 	}
