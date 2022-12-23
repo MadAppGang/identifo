@@ -39,4 +39,9 @@ adminPanel:
 loginWebApp:
   type: default
 emailTemplates:
-  type: default
+  type: s3
+  s3:
+    region: au_south_west
+    bucket: s3_bucket
+    key: s3_object_key
+    endpoint: s3_endpoint

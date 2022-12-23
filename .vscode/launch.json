@@ -91,6 +91,25 @@
       "args": ["--config=s3://ap-southeast-2@identifo/config.yaml|http://localhost:5001"], 
       "showLog": true
     },
+    {
+      "name": "S3 dev",
+      "type": "go",
+      "request": "launch",
+      "mode": "debug",
+      "port": 2345,
+      "host": "127.0.0.1",
+      "program": "${workspaceFolder}/main.go",
+      "cwd": "${workspaceFolder}",
+      "envFile": "${workspaceFolder}/.env",
+      "env": {
+        "AWS_PROFILE": "carbono",
+        "AWS_SDK_LOAD_CONFIG": 1,
+        "IDENTIFO_ADMIN_LOGIN": "admin@admin.com",
+        "IDENTIFO_ADMIN_PASSWORD": "password",        
+      },
+      "args": ["--config=s3://ap-southeast-2@carbono-dev-identifo-add-carbonoidentifoconfigbuc-1caqe0vnt5fvd/dev/config.yaml"], 
+      "showLog": true
+    },
 
 
   ]

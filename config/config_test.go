@@ -44,12 +44,18 @@ func TestInitConfigurationWithFile(t *testing.T) {
 	assert.Empty(t, errs)
 	assert.Equal(t, s.Storage.DefaultStorage.Type, model.DBTypeBoltDB)
 	assert.Equal(t, s.Storage.DefaultStorage.BoltDB.Path, "../data/db.db")
+	assert.Equal(t, s.EmailTemplates.Type, model.FileStorageTypeS3)
+	assert.Equal(t, s.EmailTemplates.S3.Bucket, "s3_bucket")
+	assert.Equal(t, s.EmailTemplates.S3.Region, "au_south_west")
+	assert.Equal(t, s.EmailTemplates.S3.Key, "s3_object_key")
+	assert.Equal(t, s.EmailTemplates.S3.Endpoint, "s3_endpoint")
 
 	server, err := config.NewServer(stor, nil)
 	require.NoError(t, err)
 	require.NotNil(t, server)
 	require.Empty(t, server.Errors())
 	require.True(t, reflect.DeepEqual(s, server.Settings()))
+
 	os.RemoveAll("../data")
 }
 
