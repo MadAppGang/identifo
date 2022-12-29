@@ -92,26 +92,32 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		u := &url.URL{
 			Scheme:   ar.Host.Scheme,
 			Host:     ar.Host.Host,
-			Path:     model.DefaultLoginWebAppSettings.ResetPasswordURL,
 			RawQuery: query,
 		}
 
-		// rewrite path for app, if app has specific web app login settings
-		if app.LoginAppSettings != nil && len(app.LoginAppSettings.ResetPasswordURL) > 0 {
-			appSpecificURL, err := url.Parse(app.LoginAppSettings.ResetPasswordURL)
-			if err != nil {
-				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
-				return
-			}
+		resetPath := model.DefaultLoginWebAppSettings.ResetPasswordURL
 
-			// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
-			if appSpecificURL.IsAbs() {
-				u.Scheme = appSpecificURL.Scheme
-				u.Host = appSpecificURL.Host
-			}
-
-			u.Path = appSpecificURL.Path
+		// if app requested reset password custom page, use it.
+		if len(d.ResetPageURL) > 0 {
+			resetPath = d.ResetPageURL
+		} else if app.LoginAppSettings != nil && len(app.LoginAppSettings.ResetPasswordURL) > 0 {
+			// rewrite path for app, if app has specific web app login settings
+			resetPath = app.LoginAppSettings.ResetPasswordURL
 		}
+
+		resetPathURL, err := url.Parse(resetPath)
+		if err != nil {
+			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
+			return
+		}
+
+		// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
+		if resetPathURL.IsAbs() {
+			u.Scheme = resetPathURL.Scheme
+			u.Host = resetPathURL.Host
+		}
+
+		u.Path = resetPathURL.Path
 
 		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
