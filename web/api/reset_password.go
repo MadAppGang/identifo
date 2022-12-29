@@ -97,8 +97,8 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		// rewrite path for app, if app has specific web app login settings
-		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
-			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
+		if app.LoginAppSettings != nil && len(app.LoginAppSettings.ResetPasswordURL) > 0 {
+			appSpecificURL, err := url.Parse(app.LoginAppSettings.ResetPasswordURL)
 			if err != nil {
 				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
 				return
