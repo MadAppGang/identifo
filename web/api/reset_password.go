@@ -35,6 +35,8 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err == model.ErrUserNotFound {
+			// return ok, but there is no user
+			// TODO: add logging for for reset password for user, who is not exist
 			result := map[string]string{"result": "ok"}
 			ar.ServeJSON(w, http.StatusOK, result)
 			return
