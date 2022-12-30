@@ -28,7 +28,7 @@
 		"token_payload":["name", "email"],
 		"login_app_settings": {
 			"register_url" : "http://madappgang.com/identifo/web",
-			"reset_password_url" : "/identifo/web/reset"
+			"reset_password_url" : "http://rewrite.com/login/cusom"
 		}
 	}
 

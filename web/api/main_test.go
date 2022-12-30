@@ -16,6 +16,7 @@ import (
 	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/v2/config"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/services/mail/mock"
 	"gopkg.in/h2non/baloo.v3"
 	"gopkg.in/h2non/baloo.v3/assert"
 )
@@ -41,6 +42,8 @@ var cfg = Config{}
 
 // test stores the HTTP testing client preconfigured
 var request *baloo.Client
+
+var emailService *mock.EmailService
 
 // ============================================================
 // Some test helper function here to setup test environment
@@ -90,6 +93,8 @@ func runServer() (model.Server, *http.Server) {
 	if err != nil {
 		log.Fatalf("error creating server: %v", err)
 	}
+
+	emailService = srv.Services().Email.Transport().(*mock.EmailService)
 
 	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
