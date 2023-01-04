@@ -31,7 +31,7 @@ require (
 	go.mongodb.org/mongo-driver v1.10.3
 	golang.org/x/crypto v0.1.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
-	golang.org/x/net v0.1.0
+	golang.org/x/net v0.3.0
 	google.golang.org/grpc v1.50.1
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
@@ -86,9 +86,9 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/oauth2 v0.0.0-20210218202405-ba52d332ba99 // indirect
-	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c // indirect
-	golang.org/x/sys v0.1.0 // indirect
-	golang.org/x/text v0.4.0 // indirect
+	golang.org/x/sync v0.1.0 // indirect
+	golang.org/x/sys v0.3.0 // indirect
+	golang.org/x/text v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20210226172003-ab064af71705 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
