@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/golang-jwt/jwt/v4"
+	"github.com/madappgang/identifo/v2/model"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
 )
@@ -120,4 +122,35 @@ func TestLoginWithWrongSignature(t *testing.T) {
 			return nil
 		})).
 		Done()
+}
+
+func TestLoginTokenClaims(t *testing.T) {
+	data := fmt.Sprintf(`
+	{
+		"username": "%s",
+		"password": "%s",
+		"scopes": ["offline"]
+	}`, cfg.User1, cfg.User1Pswd)
+	signature, _ := Signature(data, cfg.AppSecret)
+	tokenStr := ""
+
+	request.Post("/auth/login").
+		SetHeader("X-Identifo-ClientID", cfg.AppID).
+		SetHeader("Digest", "SHA-256="+signature).
+		SetHeader("Content-Type", "application/json").
+		BodyString(data).
+		Expect(t).
+		// AssertFunc(dumpResponse).
+		Type("json").
+		AssertFunc(validateJSON(func(data map[string]interface{}) error {
+			tokenStr = data["refresh_token"].(string)
+			return nil
+		})).
+		Status(200).
+		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		Done()
+
+	tt, _ := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, nil)
+	token := model.JWToken{JWT: tt}
+	token.
 }
