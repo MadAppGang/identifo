@@ -64,6 +64,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		AppOriginChecker: originChecker,
 		RestartChan:      restartChan,
 		LoggerSettings:   settings.Logger,
+		Locale:           settings.General.Locale,
 	}
 
 	r, err := web.NewRouter(routerSettings)

@@ -34,6 +34,7 @@ type ServerSettings struct {
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
+	Locale          string   `yaml:"locale" json:"locale"`
 	Host            string   `yaml:"host" json:"host"`
 	Port            string   `yaml:"port" json:"port"`
 	Issuer          string   `yaml:"issuer" json:"issuer"`

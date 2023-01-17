@@ -9,8 +9,6 @@ func GetMessage(id MessageID) string {
 }
 
 var messages = map[MessageID]string{
-	ErrorAPIInternalServerError:              "Internal server error",
-	ErrorAPIUserUnableToCreate:               "Unable to create use. Try again or contact support team",
 	ErrorAPIVerificationCodeInvalid:          "Sorry, the code you entered is invalid or has expired. Please get a new one.",
 	ErrorAPIUserNotFound:                     "Specified user not found",
 	ErrorAPIUsernameTaken:                    "Username is taken. Try to choose another one",
@@ -52,7 +50,6 @@ var messages = map[MessageID]string{
 	ErrorAPIAppFederatedProviderNotSupported: "Federated provider is not supported",
 	ErrorAPIAppLoginWithUsernameNotSupported: "Login with username is not supported by app",
 	ErrorAPIAppPhoneLoginNotSupported:        "Login with phone number is not supported by app",
-	ErrorAPIAppAccessDenied:                  "Access denied",
 }
 
 const (

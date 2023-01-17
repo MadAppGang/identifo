@@ -33,6 +33,7 @@ type RouterSetting struct {
 	AppOriginChecker model.OriginChecker
 	APICors          *cors.Cors
 	RestartChan      chan<- bool
+	Locale           string
 }
 
 // NewRouter creates and inits root http router.
@@ -58,6 +59,7 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		TFAType:          settings.Server.Settings().Login.TFAType,
 		TFAResendTimeout: settings.Server.Settings().Login.TFAResendTimeout,
 		Cors:             apiCors,
+		Locale:           settings.Locale,
 	}
 
 	apiRouter, err := api.NewRouter(apiSettings)

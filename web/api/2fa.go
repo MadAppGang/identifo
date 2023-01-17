@@ -45,7 +45,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "app is not in context", "EnableTFA.AppFromContext")
 			return
 		}
 
@@ -56,7 +56,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Token bytes are not in context.", "EnableTFA.TokenBytesFromContext")
+			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "token bytes are not in context", "EnableTFA.TokenBytesFromContext")
 			return
 		}
 

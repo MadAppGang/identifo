@@ -13,6 +13,8 @@ import (
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
+	"golang.org/x/text/language"
+	"golang.org/x/text/message"
 )
 
 // Router is a router that handles all API requests.
@@ -31,6 +33,7 @@ type Router struct {
 	SupportedLoginWays   model.LoginWith
 	tokenPayloadServices map[string]model.TokenPayloadProvider
 	LoggerSettings       model.LoggerSettings
+	ls                   *message.Printer // localized string
 }
 
 type RouterSettings struct {
@@ -43,10 +46,18 @@ type RouterSettings struct {
 	TFAResendTimeout int
 	LoginWith        model.LoginWith
 	Cors             *cors.Cors
+	Locale           string
 }
 
 // NewRouter creates and inits new router.
 func NewRouter(settings RouterSettings) (*Router, error) {
+	l, err := language.Parse(settings.Locale)
+	// go to default english locale
+	if err != nil {
+		l = language.English
+	}
+	p := message.NewPrinter(l)
+
 	ar := Router{
 		server:             settings.Server,
 		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
@@ -58,6 +69,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 		tfaResendTimeout:   settings.TFAResendTimeout,
 		SupportedLoginWays: settings.LoginWith,
 		cors:               settings.Cors,
+		ls:                 p,
 	}
 
 	// setup logger to stdout.
@@ -127,8 +139,8 @@ func (ar *Router) Error(w http.ResponseWriter, errID MessageID, status int, deta
 	w.WriteHeader(status)
 	encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{"error": &errorResponse{
 		ID:              errID,
-		Message:         GetMessage(errID),
-		DetailedMessage: details,
+		Message:         ar.ls.Sprintf(GetMessage(errID)),
+		DetailedMessage: ar.ls.Sprintf(details),
 		Status:          status,
 	}})
 	if encodeErr != nil {

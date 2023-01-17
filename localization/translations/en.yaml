@@ -1,1 +1,25 @@
 test: I am test string
+key with spaces: key with spaces passed test
+app is not in context: app is not in context
+TFA is not supported by this app: TFA is not supported by this app
+token bytes are not in context: token bytes are not in context
+TFA already enabled for this user: TFA already enabled for this user
+
+
+# api messages
+api.internal_server_error: Internal server error.
+api.app.access_denied: Access denied.
+error.api.user.unable_to_create: Unable to create use, please try again or contact support team.
+error.api.verification_code.invalid: Sorry, the code you entered is invalid or has expired. Please get a new one.
+error.api.user.not_found: User not found.
+error.api.username.taken: Username is taken. Try to choose another one.
+error.api.username_phone_email.taken: Username, email or/and phone is taken. Try to choose another one.
+error.api.email.taken: Email is taken. Try to choose another one.
+error.api.phone.taken: Phone is taken. Try to choose another one.
+error.api.invite_token.server_error: Unable to create invite token. Try again or contact support team.
+error.api.invite.unable_to_invalidate: Unable to invalidate invite. Try again or contact support team.
+error.api.invite.unable_to_save: Unable to save invite. Try again or contact support team.
+errors.api.invite.unable_to_get: Unable to get invites. Try again or contact support team.
+error.api.email.not_sent: Unable to send email. Try again or contact support team.
+error.api.request.password.weak: Password is not strong enough.
+error.api.request.incorrect_login_or_password: Incorrect email or password.
