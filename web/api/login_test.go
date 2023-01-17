@@ -1,13 +1,16 @@
 package api_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
+	"github.com/MicahParks/keyfunc"
 	"github.com/golang-jwt/jwt/v4"
 	"github.com/madappgang/identifo/v2/model"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
+	"github.com/stretchr/testify/assert"
 )
 
 // ============================================================
@@ -143,14 +146,40 @@ func TestLoginTokenClaims(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
-			tokenStr = data["refresh_token"].(string)
+			tokenStr = data["access_token"].(string)
 			return nil
 		})).
 		Status(200).
 		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 
-	tt, _ := jwt.ParseWithClaims(tokenStr, &jwt.RegisteredClaims{}, nil)
+	body := ""
+	// Get public key
+	request.Get("/.well-known/jwks.json").
+		Expect(t).
+		Type("json").
+		AssertFunc(validateBodyText(func(b string) error {
+			body = b
+			return nil
+		})).
+		Status(200).
+		Done()
+
+	jwks, err := keyfunc.NewJSON(json.RawMessage(body))
+	assert.NoError(t, err)
+
+	tt, err := jwt.ParseWithClaims(tokenStr, &model.Claims{}, jwks.Keyfunc)
+	assert.NoError(t, err)
+	assert.Equal(t, "ES256", tt.Method.Alg())
+	assert.True(t, tt.Valid)
+
 	token := model.JWToken{JWT: tt}
-	token.
+	assert.False(t, token.New)
+	assert.Equal(t, 1, len(token.Payload()))
+	assert.Equal(t, "59fd884d8f6b180001f5b4e2", token.Audience())
+	assert.Equal(t, "63c6273a46504e3abdc00fc6", token.Subject())
+	assert.Equal(t, "http://localhost", token.Issuer())
+	assert.Equal(t, "access", token.Type())
+
+	assert.GreaterOrEqual(t, len(token.Audience()), 1)
 }
