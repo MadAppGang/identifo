@@ -4,10 +4,12 @@ key with spaces: key with spaces passed test
 
 # api messages
 api.internal_server_error: Internal server error.
+api.internal_server_error_with_error: Internal server error; %v.
 api.app.access_denied: Access denied.
 error.api.user.unable_to_create: Unable to create use, please try again or contact support team.
 error.api.verification_code.invalid: Sorry, the code you entered is invalid or has expired. Please get a new one.
 error.api.user.not_found: User not found.
+error.api.user.not_found.error: User not found with error; %v. 
 error.api.username.taken: Username is taken. Try to choose another one.
 error.api.username_phone_email.taken: Username, email or/and phone is taken. Try to choose another one.
 error.api.email.taken: Email is taken. Try to choose another one.
@@ -27,7 +29,8 @@ error.api.request.body.email.invalid: Specified email is invalid or empty.
 error.api.request.signature.invalid: Incorrect or empty request signature.
 error.api.request.app_id.invalid: Incorrect or empty application ID.
 error.api.request.callbackurl.invalid: Please add callbackURL in application settings.
-error.api.request.token.invalid: Incorrect or empty Bearer token.
+error.api.token.parse.error: "Error parsing access token: %v"
+
 
 # 2FA errors
 error.api.request.2fa_code.empty: Empty two-factor authentication code.
@@ -40,16 +43,27 @@ error.api.request.2fa.disabled: Two-factor authentication is disabled for this a
 error.api.request.2fa.set_phone: Please specify your phone number to be able to receive one-time passwords.
 error.api.request.2fa.set_email: Please specify your email address to be able to receive one-time passwords.
 error.api.request.enable_2fa.empty_phone_and_email: Phone and email are empty.
-error.api.request.2fa.unable_to_send_OTP: Error sending OTP code with SMS or Email.
+error.api.request.2fa.unable_to_send_OTP.error: "Error sending OTP code with SMS or Email with error: %v."
+error.api.request.2fa.unable_to_generate_QR.error: "Unable to create QR code with error: %v."
+error.api.request.2fa.unknown_type: "Unknown TFA type: %s."
+error.2fa.resend.timeout: Please wait before new code resend.
+error.2fa.verify.fail.error: "OTP code is invalid: %v"
+
+# Token errors
+error.api.request.token.sub: Unable to extract Subject claim from the token.
+error.api.request.token.sub.error: "Unable to extract Subject claim from the token with error: %v."
+error.api.request.token.invalid: Incorrect or empty Bearer token.
+error.api.context.no_token: "Error getting token from context."
 
 # App errors
 error.api.app.inactive: The app is inactive.
 error.api.app.registration_forbidden: Registration in this app is forbidden.
-error.api.app.unable_to_create_reset_token: Error creating reset token.
-error.api.app.unable_to_create_access_token: Error creating access token.
+error.api.app.unable_to_create_reset_token.error: "Error creating reset token with error: %v."
+error.api.app.unable_to_create_access_token.error: "Error creating access token with error: %v."
 error.api.app.unable_to_create_refresh_token: Error creating refresh token.
-error.api.request.token.sub: Unable to extract Subject claim from the token.
 error.api.request.authorizer.internal.init: Error creating authz service.
+error.api.app.unable_to_token_payload_for_app.error: "Error getting token payload for the app %s with error: %v."
+error.api.app.no_app_in_context: Missing app data in context.
 
 # Federated login
 api.app.federated.provider.not_supported: Federated provider is not supported.
@@ -59,3 +73,11 @@ api.app.federated.provider.cant_complete:  Unable to complete federated login.
 api.app.username.login.not_supported: Login with username is not supported by app.
 api.app.phone.login.not_supported: Login with phone number is not supported by app.
 error.api.unable_to_initialize_identifo: Unable to initialize NativeLogin.
+
+# Storages
+error.storage.update_user.error: "Unable to update user with id %s with error: %v"
+error.storage.find.user.email.error: "Unable to find user with email %s with error: %v"
+
+
+# Email Service
+error.service.email.send.error: "Error sending email: %v"

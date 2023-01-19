@@ -2,12 +2,15 @@ package api
 
 import (
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"net/url"
 	"os"
+	"runtime"
 
 	"github.com/gorilla/mux"
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -102,7 +105,7 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Unable to marshall response. Err: "+err.Error(), "Router.ServerJSON")
+		ar.Error(w, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 		return
 	}
 
@@ -114,35 +117,39 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
 }
 
 // Error writes an API error message to the response and logger.
-func (ar *Router) Error(w http.ResponseWriter, errID MessageID, status int, details, where string) {
+func (ar *Router) Error(w http.ResponseWriter, status int, errID l.Error, details ...any) {
 	// errorResponse is a generic response for sending an error.
 	type errorResponse struct {
-		ID              MessageID `json:"id"`
-		Message         string    `json:"message,omitempty"`
-		DetailedMessage string    `json:"detailed_message,omitempty"`
-		Status          int       `json:"status"`
+		ID       string `json:"id"`
+		Message  string `json:"message,omitempty"`
+		Status   int    `json:"status"`
+		Location string `json:"location"`
 	}
-
-	// Log error.
-	ar.logger.Printf("api error: %v (status=%v). Details: %v. Where: %v.", errID, status, details, where)
 
 	if errID == "" {
-		errID = ErrorAPIInternalServerError
+		errID = l.APIInternalServerError
 	}
-	// Hide error from client if it is internal.
-	if status == http.StatusInternalServerError {
-		errID = ErrorAPIInternalServerError
+
+	_, file, no, ok := runtime.Caller(1)
+	if !ok {
+		file = "unknown file"
+		no = -1
 	}
+	message := ar.ls.Sprintf(string(errID), details...)
+
+	// Log error.
+	ar.logger.Printf("api error: %v (status=%v). Details: %v. Where: %v:%d.", errID, status, message, file, no)
 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
 	encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{"error": &errorResponse{
-		ID:              errID,
-		Message:         ar.ls.Sprintf(GetMessage(errID)),
-		DetailedMessage: ar.ls.Sprintf(details),
-		Status:          status,
+		ID:       string(errID),
+		Message:  message,
+		Status:   status,
+		Location: fmt.Sprintf("%s:%d", file, no),
 	}})
+
 	if encodeErr != nil {
 		ar.logger.Printf("error writing http response: %s", errID)
 	}

@@ -23,6 +23,7 @@ func main() {
 	g.Printf("\n")
 	g.Printf("package localization")
 	g.Printf("\n")
+	g.Printf("type Error string\n")
 	g.Printf("const (\n")
 
 	// TODO: Jack we need iterate all files for all language and compare that they have the same set of keys
@@ -45,29 +46,15 @@ func main() {
 			g.Printf("\t//===========================================================================\n")
 			continue
 		}
-		kv := strings.Split(line, ":")
-		if len(kv) == 2 {
-			cn := constName(kv[0])
-			g.Printf("\t// %s -> %s\n", cn, kv[1])
-			g.Printf("\t%s = \"%s\"\n", cn, kv[0])
+
+		k, v := getKeyValue(line)
+		if len(k) > 0 {
+			cn := constName(k)
+			g.Printf("\t// %s -> %s\n", cn, v)
+			g.Printf("\t%s Error = \"%s\"\n", cn, k)
 		}
 
 	}
-
-	// yf, err := ioutil.ReadFile("./translations/en.yaml")
-	// if err != nil {
-	// 	log.Fatalf("yamlFile.Get err   #%v ", err)
-	// }
-	// lines := map[string]string{}
-	// err = yaml.Unmarshal(yf, &lines)
-	// if err != nil {
-	// 	log.Fatalf("Unmarshal: %v", err)
-	// }
-	// for key, value := range lines {
-	// 	cn := constName(key)
-	// 	g.Printf("\t// %s -> %s\n", cn, value)
-	// 	g.Printf("\t%s = \"%s\"\n", cn, key)
-	// }
 
 	g.Printf(")\n")
 	// Format the output.
@@ -83,7 +70,23 @@ func constName(key string) string {
 	k = strings.ReplaceAll(k, "_", " ")
 	k = cases.Title(language.Und).String(k)
 	k = strings.ReplaceAll(k, " ", "")
+	k = strings.ReplaceAll(k, "Api", "API")
+	k = strings.ReplaceAll(k, "App", "APP")
+	k = strings.ReplaceAll(k, "2Fa", "2FA")
+	k = strings.ReplaceAll(k, "Id", "ID")
 	return k
+}
+
+func getKeyValue(s string) (string, string) {
+	pos := strings.Index(s, ":") // get the first colon index
+	if pos < 1 {
+		return "", ""
+	}
+
+	v := strings.TrimSpace(s[pos+1:])
+	v = strings.Trim(v, "\"")
+
+	return strings.TrimSpace(s[:pos]), v
 }
 
 // Generator holds the state of the analysis. Primarily used to buffer
