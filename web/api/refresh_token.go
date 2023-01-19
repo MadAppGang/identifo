@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -29,8 +30,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App ID is absent in header params", "RefreshTokens.AppFromContext")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -40,26 +40,26 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		// Issue new access token and stringify it for response.
 		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.RefreshAccessToken")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
 			return
 		}
 		accessTokenString, err := ar.server.Services().Token.String(accessToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshTokens.accessTokenString")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
 		// Stringify old refresh token and issue new one.
 		oldRefreshTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok || oldRefreshTokenBytes == nil {
-			ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, "Token is empty or invalid.", "RefreshTokens.RawTokenFromContext")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenRefreshEmpty)
 			return
 		}
 		oldRefreshTokenString := string(oldRefreshTokenBytes)
 
 		newRefreshTokenString, err := ar.issueNewRefreshToken(oldRefreshTokenString, rd.Scopes, app)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppRefreshTokenNotCreated, http.StatusInternalServerError, err.Error(), "RefreshToken.newRefreshTokenString")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateRefreshTokenError, err)
 			return
 		}
 

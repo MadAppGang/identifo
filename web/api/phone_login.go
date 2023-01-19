@@ -8,6 +8,7 @@ import (
 	"math/big"
 	"net/http"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -23,30 +24,30 @@ const (
 func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		if !ar.SupportedLoginWays.Phone {
-			ar.Error(w, ErrorAPIAppPhoneLoginNotSupported, http.StatusBadRequest, "Application does not support login via phone number", "PhoneLogin.supportedLoginWays")
+			ar.Error(w, http.StatusBadRequest, l.APIAPPPhoneLoginNotSupported)
 			return
 		}
 
 		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestVerificationCode.Unmarshal")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := authData.validatePhone(); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RequestVerificationCode.IsValidPhone")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		// TODO: add limiter here. Check frequency of requests.
 		code := randStringBytes(phoneVerificationCodeLength)
 		if err := ar.server.Storages().Verification.CreateVerificationCode(authData.PhoneNumber, code); err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestVerificationCode.CreateVerificationCode")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageVerificationCreateError, err)
 			return
 		}
 
 		if err := ar.server.Services().SMS.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code)); err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unable to send sms. %s", err), "RequestVerificationCode.SendSMS")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorServiceSmsSendError, err)
 			return
 		}
 		result := map[string]string{"result": "ok", "message": "SMS code is sent"}
@@ -62,28 +63,27 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "PhoneLogin.Unmarshal")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 		if err := authData.validateCodeAndPhone(); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "PhoneLogin.IsValidCodeAndPhone")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		needVerification := app.DebugTFACode == "" || authData.Code != app.DebugTFACode
 		if needVerification { // check verification code
 			if exists, err := ar.server.Storages().Verification.IsVerificationCodeFound(authData.PhoneNumber, authData.Code); err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.IsVerificationCodeFound.error")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageVerificationFindError, err)
 				return
 			} else if !exists {
-				ar.Error(w, ErrorAPIVerificationCodeInvalid, http.StatusUnauthorized, "Invalid phone or verification code", "PhoneLogin.IsVerificationCodeFound.not_exists")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorAPILoginCodeInvalid)
 				return
 			}
 		}
@@ -91,7 +91,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		user, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
 			if !ar.server.Settings().Login.AllowRegisterMissing {
-				ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "PhoneLogin.UserByPhone")
+				ar.Error(w, http.StatusUnauthorized, l.ErrorAPIAPPRegistrationForbidden)
 				return
 			}
 
@@ -103,7 +103,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 				false)
 		}
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "PhoneLogin.UserByPhone")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageFindUserPhoneError, err)
 			return
 		}
 
@@ -115,13 +115,13 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "PhoneLogin.Authorizer")
+			ar.Error(w, http.StatusForbidden, l.APIAccessDenied)
 			return
 		}
 
 		// if app requires scope, we need to check user has at leas one scope
 		if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
-			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, "user does not have required scope for the app", "PhoneLogin.Authorizer")
+			ar.Error(w, http.StatusForbidden, l.ErrorAPPLoginNoScope)
 			return
 		}
 
@@ -137,14 +137,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
 		}
 
 		offline := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "PhoneLogin.loginUser")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
 

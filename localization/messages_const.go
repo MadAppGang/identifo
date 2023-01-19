@@ -21,8 +21,8 @@ const (
 	APIInternalServerError Error = "api.internal_server_error"
 	// APIInternalServerErrorWithError -> Internal server error; %v.
 	APIInternalServerErrorWithError Error = "api.internal_server_error_with_error"
-	// APIAPPAccessDenied -> Access denied.
-	APIAPPAccessDenied Error = "api.app.access_denied"
+	// APIAccessDenied -> Access denied.
+	APIAccessDenied Error = "api.access_denied"
 	// ErrorAPIUserUnableToCreate -> Unable to create use, please try again or contact support team.
 	ErrorAPIUserUnableToCreate Error = "error.api.user.unable_to_create"
 	// ErrorAPIVerificationCodeInvalid -> Sorry, the code you entered is invalid or has expired. Please get a new one.
@@ -39,38 +39,46 @@ const (
 	ErrorAPIEmailTaken Error = "error.api.email.taken"
 	// ErrorAPIPhoneTaken -> Phone is taken. Try to choose another one.
 	ErrorAPIPhoneTaken Error = "error.api.phone.taken"
-	// ErrorAPIInviteTokenServerError -> Unable to create invite token. Try again or contact support team.
-	ErrorAPIInviteTokenServerError Error = "error.api.invite_token.server_error"
-	// ErrorAPIInviteUnableToInvalidate -> Unable to invalidate invite. Try again or contact support team.
-	ErrorAPIInviteUnableToInvalidate Error = "error.api.invite.unable_to_invalidate"
+	// ErrorAPIInviteUnableToInvalidateError -> Bad invite token, please try again or contact support team. Token error: %v.
+	ErrorAPIInviteUnableToInvalidateError Error = "error.api.invite.unable_to_invalidate.error"
 	// ErrorAPIInviteUnableToSave -> Unable to save invite. Try again or contact support team.
 	ErrorAPIInviteUnableToSave Error = "error.api.invite.unable_to_save"
-	// ErrorsAPIInviteUnableToGet -> Unable to get invites. Try again or contact support team.
-	ErrorsAPIInviteUnableToGet Error = "errors.api.invite.unable_to_get"
+	// ErrorAPIInviteUnableToGet -> Unable to get invites. Try again or contact support team.
+	ErrorAPIInviteUnableToGet Error = "error.api.invite.unable_to_get"
 	// ErrorAPIEmailNotSent -> Unable to send email. Try again or contact support team.
 	ErrorAPIEmailNotSent Error = "error.api.email.not_sent"
-	// ErrorAPIRequestPasswordWeak -> Password is not strong enough.
+	// ErrorAPIRequestPasswordWeak -> Password is not strong enough: %v
 	ErrorAPIRequestPasswordWeak Error = "error.api.request.password.weak"
-	// ErrorAPIRequestIncorrectLoginOrPassword -> Incorrect email or password.
+	// ErrorAPIRequestIncorrectLoginOrPassword -> Invalid Username or Password!
 	ErrorAPIRequestIncorrectLoginOrPassword Error = "error.api.request.incorrect_login_or_password"
 	// ErrorAPIRequestScopesForbidden -> Requested scopes are forbidden.
 	ErrorAPIRequestScopesForbidden Error = "error.api.request.scopes.forbidden"
-	// ErrorAPIRequestBodyInvalid -> Invalid or empty input data.
-	ErrorAPIRequestBodyInvalid Error = "error.api.request.body.invalid"
-	// ErrorAPIRequestBodyParamsInvalid -> Input data does not pass validation. Please check you data.
-	ErrorAPIRequestBodyParamsInvalid Error = "error.api.request.body.params.invalid"
+	// ErrorAPIRequestBodyInvalidError -> Error reading request body data: %v.
+	ErrorAPIRequestBodyInvalidError Error = "error.api.request.body.invalid.error"
 	// ErrorAPIRequestBodyOldpasswordInvalid -> Old password is invalid. Please check it and try again.
 	ErrorAPIRequestBodyOldpasswordInvalid Error = "error.api.request.body.oldpassword.invalid"
 	// ErrorAPIRequestBodyEmailInvalid -> Specified email is invalid or empty.
 	ErrorAPIRequestBodyEmailInvalid Error = "error.api.request.body.email.invalid"
 	// ErrorAPIRequestSignatureInvalid -> Incorrect or empty request signature.
 	ErrorAPIRequestSignatureInvalid Error = "error.api.request.signature.invalid"
+	// ErrorAPIRequestSignatureValidationError -> Incorrect request signature: %v.
+	ErrorAPIRequestSignatureValidationError Error = "error.api.request.signature.validation.error"
 	// ErrorAPIRequestAPPIDInvalid -> Incorrect or empty application ID.
 	ErrorAPIRequestAPPIDInvalid Error = "error.api.request.app_id.invalid"
 	// ErrorAPIRequestCallbackurlInvalid -> Please add callbackURL in application settings.
 	ErrorAPIRequestCallbackurlInvalid Error = "error.api.request.callbackurl.invalid"
-	// ErrorAPITokenParseError -> Error parsing access token: %v
-	ErrorAPITokenParseError Error = "error.api.token.parse.error"
+	// ErrorAPISessionNotFound -> Unable find a matching session for this request: %s.
+	ErrorAPISessionNotFound Error = "error.api.session.not.found"
+	// ErrorAPILoginError -> Login error: %v.
+	ErrorAPILoginError Error = "error.api.login.error"
+	// ErrorAPILoginCodeInvalid -> The code you entered is incorrect. Please check it and try again.
+	ErrorAPILoginCodeInvalid Error = "error.api.login.code.invalid"
+	// ErrorAPILoginAnonymousForbidden -> Anonymous login is forbidden for this app.
+	ErrorAPILoginAnonymousForbidden Error = "error.api.login.anonymous.forbidden"
+	// ErrorAPIInviteEmailMismatch -> Invite email and user email are not equal.
+	ErrorAPIInviteEmailMismatch Error = "error.api.invite.email.mismatch"
+	// ErrorAPIInviteRoleMissing -> No role in invite token found.
+	ErrorAPIInviteRoleMissing Error = "error.api.invite.role.missing"
 
 	//===========================================================================
 	//  2FA errors
@@ -117,6 +125,26 @@ const (
 	ErrorAPIRequestTokenInvalid Error = "error.api.request.token.invalid"
 	// ErrorAPIContextNoToken -> Error getting token from context.
 	ErrorAPIContextNoToken Error = "error.api.context.no_token"
+	// ErrorAPITokenParseError -> Error parsing access token: %v.
+	ErrorAPITokenParseError Error = "error.api.token.parse.error"
+	// ErrorTokenInviteCreateError -> Unable to create invite token with error: %v.
+	ErrorTokenInviteCreateError Error = "error.token.invite.create.error"
+	// ErrorTokenUnableToCreateResetTokenError -> Error creating reset token with error: %v.
+	ErrorTokenUnableToCreateResetTokenError Error = "error.token.unable_to_create_reset_token.error"
+	// ErrorTokenUnableToCreateAccessTokenError -> Error creating access token with error: %v.
+	ErrorTokenUnableToCreateAccessTokenError Error = "error.token.unable_to_create_access_token.error"
+	// ErrorTokenUnableToCreateRefreshTokenError -> Error creating refresh token with error: %v.
+	ErrorTokenUnableToCreateRefreshTokenError Error = "error.token.unable_to_create_refresh_token.error"
+	// ErrorTokenRefreshAccessToken -> Error getting new access token with refresh token: %v.
+	ErrorTokenRefreshAccessToken Error = "error.token.refresh_access_token"
+	// ErrorTokenRefreshEmpty -> Error getting old refresh token from context to replace it.
+	ErrorTokenRefreshEmpty Error = "error.token.refresh.empty"
+	// ErrorOtpExpired -> OTP token expired, please get the new one and try again.
+	ErrorOtpExpired Error = "error.otp.expired"
+	// ErrorTokenInvalidError -> Invalid token. Validation error: %v.
+	ErrorTokenInvalidError Error = "error.token.invalid.error"
+	// ErrorTokenBlocked -> The token is blocked and not valid any more.
+	ErrorTokenBlocked Error = "error.token.blocked"
 
 	//===========================================================================
 	//  App errors
@@ -125,18 +153,18 @@ const (
 	ErrorAPIAPPInactive Error = "error.api.app.inactive"
 	// ErrorAPIAPPRegistrationForbidden -> Registration in this app is forbidden.
 	ErrorAPIAPPRegistrationForbidden Error = "error.api.app.registration_forbidden"
-	// ErrorAPIAPPUnableToCreateResetTokenError -> Error creating reset token with error: %v.
-	ErrorAPIAPPUnableToCreateResetTokenError Error = "error.api.app.unable_to_create_reset_token.error"
-	// ErrorAPIAPPUnableToCreateAccessTokenError -> Error creating access token with error: %v.
-	ErrorAPIAPPUnableToCreateAccessTokenError Error = "error.api.app.unable_to_create_access_token.error"
-	// ErrorAPIAPPUnableToCreateRefreshToken -> Error creating refresh token.
-	ErrorAPIAPPUnableToCreateRefreshToken Error = "error.api.app.unable_to_create_refresh_token"
 	// ErrorAPIRequestAuthorizerInternalInit -> Error creating authz service.
 	ErrorAPIRequestAuthorizerInternalInit Error = "error.api.request.authorizer.internal.init"
 	// ErrorAPIAPPUnableToTokenPayloadForAPPError -> Error getting token payload for the app %s with error: %v.
 	ErrorAPIAPPUnableToTokenPayloadForAPPError Error = "error.api.app.unable_to_token_payload_for_app.error"
 	// ErrorAPIAPPNoAPPInContext -> Missing app data in context.
 	ErrorAPIAPPNoAPPInContext Error = "error.api.app.no_app_in_context"
+	// ErrorAPPRegisterUrlError -> Invalid register URL (%s) for app (%s): %v.
+	ErrorAPPRegisterUrlError Error = "error.app.register_url.error"
+	// ErrorAPPLoginNoScope -> User has no required scopes by this app.
+	ErrorAPPLoginNoScope Error = "error.app.login.no_scope"
+	// ErrorAPPResetUrlError -> Invalid reset password URL (%s) for app (%s): %v.
+	ErrorAPPResetUrlError Error = "error.app.reset_url.error"
 
 	//===========================================================================
 	//  Federated login
@@ -147,14 +175,24 @@ const (
 	APIAPPFederatedProviderEmptyRedirect Error = "api.app.federated.provider.empty_redirect"
 	// APIAPPFederatedProviderEmpty -> Empty federated login provider.
 	APIAPPFederatedProviderEmpty Error = "api.app.federated.provider.empty"
-	// APIAPPFederatedProviderCantComplete -> Unable to complete federated login.
-	APIAPPFederatedProviderCantComplete Error = "api.app.federated.provider.cant_complete"
+	// APIAPPFederatedProviderCantCompleteError -> Unable to complete federated login: %v.
+	APIAPPFederatedProviderCantCompleteError Error = "api.app.federated.provider.cant_complete.error"
+	// APIFederatedCreateAuthUrlError -> Unable to create auth URL with error: %v.
+	APIFederatedCreateAuthUrlError Error = "api.federated.create_auth_url.error"
 	// APIAPPUsernameLoginNotSupported -> Login with username is not supported by app.
 	APIAPPUsernameLoginNotSupported Error = "api.app.username.login.not_supported"
 	// APIAPPPhoneLoginNotSupported -> Login with phone number is not supported by app.
 	APIAPPPhoneLoginNotSupported Error = "api.app.phone.login.not_supported"
 	// ErrorAPIUnableToInitializeIDentifo -> Unable to initialize NativeLogin.
 	ErrorAPIUnableToInitializeIDentifo Error = "error.api.unable_to_initialize_identifo"
+	// ErrorFederatedUnmarshalSessionError -> Error getting federated login session: %v.
+	ErrorFederatedUnmarshalSessionError Error = "error.federated.unmarshal.session.error"
+	// ErrorFederatedSessionAPPIDMismatch -> Session app id(%s) and request app id(%s) mismatch.
+	ErrorFederatedSessionAPPIDMismatch Error = "error.federated.session_app_id_mismatch"
+	// ErrorFederatedAccessDeniedError -> You are not allowed to login with error: %v.
+	ErrorFederatedAccessDeniedError Error = "error.federated.access_denied.error"
+	// ErrorFederatedLoginError -> Federated login error: %v.
+	ErrorFederatedLoginError Error = "error.federated.login.error"
 
 	//===========================================================================
 	//  Storages
@@ -163,10 +201,44 @@ const (
 	ErrorStorageUpdateUserError Error = "error.storage.update_user.error"
 	// ErrorStorageFindUserEmailError -> Unable to find user with email %s with error: %v
 	ErrorStorageFindUserEmailError Error = "error.storage.find.user.email.error"
+	// ErrorStorageFindUserIDError -> Unable to find user with id %s with error: %v
+	ErrorStorageFindUserIDError Error = "error.storage.find.user.id.error"
+	// ErrorStorageFindUserPhoneError -> Unable to find user with phone %s with error: %v
+	ErrorStorageFindUserPhoneError Error = "error.storage.find.user.phone.error"
+	// ErrorStorageFindUserEmailPhoneUsernameError -> Unable to find user with error: %v.
+	ErrorStorageFindUserEmailPhoneUsernameError Error = "error.storage.find.user.email_phone_username.error"
+	// ErrorStorageResetPasswordUserError -> Error saving new password for user(id:%s): %v.
+	ErrorStorageResetPasswordUserError Error = "error.storage.reset_password.user.error"
+	// ErrorStorageAPPFindByIDError -> Unable to find app with id %s with error: %v.
+	ErrorStorageAPPFindByIDError Error = "error.storage.app.find.by_id.error"
+	// ErrorStorageUserFederatedCreateError -> Error creating federated user: %v.
+	ErrorStorageUserFederatedCreateError Error = "error.storage.user.federated.create.error"
+	// ErrorStorageUserCreateError -> Error creating user: %v.
+	ErrorStorageUserCreateError Error = "error.storage.user.create.error"
+	// ErrorStorageInviteFindEmailError -> Error getting invite by email: %v.
+	ErrorStorageInviteFindEmailError Error = "error.storage.invite.find.email.error"
+	// ErrorStorageInviteArchiveEmailError -> Error archiving old invited by email: %v.
+	ErrorStorageInviteArchiveEmailError Error = "error.storage.invite.archive.email.error"
+	// ErrorStorageInviteSaveError -> Error saving invite token: %v.
+	ErrorStorageInviteSaveError Error = "error.storage.invite.save.error"
+	// ErrorStorageVerificationCreateError -> Error creating phone verification code: %v.
+	ErrorStorageVerificationCreateError Error = "error.storage.verification.create.error"
+	// ErrorStorageVerificationFindError -> Error getting verification code from storage: %v.
+	ErrorStorageVerificationFindError Error = "error.storage.verification.find.error"
 
 	//===========================================================================
-	//  Email Service
+	//  Services
 	//===========================================================================
-	// ErrorServiceEmailSendError -> Error sending email: %v
+	// ErrorServiceEmailSendError -> Error sending email: %v.
 	ErrorServiceEmailSendError Error = "error.service.email.send.error"
+	// ErrorServiceSmsSendError -> Error sending SMS with code: %v.
+	ErrorServiceSmsSendError Error = "error.service.sms.send.error"
+	// ErrorServiceOtpSendError -> Error sending OTP code with error: %v.
+	ErrorServiceOtpSendError Error = "error.service.otp.send.error"
+
+	//===========================================================================
+	//  NativeLogin Service
+	//===========================================================================
+	// ErrorNativeLoginConfigErrors -> NativeLogin service initialized with errors: %+v
+	ErrorNativeLoginConfigErrors Error = "error.native.login.config.errors"
 )

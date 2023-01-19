@@ -7,6 +7,7 @@ import (
 	"net/url"
 	"strings"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -31,7 +32,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		audience := tokenFromContext(r.Context()).Audience()
 		requester, err := ar.server.Storages().User.UserByID(requesterID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "RequestInviteLink.UserByID")
+			ar.Error(w, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, err)
 			return
 		}
 
@@ -42,34 +43,34 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			Data        map[string]interface{} `json:"data"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "RequestInviteLink.MustParseJSON")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestInviteLink.emailRegexp_MatchString")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyEmailInvalid)
 			return
 		}
 
 		_, err = ar.server.Storages().Invite.GetByEmail(d.Email)
 		if err != nil && !errors.Is(err, model.ErrorNotFound) {
-			ar.Error(w, ErrorAPIInviteUnableToGet, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_GetByEmail")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
 			return
 		}
 
 		if err := ar.server.Storages().Invite.ArchiveAllByEmail(d.Email); err != nil {
-			ar.Error(w, ErrorAPIInviteUnableToInvalidate, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_InvalidateAllByEmail")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageInviteArchiveEmailError, err)
 			return
 		}
 
 		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, audience, d.Data)
 		if err != nil {
-			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.NewInviteToken")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return
 		}
 
 		inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIInviteTokenServerError, http.StatusInternalServerError, err.Error(), "RequestInviteLink.tokenService_String")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return
 		}
 
@@ -88,7 +89,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.RegisterURL) > 0 {
 			appSpecificURL, err := url.Parse(app.LoginAppSettings.RegisterURL)
 			if err != nil {
-				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.app_register_url_parse_error")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorAPPRegisterUrlError, app.LoginAppSettings.RegisterURL, app.ID, err)
 				return
 			}
 
@@ -106,7 +107,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 			err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
 			if err != nil {
-				ar.Error(w, ErrorAPIInviteUnableToSave, http.StatusInternalServerError, err.Error(), "RequestInviteLink.inviteStorage_Save")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageInviteSaveError, err)
 				return
 			}
 			requestData := InviteEmailData{
@@ -129,12 +130,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 					Data: requestData,
 				},
 			); err != nil {
-				ar.Error(
-					w,
-					ErrorAPIEmailNotSent,
-					http.StatusInternalServerError,
-					"Email sending error: "+err.Error(), "RequestInviteLink.SendInviteEmail",
-				)
+				ar.Error(w, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 				return
 			}
 

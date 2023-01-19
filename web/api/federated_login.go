@@ -15,6 +15,7 @@ import (
 	"strings"
 
 	"github.com/gorilla/sessions"
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -88,15 +89,15 @@ var getState = func(req *http.Request) string {
 
 func (ar *Router) FederatedLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		app, err := getApp(r)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "AppId not set", "FederatedLogin.AppFromFormOrSession")
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
-		redirect, err := getRedirectUrl(r)
-		if err != nil {
-			ar.Error(w, ErrorAPIAppFederatedEmptyRedirect, http.StatusBadRequest, "", "FederatedLogin.GetAuthURL")
+		redirect := r.URL.Query().Get("redirectUrl")
+		if len(redirect) == 0 {
+			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
 			return
 		}
 
@@ -104,9 +105,9 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		// Clear and recreate providers from app settings
 
-		url, err := GetAuthURL(w, r)
+		url, err := ar.GetAuthURL(w, r)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppFederatedProviderNotSupported, http.StatusBadRequest, "", "FederatedLogin.GetAuthURL")
+			ar.Error(w, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
 			return
 		}
 
@@ -118,38 +119,37 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		app, err := getApp(r)
-		if err != nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "AppId not set", "FederatedLogin.AppFromFormOrSession")
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
-		providerName, _ := getProviderName(r)
-
+		providerName := r.URL.Query().Get("provider")
 		if providerName == "" {
-			ar.Error(w, ErrorAPIAppFederatedEmptyProvider, http.StatusBadRequest, "Can't get provider from query", "FederatedLogin.getProviderName")
+			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderEmpty)
 			return
 		}
 
-		value, err := getFromSession(getSessionName(app.ID, providerName), r)
+		value, err := ar.getFromSession(sessionName(app.ID, providerName), r)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
+			ar.Error(w, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
 			return
 		}
 
 		fsess, err := model.UnmarshalFederatedSession(value)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Can't unmarshal session", "FederatedLogin.AppByID")
+			ar.Error(w, http.StatusBadRequest, l.ErrorFederatedUnmarshalSessionError, err)
 			return
 		}
 
 		if fsess.AppId != app.ID {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Session and request appid not equal", "FederatedLogin.AppByID")
+			ar.Error(w, http.StatusBadRequest, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
 		}
 
 		initProviders(app, fsess.RedirectUrl)
 
-		gothUser, err := CompleteUserAuth(w, r)
+		gothUser, err := ar.CompleteUserAuth(w, r)
 		if err == nil {
 			user, err := ar.server.Storages().User.UserByFederatedID(providerName, gothUser.UserID)
 
@@ -170,14 +170,14 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 					Scopes:   scopes,
 				}, providerName, gothUser.UserID, app.NewUserDefaultRole)
 				if err != nil {
-					ar.Error(w, ErrorAPIUserUnableToCreate, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID.RegisterNew")
+					ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 					return
 				}
 			} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
-				ar.Error(w, ErrorAPIUserNotFound, http.StatusNotFound, err.Error(), "FederatedLogin.UserByFederatedID.RegistrationForbidden")
+				ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
 				return
 			} else if err != nil {
-				ar.Error(w, ErrorAPIUserNotFound, http.StatusInternalServerError, err.Error(), "FederatedLogin.UserByFederatedID")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 				return
 			}
 
@@ -189,13 +189,13 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 				Method:      r.Method,
 			}
 			if err := ar.Authorizer.Authorize(azi); err != nil {
-				ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "FederatedLogin.Authorizer")
+				ar.Error(w, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
 				return
 			}
 
 			authResult, err := ar.loginFlow(app, user, fsess.Scopes)
 			if err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "FederatedLogin.LoginFlowError")
+				ar.Error(w, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 				return
 			}
 
@@ -206,7 +206,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			return
 		}
 		if err != nil {
-			ar.Error(w, ErrorAPIAppFederatedCantComplete, http.StatusBadRequest, err.Error(), "FederatedLogin.CompleteUserAuth")
+			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
 			return
 		}
 	}
@@ -246,29 +246,31 @@ It will return a URL that should be used to send users to.
 It expects to be able to get the name of the provider from the query parameters
 as either "provider"
 */
-func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
+func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
 	if !keySet && defaultStore == Store {
 		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
 	}
 
-	providerName, err := getProviderName(req)
-	if err != nil {
-		return "", err
+	providerName := req.URL.Query().Get("provider")
+	if providerName == "" {
+		return "", errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmpty))
 	}
 
-	app, _ := getApp(req)
-	if err != nil {
-		return "", err
+	app := middleware.AppFromContext(req.Context())
+	if len(app.ID) == 0 {
+		return "", errors.New(ar.ls.Sprintf(l.ErrorAPIAPPNoAPPInContext))
 	}
 
 	provider, err := goth.GetProvider(providerName)
 	if err != nil {
 		return "", err
 	}
-	redirectUrl, err := getRedirectUrl(req)
-	if err != nil {
-		return "", err
+
+	redirect := req.URL.Query().Get("redirectUrl")
+	if len(redirect) == 0 {
+		return "", errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmptyRedirect))
 	}
+
 	sess, err := provider.BeginAuth(setState(req))
 	if err != nil {
 		return "", err
@@ -283,12 +285,12 @@ func GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
 		ProviderSession: sess.Marshal(),
 		AppId:           app.ID,
 		CallbackUrl:     getCallbackUrl(req),
-		RedirectUrl:     redirectUrl,
+		RedirectUrl:     redirect,
 		Scopes:          getScopes(req),
 		ProviderName:    providerName,
 	}
 
-	err = storeInSession(getSessionName(app.ID, providerName), fsess.Marshal(), req, res)
+	err = storeInSession(sessionName(app.ID, providerName), fsess.Marshal(), req, res)
 
 	if err != nil {
 		return "", err
@@ -304,19 +306,19 @@ It expects to be able to get the name of the provider from the query parameters
 as either "provider" or ":provider".
 See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
-var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.User, error) {
+func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 	if !keySet && defaultStore == Store {
 		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
 	}
 
-	providerName, err := getProviderName(req)
-	if err != nil {
-		return goth.User{}, err
+	providerName := req.URL.Query().Get("provider")
+	if providerName == "" {
+		return goth.User{}, errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmpty))
 	}
 
-	app, _ := getApp(req)
-	if err != nil {
-		return goth.User{}, err
+	app := middleware.AppFromContext(req.Context())
+	if len(app.ID) == 0 {
+		return goth.User{}, errors.New(ar.ls.Sprintf(l.ErrorAPIAPPNoAPPInContext))
 	}
 
 	provider, err := goth.GetProvider(providerName)
@@ -324,7 +326,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 		return goth.User{}, err
 	}
 
-	value, err := getFromSession(getSessionName(app.ID, providerName), req)
+	value, err := ar.getFromSession(sessionName(app.ID, providerName), req)
 	if err != nil {
 		return goth.User{}, err
 	}
@@ -362,7 +364,7 @@ var CompleteUserAuth = func(res http.ResponseWriter, req *http.Request) (goth.Us
 	if err != nil {
 		return goth.User{}, err
 	}
-	err = storeInSession(getSessionName(app.ID, providerName), fsess.Marshal(), req, res)
+	err = storeInSession(sessionName(app.ID, providerName), fsess.Marshal(), req, res)
 
 	if err != nil {
 		return goth.User{}, err
@@ -409,41 +411,15 @@ func Logout(res http.ResponseWriter, req *http.Request) error {
 	return nil
 }
 
-func getProviderName(req *http.Request) (string, error) {
-	if p := req.URL.Query().Get("provider"); p != "" {
-		return p, nil
-	}
-
-	// if not found then return an empty string with the corresponding error
-	return "", errors.New("you must select a provider")
-}
-
-func getApp(req *http.Request) (model.AppData, error) {
-	app := middleware.AppFromContext(req.Context())
-	if len(app.ID) == 0 {
-		return app, errors.New("App is not in context.")
-	}
-	return app, nil
-}
-
 func getCallbackUrl(req *http.Request) string {
 	return req.URL.Query().Get("callbackUrl")
-}
-
-func getRedirectUrl(req *http.Request) (string, error) {
-	if a := req.URL.Query().Get("redirectUrl"); a != "" {
-		return a, nil
-	}
-
-	// if not found then return an empty string with the corresponding error
-	return "", errors.New("you must specify redirectUrl")
 }
 
 func getScopes(req *http.Request) []string {
 	return strings.Split(req.URL.Query().Get("scopes"), ",")
 }
 
-func getSessionName(appId, provider string) string {
+func sessionName(appId, provider string) string {
 	return appId + ":" + provider
 }
 
@@ -460,20 +436,20 @@ func storeInSession(key string, value string, req *http.Request, res http.Respon
 
 // GetFromSession retrieves a previously-stored value from the session.
 // If no value has previously been stored at the specified key, it will return an error.
-func getFromSession(key string, req *http.Request) (string, error) {
+func (ar *Router) getFromSession(key string, req *http.Request) (string, error) {
 	session, _ := Store.Get(req, SessionName)
-	value, err := getSessionValue(session, key)
+	value, err := ar.getSessionValue(session, key)
 	if err != nil {
-		return "", errors.New("could not find a matching session for this request")
+		return "", err
 	}
 
 	return value, nil
 }
 
-func getSessionValue(session *sessions.Session, key string) (string, error) {
+func (ar *Router) getSessionValue(session *sessions.Session, key string) (string, error) {
 	value := session.Values[key]
 	if value == nil {
-		return "", fmt.Errorf("could not find a matching session for this request")
+		return "", errors.New(ar.ls.Sprintf(l.ErrorAPISessionNotFound, key))
 	}
 
 	rdata := strings.NewReader(value.(string))

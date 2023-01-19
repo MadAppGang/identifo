@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -11,13 +12,13 @@ import (
 // If error happens, writes it to ResponseWriter.
 func (ar *Router) MustParseJSON(w http.ResponseWriter, r *http.Request, out interface{}) error {
 	if err := json.NewDecoder(r.Body).Decode(out); err != nil {
-		ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "Router.MustParseJSON.Decode")
+		ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 		return err
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(out); err != nil {
-		ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, err.Error(), "Router.MustParseJSON.Validate")
+		ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 		return err
 	}
 

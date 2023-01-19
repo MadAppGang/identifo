@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"net/url"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -24,12 +25,12 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		if err := d.login.validate(); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "RequestResetPassword.validate")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := ar.checkSupportedWays(d.login); err != nil {
-			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, err.Error(), "RequestResetPassword.unsupportedLoginWays")
+			ar.Error(w, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
@@ -41,13 +42,13 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			ar.ServeJSON(w, http.StatusOK, result)
 			return
 		} else if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusBadRequest, err.Error(), "RequestResetPassword.ErrorGettingUser")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusInternalServerError, "App is not in context.", "RequestResetPassword.AppFromContext")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -57,19 +58,19 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			if d.TFACode != "" {
 				otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
 				if err != nil {
-					ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.OTP_Invalid")
+					ar.Error(w, http.StatusForbidden, l.Error2FAVerifyFailError, err)
 					return
 				}
 
 				dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
 
 				if !(otpVerified || dontNeedVerification) {
-					ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.OTP_Invalid")
+					ar.Error(w, http.StatusUnauthorized, l.ErrorAPILoginCodeInvalid)
 					return
 				}
 			} else {
 				if err := ar.sendOTPCode(app, user); err != nil {
-					ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "RequestResetPassword.SendOTPCode")
+					ar.Error(w, http.StatusInternalServerError, l.ErrorServiceOtpSendError, err)
 					return
 				}
 				result := map[string]string{"result": "tfa-required"}
@@ -80,13 +81,13 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.NewResetToken")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.tokenService_String")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -109,7 +110,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		resetPathURL, err := url.Parse(resetPath)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestResetPassword.app_reset_password_url_parse_error")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
 			return
 		}
 
@@ -140,12 +141,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(
-				w,
-				ErrorAPIEmailNotSent,
-				http.StatusInternalServerError,
-				"Email sending error: "+err.Error(), "RequestResetPassword.SendResetEmail",
-			)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 			return
 		}
 
@@ -166,38 +162,32 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 			return
 		}
 		if err := model.StrongPswd(d.Password); err != nil {
-			ar.Error(w, ErrorAPIRequestPasswordWeak, http.StatusBadRequest, err.Error(), "ResetPassword.StrongPswd")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
 			return
 		}
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token bytes are not in context.", "ResetPassword.TokenBytesFromContext")
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIContextNoToken)
 			return
 		}
 
 		// Get userID from token and update user with this ID.
 		userID, err := ar.getTokenSubject(string(accessTokenBytes))
 		if err != nil {
-			ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusInternalServerError, err.Error(), "ResetPassword.getTokenSubject")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "ResetPassword.UserByID")
+			ar.Error(w, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 
 		// Save new password.
 		if err := ar.server.Storages().User.ResetPassword(user.ID, d.Password); err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, "Reset password. Error: "+err.Error(), "ResetPassword.ResetPassword")
-			return
-		}
-
-		// Refetch user with new password hash.
-		if user, err = ar.server.Storages().User.UserByUsername(user.Username); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyOldPasswordInvalid, http.StatusBadRequest, err.Error(), "ResetPassword.RefetchUser")
+			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
 			return
 		}
 

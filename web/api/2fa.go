@@ -51,7 +51,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 		}
 
 		if tfaStatus := app.TFAStatus; tfaStatus == model.TFAStatusDisabled {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyParamsInvalid)
+			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequest2FADisabled)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 
 		accessToken, _, err := ar.loginUser(user, []string{}, app, false, true, tokenPayload)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateAccessTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
@@ -279,7 +279,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		createRefreshToken := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, createRefreshToken, false, tokenPayload)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateAccessTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
@@ -320,7 +320,7 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 		result = totp.Verify(otp, time.Now().Unix())
 	} else {
 		if user.TFAInfo.HOTPExpiredAt.Before(time.Now()) {
-			return false, errors.New("OTP token expired, please get the new one and try again")
+			return false, errors.New(ar.ls.Sprintf(l.ErrorOtpExpired))
 		}
 		hotp := gotp.NewDefaultHOTP(user.TFAInfo.Secret)
 		result = hotp.Verify(otp, user.TFAInfo.HOTPCounter)
@@ -364,13 +364,13 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -387,7 +387,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFADisableURL) > 0 {
 			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFADisableURL)
 			if err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+				ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 				return
 			}
 
@@ -464,13 +464,13 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -487,7 +487,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
 			appResetURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
 			if err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorAPIAPPUnableToCreateResetTokenError, err)
+				ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 				return
 			}
 

@@ -6,7 +6,9 @@ import (
 	"net/http"
 	"strings"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
+
 	"github.com/urfave/negroni"
 )
 
@@ -27,7 +29,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		app, err := ar.server.Storages().App.ActiveAppByID(appID)
 		if err != nil {
 			err = fmt.Errorf("Error getting App by ID: %s", err)
-			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, err.Error(), "AppID.AppFromContext")
+			ar.Error(rw, http.StatusBadRequest, l.ErrorStorageAPPFindByIDError, appID, err)
 			return
 		}
 		ctx := context.WithValue(r.Context(), model.AppDataContextKey, app)
