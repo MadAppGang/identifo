@@ -12,6 +12,8 @@ import (
 	"gopkg.in/yaml.v2"
 )
 
+//go:generate go run gen.go
+
 //go:embed translations/*.yaml
 var translationFS embed.FS
 

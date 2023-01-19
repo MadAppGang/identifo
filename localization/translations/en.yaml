@@ -1,10 +1,6 @@
+# test messages
 test: I am test string
 key with spaces: key with spaces passed test
-app is not in context: app is not in context
-TFA is not supported by this app: TFA is not supported by this app
-token bytes are not in context: token bytes are not in context
-TFA already enabled for this user: TFA already enabled for this user
-
 
 # api messages
 api.internal_server_error: Internal server error.
@@ -23,3 +19,43 @@ errors.api.invite.unable_to_get: Unable to get invites. Try again or contact sup
 error.api.email.not_sent: Unable to send email. Try again or contact support team.
 error.api.request.password.weak: Password is not strong enough.
 error.api.request.incorrect_login_or_password: Incorrect email or password.
+error.api.request.scopes.forbidden: Requested scopes are forbidden.
+error.api.request.body.invalid: Invalid or empty input data.
+error.api.request.body.params.invalid: Input data does not pass validation. Please check you data.
+error.api.request.body.oldpassword.invalid: Old password is invalid. Please check it and try again.
+error.api.request.body.email.invalid: Specified email is invalid or empty.
+error.api.request.signature.invalid: Incorrect or empty request signature.
+error.api.request.app_id.invalid: Incorrect or empty application ID.
+error.api.request.callbackurl.invalid: Please add callbackURL in application settings.
+error.api.request.token.invalid: Incorrect or empty Bearer token.
+
+# 2FA errors
+error.api.request.2fa_code.empty: Empty two-factor authentication code.
+error.api.request.2fa_code.invalid: Invalid two-factor authentication code.
+error.api.request.2fa.already_enabled: Two-factor authentication already enabled.
+error.api.request.2fa.please_enable: Please enable two-factor authentication.
+error.api.request.2fa.please_disable: Please disable two-factor authentication.
+error.api.request.2fa.mandatory: Two-factor authentication is required for this app.
+error.api.request.2fa.disabled: Two-factor authentication is disabled for this app.
+error.api.request.2fa.set_phone: Please specify your phone number to be able to receive one-time passwords.
+error.api.request.2fa.set_email: Please specify your email address to be able to receive one-time passwords.
+error.api.request.enable_2fa.empty_phone_and_email: Phone and email are empty.
+error.api.request.2fa.unable_to_send_OTP: Error sending OTP code with SMS or Email.
+
+# App errors
+error.api.app.inactive: The app is inactive.
+error.api.app.registration_forbidden: Registration in this app is forbidden.
+error.api.app.unable_to_create_reset_token: Error creating reset token.
+error.api.app.unable_to_create_access_token: Error creating access token.
+error.api.app.unable_to_create_refresh_token: Error creating refresh token.
+error.api.request.token.sub: Unable to extract Subject claim from the token.
+error.api.request.authorizer.internal.init: Error creating authz service.
+
+# Federated login
+api.app.federated.provider.not_supported: Federated provider is not supported.
+api.app.federated.provider.empty_redirect: Empty redirect URL.
+api.app.federated.provider.empty: Empty federated login provider.
+api.app.federated.provider.cant_complete:  Unable to complete federated login.
+api.app.username.login.not_supported: Login with username is not supported by app.
+api.app.phone.login.not_supported: Login with phone number is not supported by app.
+error.api.unable_to_initialize_identifo: Unable to initialize NativeLogin.

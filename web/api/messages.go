@@ -34,8 +34,8 @@ var messages = map[MessageID]string{
 	ErrorAPIRequestTFACodeEmpty:              "Empty two-factor authentication code",
 	ErrorAPIRequestTFACodeInvalid:            "Invalid two-factor authentication code",
 	ErrorAPIRequestTFAAlreadyEnabled:         "Two-factor authentication already enabled",
-	ErrorAPIRequestPleaseEnableTFA:           "Please enable two-factor authenticaton",
-	ErrorAPIRequestPleaseDisableTFA:          "Please disable two-factor authenticaton",
+	ErrorAPIRequestPleaseEnableTFA:           "Please enable two-factor authentication",
+	ErrorAPIRequestPleaseDisableTFA:          "Please disable two-factor authentication",
 	ErrorAPIRequestMandatoryTFA:              "Two-factor authentication is mandatory for this app",
 	ErrorAPIRequestDisabledTFA:               "Two-factor authentication is disabled for this app",
 	ErrorAPIRequestPleaseSetPhoneForTFA:      "Please specify your phone number to be able to receive one-time passwords",
@@ -160,4 +160,5 @@ const (
 	ErrorAPIAppPhoneLoginNotSupported = "api.app.phone.login.not_supported"
 	// ErrorAPIServerInitializedWithErrors errors while initializing the identifo
 	ErrorAPIServerInitializedWithErrors = "error.api.unable_to_initialize_identifo"
+	
 )
