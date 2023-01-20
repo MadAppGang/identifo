@@ -1,12 +1,15 @@
 package middleware_test
 
 import (
+	"context"
 	"net/http"
 	"os"
+	"reflect"
 	"testing"
 
 	"github.com/madappgang/identifo/v2/jwt/middleware"
 	"github.com/madappgang/identifo/v2/jwt/validator"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 const (
@@ -88,4 +91,35 @@ type mockErrorHandler struct {
 
 func (m *mockErrorHandler) Error(rw http.ResponseWriter, errorType middleware.Error, status int, description string) {
 	m.e = errorType
+}
+
+func TestTokenFromContext(t *testing.T) {
+	tests := []struct {
+		name string
+		ctx  context.Context
+		want model.Token
+	}{
+		{
+			name: "no token",
+			ctx:  context.Background(),
+			want: nil,
+		},
+		{
+			name: "nil token",
+			ctx:  context.WithValue(context.Background(), model.TokenContextKey, nil),
+			want: nil,
+		},
+		{
+			name: "token exists",
+			ctx:  context.WithValue(context.Background(), model.TokenContextKey, model.Token(&model.JWToken{})),
+			want: &model.JWToken{},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if got := middleware.TokenFromContext(tt.ctx); !reflect.DeepEqual(got, tt.want) {
+				t.Errorf("TokenFromContext() = %v, want %v", got, tt.want)
+			}
+		})
+	}
 }

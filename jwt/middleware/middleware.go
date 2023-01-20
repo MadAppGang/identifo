@@ -63,6 +63,8 @@ func JWT(eh ErrorHandler, c validator.Config) (Handler, error) {
 }
 
 // TokenFromContext returns token from request context.
+// Or nil if there is no token in context.
 func TokenFromContext(ctx context.Context) model.Token {
-	return ctx.Value(model.TokenContextKey).(model.Token)
+	v, _ := ctx.Value(model.TokenContextKey).(model.Token)
+	return v
 }
