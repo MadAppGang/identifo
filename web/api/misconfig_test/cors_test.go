@@ -13,11 +13,10 @@ func TestCorsAlwaysTrue(t *testing.T) {
 		Expect(t).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			err := data["error"].(map[string]interface{})
-			message = err["detailed_message"].(string)
+			message = err["message"].(string)
 			return nil
 		})).
-
-		// AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse).
 		Status(500).
 		Done()
 	assert.NotEmpty(t, message)

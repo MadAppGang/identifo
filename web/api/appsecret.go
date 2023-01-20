@@ -29,10 +29,11 @@ const (
 // More info: https://identifo.madappgang.com/#ca6498ab-b3dc-4c1e-a5b0-2dd633831e2d.
 func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(rw, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -46,7 +47,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			// Extract body.
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				ar.Error(rw, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 				return
 			}
 			if len(b) == 0 {
@@ -60,12 +61,12 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			// Read request signature from header and decode it.
 			reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
 			if reqMAC == nil {
-				ar.Error(rw, http.StatusBadRequest, l.ErrorAPIRequestSignatureInvalid)
+				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureInvalid)
 				return
 
 			}
 			if err := validateBodySignature(body, reqMAC, []byte(app.Secret)); err != nil {
-				ar.Error(rw, http.StatusBadRequest, l.ErrorAPIRequestSignatureValidationError, err)
+				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureValidationError, err)
 				return
 			}
 		}

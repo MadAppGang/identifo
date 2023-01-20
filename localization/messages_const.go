@@ -2,7 +2,7 @@
 
 package localization
 
-type Error string
+type LocalizedString string
 
 const (
 
@@ -10,235 +10,235 @@ const (
 	//  test messages
 	//===========================================================================
 	// Test -> I am test string
-	Test Error = "test"
+	Test LocalizedString = "test"
 	// KeyWithSpaces -> key with spaces passed test
-	KeyWithSpaces Error = "key with spaces"
+	KeyWithSpaces LocalizedString = "key with spaces"
 
 	//===========================================================================
 	//  api messages
 	//===========================================================================
 	// APIInternalServerError -> Internal server error.
-	APIInternalServerError Error = "api.internal_server_error"
+	APIInternalServerError LocalizedString = "api.internal_server_error"
 	// APIInternalServerErrorWithError -> Internal server error; %v.
-	APIInternalServerErrorWithError Error = "api.internal_server_error_with_error"
+	APIInternalServerErrorWithError LocalizedString = "api.internal_server_error_with_error"
 	// APIAccessDenied -> Access denied.
-	APIAccessDenied Error = "api.access_denied"
+	APIAccessDenied LocalizedString = "api.access_denied"
 	// ErrorAPIUserUnableToCreate -> Unable to create use, please try again or contact support team.
-	ErrorAPIUserUnableToCreate Error = "error.api.user.unable_to_create"
+	ErrorAPIUserUnableToCreate LocalizedString = "error.api.user.unable_to_create"
 	// ErrorAPIVerificationCodeInvalid -> Sorry, the code you entered is invalid or has expired. Please get a new one.
-	ErrorAPIVerificationCodeInvalid Error = "error.api.verification_code.invalid"
+	ErrorAPIVerificationCodeInvalid LocalizedString = "error.api.verification_code.invalid"
 	// ErrorAPIUserNotFound -> User not found.
-	ErrorAPIUserNotFound Error = "error.api.user.not_found"
+	ErrorAPIUserNotFound LocalizedString = "error.api.user.not_found"
 	// ErrorAPIUserNotFoundError -> User not found with error; %v.
-	ErrorAPIUserNotFoundError Error = "error.api.user.not_found.error"
+	ErrorAPIUserNotFoundError LocalizedString = "error.api.user.not_found.error"
 	// ErrorAPIUsernameTaken -> Username is taken. Try to choose another one.
-	ErrorAPIUsernameTaken Error = "error.api.username.taken"
+	ErrorAPIUsernameTaken LocalizedString = "error.api.username.taken"
 	// ErrorAPIUsernamePhoneEmailTaken -> Username, email or/and phone is taken. Try to choose another one.
-	ErrorAPIUsernamePhoneEmailTaken Error = "error.api.username_phone_email.taken"
+	ErrorAPIUsernamePhoneEmailTaken LocalizedString = "error.api.username_phone_email.taken"
 	// ErrorAPIEmailTaken -> Email is taken. Try to choose another one.
-	ErrorAPIEmailTaken Error = "error.api.email.taken"
+	ErrorAPIEmailTaken LocalizedString = "error.api.email.taken"
 	// ErrorAPIPhoneTaken -> Phone is taken. Try to choose another one.
-	ErrorAPIPhoneTaken Error = "error.api.phone.taken"
+	ErrorAPIPhoneTaken LocalizedString = "error.api.phone.taken"
 	// ErrorAPIInviteUnableToInvalidateError -> Bad invite token, please try again or contact support team. Token error: %v.
-	ErrorAPIInviteUnableToInvalidateError Error = "error.api.invite.unable_to_invalidate.error"
+	ErrorAPIInviteUnableToInvalidateError LocalizedString = "error.api.invite.unable_to_invalidate.error"
 	// ErrorAPIInviteUnableToSave -> Unable to save invite. Try again or contact support team.
-	ErrorAPIInviteUnableToSave Error = "error.api.invite.unable_to_save"
+	ErrorAPIInviteUnableToSave LocalizedString = "error.api.invite.unable_to_save"
 	// ErrorAPIInviteUnableToGet -> Unable to get invites. Try again or contact support team.
-	ErrorAPIInviteUnableToGet Error = "error.api.invite.unable_to_get"
+	ErrorAPIInviteUnableToGet LocalizedString = "error.api.invite.unable_to_get"
 	// ErrorAPIEmailNotSent -> Unable to send email. Try again or contact support team.
-	ErrorAPIEmailNotSent Error = "error.api.email.not_sent"
+	ErrorAPIEmailNotSent LocalizedString = "error.api.email.not_sent"
 	// ErrorAPIRequestPasswordWeak -> Password is not strong enough: %v
-	ErrorAPIRequestPasswordWeak Error = "error.api.request.password.weak"
+	ErrorAPIRequestPasswordWeak LocalizedString = "error.api.request.password.weak"
 	// ErrorAPIRequestIncorrectLoginOrPassword -> Invalid Username or Password!
-	ErrorAPIRequestIncorrectLoginOrPassword Error = "error.api.request.incorrect_login_or_password"
+	ErrorAPIRequestIncorrectLoginOrPassword LocalizedString = "error.api.request.incorrect_login_or_password"
 	// ErrorAPIRequestScopesForbidden -> Requested scopes are forbidden.
-	ErrorAPIRequestScopesForbidden Error = "error.api.request.scopes.forbidden"
+	ErrorAPIRequestScopesForbidden LocalizedString = "error.api.request.scopes.forbidden"
 	// ErrorAPIRequestBodyInvalidError -> Error reading request body data: %v.
-	ErrorAPIRequestBodyInvalidError Error = "error.api.request.body.invalid.error"
+	ErrorAPIRequestBodyInvalidError LocalizedString = "error.api.request.body.invalid.error"
 	// ErrorAPIRequestBodyOldpasswordInvalid -> Old password is invalid. Please check it and try again.
-	ErrorAPIRequestBodyOldpasswordInvalid Error = "error.api.request.body.oldpassword.invalid"
+	ErrorAPIRequestBodyOldpasswordInvalid LocalizedString = "error.api.request.body.oldpassword.invalid"
 	// ErrorAPIRequestBodyEmailInvalid -> Specified email is invalid or empty.
-	ErrorAPIRequestBodyEmailInvalid Error = "error.api.request.body.email.invalid"
+	ErrorAPIRequestBodyEmailInvalid LocalizedString = "error.api.request.body.email.invalid"
 	// ErrorAPIRequestSignatureInvalid -> Incorrect or empty request signature.
-	ErrorAPIRequestSignatureInvalid Error = "error.api.request.signature.invalid"
+	ErrorAPIRequestSignatureInvalid LocalizedString = "error.api.request.signature.invalid"
 	// ErrorAPIRequestSignatureValidationError -> Incorrect request signature: %v.
-	ErrorAPIRequestSignatureValidationError Error = "error.api.request.signature.validation.error"
+	ErrorAPIRequestSignatureValidationError LocalizedString = "error.api.request.signature.validation.error"
 	// ErrorAPIRequestAPPIDInvalid -> Incorrect or empty application ID.
-	ErrorAPIRequestAPPIDInvalid Error = "error.api.request.app_id.invalid"
+	ErrorAPIRequestAPPIDInvalid LocalizedString = "error.api.request.app_id.invalid"
 	// ErrorAPIRequestCallbackurlInvalid -> Please add callbackURL in application settings.
-	ErrorAPIRequestCallbackurlInvalid Error = "error.api.request.callbackurl.invalid"
+	ErrorAPIRequestCallbackurlInvalid LocalizedString = "error.api.request.callbackurl.invalid"
 	// ErrorAPISessionNotFound -> Unable find a matching session for this request: %s.
-	ErrorAPISessionNotFound Error = "error.api.session.not.found"
+	ErrorAPISessionNotFound LocalizedString = "error.api.session.not.found"
 	// ErrorAPILoginError -> Login error: %v.
-	ErrorAPILoginError Error = "error.api.login.error"
+	ErrorAPILoginError LocalizedString = "error.api.login.error"
 	// ErrorAPILoginCodeInvalid -> The code you entered is incorrect. Please check it and try again.
-	ErrorAPILoginCodeInvalid Error = "error.api.login.code.invalid"
+	ErrorAPILoginCodeInvalid LocalizedString = "error.api.login.code.invalid"
 	// ErrorAPILoginAnonymousForbidden -> Anonymous login is forbidden for this app.
-	ErrorAPILoginAnonymousForbidden Error = "error.api.login.anonymous.forbidden"
+	ErrorAPILoginAnonymousForbidden LocalizedString = "error.api.login.anonymous.forbidden"
 	// ErrorAPIInviteEmailMismatch -> Invite email and user email are not equal.
-	ErrorAPIInviteEmailMismatch Error = "error.api.invite.email.mismatch"
+	ErrorAPIInviteEmailMismatch LocalizedString = "error.api.invite.email.mismatch"
 	// ErrorAPIInviteRoleMissing -> No role in invite token found.
-	ErrorAPIInviteRoleMissing Error = "error.api.invite.role.missing"
+	ErrorAPIInviteRoleMissing LocalizedString = "error.api.invite.role.missing"
 
 	//===========================================================================
 	//  2FA errors
 	//===========================================================================
 	// ErrorAPIRequest2FACodeEmpty -> Empty two-factor authentication code.
-	ErrorAPIRequest2FACodeEmpty Error = "error.api.request.2fa_code.empty"
+	ErrorAPIRequest2FACodeEmpty LocalizedString = "error.api.request.2fa_code.empty"
 	// ErrorAPIRequest2FACodeInvalid -> Invalid two-factor authentication code.
-	ErrorAPIRequest2FACodeInvalid Error = "error.api.request.2fa_code.invalid"
+	ErrorAPIRequest2FACodeInvalid LocalizedString = "error.api.request.2fa_code.invalid"
 	// ErrorAPIRequest2FAAlreadyEnabled -> Two-factor authentication already enabled.
-	ErrorAPIRequest2FAAlreadyEnabled Error = "error.api.request.2fa.already_enabled"
+	ErrorAPIRequest2FAAlreadyEnabled LocalizedString = "error.api.request.2fa.already_enabled"
 	// ErrorAPIRequest2FAPleaseEnable -> Please enable two-factor authentication.
-	ErrorAPIRequest2FAPleaseEnable Error = "error.api.request.2fa.please_enable"
+	ErrorAPIRequest2FAPleaseEnable LocalizedString = "error.api.request.2fa.please_enable"
 	// ErrorAPIRequest2FAPleaseDisable -> Please disable two-factor authentication.
-	ErrorAPIRequest2FAPleaseDisable Error = "error.api.request.2fa.please_disable"
+	ErrorAPIRequest2FAPleaseDisable LocalizedString = "error.api.request.2fa.please_disable"
 	// ErrorAPIRequest2FAMandatory -> Two-factor authentication is required for this app.
-	ErrorAPIRequest2FAMandatory Error = "error.api.request.2fa.mandatory"
+	ErrorAPIRequest2FAMandatory LocalizedString = "error.api.request.2fa.mandatory"
 	// ErrorAPIRequest2FADisabled -> Two-factor authentication is disabled for this app.
-	ErrorAPIRequest2FADisabled Error = "error.api.request.2fa.disabled"
+	ErrorAPIRequest2FADisabled LocalizedString = "error.api.request.2fa.disabled"
 	// ErrorAPIRequest2FASetPhone -> Please specify your phone number to be able to receive one-time passwords.
-	ErrorAPIRequest2FASetPhone Error = "error.api.request.2fa.set_phone"
+	ErrorAPIRequest2FASetPhone LocalizedString = "error.api.request.2fa.set_phone"
 	// ErrorAPIRequest2FASetEmail -> Please specify your email address to be able to receive one-time passwords.
-	ErrorAPIRequest2FASetEmail Error = "error.api.request.2fa.set_email"
+	ErrorAPIRequest2FASetEmail LocalizedString = "error.api.request.2fa.set_email"
 	// ErrorAPIRequestEnable2FAEmptyPhoneAndEmail -> Phone and email are empty.
-	ErrorAPIRequestEnable2FAEmptyPhoneAndEmail Error = "error.api.request.enable_2fa.empty_phone_and_email"
+	ErrorAPIRequestEnable2FAEmptyPhoneAndEmail LocalizedString = "error.api.request.enable_2fa.empty_phone_and_email"
 	// ErrorAPIRequest2FAUnableToSendOtpError -> Error sending OTP code with SMS or Email with error: %v.
-	ErrorAPIRequest2FAUnableToSendOtpError Error = "error.api.request.2fa.unable_to_send_OTP.error"
+	ErrorAPIRequest2FAUnableToSendOtpError LocalizedString = "error.api.request.2fa.unable_to_send_OTP.error"
 	// ErrorAPIRequest2FAUnableToGenerateQrError -> Unable to create QR code with error: %v.
-	ErrorAPIRequest2FAUnableToGenerateQrError Error = "error.api.request.2fa.unable_to_generate_QR.error"
+	ErrorAPIRequest2FAUnableToGenerateQrError LocalizedString = "error.api.request.2fa.unable_to_generate_QR.error"
 	// ErrorAPIRequest2FAUnknownType -> Unknown TFA type: %s.
-	ErrorAPIRequest2FAUnknownType Error = "error.api.request.2fa.unknown_type"
+	ErrorAPIRequest2FAUnknownType LocalizedString = "error.api.request.2fa.unknown_type"
 	// Error2FAResendTimeout -> Please wait before new code resend.
-	Error2FAResendTimeout Error = "error.2fa.resend.timeout"
+	Error2FAResendTimeout LocalizedString = "error.2fa.resend.timeout"
 	// Error2FAVerifyFailError -> OTP code is invalid: %v
-	Error2FAVerifyFailError Error = "error.2fa.verify.fail.error"
+	Error2FAVerifyFailError LocalizedString = "error.2fa.verify.fail.error"
 
 	//===========================================================================
 	//  Token errors
 	//===========================================================================
 	// ErrorAPIRequestTokenSub -> Unable to extract Subject claim from the token.
-	ErrorAPIRequestTokenSub Error = "error.api.request.token.sub"
+	ErrorAPIRequestTokenSub LocalizedString = "error.api.request.token.sub"
 	// ErrorAPIRequestTokenSubError -> Unable to extract Subject claim from the token with error: %v.
-	ErrorAPIRequestTokenSubError Error = "error.api.request.token.sub.error"
+	ErrorAPIRequestTokenSubError LocalizedString = "error.api.request.token.sub.error"
 	// ErrorAPIRequestTokenInvalid -> Incorrect or empty Bearer token.
-	ErrorAPIRequestTokenInvalid Error = "error.api.request.token.invalid"
+	ErrorAPIRequestTokenInvalid LocalizedString = "error.api.request.token.invalid"
 	// ErrorAPIContextNoToken -> Error getting token from context.
-	ErrorAPIContextNoToken Error = "error.api.context.no_token"
+	ErrorAPIContextNoToken LocalizedString = "error.api.context.no_token"
 	// ErrorAPITokenParseError -> Error parsing access token: %v.
-	ErrorAPITokenParseError Error = "error.api.token.parse.error"
+	ErrorAPITokenParseError LocalizedString = "error.api.token.parse.error"
 	// ErrorTokenInviteCreateError -> Unable to create invite token with error: %v.
-	ErrorTokenInviteCreateError Error = "error.token.invite.create.error"
+	ErrorTokenInviteCreateError LocalizedString = "error.token.invite.create.error"
 	// ErrorTokenUnableToCreateResetTokenError -> Error creating reset token with error: %v.
-	ErrorTokenUnableToCreateResetTokenError Error = "error.token.unable_to_create_reset_token.error"
+	ErrorTokenUnableToCreateResetTokenError LocalizedString = "error.token.unable_to_create_reset_token.error"
 	// ErrorTokenUnableToCreateAccessTokenError -> Error creating access token with error: %v.
-	ErrorTokenUnableToCreateAccessTokenError Error = "error.token.unable_to_create_access_token.error"
+	ErrorTokenUnableToCreateAccessTokenError LocalizedString = "error.token.unable_to_create_access_token.error"
 	// ErrorTokenUnableToCreateRefreshTokenError -> Error creating refresh token with error: %v.
-	ErrorTokenUnableToCreateRefreshTokenError Error = "error.token.unable_to_create_refresh_token.error"
+	ErrorTokenUnableToCreateRefreshTokenError LocalizedString = "error.token.unable_to_create_refresh_token.error"
 	// ErrorTokenRefreshAccessToken -> Error getting new access token with refresh token: %v.
-	ErrorTokenRefreshAccessToken Error = "error.token.refresh_access_token"
+	ErrorTokenRefreshAccessToken LocalizedString = "error.token.refresh_access_token"
 	// ErrorTokenRefreshEmpty -> Error getting old refresh token from context to replace it.
-	ErrorTokenRefreshEmpty Error = "error.token.refresh.empty"
+	ErrorTokenRefreshEmpty LocalizedString = "error.token.refresh.empty"
 	// ErrorOtpExpired -> OTP token expired, please get the new one and try again.
-	ErrorOtpExpired Error = "error.otp.expired"
+	ErrorOtpExpired LocalizedString = "error.otp.expired"
 	// ErrorTokenInvalidError -> Invalid token. Validation error: %v.
-	ErrorTokenInvalidError Error = "error.token.invalid.error"
+	ErrorTokenInvalidError LocalizedString = "error.token.invalid.error"
 	// ErrorTokenBlocked -> The token is blocked and not valid any more.
-	ErrorTokenBlocked Error = "error.token.blocked"
+	ErrorTokenBlocked LocalizedString = "error.token.blocked"
 
 	//===========================================================================
 	//  App errors
 	//===========================================================================
 	// ErrorAPIAPPInactive -> The app is inactive.
-	ErrorAPIAPPInactive Error = "error.api.app.inactive"
+	ErrorAPIAPPInactive LocalizedString = "error.api.app.inactive"
 	// ErrorAPIAPPRegistrationForbidden -> Registration in this app is forbidden.
-	ErrorAPIAPPRegistrationForbidden Error = "error.api.app.registration_forbidden"
+	ErrorAPIAPPRegistrationForbidden LocalizedString = "error.api.app.registration_forbidden"
 	// ErrorAPIRequestAuthorizerInternalInit -> Error creating authz service.
-	ErrorAPIRequestAuthorizerInternalInit Error = "error.api.request.authorizer.internal.init"
+	ErrorAPIRequestAuthorizerInternalInit LocalizedString = "error.api.request.authorizer.internal.init"
 	// ErrorAPIAPPUnableToTokenPayloadForAPPError -> Error getting token payload for the app %s with error: %v.
-	ErrorAPIAPPUnableToTokenPayloadForAPPError Error = "error.api.app.unable_to_token_payload_for_app.error"
+	ErrorAPIAPPUnableToTokenPayloadForAPPError LocalizedString = "error.api.app.unable_to_token_payload_for_app.error"
 	// ErrorAPIAPPNoAPPInContext -> Missing app data in context.
-	ErrorAPIAPPNoAPPInContext Error = "error.api.app.no_app_in_context"
+	ErrorAPIAPPNoAPPInContext LocalizedString = "error.api.app.no_app_in_context"
 	// ErrorAPPRegisterUrlError -> Invalid register URL (%s) for app (%s): %v.
-	ErrorAPPRegisterUrlError Error = "error.app.register_url.error"
+	ErrorAPPRegisterUrlError LocalizedString = "error.app.register_url.error"
 	// ErrorAPPLoginNoScope -> User has no required scopes by this app.
-	ErrorAPPLoginNoScope Error = "error.app.login.no_scope"
+	ErrorAPPLoginNoScope LocalizedString = "error.app.login.no_scope"
 	// ErrorAPPResetUrlError -> Invalid reset password URL (%s) for app (%s): %v.
-	ErrorAPPResetUrlError Error = "error.app.reset_url.error"
+	ErrorAPPResetUrlError LocalizedString = "error.app.reset_url.error"
 
 	//===========================================================================
 	//  Federated login
 	//===========================================================================
 	// APIAPPFederatedProviderNotSupported -> Federated provider is not supported.
-	APIAPPFederatedProviderNotSupported Error = "api.app.federated.provider.not_supported"
+	APIAPPFederatedProviderNotSupported LocalizedString = "api.app.federated.provider.not_supported"
 	// APIAPPFederatedProviderEmptyRedirect -> Empty redirect URL.
-	APIAPPFederatedProviderEmptyRedirect Error = "api.app.federated.provider.empty_redirect"
+	APIAPPFederatedProviderEmptyRedirect LocalizedString = "api.app.federated.provider.empty_redirect"
 	// APIAPPFederatedProviderEmpty -> Empty federated login provider.
-	APIAPPFederatedProviderEmpty Error = "api.app.federated.provider.empty"
+	APIAPPFederatedProviderEmpty LocalizedString = "api.app.federated.provider.empty"
 	// APIAPPFederatedProviderCantCompleteError -> Unable to complete federated login: %v.
-	APIAPPFederatedProviderCantCompleteError Error = "api.app.federated.provider.cant_complete.error"
+	APIAPPFederatedProviderCantCompleteError LocalizedString = "api.app.federated.provider.cant_complete.error"
 	// APIFederatedCreateAuthUrlError -> Unable to create auth URL with error: %v.
-	APIFederatedCreateAuthUrlError Error = "api.federated.create_auth_url.error"
+	APIFederatedCreateAuthUrlError LocalizedString = "api.federated.create_auth_url.error"
 	// APIAPPUsernameLoginNotSupported -> Login with username is not supported by app.
-	APIAPPUsernameLoginNotSupported Error = "api.app.username.login.not_supported"
+	APIAPPUsernameLoginNotSupported LocalizedString = "api.app.username.login.not_supported"
 	// APIAPPPhoneLoginNotSupported -> Login with phone number is not supported by app.
-	APIAPPPhoneLoginNotSupported Error = "api.app.phone.login.not_supported"
+	APIAPPPhoneLoginNotSupported LocalizedString = "api.app.phone.login.not_supported"
 	// ErrorAPIUnableToInitializeIDentifo -> Unable to initialize NativeLogin.
-	ErrorAPIUnableToInitializeIDentifo Error = "error.api.unable_to_initialize_identifo"
+	ErrorAPIUnableToInitializeIDentifo LocalizedString = "error.api.unable_to_initialize_identifo"
 	// ErrorFederatedUnmarshalSessionError -> Error getting federated login session: %v.
-	ErrorFederatedUnmarshalSessionError Error = "error.federated.unmarshal.session.error"
+	ErrorFederatedUnmarshalSessionError LocalizedString = "error.federated.unmarshal.session.error"
 	// ErrorFederatedSessionAPPIDMismatch -> Session app id(%s) and request app id(%s) mismatch.
-	ErrorFederatedSessionAPPIDMismatch Error = "error.federated.session_app_id_mismatch"
+	ErrorFederatedSessionAPPIDMismatch LocalizedString = "error.federated.session_app_id_mismatch"
 	// ErrorFederatedAccessDeniedError -> You are not allowed to login with error: %v.
-	ErrorFederatedAccessDeniedError Error = "error.federated.access_denied.error"
+	ErrorFederatedAccessDeniedError LocalizedString = "error.federated.access_denied.error"
 	// ErrorFederatedLoginError -> Federated login error: %v.
-	ErrorFederatedLoginError Error = "error.federated.login.error"
+	ErrorFederatedLoginError LocalizedString = "error.federated.login.error"
 
 	//===========================================================================
 	//  Storages
 	//===========================================================================
 	// ErrorStorageUpdateUserError -> Unable to update user with id %s with error: %v
-	ErrorStorageUpdateUserError Error = "error.storage.update_user.error"
+	ErrorStorageUpdateUserError LocalizedString = "error.storage.update_user.error"
 	// ErrorStorageFindUserEmailError -> Unable to find user with email %s with error: %v
-	ErrorStorageFindUserEmailError Error = "error.storage.find.user.email.error"
+	ErrorStorageFindUserEmailError LocalizedString = "error.storage.find.user.email.error"
 	// ErrorStorageFindUserIDError -> Unable to find user with id %s with error: %v
-	ErrorStorageFindUserIDError Error = "error.storage.find.user.id.error"
+	ErrorStorageFindUserIDError LocalizedString = "error.storage.find.user.id.error"
 	// ErrorStorageFindUserPhoneError -> Unable to find user with phone %s with error: %v
-	ErrorStorageFindUserPhoneError Error = "error.storage.find.user.phone.error"
+	ErrorStorageFindUserPhoneError LocalizedString = "error.storage.find.user.phone.error"
 	// ErrorStorageFindUserEmailPhoneUsernameError -> Unable to find user with error: %v.
-	ErrorStorageFindUserEmailPhoneUsernameError Error = "error.storage.find.user.email_phone_username.error"
+	ErrorStorageFindUserEmailPhoneUsernameError LocalizedString = "error.storage.find.user.email_phone_username.error"
 	// ErrorStorageResetPasswordUserError -> Error saving new password for user(id:%s): %v.
-	ErrorStorageResetPasswordUserError Error = "error.storage.reset_password.user.error"
+	ErrorStorageResetPasswordUserError LocalizedString = "error.storage.reset_password.user.error"
 	// ErrorStorageAPPFindByIDError -> Unable to find app with id %s with error: %v.
-	ErrorStorageAPPFindByIDError Error = "error.storage.app.find.by_id.error"
+	ErrorStorageAPPFindByIDError LocalizedString = "error.storage.app.find.by_id.error"
 	// ErrorStorageUserFederatedCreateError -> Error creating federated user: %v.
-	ErrorStorageUserFederatedCreateError Error = "error.storage.user.federated.create.error"
+	ErrorStorageUserFederatedCreateError LocalizedString = "error.storage.user.federated.create.error"
 	// ErrorStorageUserCreateError -> Error creating user: %v.
-	ErrorStorageUserCreateError Error = "error.storage.user.create.error"
+	ErrorStorageUserCreateError LocalizedString = "error.storage.user.create.error"
 	// ErrorStorageInviteFindEmailError -> Error getting invite by email: %v.
-	ErrorStorageInviteFindEmailError Error = "error.storage.invite.find.email.error"
+	ErrorStorageInviteFindEmailError LocalizedString = "error.storage.invite.find.email.error"
 	// ErrorStorageInviteArchiveEmailError -> Error archiving old invited by email: %v.
-	ErrorStorageInviteArchiveEmailError Error = "error.storage.invite.archive.email.error"
+	ErrorStorageInviteArchiveEmailError LocalizedString = "error.storage.invite.archive.email.error"
 	// ErrorStorageInviteSaveError -> Error saving invite token: %v.
-	ErrorStorageInviteSaveError Error = "error.storage.invite.save.error"
+	ErrorStorageInviteSaveError LocalizedString = "error.storage.invite.save.error"
 	// ErrorStorageVerificationCreateError -> Error creating phone verification code: %v.
-	ErrorStorageVerificationCreateError Error = "error.storage.verification.create.error"
+	ErrorStorageVerificationCreateError LocalizedString = "error.storage.verification.create.error"
 	// ErrorStorageVerificationFindError -> Error getting verification code from storage: %v.
-	ErrorStorageVerificationFindError Error = "error.storage.verification.find.error"
+	ErrorStorageVerificationFindError LocalizedString = "error.storage.verification.find.error"
 
 	//===========================================================================
 	//  Services
 	//===========================================================================
 	// ErrorServiceEmailSendError -> Error sending email: %v.
-	ErrorServiceEmailSendError Error = "error.service.email.send.error"
+	ErrorServiceEmailSendError LocalizedString = "error.service.email.send.error"
 	// ErrorServiceSmsSendError -> Error sending SMS with code: %v.
-	ErrorServiceSmsSendError Error = "error.service.sms.send.error"
+	ErrorServiceSmsSendError LocalizedString = "error.service.sms.send.error"
 	// ErrorServiceOtpSendError -> Error sending OTP code with error: %v.
-	ErrorServiceOtpSendError Error = "error.service.otp.send.error"
+	ErrorServiceOtpSendError LocalizedString = "error.service.otp.send.error"
 
 	//===========================================================================
 	//  NativeLogin Service
 	//===========================================================================
 	// ErrorNativeLoginConfigErrors -> NativeLogin service initialized with errors: %+v
-	ErrorNativeLoginConfigErrors Error = "error.native.login.config.errors"
+	ErrorNativeLoginConfigErrors LocalizedString = "error.native.login.config.errors"
 )

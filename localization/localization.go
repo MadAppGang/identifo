@@ -59,7 +59,13 @@ func LoadDefaultCatalog() error {
 			message.SetString(tag, k, v)
 		}
 
+		SupportedLangs = append(SupportedLangs, tag)
+
 		return nil
 	})
 	return err
 }
+
+// func Sprintf(lan language.Tag, s string, params ...any) string {
+
+// }

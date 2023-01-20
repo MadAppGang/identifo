@@ -21,15 +21,17 @@ const (
 // Token middleware extracts token and validates it.
 func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(rw, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		tokenBytes := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
 		if tokenBytes == nil {
-			ar.Error(rw, http.StatusBadRequest, l.ErrorAPIRequestTokenInvalid)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestTokenInvalid)
 			return
 		}
 		tokenString := string(tokenBytes)
@@ -42,23 +44,23 @@ func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 		)
 		token, err := ar.server.Services().Token.Parse(tokenString)
 		if err != nil {
-			ar.Error(rw, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
 			return
 		}
 		if err := v.Validate(token); err != nil {
-			ar.Error(rw, http.StatusBadRequest, l.ErrorTokenInvalidError, err)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorTokenInvalidError, err)
 			return
 		}
 
 		if blacklisted := ar.server.Storages().Blocklist.IsBlacklisted(tokenString); blacklisted {
-			ar.Error(rw, http.StatusBadRequest, l.ErrorTokenBlocked)
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorTokenBlocked)
 			return
 		}
 
 		if len(scopes) > 0 {
 			ts := strings.Split(token.Scopes(), " ")
 			if len(model.SliceIntersect(ts, scopes)) == 0 {
-				ar.Error(rw, http.StatusUnauthorized, l.ErrorAPPLoginNoScope)
+				ar.Error(rw, locale, http.StatusUnauthorized, l.ErrorAPPLoginNoScope)
 				return
 			}
 		}

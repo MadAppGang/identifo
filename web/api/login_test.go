@@ -7,6 +7,7 @@ import (
 
 	"github.com/MicahParks/keyfunc"
 	"github.com/golang-jwt/jwt/v4"
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	. "github.com/onsi/gomega"
 	. "github.com/onsi/gomega/gstruct"
@@ -80,13 +81,13 @@ func TestLoginWithWrongAppID(t *testing.T) {
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", "wrong_app_ID").
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
-				"id":               Equal("error.api.request.app_id.invalid"),
-				"message":          Not(BeZero()),
-				"detailed_message": Not(BeZero()),
-				"status":           BeNumerically("==", 400),
+				"id":       Equal(string(l.ErrorStorageAPPFindByIDError)),
+				"message":  Not(BeZero()),
+				"location": Not(BeZero()),
+				"status":   BeNumerically("==", 400),
 			}))
 			return nil
 		})).
@@ -114,13 +115,14 @@ func TestLoginWithWrongSignature(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse).
 		Status(400).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
-				"id":      Equal("error.api.request.signature.invalid"),
-				"message": Not(BeZero()),
-				"status":  BeNumerically("==", 400),
+				"id":       Equal(string(l.ErrorAPIRequestSignatureInvalid)),
+				"message":  Not(BeZero()),
+				"status":   BeNumerically("==", 400),
+				"location": Not(BeZero()),
 			}))
 			return nil
 		})).

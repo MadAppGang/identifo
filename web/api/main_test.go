@@ -49,7 +49,7 @@ var emailService *mock.EmailService
 // Some test helper function here to setup test environment
 // ============================================================
 func TestMain(m *testing.M) {
-	// forceIntegrationTests()
+	forceIntegrationTests()
 
 	// try to load dotenv file. If failed - just ignore. Dotenv file is optional
 	_ = godotenv.Load()

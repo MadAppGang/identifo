@@ -89,15 +89,17 @@ var getState = func(req *http.Request) string {
 
 func (ar *Router) FederatedLogin() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		redirect := r.URL.Query().Get("redirectUrl")
 		if len(redirect) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
 			return
 		}
 
@@ -107,7 +109,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		url, err := ar.GetAuthURL(w, r)
 		if err != nil {
-			ar.Error(w, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
 			return
 		}
 
@@ -119,32 +121,34 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		providerName := r.URL.Query().Get("provider")
 		if providerName == "" {
-			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderEmpty)
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmpty)
 			return
 		}
 
 		value, err := ar.getFromSession(sessionName(app.ID, providerName), r)
 		if err != nil {
-			ar.Error(w, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
+			ar.Error(w, locale, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
 			return
 		}
 
 		fsess, err := model.UnmarshalFederatedSession(value)
 		if err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorFederatedUnmarshalSessionError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedUnmarshalSessionError, err)
 			return
 		}
 
 		if fsess.AppId != app.ID {
-			ar.Error(w, http.StatusBadRequest, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
 		}
 
 		initProviders(app, fsess.RedirectUrl)
@@ -170,14 +174,14 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 					Scopes:   scopes,
 				}, providerName, gothUser.UserID, app.NewUserDefaultRole)
 				if err != nil {
-					ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+					ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 					return
 				}
 			} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
 				return
 			} else if err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 				return
 			}
 
@@ -189,24 +193,24 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 				Method:      r.Method,
 			}
 			if err := ar.Authorizer.Authorize(azi); err != nil {
-				ar.Error(w, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
+				ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
 				return
 			}
 
 			authResult, err := ar.loginFlow(app, user, fsess.Scopes)
 			if err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 				return
 			}
 
 			authResult.CallbackUrl = fsess.CallbackUrl
 			authResult.Scopes = fsess.Scopes
 
-			ar.ServeJSON(w, http.StatusOK, authResult)
+			ar.ServeJSON(w, locale, http.StatusOK, authResult)
 			return
 		}
 		if err != nil {
-			ar.Error(w, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
 			return
 		}
 	}
@@ -253,12 +257,12 @@ func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string
 
 	providerName := req.URL.Query().Get("provider")
 	if providerName == "" {
-		return "", errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmpty))
+		return "", errors.New(ar.ls.SD(l.APIAPPFederatedProviderEmpty))
 	}
 
 	app := middleware.AppFromContext(req.Context())
 	if len(app.ID) == 0 {
-		return "", errors.New(ar.ls.Sprintf(l.ErrorAPIAPPNoAPPInContext))
+		return "", errors.New(ar.ls.SD(l.ErrorAPIAPPNoAPPInContext))
 	}
 
 	provider, err := goth.GetProvider(providerName)
@@ -268,7 +272,7 @@ func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string
 
 	redirect := req.URL.Query().Get("redirectUrl")
 	if len(redirect) == 0 {
-		return "", errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmptyRedirect))
+		return "", errors.New(ar.ls.SD(l.APIAPPFederatedProviderEmptyRedirect))
 	}
 
 	sess, err := provider.BeginAuth(setState(req))
@@ -313,12 +317,12 @@ func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (
 
 	providerName := req.URL.Query().Get("provider")
 	if providerName == "" {
-		return goth.User{}, errors.New(ar.ls.Sprintf(l.APIAPPFederatedProviderEmpty))
+		return goth.User{}, errors.New(ar.ls.SD(l.APIAPPFederatedProviderEmpty))
 	}
 
 	app := middleware.AppFromContext(req.Context())
 	if len(app.ID) == 0 {
-		return goth.User{}, errors.New(ar.ls.Sprintf(l.ErrorAPIAPPNoAPPInContext))
+		return goth.User{}, errors.New(ar.ls.SD(l.ErrorAPIAPPNoAPPInContext))
 	}
 
 	provider, err := goth.GetProvider(providerName)
@@ -449,7 +453,7 @@ func (ar *Router) getFromSession(key string, req *http.Request) (string, error) 
 func (ar *Router) getSessionValue(session *sessions.Session, key string) (string, error) {
 	value := session.Values[key]
 	if value == nil {
-		return "", errors.New(ar.ls.Sprintf(l.ErrorAPISessionNotFound, key))
+		return "", errors.New(ar.ls.SD(l.ErrorAPISessionNotFound, key))
 	}
 
 	rdata := strings.NewReader(value.(string))

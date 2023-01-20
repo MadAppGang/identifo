@@ -16,6 +16,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := updateData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
@@ -23,18 +25,18 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		userID := tokenFromContext(r.Context()).UserID()
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 
 		if err := d.validate(user); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 		// Check that new username is not taken.
 		if d.updateUsername {
 			if _, err := ar.server.Storages().User.UserByUsername(d.NewUsername); err == nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIUsernameTaken)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIUsernameTaken)
 				return
 			}
 		}
@@ -42,7 +44,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Check that email is not taken.
 		if d.updateEmail {
 			if _, err := ar.server.Storages().User.UserByEmail(d.NewEmail); err == nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIEmailTaken)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIEmailTaken)
 				return
 			}
 		}
@@ -50,7 +52,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// Check that phone is not taken.
 		if d.updatePhone {
 			if _, err := ar.server.Storages().User.UserByPhone(d.NewPhone); err == nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIPhoneTaken)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIPhoneTaken)
 				return
 			}
 		}
@@ -59,20 +61,20 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		if d.updatePassword {
 			// Check old password.
 			if err := ar.server.Storages().User.CheckPassword(user.ID, d.OldPassword); err != nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyOldpasswordInvalid)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyOldpasswordInvalid)
 				return
 			}
 
 			// Save new password.
 			err = ar.server.Storages().User.ResetPassword(user.ID, d.NewPassword)
 			if err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
 				return
 			}
 
 			// Refetch user with new password hash.
 			if user, err = ar.server.Storages().User.UserByUsername(user.Username); err != nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorStorageFindUserEmailPhoneUsernameError, err)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorStorageFindUserEmailPhoneUsernameError, err)
 				return
 			}
 		}
@@ -93,7 +95,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		if d.updateUsername || d.updateEmail || d.updatePhone {
 			if _, err = ar.server.Storages().User.UpdateUser(userID, user); err != nil {
-				ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, userID, err)
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, userID, err)
 				return
 			}
 		}
@@ -121,7 +123,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		response := updateResponse{
 			Message: msg,
 		}
-		ar.ServeJSON(w, http.StatusOK, response)
+		ar.ServeJSON(w, locale, http.StatusOK, response)
 	}
 }
 

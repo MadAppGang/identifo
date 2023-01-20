@@ -10,14 +10,13 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/v2/localization"
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
 	"github.com/urfave/negroni"
-	"golang.org/x/text/language"
-	"golang.org/x/text/message"
 )
 
 // Router is a router that handles all API requests.
@@ -36,7 +35,7 @@ type Router struct {
 	SupportedLoginWays   model.LoginWith
 	tokenPayloadServices map[string]model.TokenPayloadProvider
 	LoggerSettings       model.LoggerSettings
-	ls                   *message.Printer // localized string
+	ls                   *localization.Printer // localized string
 }
 
 type RouterSettings struct {
@@ -54,12 +53,10 @@ type RouterSettings struct {
 
 // NewRouter creates and inits new router.
 func NewRouter(settings RouterSettings) (*Router, error) {
-	l, err := language.Parse(settings.Locale)
-	// go to default english locale
+	l, err := localization.NewPrinter(settings.Locale)
 	if err != nil {
-		l = language.English
+		return nil, err
 	}
-	p := message.NewPrinter(l)
 
 	ar := Router{
 		server:             settings.Server,
@@ -72,7 +69,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 		tfaResendTimeout:   settings.TFAResendTimeout,
 		SupportedLoginWays: settings.LoginWith,
 		cors:               settings.Cors,
-		ls:                 p,
+		ls:                 l,
 	}
 
 	// setup logger to stdout.
@@ -102,10 +99,10 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user
-func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
+func (ar *Router) ServeJSON(w http.ResponseWriter, locale string, status int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		ar.Error(w, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
+		ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 		return
 	}
 
@@ -117,7 +114,7 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, status int, v interface{}) {
 }
 
 // Error writes an API error message to the response and logger.
-func (ar *Router) Error(w http.ResponseWriter, status int, errID l.Error, details ...any) {
+func (ar *Router) Error(w http.ResponseWriter, locale string, status int, errID l.LocalizedString, details ...any) {
 	// errorResponse is a generic response for sending an error.
 	type errorResponse struct {
 		ID       string `json:"id"`
@@ -135,7 +132,7 @@ func (ar *Router) Error(w http.ResponseWriter, status int, errID l.Error, detail
 		file = "unknown file"
 		no = -1
 	}
-	message := ar.ls.Sprintf(string(errID), details...)
+	message := ar.ls.SL(locale, errID, details...)
 
 	// Log error.
 	ar.logger.Printf("api error: %v (status=%v). Details: %v. Where: %v:%d.", errID, status, message, file, no)

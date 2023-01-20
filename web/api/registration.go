@@ -69,14 +69,16 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		if app.RegistrationForbidden {
-			ar.Error(w, http.StatusForbidden, l.ErrorAPIAPPRegistrationForbidden)
+			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPIAPPRegistrationForbidden)
 			return
 		}
 
@@ -88,7 +90,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, http.StatusUnauthorized, l.APIAccessDenied)
+			ar.Error(w, locale, http.StatusUnauthorized, l.APIAccessDenied)
 			return
 		}
 
@@ -99,18 +101,18 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		if rd.Anonymous && !app.AnonymousRegistrationAllowed {
-			ar.Error(w, http.StatusForbidden, l.ErrorAPILoginAnonymousForbidden)
+			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPILoginAnonymousForbidden)
 			return
 		}
 
 		if err := rd.validate(); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		// Validate password.
 		if err := model.StrongPswd(rd.Password); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
 			return
 		}
 
@@ -131,19 +133,19 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		if rd.Invite != "" {
 			parsedInviteToken, err := ar.server.Services().Token.Parse(rd.Invite)
 			if err != nil {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIInviteUnableToInvalidateError, err)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIInviteUnableToInvalidateError, err)
 				return
 			}
 
 			email, ok := parsedInviteToken.Payload()["email"].(string)
 			if !ok || email != rd.Email {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIInviteEmailMismatch)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIInviteEmailMismatch)
 				return
 			}
 
 			role, ok := parsedInviteToken.Payload()["role"].(string)
 			if !ok {
-				ar.Error(w, http.StatusBadRequest, l.ErrorAPIInviteRoleMissing)
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIInviteRoleMissing)
 				return
 			}
 			userRole = role
@@ -151,11 +153,11 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, userRole, rd.Anonymous)
 		if err == model.ErrorUserExists {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIUsernamePhoneEmailTaken)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIUsernamePhoneEmailTaken)
 			return
 		}
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageUserCreateError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserCreateError, err)
 			return
 		}
 		// if err = ar.server.Services().Email.SendTemplateEmail(
@@ -179,10 +181,10 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		// Do login flow.
 		authResult, err := ar.loginFlow(app, user, rd.Scopes)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPILoginError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, authResult)
+		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
 }

@@ -22,6 +22,8 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		rd := requestData{}
 		if err := json.NewDecoder(r.Body).Decode(&rd); err != nil {
 			// Assume we have not requested any scopes,  if there is no valid data in the body
@@ -30,7 +32,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -40,26 +42,26 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		// Issue new access token and stringify it for response.
 		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
 			return
 		}
 		accessTokenString, err := ar.server.Services().Token.String(accessToken)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
 		// Stringify old refresh token and issue new one.
 		oldRefreshTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok || oldRefreshTokenBytes == nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenRefreshEmpty)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshEmpty)
 			return
 		}
 		oldRefreshTokenString := string(oldRefreshTokenBytes)
 
 		newRefreshTokenString, err := ar.issueNewRefreshToken(oldRefreshTokenString, rd.Scopes, app)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateRefreshTokenError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateRefreshTokenError, err)
 			return
 		}
 
@@ -71,7 +73,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 			RefreshToken: newRefreshTokenString,
 		}
 
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 

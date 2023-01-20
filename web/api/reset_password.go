@@ -19,18 +19,20 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := resetRequest{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
 		if err := d.login.validate(); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := ar.checkSupportedWays(d.login); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
@@ -39,16 +41,16 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			// return ok, but there is no user
 			// TODO: add logging for for reset password for user, who is not exist
 			result := map[string]string{"result": "ok"}
-			ar.ServeJSON(w, http.StatusOK, result)
+			ar.ServeJSON(w, locale, http.StatusOK, result)
 			return
 		} else if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -58,36 +60,36 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 			if d.TFACode != "" {
 				otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
 				if err != nil {
-					ar.Error(w, http.StatusForbidden, l.Error2FAVerifyFailError, err)
+					ar.Error(w, locale, http.StatusForbidden, l.Error2FAVerifyFailError, err)
 					return
 				}
 
 				dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
 
 				if !(otpVerified || dontNeedVerification) {
-					ar.Error(w, http.StatusUnauthorized, l.ErrorAPILoginCodeInvalid)
+					ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPILoginCodeInvalid)
 					return
 				}
 			} else {
 				if err := ar.sendOTPCode(app, user); err != nil {
-					ar.Error(w, http.StatusInternalServerError, l.ErrorServiceOtpSendError, err)
+					ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceOtpSendError, err)
 					return
 				}
 				result := map[string]string{"result": "tfa-required"}
-				ar.ServeJSON(w, http.StatusOK, result)
+				ar.ServeJSON(w, locale, http.StatusOK, result)
 				return
 			}
 		}
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -110,7 +112,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		resetPathURL, err := url.Parse(resetPath)
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
 			return
 		}
 
@@ -141,12 +143,12 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 			return
 		}
 
 		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 
@@ -157,41 +159,43 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := newPassword{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 		if err := model.StrongPswd(d.Password); err != nil {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
 			return
 		}
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, http.StatusBadRequest, l.ErrorAPIContextNoToken)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIContextNoToken)
 			return
 		}
 
 		// Get userID from token and update user with this ID.
 		userID, err := ar.getTokenSubject(string(accessTokenBytes))
 		if err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 
 		// Save new password.
 		if err := ar.server.Storages().User.ResetPassword(user.ID, d.Password); err != nil {
-			ar.Error(w, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
 			return
 		}
 
 		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
