@@ -7,6 +7,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/jwt"
 	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/urfave/negroni"
@@ -20,16 +21,17 @@ const (
 // Token middleware extracts token and validates it.
 func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(rw, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App id is not in request header params.", "Token.AppFromContext")
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		tokenBytes := jwt.ExtractTokenFromBearerHeader(r.Header.Get(TokenHeaderKey))
 		if tokenBytes == nil {
-			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token is empty or invalid.", "Token.ExtractTokenFromBearerHeader")
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestTokenInvalid)
 			return
 		}
 		tokenString := string(tokenBytes)
@@ -42,23 +44,23 @@ func (ar *Router) Token(tokenType string, scopes []string) negroni.HandlerFunc {
 		)
 		token, err := ar.server.Services().Token.Parse(tokenString)
 		if err != nil {
-			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.tokenService_Parse")
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
 			return
 		}
 		if err := v.Validate(token); err != nil {
-			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, err.Error(), "Token.Validate(token)")
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorTokenInvalidError, err)
 			return
 		}
 
 		if blacklisted := ar.server.Storages().Blocklist.IsBlacklisted(tokenString); blacklisted {
-			ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.IsBlacklisted")
+			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorTokenBlocked)
 			return
 		}
 
 		if len(scopes) > 0 {
 			ts := strings.Split(token.Scopes(), " ")
 			if len(model.SliceIntersect(ts, scopes)) == 0 {
-				ar.Error(rw, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "", "Token.ScopeIsNotAllowed")
+				ar.Error(rw, locale, http.StatusUnauthorized, l.ErrorAPPLoginNoScope)
 				return
 			}
 		}

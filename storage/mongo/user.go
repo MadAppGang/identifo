@@ -209,7 +209,9 @@ func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 func (us *UserStorage) AddNewUser(user model.User, password string) (model.User, error) {
 	user.Email = strings.ToLower(user.Email)
 
-	user.ID = primitive.NewObjectID().Hex()
+	if len(user.ID) == 0 {
+		user.ID = primitive.NewObjectID().Hex()
+	}
 	if len(password) > 0 {
 		user.Pswd = model.PasswordHash(password)
 	}

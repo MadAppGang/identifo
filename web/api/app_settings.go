@@ -3,6 +3,7 @@ package api
 import (
 	"net/http"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -26,10 +27,11 @@ type appSettings struct {
 // GetAppSettings return app settings
 func (ar *Router) GetAppSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -53,6 +55,6 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 			result.FederatedProviders = append(result.FederatedProviders, k)
 		}
 
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }

@@ -10,6 +10,7 @@ import (
 	"time"
 
 	ijwt "github.com/madappgang/identifo/v2/jwt"
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
@@ -43,50 +44,52 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
+		locale := r.Header.Get("Accept-Language")
+
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "EnableTFA.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestAPPIDInvalid)
 			return
 		}
 
 		if tfaStatus := app.TFAStatus; tfaStatus == model.TFAStatusDisabled {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, "TFA is not supported by this app", "EnableTFA.TFAStatus")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequest2FADisabled)
 			return
 		}
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "Token bytes are not in context.", "EnableTFA.TokenBytesFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestAPPIDInvalid)
 			return
 		}
 
 		// Get userID from token and update user with this ID.
 		userID, err := ar.getTokenSubject(string(accessTokenBytes))
 		if err != nil {
-			ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusInternalServerError, err.Error(), "EnableTFA.getTokenSubject")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "EnableTFA.UserByID")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIUserNotFoundError, err)
 			return
 		}
 
 		if tfaInfo := user.TFAInfo; tfaInfo.IsEnabled && tfaInfo.Secret != "" {
-			ar.Error(w, ErrorAPIRequestTFAAlreadyEnabled, http.StatusBadRequest, "TFA already enabled for this user", "EnableTFA.alreadyEnabled")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequest2FAAlreadyEnabled)
 			return
 		}
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
 		}
 
 		accessToken, _, err := ar.loginUser(user, []string{}, app, false, true, tokenPayload)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.accessToken")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
@@ -99,69 +102,71 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			}
 
 			if _, err := ar.server.Storages().User.UpdateUser(userID, user); err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, user.ID, err)
 				return
 			}
 
-			// Send new provising uri for authenticator
+			// Send new provisioning uri for authenticator
 			uri := gotp.NewDefaultTOTP(user.TFAInfo.Secret).ProvisioningUri(user.Username, app.Name)
 
 			var png []byte
 			png, err := qrcode.Encode(uri, qrcode.Medium, 256)
 			if err != nil {
-				ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "EnableTFA.QRgenerate")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequest2FAUnableToGenerateQrError, err)
 				return
 			}
 			encoded := base64.StdEncoding.EncodeToString(png)
 
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{ProvisioningURI: uri, ProvisioningQR: encoded, AccessToken: accessToken})
+			ar.ServeJSON(w, locale, http.StatusOK, &tfaSecret{ProvisioningURI: uri, ProvisioningQR: encoded, AccessToken: accessToken})
 			return
 		case model.TFATypeSMS, model.TFATypeEmail:
 			// If 2fa is SMS or Email we set it in TFAInfo and enable it only when it will be verified
 			if ar.tfaType == model.TFATypeSMS {
 				if d.Phone == "" {
-					ar.Error(w, ErrorAPIRequestPleaseSetPhoneForTFA, http.StatusBadRequest, "Please specify your phone number to be able to receive one-time passwords", "EnableTFA.setPhone")
+					ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequest2FASetPhone)
 					return
 				}
 				user.TFAInfo = model.TFAInfo{Phone: d.Phone}
 			}
 			if ar.tfaType == model.TFATypeEmail {
 				if d.Email == "" {
-					ar.Error(w, ErrorAPIRequestPleaseSetEmailForTFA, http.StatusBadRequest, "Please specify your email address to be able to receive one-time passwords", "EnableTFA.setEmail")
+					ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequest2FASetEmail)
 					return
 				}
 				user.TFAInfo = model.TFAInfo{Email: d.Email}
 			}
 
 			if _, err := ar.server.Storages().User.UpdateUser(userID, user); err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, user.ID, err)
 				return
 			}
 
 			// And send OTP code for 2fa
 			if err := ar.sendOTPCode(app, user); err != nil {
-				ar.Error(w, ErrorAPIRequestUnableToSendOTP, http.StatusInternalServerError, err.Error(), "EnableTFA.sendOTP")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequest2FAUnableToSendOtpError, err)
 				return
 			}
 
-			ar.ServeJSON(w, http.StatusOK, &tfaSecret{AccessToken: accessToken})
+			ar.ServeJSON(w, locale, http.StatusOK, &tfaSecret{AccessToken: accessToken})
 			return
 		}
-		ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, fmt.Sprintf("Unknown tfa type '%s'", ar.tfaType), "switch.tfaType")
+		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequest2FAUnknownType, ar.tfaType)
 	}
 }
 
 func (ar *Router) ResendTFA() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		tfaToken, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token bytes are not in context.", "ResendTFA.TokenBytesFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIContextNoToken)
 			return
 		}
 
 		token, err := ar.server.Services().Token.Parse(string(tfaToken))
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Can't parse token.", "ResendTFA.Parse")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
 			return
 		}
 
@@ -170,37 +175,37 @@ func (ar *Router) ResendTFA() http.HandlerFunc {
 		fromIssued := now - token.IssuedAt().Unix()
 
 		if fromIssued < int64(ar.tfaResendTimeout) {
-			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Please wait before new code resend.", "ResendTFA.timeout")
+			ar.Error(w, locale, http.StatusBadRequest, l.Error2FAResendTimeout)
 			return
 		}
 
 		userID := token.Subject()
 		if err != nil {
-			ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusInternalServerError, err.Error(), "ResendTFA.getTokenSubject")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "ResendTFA.UserByID")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorStorageUpdateUserError, user.ID, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "ResendTFA.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		authResult, err := ar.loginFlow(app, user, strings.Split(token.Scopes(), " "))
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "LoginWithPassword.LoginFlowError")
+			ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 			return
 		}
 
 		ar.server.Storages().Blocklist.Add(string(tfaToken))
 
-		ar.ServeJSON(w, http.StatusOK, authResult)
+		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
 }
 
@@ -212,51 +217,53 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := requestBody{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
 		if len(d.TFACode) == 0 {
-			ar.Error(w, ErrorAPIRequestTFACodeEmpty, http.StatusBadRequest, "", "FinalizeTFA.empty")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequest2FACodeEmpty)
 			return
 		}
 
 		oldAccessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.Error(w, ErrorAPIRequestTokenInvalid, http.StatusBadRequest, "Token bytes are not in context.", "FinalizeTFA.TokenBytesFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIContextNoToken)
 			return
 		}
 		oldAccessTokenString := string(oldAccessTokenBytes)
 
 		userID, err := ar.getTokenSubject(oldAccessTokenString)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppCannotExtractTokenSubject, http.StatusInternalServerError, err.Error(), "FinalizeTFA.getTokenSubject")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "FinalizeTFA.UserByID")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorStorageUpdateUserError, user.ID, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "FinalizeTFA.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestScopesForbidden, http.StatusForbidden, err.Error(), "FinalizeTFA.OTP_Invalid")
+			ar.Error(w, locale, http.StatusForbidden, l.Error2FAVerifyFailError, err)
 			return
 		}
 
 		dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
 
 		if !(otpVerified || dontNeedVerification) {
-			ar.Error(w, ErrorAPIRequestTFACodeInvalid, http.StatusUnauthorized, "", "FinalizeTFA.OTP_Invalid")
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIRequest2FACodeInvalid)
 			return
 		}
 
@@ -271,14 +278,14 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "LoginWithPassword.loginUser")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
 		}
 
 		createRefreshToken := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, createRefreshToken, false, tokenPayload)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppAccessTokenNotCreated, http.StatusInternalServerError, err.Error(), "FinalizeTFA.loginUser")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
@@ -302,13 +309,13 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			}
 
 			if _, err := ar.server.Storages().User.UpdateUser(userID, user); err != nil {
-				ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "EnableTFA.UpdateUser")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, user.ID, err)
 				return
 			}
 		}
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 
@@ -319,7 +326,7 @@ func (ar *Router) verifyOTPCode(user model.User, otp string) (bool, error) {
 		result = totp.Verify(otp, time.Now().Unix())
 	} else {
 		if user.TFAInfo.HOTPExpiredAt.Before(time.Now()) {
-			return false, errors.New("OTP token expired, please get the new one and try again")
+			return false, errors.New(ar.ls.SD(l.ErrorOtpExpired))
 		}
 		hotp := gotp.NewDefaultHOTP(user.TFAInfo.Secret)
 		result = hotp.Verify(otp, user.TFAInfo.HOTPCounter)
@@ -334,42 +341,44 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := requestBody{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
 		if !model.EmailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestDisabledTFA.emailRegexp_MatchString")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyEmailInvalid)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		if app.TFAStatus == model.TFAStatusMandatory {
-			ar.Error(w, ErrorAPIRequestMandatoryTFA, http.StatusForbidden, "Two-factor authentication is mandatory for this app", "RequestDisabledTFA.TFAStatusMandatory")
+			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPIRequest2FAMandatory)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestDisabledTFA.UserByEmail")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorStorageFindUserEmailError, d.Email, err)
 			return
 		}
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.NewResetToken")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.tokenService_String")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -386,7 +395,7 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFADisableURL) > 0 {
 			appSpecificURL, err := url.Parse(app.LoginAppSettings.TFADisableURL)
 			if err != nil {
-				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestDisabledTFA.app_tfa_disable_url_parse_error")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 				return
 			}
 
@@ -418,17 +427,12 @@ func (ar *Router) RequestDisabledTFA() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(
-				w,
-				ErrorAPIEmailNotSent,
-				http.StatusInternalServerError,
-				"Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail",
-			)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 			return
 		}
 
 		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 
@@ -439,42 +443,44 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		d := requestBody{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
 		if !model.EmailRegexp.MatchString(d.Email) {
-			ar.Error(w, ErrorAPIRequestBodyInvalid, http.StatusBadRequest, "", "RequestTFAReset.emailRegexp_MatchString")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyEmailInvalid)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusBadRequest, err.Error(), "RequestTFAReset.UserByEmail")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorStorageFindUserEmailError, d.Email, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "RequestDisabledTFA.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		if app.TFAStatus == model.TFAStatusDisabled {
-			ar.Error(w, ErrorAPIRequestDisabledTFA, http.StatusForbidden, "Two-factor authentication is disabled for this app", "RequestTFAReset.TFAStatusDisabled")
+			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPIRequest2FADisabled)
 			return
 		}
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.NewResetToken")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.tokenService_String")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -491,7 +497,7 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.TFAResetURL) > 0 {
 			appResetURL, err := url.Parse(app.LoginAppSettings.TFAResetURL)
 			if err != nil {
-				ar.Error(w, ErrorAPIAppResetTokenNotCreated, http.StatusInternalServerError, err.Error(), "RequestTFAReset.app_tfa_reset_url_parse_error")
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 				return
 			}
 
@@ -523,17 +529,12 @@ func (ar *Router) RequestTFAReset() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(
-				w,
-				ErrorAPIEmailNotSent,
-				http.StatusInternalServerError,
-				"Email sending error: "+err.Error(), "RequestDisabledTFA.SendResetEmail",
-			)
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 			return
 		}
 
 		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 

@@ -137,7 +137,10 @@ func dumpResponse(res *http.Response, req *http.Request) error {
 }
 
 // DumpResponse
-type validatorFunc = func(map[string]interface{}) error
+type (
+	validatorFunc     = func(map[string]interface{}) error
+	validatorFuncText = func(string) error
+)
 
 func validateJSON(validator validatorFunc) assert.Func {
 	return func(res *http.Response, req *http.Request) error {
@@ -153,6 +156,20 @@ func validateJSON(validator validatorFunc) assert.Func {
 		var data map[string]interface{}
 		json.Unmarshal(body, &data)
 		return validator(data)
+	}
+}
+
+func validateBodyText(validator validatorFuncText) assert.Func {
+	return func(res *http.Response, req *http.Request) error {
+		body, err := ioutil.ReadAll(res.Body)
+		if err != nil {
+			return err
+		}
+
+		// Re-fill body reader stream after reading it
+		res.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+
+		return validator(string(body))
 	}
 }
 

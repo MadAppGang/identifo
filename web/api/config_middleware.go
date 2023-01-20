@@ -1,21 +1,22 @@
 package api
 
 import (
-	"fmt"
 	"net/http"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/urfave/negroni"
 )
 
 // Config middleware return error, if server config is invalid
 func (ar *Router) ConfigCheck() negroni.HandlerFunc {
 	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		locale := r.Header.Get("Accept-Language")
+
 		// server has errors while initialized
 		// errors could be config file errors
 		// or errors could be connection to services and databases errors
 		if len(ar.server.Errors()) > 0 {
-			errs := fmt.Errorf("identifo initialized with errors: %+v", ar.server.Errors())
-			ar.Error(rw, ErrorAPIServerInitializedWithErrors, http.StatusInternalServerError, errs.Error(), "API.ConfigCheck")
+			ar.Error(rw, locale, http.StatusInternalServerError, l.ErrorNativeLoginConfigErrors, ar.server.Errors())
 			return
 		}
 		next.ServeHTTP(rw, r)

@@ -44,7 +44,6 @@ type jwk struct {
 	// drawn from a finite field, which together define a point on an
 	// Elliptic Curve.  The following members MUST be present for all
 	// Elliptic Curve public keys: crv, x, y
-
 }
 
 // OIDCConfiguration provides an OpenID Connect Discovery information (https://openid.net/specs/openid-connect-discovery-1_0.html).
@@ -53,6 +52,8 @@ type jwk struct {
 // For example, AWS AppSync (https://docs.aws.amazon.com/appsync/latest/devguide/security.html#openid-connect-authorization).
 func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		if ar.oidcConfiguration == nil {
 			ar.oidcConfiguration = &OIDCConfiguration{
 				Issuer:                 ar.server.Services().Token.Issuer(),
@@ -61,7 +62,7 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 				SupportedIDSigningAlgs: []string{ar.server.Services().Token.Algorithm()},
 			}
 		}
-		ar.ServeJSON(w, http.StatusOK, ar.oidcConfiguration)
+		ar.ServeJSON(w, locale, http.StatusOK, ar.oidcConfiguration)
 	}
 }
 
@@ -77,10 +78,12 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 // however it is important to assume this endpoint technically could contain multiple JWKs.
 func (ar *Router) OIDCJwks() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		if ar.jwk != nil {
 			// A JSON object that represents a set of JWKs. The JSON object MUST have a keys member, which is an array of JWKs.
 			result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
-			ar.ServeJSON(w, http.StatusOK, result)
+			ar.ServeJSON(w, locale, http.StatusOK, result)
 			return
 		}
 
@@ -118,7 +121,7 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 		}
 
 		result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 

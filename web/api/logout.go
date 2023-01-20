@@ -18,10 +18,12 @@ func (ar *Router) Logout() http.HandlerFunc {
 	result := map[string]string{"result": "ok"}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
 			ar.logger.Println("Cannot fetch access token bytes from context")
-			ar.ServeJSON(w, http.StatusNoContent, nil)
+			ar.ServeJSON(w, locale, http.StatusNoContent, nil)
 			return
 		}
 		accessTokenString := string(accessTokenBytes)
@@ -32,7 +34,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		}
 
 		if r.Body == http.NoBody {
-			ar.ServeJSON(w, http.StatusOK, result)
+			ar.ServeJSON(w, locale, http.StatusOK, result)
 			return
 		}
 
@@ -54,7 +56,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 			}
 		}
 
-		ar.ServeJSON(w, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 

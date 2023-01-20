@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	thp "github.com/madappgang/identifo/v2/user_payload_provider/http"
 	"github.com/madappgang/identifo/v2/web/authorization"
@@ -115,18 +116,20 @@ func (ar *Router) checkSupportedWays(l login) error {
 // LoginWithPassword logs user in with email and password.
 func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		ld := loginData{}
 		if ar.MustParseJSON(w, r, &ld) != nil {
 			return
 		}
 
 		if err := ld.validate(); err != nil {
-			ar.Error(w, ErrorAPIRequestBodyParamsInvalid, http.StatusBadRequest, err.Error(), "LoginWithPassword.validate")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := ar.checkSupportedWays(ld.login); err != nil {
-			ar.Error(w, ErrorAPIAppLoginWithUsernameNotSupported, http.StatusBadRequest, err.Error(), "LoginWithPassword.unsupportedLoginWays")
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
@@ -142,20 +145,19 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		if err != nil {
-			ar.Error(w, ErrorAPIRequestIncorrectLoginOrPassword, http.StatusUnauthorized, err.Error(), "LoginWithPassword.UserByLogin")
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
 			return
 		}
 
 		if err = ar.server.Storages().User.CheckPassword(user.ID, ld.Password); err != nil {
 			// return this error to hide the existence of the user.
-			ar.Error(w, ErrorAPIRequestIncorrectLoginOrPassword, http.StatusUnauthorized, err.Error(), "LoginWithPassword.CheckPassword")
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.logger.Println("Error getting App")
-			ar.Error(w, ErrorAPIRequestAppIDInvalid, http.StatusBadRequest, "App is not in context.", "LoginWithPassword.AppFromContext")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -167,17 +169,17 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, ErrorAPIAppAccessDenied, http.StatusForbidden, err.Error(), "LoginWithPassword.Authorizer")
+			ar.Error(w, locale, http.StatusForbidden, l.APIAccessDenied)
 			return
 		}
 
 		authResult, err := ar.loginFlow(app, user, ld.Scopes)
 		if err != nil {
-			ar.Error(w, ErrorAPIInternalServerError, http.StatusInternalServerError, err.Error(), "LoginWithPassword.LoginFlowError")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, authResult)
+		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
 }
 
@@ -211,20 +213,23 @@ func (ar *Router) sendOTPCode(app model.AppData, user model.User) error {
 // If we reached this code, user is logged in (presented valid and not blacklisted access token).
 func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, nil)
+		locale := r.Header.Get("Accept-Language")
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }
 
 // GetUser return current user info with sanitized tfa
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		userID := tokenFromContext(r.Context()).UserID()
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, ErrorAPIUserNotFound, http.StatusUnauthorized, err.Error(), "UpdateUser.UserByID")
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
-		ar.ServeJSON(w, http.StatusOK, user.SanitizedTFA())
+		ar.ServeJSON(w, locale, http.StatusOK, user.SanitizedTFA())
 	}
 }
 

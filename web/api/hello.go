@@ -13,12 +13,14 @@ func (ar *Router) HandleHello() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		ar.logger.Println("trace Hello handler")
 		hello := helloResponse{
 			Answer: "Hello, my name is Identifo",
 			Date:   time.Now(),
 		}
-		ar.ServeJSON(w, http.StatusOK, hello)
+		ar.ServeJSON(w, locale, http.StatusOK, hello)
 	}
 }
 
@@ -30,11 +32,13 @@ func (ar *Router) HandlePing() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		ar.logger.Println("trace pong handler")
 		pong := pongResponse{
 			Message: "Pong!",
 			Date:    time.Now(),
 		}
-		ar.ServeJSON(w, http.StatusOK, pong)
+		ar.ServeJSON(w, locale, http.StatusOK, pong)
 	}
 }
