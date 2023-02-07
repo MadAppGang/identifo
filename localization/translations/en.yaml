@@ -9,7 +9,7 @@ api.access_denied: Access denied.
 error.api.user.unable_to_create: Unable to create use, please try again or contact support team.
 error.api.verification_code.invalid: Sorry, the code you entered is invalid or has expired. Please get a new one.
 error.api.user.not_found: User not found.
-error.api.user.not_found.error: User not found with error; %v. 
+error.api.user.not_found.error: User not found with error; %v.
 error.api.username.taken: Username is taken. Try to choose another one.
 error.api.username_phone_email.taken: Username, email or/and phone is taken. Try to choose another one.
 error.api.email.taken: Email is taken. Try to choose another one.
@@ -85,7 +85,7 @@ error.app.reset_url.error: "Invalid reset password URL (%s) for app (%s): %v."
 api.app.federated.provider.not_supported: Federated provider is not supported.
 api.app.federated.provider.empty_redirect: Empty redirect URL.
 api.app.federated.provider.empty: Empty federated login provider.
-api.app.federated.provider.cant_complete.error:  "Unable to complete federated login: %v."
+api.app.federated.provider.cant_complete.error: "Unable to complete federated login: %v."
 api.federated.create_auth_url.error: "Unable to create auth URL with error: %v."
 api.app.username.login.not_supported: Login with username is not supported by app.
 api.app.phone.login.not_supported: Login with phone number is not supported by app.
@@ -94,6 +94,12 @@ error.federated.unmarshal.session.error: "Error getting federated login session:
 error.federated.session_app_id_mismatch: "Session app id(%s) and request app id(%s) mismatch."
 error.federated.access_denied.error: "You are not allowed to login with error: %v."
 error.federated.login.error: "Federated login error: %v."
+error.federated.code.error: "No code returned for federated login"
+error.federated.state.error: "State mismatch code returned for federated login"
+error.federated.exchange.error: "Federated exchange error: %v."
+error.federated.idtoken.missing: "No id_token returned for federated login"
+error.federated.idtoken.invalid: "Invalid id_token returned for federated login: %v"
+error.federated.claims.error: "Invalid claims error: %v"
 
 # Storages
 error.storage.update_user.error: "Unable to update user with id %s with error: %v"

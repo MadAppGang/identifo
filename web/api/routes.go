@@ -1,6 +1,8 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/urfave/negroni"
@@ -78,6 +80,25 @@ func (ar *Router) initRoutes() {
 
 	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("POST")
 	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("GET")
+
+	auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("POST")
+	auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("GET")
+
+	auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("POST")
+	auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("GET")
+
+	fr := auth.Path("/federated/oidc/complete/{appId}").
+		Subrouter()
+
+	fr.Use(func(h http.Handler) http.Handler {
+		m := ar.AppID()
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			m(w, r, h.ServeHTTP)
+		})
+	})
+
+	fr.Methods("POST").HandlerFunc(ar.OIDCLoginComplete)
+	fr.Methods("GET").HandlerFunc(ar.OIDCLoginComplete)
 
 	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
 	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(

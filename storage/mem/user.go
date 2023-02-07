@@ -2,7 +2,6 @@ package mem
 
 import (
 	"encoding/json"
-	"errors"
 	"strings"
 	"time"
 
@@ -34,7 +33,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 			return u, nil
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // UserByEmail returns randomly generated user.
@@ -44,7 +43,7 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 			return u, nil
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // UserBySocialID returns randomly generated user.
@@ -56,7 +55,7 @@ func (us *UserStorage) UserBySocialID(id string) (model.User, error) {
 			}
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // UserByPhone returns randomly generated user.
@@ -66,7 +65,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 			return u, nil
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // AttachDeviceToken does nothing here.
@@ -99,7 +98,7 @@ func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 			return u, nil
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // AddUserWithPassword creates new user and saves it in the database.
@@ -146,7 +145,7 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 			}
 		}
 	}
-	return model.User{}, errors.New("not found")
+	return model.User{}, model.ErrUserNotFound
 }
 
 // AddUserWithFederatedID returns randomly generated user.

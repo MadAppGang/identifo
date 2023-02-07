@@ -193,6 +193,18 @@ const (
 	ErrorFederatedAccessDeniedError LocalizedString = "error.federated.access_denied.error"
 	// ErrorFederatedLoginError -> Federated login error: %v.
 	ErrorFederatedLoginError LocalizedString = "error.federated.login.error"
+	// ErrorFederatedCodeError -> No code returned for federated login
+	ErrorFederatedCodeError LocalizedString = "error.federated.code.error"
+	// ErrorFederatedStateError -> State mismatch code returned for federated login
+	ErrorFederatedStateError LocalizedString = "error.federated.state.error"
+	// ErrorFederatedExchangeError -> Federated exchange error: %v.
+	ErrorFederatedExchangeError LocalizedString = "error.federated.exchange.error"
+	// ErrorFederatedIDtokenMissing -> No id_token returned for federated login
+	ErrorFederatedIDtokenMissing LocalizedString = "error.federated.idtoken.missing"
+	// ErrorFederatedIDtokenInvalid -> Invalid id_token returned for federated login: %v
+	ErrorFederatedIDtokenInvalid LocalizedString = "error.federated.idtoken.invalid"
+	// ErrorFederatedClaimsError -> Invalid claims error: %v
+	ErrorFederatedClaimsError LocalizedString = "error.federated.claims.error"
 
 	//===========================================================================
 	//  Storages
