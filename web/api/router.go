@@ -10,7 +10,6 @@ import (
 	"runtime"
 
 	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo/v2/localization"
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
@@ -35,7 +34,7 @@ type Router struct {
 	SupportedLoginWays   model.LoginWith
 	tokenPayloadServices map[string]model.TokenPayloadProvider
 	LoggerSettings       model.LoggerSettings
-	ls                   *localization.Printer // localized string
+	ls                   *l.Printer // localized string
 }
 
 type RouterSettings struct {
@@ -53,7 +52,7 @@ type RouterSettings struct {
 
 // NewRouter creates and inits new router.
 func NewRouter(settings RouterSettings) (*Router, error) {
-	l, err := localization.NewPrinter(settings.Locale)
+	l, err := l.NewPrinter(settings.Locale)
 	if err != nil {
 		return nil, err
 	}

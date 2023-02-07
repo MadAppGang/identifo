@@ -89,9 +89,7 @@ func (as *AppStorage) FetchApps(filterString string) ([]model.AppData, error) {
 	}
 
 	apps := make([]model.AppData, len(appsData))
-	for i := 0; i < len(appsData); i++ {
-		apps[i] = appsData[i]
-	}
+	copy(apps, appsData)
 	return apps, nil
 }
 

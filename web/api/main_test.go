@@ -111,6 +111,7 @@ func runServer() (model.Server, *http.Server) {
 	}
 
 	go func() {
+		log.Println("web api ListenAndServe")
 		if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
 			log.Fatalf("ListenAndServe(): %s", err)
 		}
@@ -122,6 +123,7 @@ func runServer() (model.Server, *http.Server) {
 
 // stop server and clear the data
 func stopServer(server *http.Server) {
+	server.Close()
 	server.Shutdown(context.Background())
 	log.Println("the server is gracefully stopped, bye 👋")
 	log.Println("Stop server")

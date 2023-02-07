@@ -17,7 +17,7 @@ const (
 // Validate makes sure that all crucial fields are set.
 func (ss *ServerSettings) Validate(rewriteDefaults bool) []error {
 	result := []error{}
-	if rewriteDefaults == true {
+	if rewriteDefaults {
 		ss.RewriteDefaults()
 	}
 
