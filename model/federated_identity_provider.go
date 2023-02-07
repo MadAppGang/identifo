@@ -54,6 +54,7 @@ type FederatedProviderSettings struct {
 // Session stores data during the auth process with Google.
 type FederatedSession struct {
 	ProviderSession string
+	AuthUrl         string
 	CallbackUrl     string
 	RedirectUrl     string
 	AppId           string

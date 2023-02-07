@@ -18,7 +18,7 @@ type OIDCConfiguration struct {
 	SupportedIDSigningAlgs []string `json:"id_token_signing_alg_values_supported"`
 }
 
-type jwk struct {
+type JWK struct {
 	Alg string   `json:"alg,omitempty"` // The "alg" (algorithm) parameter identifies the algorithm intended for use with the key.
 	Kty string   `json:"kty,omitempty"` //"EC" | "RSA".  The "kty" (key type) parameter identifies the cryptographic algorithm family used with the key, such as "RSA" or "EC".
 	Use string   `json:"use,omitempty"` //"sig". The "use" (public key use) parameter identifies the intended use of the public key.  The "use" parameter is employed to indicate whether a public key is used for encrypting data or verifying the signature on data.
@@ -87,42 +87,49 @@ func (ar *Router) OIDCJwks() http.HandlerFunc {
 			return
 		}
 
-		ar.jwk = &jwk{
-			Use: "sig",
-			Alg: ar.server.Services().Token.Algorithm(),
-			Kid: ar.server.Services().Token.KeyID(),
-		}
-
-		switch pub := ar.server.Services().Token.PublicKey().(type) {
-		case *rsa.PublicKey:
-			// https://tools.ietf.org/html/rfc7518#section-6.3.1
-			ar.jwk.Kty = "RSA"
-			ar.jwk.N = base64.RawURLEncoding.EncodeToString(pub.N.Bytes())
-			ar.jwk.E = base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pub.E)).Bytes())
-		case *ecdsa.PublicKey:
-			// https://tools.ietf.org/html/rfc7518#section-6.2.1
-			p := pub.Curve.Params()
-			n := p.BitSize / 8
-			if p.BitSize%8 != 0 {
-				n++
-			}
-			x := pub.X.Bytes()
-			if n > len(x) {
-				x = append(make([]byte, n-len(x)), x...)
-			}
-			y := pub.Y.Bytes()
-			if n > len(y) {
-				y = append(make([]byte, n-len(y)), y...)
-			}
-			ar.jwk.Kty = "EC"
-			ar.jwk.Crv = p.Name
-			ar.jwk.X = base64.RawURLEncoding.EncodeToString(x)
-			ar.jwk.Y = base64.RawURLEncoding.EncodeToString(y)
-		}
+		ts := ar.server.Services().Token
+		ar.jwk = CreateJWK(ts.Algorithm(), ts.KeyID(), ts.PublicKey())
 
 		result := map[string]interface{}{"keys": []interface{}{ar.jwk}}
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
+}
+
+func CreateJWK(alg, key string, pk any) *JWK {
+	j := JWK{
+		Use: "sig",
+		Alg: alg,
+		Kid: key,
+	}
+
+	switch pub := pk.(type) {
+	case *rsa.PublicKey:
+		// https://tools.ietf.org/html/rfc7518#section-6.3.1
+		j.Kty = "RSA"
+		j.N = base64.RawURLEncoding.EncodeToString(pub.N.Bytes())
+		j.E = base64.RawURLEncoding.EncodeToString(big.NewInt(int64(pub.E)).Bytes())
+	case *ecdsa.PublicKey:
+		// https://tools.ietf.org/html/rfc7518#section-6.2.1
+		p := pub.Curve.Params()
+		n := p.BitSize / 8
+		if p.BitSize%8 != 0 {
+			n++
+		}
+		x := pub.X.Bytes()
+		if n > len(x) {
+			x = append(make([]byte, n-len(x)), x...)
+		}
+		y := pub.Y.Bytes()
+		if n > len(y) {
+			y = append(make([]byte, n-len(y)), y...)
+		}
+		j.Kty = "EC"
+		j.Crv = p.Name
+		j.X = base64.RawURLEncoding.EncodeToString(x)
+		j.Y = base64.RawURLEncoding.EncodeToString(y)
+	}
+
+	return &j
 }
 
 // ServeADDAFile lets Apple servers download apple-developer-domain-association.txt.

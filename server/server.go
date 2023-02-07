@@ -113,13 +113,22 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Close closes all database connections.
 func (s *Server) Close() {
-	s.storages.App.Close()
-	s.storages.User.Close()
-	s.storages.Token.Close()
-	s.storages.Blocklist.Close()
-	s.storages.Invite.Close()
-	s.storages.Verification.Close()
-	s.storages.Session.Close()
+	type c interface {
+		Close()
+	}
+	maybeClose := func(c c) {
+		if c != nil {
+			c.Close()
+		}
+	}
+
+	maybeClose(s.storages.App)
+	maybeClose(s.storages.User)
+	maybeClose(s.storages.Token)
+	maybeClose(s.storages.Blocklist)
+	maybeClose(s.storages.Invite)
+	maybeClose(s.storages.Verification)
+	maybeClose(s.storages.Session)
 }
 
 func (s *Server) Errors() []error {

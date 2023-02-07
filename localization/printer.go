@@ -47,7 +47,7 @@ func (p *Printer) S(l language.Tag, s LocalizedString, params ...any) string {
 		pp = p.printers[p.defaultTag]
 	}
 
-	return pp.Sprintf(string(s), params)
+	return pp.Sprintf(string(s), params...)
 }
 
 // String default.
