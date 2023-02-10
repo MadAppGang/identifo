@@ -9,22 +9,21 @@ import (
 	"os"
 	"runtime"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
-	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
-	"github.com/urfave/negroni"
 )
 
 // Router is a router that handles all API requests.
 type Router struct {
-	server               model.Server
-	middleware           *negroni.Negroni
+	server model.Server
+	// middleware           *negroni.Negroni
 	cors                 *cors.Cors
 	logger               *log.Logger
-	router               *mux.Router
+	router               *chi.Mux
 	tfaType              model.TFAType
 	tfaResendTimeout     int
 	oidcConfiguration    *OIDCConfiguration
@@ -58,9 +57,9 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 	}
 
 	ar := Router{
-		server:             settings.Server,
-		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
-		router:             mux.NewRouter(),
+		server: settings.Server,
+		// middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
+		router:             chi.NewRouter(),
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,
 		Host:               settings.Host,
@@ -80,13 +79,11 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
 
-	ar.middleware.Use(ar.RemoveTrailingSlash())
-
+	ar.router.Use(middleware.StripSlashes)
 	if ar.cors != nil {
-		ar.middleware.Use(ar.cors)
+		ar.router.Use(ar.cors.Handler)
 	}
 	ar.initRoutes()
-	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
 }
@@ -94,7 +91,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// reroute to our internal implementation
-	ar.middleware.ServeHTTP(w, r)
+	ar.router.ServeHTTP(w, r)
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user

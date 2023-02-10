@@ -4,12 +4,11 @@ import (
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
-	"github.com/urfave/negroni"
 )
 
 // Config middleware return error, if server config is invalid
-func (ar *Router) ConfigCheck() negroni.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+func (ar *Router) ConfigCheck(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
 		// server has errors while initialized
@@ -19,6 +18,7 @@ func (ar *Router) ConfigCheck() negroni.HandlerFunc {
 			ar.Error(rw, locale, http.StatusInternalServerError, l.ErrorNativeLoginConfigErrors, ar.server.Errors())
 			return
 		}
+
 		next.ServeHTTP(rw, r)
-	}
+	})
 }

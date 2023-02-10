@@ -1,11 +1,7 @@
 package api
 
 import (
-	"net/http"
-
-	"github.com/gorilla/mux"
-	"github.com/madappgang/identifo/v2/model"
-	"github.com/urfave/negroni"
+	"github.com/go-chi/chi/v5"
 )
 
 // setup all routes
@@ -15,116 +11,164 @@ func (ar *Router) initRoutes() {
 	}
 
 	// All requests to the API router should contain appID.
-	handlers := make([]negroni.Handler, 0)
-	handlers = append(handlers, ar.ConfigCheck())
+	// handlers := make([]negroni.Handler, 0)
+	// handlers = append(handlers, ar.ConfigCheck())
 
-	if ar.LoggerSettings.DumpRequest {
-		handlers = append(handlers, ar.DumpRequest())
+	// if ar.LoggerSettings.DumpRequest {
+	// 	handlers = append(handlers, ar.DumpRequest())
+	// }
+
+	// handlers = append(handlers, ar.AppID())
+
+	// apiMiddlewares := ar.middleware.With(handlers...)
+
+	ar.router.Get("/ping", ar.HandlePing())
+
+	stdMiddlewares := func(r chi.Router) {
+		r.Use(ar.ConfigCheck)
+		if ar.LoggerSettings.DumpRequest {
+			r.Use(ar.DumpRequest)
+		}
+
+		r.Use(ar.AppID)
 	}
 
-	handlers = append(handlers, ar.AppID())
+	ar.router.Route("/auth/federated/oidc/complete/{appId}", func(r chi.Router) {
+		stdMiddlewares(r)
 
-	apiMiddlewares := ar.middleware.With(handlers...)
+		r.Get("/", ar.OIDCLoginComplete)
+		r.Post("/", ar.OIDCLoginComplete)
+	})
 
-	ar.router.HandleFunc("/ping", ar.HandlePing()).Methods("GET")
+	ar.router.Route("/auth", func(r chi.Router) {
+		stdMiddlewares(r)
 
-	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
-	ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
-		ar.SignatureHandler(),
-		negroni.Wrap(auth),
-	))
+		r.Post("/login", ar.LoginWithPassword())
 
-	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
-	auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
-	auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods("POST")
-	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
-	auth.Path("/request_reset_password").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
-	auth.Path("/reset_password").Handler(negroni.New(
-		ar.Token(model.TokenTypeReset, nil),
-		negroni.Wrap(ar.ResetPassword()),
-	)).Methods("POST")
+		r.Route("/federated", func(r chi.Router) {
+			r.Route("/oidc", func(r chi.Router) {
+				r.Get("/", ar.OIDCLogin)
+				r.Post("/", ar.OIDCLogin)
+			})
 
-	auth.Path("/app_settings").HandlerFunc(ar.GetAppSettings()).Methods("GET")
+			// auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("POST")
+			// auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("GET")
 
-	auth.Path("/token").Handler(negroni.New(
-		ar.Token(model.TokenTypeRefresh, nil),
-		negroni.Wrap(ar.RefreshTokens()),
-	)).Methods("POST")
-	auth.Path("/invite").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.RequestInviteLink()),
-	)).Methods("POST")
+			// auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("POST")
+			// auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("GET")
 
-	auth.Path("/tfa/enable").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.EnableTFA()),
-	)).Methods("PUT")
-	auth.Path("/tfa/disable").Handler(negroni.New(
-		negroni.Wrap(ar.RequestDisabledTFA()),
-	)).Methods("PUT")
-	auth.Path("/tfa/login").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth}),
-		negroni.Wrap(ar.FinalizeTFA()),
-	)).Methods("POST")
-	auth.Path("/tfa/resend").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth}),
-		negroni.Wrap(ar.ResendTFA()),
-	)).Methods("POST")
-	auth.Path("/tfa/reset").Handler(negroni.New(
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(ar.RequestTFAReset()),
-	)).Methods("PUT")
+			// fr := auth.Path("/federated/oidc/complete/{appId}").
+			// 	Subrouter()
 
-	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("POST")
-	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("GET")
+			// fr.Use(func(h http.Handler) http.Handler {
+			// 	m := ar.AppID()
+			// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// 		m(w, r, h.ServeHTTP)
+			// 	})
+			// })
 
-	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("POST")
-	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("GET")
-
-	auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("POST")
-	auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("GET")
-
-	auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("POST")
-	auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("GET")
-
-	fr := auth.Path("/federated/oidc/complete/{appId}").
-		Subrouter()
-
-	fr.Use(func(h http.Handler) http.Handler {
-		m := ar.AppID()
-		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-			m(w, r, h.ServeHTTP)
+			// fr.Methods("POST").HandlerFunc(ar.OIDCLoginComplete)
+			// fr.Methods("GET").HandlerFunc(ar.OIDCLoginComplete)
 		})
 	})
 
-	fr.Methods("POST").HandlerFunc(ar.OIDCLoginComplete)
-	fr.Methods("GET").HandlerFunc(ar.OIDCLoginComplete)
+	// auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
+	// ar.router.PathPrefix("/auth").Handler(apiMiddlewares.With(
+	// 	ar.SignatureHandler(),
+	// 	negroni.Wrap(auth),
+	// ))
 
-	meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
-	ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
-		ar.SignatureHandler(),
-		ar.Token(model.TokenTypeAccess, nil),
-		negroni.Wrap(meRouter),
-	))
-	meRouter.Path("").HandlerFunc(ar.GetUser()).Methods("GET")
-	meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
-	meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
+	// auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods("POST")
+	// auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods("POST")
+	// auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods("POST")
+	// auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods("POST")
+	// auth.Path("/request_reset_password").HandlerFunc(ar.RequestResetPassword()).Methods("POST")
+	// auth.Path("/reset_password").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeReset, nil),
+	// 	negroni.Wrap(ar.ResetPassword()),
+	// )).Methods("POST")
 
-	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
+	// auth.Path("/app_settings").HandlerFunc(ar.GetAppSettings()).Methods("GET")
 
-	wellKnownHandlers := make([]negroni.Handler, 0)
-	wellKnownHandlers = append(wellKnownHandlers, ar.ConfigCheck())
+	// auth.Path("/token").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeRefresh, nil),
+	// 	negroni.Wrap(ar.RefreshTokens()),
+	// )).Methods("POST")
+	// auth.Path("/invite").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeAccess, nil),
+	// 	negroni.Wrap(ar.RequestInviteLink()),
+	// )).Methods("POST")
 
-	if ar.LoggerSettings.DumpRequest {
-		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
-	}
+	// auth.Path("/tfa/enable").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeAccess, nil),
+	// 	negroni.Wrap(ar.EnableTFA()),
+	// )).Methods("PUT")
+	// auth.Path("/tfa/disable").Handler(negroni.New(
+	// 	negroni.Wrap(ar.RequestDisabledTFA()),
+	// )).Methods("PUT")
+	// auth.Path("/tfa/login").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth}),
+	// 	negroni.Wrap(ar.FinalizeTFA()),
+	// )).Methods("POST")
+	// auth.Path("/tfa/resend").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth}),
+	// 	negroni.Wrap(ar.ResendTFA()),
+	// )).Methods("POST")
+	// auth.Path("/tfa/reset").Handler(negroni.New(
+	// 	ar.Token(model.TokenTypeAccess, nil),
+	// 	negroni.Wrap(ar.RequestTFAReset()),
+	// )).Methods("PUT")
 
-	wellKnownHandlers = append(wellKnownHandlers, negroni.Wrap(oidc))
+	// auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("POST")
+	// auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods("GET")
 
-	ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(wellKnownHandlers...))
+	// auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("POST")
+	// auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods("GET")
 
-	oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
-	oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods("GET")
+	// auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("POST")
+	// auth.Path("/federated/oidc").HandlerFunc(ar.OIDCLogin).Methods("GET")
+
+	// auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("POST")
+	// auth.Path("/federated/oidc/complete").HandlerFunc(ar.OIDCLoginComplete).Methods("GET")
+
+	// fr := auth.Path("/federated/oidc/complete/{appId}").
+	// 	Subrouter()
+
+	// fr.Use(func(h http.Handler) http.Handler {
+	// 	m := ar.AppID()
+	// 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	// 		m(w, r, h.ServeHTTP)
+	// 	})
+	// })
+
+	// fr.Methods("POST").HandlerFunc(ar.OIDCLoginComplete)
+	// fr.Methods("GET").HandlerFunc(ar.OIDCLoginComplete)
+
+	// meRouter := mux.NewRouter().PathPrefix("/me").Subrouter()
+	// ar.router.PathPrefix("/me").Handler(apiMiddlewares.With(
+	// 	ar.SignatureHandler(),
+	// 	ar.Token(model.TokenTypeAccess, nil),
+	// 	negroni.Wrap(meRouter),
+	// ))
+	// meRouter.Path("").HandlerFunc(ar.GetUser()).Methods("GET")
+	// meRouter.Path("").HandlerFunc(ar.UpdateUser()).Methods("PUT")
+	// meRouter.Path("/logout").HandlerFunc(ar.Logout()).Methods("POST")
+
+	// oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
+
+	// wellKnownHandlers := make([]negroni.Handler, 0)
+	// wellKnownHandlers = append(wellKnownHandlers, ar.ConfigCheck())
+
+	// if ar.LoggerSettings.DumpRequest {
+	// 	wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
+	// }
+
+	// wellKnownHandlers = append(wellKnownHandlers, negroni.Wrap(oidc))
+
+	// ar.router.PathPrefix("/.well-known").Handler(ar.middleware.With(wellKnownHandlers...))
+
+	// oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods("GET")
+	// oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods("GET")
 
 	// apple native integration
 	// TODO: Jack reimplement it completely

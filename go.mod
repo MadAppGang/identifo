@@ -8,6 +8,7 @@ require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/casbin/casbin v1.9.1
 	github.com/coreos/go-oidc/v3 v3.5.0
+	github.com/go-chi/chi/v5 v5.0.8
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
 	github.com/gorilla/mux v1.8.0
