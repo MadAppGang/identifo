@@ -13,15 +13,12 @@ import (
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
-	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
-	"github.com/urfave/negroni"
 )
 
 // Router is a router that handles all API requests.
 type Router struct {
 	server               model.Server
-	middleware           *negroni.Negroni
 	cors                 *cors.Cors
 	logger               *log.Logger
 	router               *mux.Router
@@ -59,7 +56,6 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar := Router{
 		server:             settings.Server,
-		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
 		router:             mux.NewRouter(),
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,
@@ -80,13 +76,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
 
-	ar.middleware.Use(ar.RemoveTrailingSlash())
-
-	if ar.cors != nil {
-		ar.middleware.Use(ar.cors)
-	}
 	ar.initRoutes()
-	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
 }
@@ -94,7 +84,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// reroute to our internal implementation
-	ar.middleware.ServeHTTP(w, r)
+	ar.router.ServeHTTP(w, r)
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user

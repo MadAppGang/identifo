@@ -113,10 +113,7 @@ func (s *Server) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 // Close closes all database connections.
 func (s *Server) Close() {
-	type c interface {
-		Close()
-	}
-	maybeClose := func(c c) {
+	maybeClose := func(c interface{ Close() }) {
 		if c != nil {
 			c.Close()
 		}

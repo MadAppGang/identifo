@@ -112,6 +112,7 @@ func (ar *Router) OIDCLogin(w http.ResponseWriter, r *http.Request) {
 		Scopes: []string{oidc.ScopeOpenID},
 	}
 
+	oauth2Config.Scopes = append(oauth2Config.Scopes, app.OIDCSettings.Scopes...)
 	oauth2Config.Scopes = append(oauth2Config.Scopes, getScopes(r)...)
 
 	state := setState(r)
