@@ -48,6 +48,7 @@ type AppData struct {
 	TokenPayloadServicePluginSettings TokenPayloadServicePluginSettings    `json:"token_payload_service_plugin_settings" bson:"token_payload_service_plugin_settings"`
 	TokenPayloadServiceHttpSettings   TokenPayloadServiceHttpSettings      `json:"token_payload_service_http_settings" bson:"token_payload_service_http_settings"`
 	FederatedProviders                map[string]FederatedProviderSettings `json:"federated_login_settings" bson:"federated_login_settings"`
+	OIDCSettings                      OIDCSettings                         `json:"oidc_settings" bson:"oidc_settings"`
 
 	// registration settings
 	RegistrationForbidden        bool     `bson:"registration_forbidden" json:"registration_forbidden"`

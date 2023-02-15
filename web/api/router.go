@@ -13,22 +13,19 @@ import (
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
-	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
-	"github.com/urfave/negroni"
 )
 
 // Router is a router that handles all API requests.
 type Router struct {
 	server               model.Server
-	middleware           *negroni.Negroni
 	cors                 *cors.Cors
 	logger               *log.Logger
 	router               *mux.Router
 	tfaType              model.TFAType
 	tfaResendTimeout     int
 	oidcConfiguration    *OIDCConfiguration
-	jwk                  *jwk
+	jwk                  *JWK
 	Authorizer           *authorization.Authorizer
 	Host                 *url.URL
 	SupportedLoginWays   model.LoginWith
@@ -59,7 +56,6 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar := Router{
 		server:             settings.Server,
-		middleware:         negroni.New(middleware.NewNegroniLogger("API"), negroni.NewRecovery()),
 		router:             mux.NewRouter(),
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,
@@ -80,13 +76,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
 
-	ar.middleware.Use(ar.RemoveTrailingSlash())
-
-	if ar.cors != nil {
-		ar.middleware.Use(ar.cors)
-	}
 	ar.initRoutes()
-	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
 }
@@ -94,7 +84,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// reroute to our internal implementation
-	ar.middleware.ServeHTTP(w, r)
+	ar.router.ServeHTTP(w, r)
 }
 
 // ServeJSON sends status code, headers and data and send it back to the user
@@ -112,8 +102,43 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, locale string, status int, v 
 	}
 }
 
+func NewLocalizedError(status int, locale string, errID l.LocalizedString, details ...any) *LocalizedError {
+	return &LocalizedError{
+		status:  status,
+		locale:  locale,
+		errID:   errID,
+		details: details,
+	}
+}
+
+type LocalizedError struct {
+	status  int
+	locale  string
+	errID   l.LocalizedString
+	details []any
+}
+
+func (e *LocalizedError) Error() string {
+	return fmt.Sprintf("localized error: %v (status=%v). Details: %v.", e.errID, e.status, e.details)
+}
+
+func (ar *Router) ErrorResponse(w http.ResponseWriter, err error) {
+	ar.logger.Printf("api error: %v", err)
+
+	switch e := err.(type) {
+	case *LocalizedError:
+		ar.error(w, 3, e.locale, e.status, e.errID, e.details...)
+	default:
+		ar.error(w, 3, "", http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
+	}
+}
+
 // Error writes an API error message to the response and logger.
 func (ar *Router) Error(w http.ResponseWriter, locale string, status int, errID l.LocalizedString, details ...any) {
+	ar.error(w, 2, locale, status, errID, details...)
+}
+
+func (ar *Router) error(w http.ResponseWriter, callerDepth int, locale string, status int, errID l.LocalizedString, details ...any) {
 	// errorResponse is a generic response for sending an error.
 	type errorResponse struct {
 		ID       string `json:"id"`
@@ -126,7 +151,7 @@ func (ar *Router) Error(w http.ResponseWriter, locale string, status int, errID 
 		errID = l.APIInternalServerError
 	}
 
-	_, file, no, ok := runtime.Caller(1)
+	_, file, no, ok := runtime.Caller(callerDepth)
 	if !ok {
 		file = "unknown file"
 		no = -1
@@ -139,13 +164,19 @@ func (ar *Router) Error(w http.ResponseWriter, locale string, status int, errID 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	encodeErr := json.NewEncoder(w).Encode(map[string]interface{}{"error": &errorResponse{
-		ID:       string(errID),
-		Message:  message,
-		Status:   status,
-		Location: fmt.Sprintf("%s:%d", file, no),
-	}})
 
+	resp := struct {
+		Error errorResponse `json:"error"`
+	}{
+		Error: errorResponse{
+			ID:       string(errID),
+			Message:  message,
+			Status:   status,
+			Location: fmt.Sprintf("%s:%d", file, no),
+		},
+	}
+
+	encodeErr := json.NewEncoder(w).Encode(resp)
 	if encodeErr != nil {
 		ar.logger.Printf("error writing http response: %s", errID)
 	}

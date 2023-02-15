@@ -8,7 +8,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -32,8 +32,6 @@ var (
 )
 
 var keySet = false
-
-type key int
 
 func init() {
 	key := []byte(model.RandomPassword(64))
@@ -113,7 +111,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
-		fmt.Println(url)
+		log.Println("federated auth url", url)
 
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	}
@@ -135,7 +133,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			return
 		}
 
-		value, err := ar.getFromSession(sessionName(app.ID, providerName), r)
+		value, err := ar.getFromSession(SessionName, sessionKey(app.ID, providerName), r)
 		if err != nil {
 			ar.Error(w, locale, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
 			return
@@ -154,65 +152,63 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 		initProviders(app, fsess.RedirectUrl)
 
 		gothUser, err := ar.CompleteUserAuth(w, r)
-		if err == nil {
-			user, err := ar.server.Storages().User.UserByFederatedID(providerName, gothUser.UserID)
-
-			if err == model.ErrUserNotFound && gothUser.Email != "" {
-				user, err = ar.server.Storages().User.UserByEmail(gothUser.Email)
-				if err == nil {
-					user.AddFederatedId(providerName, gothUser.UserID)
-					ar.server.Storages().User.UpdateUser(user.ID, user)
-				}
-			}
-
-			if err == model.ErrUserNotFound && !app.RegistrationForbidden {
-				scopes := model.MergeScopes(app.Scopes, app.NewUserDefaultScopes, nil)
-
-				user, err = ar.server.Storages().User.AddUserWithFederatedID(model.User{
-					Email:    gothUser.Email,
-					FullName: gothUser.FirstName + " " + gothUser.LastName,
-					Scopes:   scopes,
-				}, providerName, gothUser.UserID, app.NewUserDefaultRole)
-				if err != nil {
-					ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
-					return
-				}
-			} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
-				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
-				return
-			} else if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
-				return
-			}
-
-			// Authorize user if the app requires authorization.
-			azi := authorization.AuthzInfo{
-				App:         app,
-				UserRole:    user.AccessRole,
-				ResourceURI: r.RequestURI,
-				Method:      r.Method,
-			}
-			if err := ar.Authorizer.Authorize(azi); err != nil {
-				ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
-				return
-			}
-
-			authResult, err := ar.loginFlow(app, user, fsess.Scopes)
-			if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
-				return
-			}
-
-			authResult.CallbackUrl = fsess.CallbackUrl
-			authResult.Scopes = fsess.Scopes
-
-			ar.ServeJSON(w, locale, http.StatusOK, authResult)
-			return
-		}
 		if err != nil {
 			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
 			return
 		}
+
+		user, err := ar.server.Storages().User.UserByFederatedID(providerName, gothUser.UserID)
+
+		if err == model.ErrUserNotFound && gothUser.Email != "" {
+			user, err = ar.server.Storages().User.UserByEmail(gothUser.Email)
+			if err == nil {
+				user.AddFederatedId(providerName, gothUser.UserID)
+				ar.server.Storages().User.UpdateUser(user.ID, user)
+			}
+		}
+
+		if err == model.ErrUserNotFound && !app.RegistrationForbidden {
+			scopes := model.MergeScopes(app.Scopes, app.NewUserDefaultScopes, nil)
+
+			user, err = ar.server.Storages().User.AddUserWithFederatedID(model.User{
+				Email:    gothUser.Email,
+				FullName: gothUser.FirstName + " " + gothUser.LastName,
+				Scopes:   scopes,
+			}, providerName, gothUser.UserID, app.NewUserDefaultRole)
+			if err != nil {
+				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+				return
+			}
+		} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
+			return
+		} else if err != nil {
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+			return
+		}
+
+		// Authorize user if the app requires authorization.
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    user.AccessRole,
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
+		}
+		if err := ar.Authorizer.Authorize(azi); err != nil {
+			ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
+			return
+		}
+
+		authResult, err := ar.loginFlow(app, user, fsess.Scopes)
+		if err != nil {
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
+			return
+		}
+
+		authResult.CallbackUrl = fsess.CallbackUrl
+		authResult.Scopes = fsess.Scopes
+
+		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
 }
 
@@ -288,13 +284,14 @@ func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string
 	fsess := model.FederatedSession{
 		ProviderSession: sess.Marshal(),
 		AppId:           app.ID,
+		AuthUrl:         url,
 		CallbackUrl:     getCallbackUrl(req),
 		RedirectUrl:     redirect,
 		Scopes:          getScopes(req),
 		ProviderName:    providerName,
 	}
 
-	err = storeInSession(sessionName(app.ID, providerName), fsess.Marshal(), req, res)
+	err = storeInSession(SessionName, sessionKey(app.ID, providerName), fsess.Marshal(), req, res)
 
 	if err != nil {
 		return "", err
@@ -330,7 +327,7 @@ func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (
 		return goth.User{}, err
 	}
 
-	value, err := ar.getFromSession(sessionName(app.ID, providerName), req)
+	value, err := ar.getFromSession(SessionName, sessionKey(app.ID, providerName), req)
 	if err != nil {
 		return goth.User{}, err
 	}
@@ -346,7 +343,7 @@ func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (
 		return goth.User{}, err
 	}
 
-	err = validateState(req, sess)
+	err = validateGothState(req, sess)
 	if err != nil {
 		return goth.User{}, err
 	}
@@ -368,7 +365,7 @@ func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (
 	if err != nil {
 		return goth.User{}, err
 	}
-	err = storeInSession(sessionName(app.ID, providerName), fsess.Marshal(), req, res)
+	err = storeInSession(SessionName, sessionKey(app.ID, providerName), fsess.Marshal(), req, res)
 
 	if err != nil {
 		return goth.User{}, err
@@ -378,14 +375,18 @@ func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (
 	return gu, err
 }
 
-// validateState ensures that the state token param from the original
+// validateGothState ensures that the state token param from the original
 // AuthURL matches the one included in the current (callback) request.
-func validateState(req *http.Request, sess goth.Session) error {
+func validateGothState(req *http.Request, sess goth.Session) error {
 	rawAuthURL, err := sess.GetAuthURL()
 	if err != nil {
 		return err
 	}
 
+	return validateState(req, rawAuthURL)
+}
+
+func validateState(req *http.Request, rawAuthURL string) error {
 	authURL, err := url.Parse(rawAuthURL)
 	if err != nil {
 		return err
@@ -423,13 +424,13 @@ func getScopes(req *http.Request) []string {
 	return strings.Split(req.URL.Query().Get("scopes"), ",")
 }
 
-func sessionName(appId, provider string) string {
+func sessionKey(appId, provider string) string {
 	return appId + ":" + provider
 }
 
 // StoreInSession stores a specified key/value pair in the session.
-func storeInSession(key string, value string, req *http.Request, res http.ResponseWriter) error {
-	session, _ := Store.New(req, SessionName)
+func storeInSession(sessionName, key string, value string, req *http.Request, res http.ResponseWriter) error {
+	session, _ := Store.New(req, sessionName)
 
 	if err := updateSessionValue(session, key, value); err != nil {
 		return err
@@ -440,8 +441,8 @@ func storeInSession(key string, value string, req *http.Request, res http.Respon
 
 // GetFromSession retrieves a previously-stored value from the session.
 // If no value has previously been stored at the specified key, it will return an error.
-func (ar *Router) getFromSession(key string, req *http.Request) (string, error) {
-	session, _ := Store.Get(req, SessionName)
+func (ar *Router) getFromSession(sessionName, key string, req *http.Request) (string, error) {
+	session, _ := Store.Get(req, sessionName)
 	value, err := ar.getSessionValue(session, key)
 	if err != nil {
 		return "", err
@@ -461,7 +462,7 @@ func (ar *Router) getSessionValue(session *sessions.Session, key string) (string
 	if err != nil {
 		return "", err
 	}
-	s, err := ioutil.ReadAll(r)
+	s, err := io.ReadAll(r)
 	if err != nil {
 		return "", err
 	}

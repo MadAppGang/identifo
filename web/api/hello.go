@@ -25,20 +25,18 @@ func (ar *Router) HandleHello() http.HandlerFunc {
 }
 
 // HandlePing returns pong message.
-func (ar *Router) HandlePing() http.HandlerFunc {
+func (ar *Router) HandlePing(w http.ResponseWriter, r *http.Request) {
 	type pongResponse struct {
 		Message string    `json:"message,omitempty"`
 		Date    time.Time `json:"date,omitempty"`
 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		locale := r.Header.Get("Accept-Language")
+	locale := r.Header.Get("Accept-Language")
 
-		ar.logger.Println("trace pong handler")
-		pong := pongResponse{
-			Message: "Pong!",
-			Date:    time.Now(),
-		}
-		ar.ServeJSON(w, locale, http.StatusOK, pong)
+	ar.logger.Println("trace pong handler")
+	pong := pongResponse{
+		Message: "Pong!",
+		Date:    time.Now(),
 	}
+	ar.ServeJSON(w, locale, http.StatusOK, pong)
 }

@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/gorilla/mux"
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 
@@ -26,6 +27,10 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		appID := strings.TrimSpace(r.Header.Get(HeaderKeyAppID))
 		if appID == "" {
 			appID = r.URL.Query().Get(QueryKeyAppID)
+		}
+
+		if appID == "" {
+			appID = mux.Vars(r)[QueryKeyAppID]
 		}
 
 		app, err := ar.server.Storages().App.ActiveAppByID(appID)
