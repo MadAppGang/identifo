@@ -25,7 +25,7 @@ func (ar *Router) initRoutes() {
 		baseMiddleware.Use(ar.cors)
 	}
 
-	ph := baseMiddleware.With(negroni.WrapFunc(ar.HandlePing))
+	ph := with(baseMiddleware, negroni.WrapFunc(ar.HandlePing))
 	ar.router.Handle("/ping", ph).Methods(http.MethodGet)
 
 	apiMiddlewares := ar.buildAPIMiddleware(baseMiddleware)
@@ -57,12 +57,12 @@ func (ar *Router) buildAPIMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	}
 
 	handlers = append(handlers, ar.AppID())
-	return base.With(handlers...)
+	return with(base, handlers...)
 }
 
 func (ar *Router) buildFederatedOIDCRoutes(router *mux.Router, middlewares *negroni.Negroni) {
 	router.Use(func(h http.Handler) http.Handler {
-		return middlewares.With(negroni.Wrap(h))
+		return with(middlewares, negroni.Wrap(h))
 	})
 
 	router.Path("/login").Methods(http.MethodPost).HandlerFunc(ar.OIDCLogin)
@@ -123,7 +123,7 @@ func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
 	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods(http.MethodPost)
 	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods(http.MethodGet)
 
-	return middlewares.With(
+	return with(middlewares,
 		ar.SignatureHandler(),
 		negroni.Wrap(auth),
 	)
@@ -136,7 +136,7 @@ func (ar *Router) buildMeRoutes(middleware *negroni.Negroni) http.Handler {
 	me.Path("").HandlerFunc(ar.UpdateUser()).Methods(http.MethodPut)
 	me.Path("/logout").HandlerFunc(ar.Logout()).Methods(http.MethodPost)
 
-	return middleware.With(
+	return with(middleware,
 		ar.SignatureHandler(),
 		negroni.Wrap(ar.Token(model.TokenTypeAccess, nil)(me)),
 	)
@@ -153,7 +153,7 @@ func (ar *Router) buildOIDCRoutes(middleware *negroni.Negroni) http.Handler {
 	// oidc.Path("/apple-developer-domain-association.txt").HandlerFunc(ar.ServeADDAFile()).Methods(http.MethodGet)
 	// oidc.Path("/apple-app-site-association").HandlerFunc(ar.ServeAASAFile()).Methods(http.MethodGet)
 
-	return middleware.With(negroni.Wrap(oidc))
+	return with(middleware, negroni.Wrap(oidc))
 }
 
 func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
@@ -163,5 +163,13 @@ func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
 		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
 	}
 
-	return base.With(wellKnownHandlers...)
+	return with(base, wellKnownHandlers...)
+}
+
+func with(n *negroni.Negroni, handlers ...negroni.Handler) *negroni.Negroni {
+	existing := n.Handlers()
+	h := make([]negroni.Handler, 0, len(existing)+len(handlers))
+	h = append(h, existing...)
+	h = append(h, handlers...)
+	return negroni.New(h...)
 }
