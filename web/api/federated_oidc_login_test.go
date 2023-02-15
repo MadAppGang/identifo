@@ -13,6 +13,7 @@ import (
 	"github.com/madappgang/identifo/v2/config"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/api"
+	"github.com/rs/cors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -62,6 +63,7 @@ func init() {
 
 	rs := api.RouterSettings{
 		Server: testServer,
+		Cors:   cors.New(model.DefaultCors),
 	}
 
 	testRouter, err = api.NewRouter(rs)
