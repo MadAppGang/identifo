@@ -2,7 +2,6 @@ package api_test
 
 import (
 	"bytes"
-	"context"
 	"crypto/hmac"
 	"crypto/sha256"
 	"encoding/base64"
@@ -11,6 +10,7 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"net/http/httptest"
 	"net/http/httputil"
 	"os"
 	"testing"
@@ -24,7 +24,7 @@ import (
 )
 
 type Config struct {
-	ServerURL     string `env:"SERVER" envDefault:"http://localhost:8081"`
+	// ServerURL     string `env:"SERVER" envDefault:"http://localhost:8081"`
 	AppID         string `env:"APP_ID" envDefault:"59fd884d8f6b180001f5b4e2"`
 	AppSecret     string `env:"APP_SECRET" envDefault:"app_secret"`
 	RunTestServer bool   `env:"RUN_TEST_SERVER" envDefault:"true"`
@@ -51,24 +51,19 @@ func TestMain(m *testing.M) {
 	_ = godotenv.Load()
 
 	env.Parse(&cfg)
-	request = baloo.New(cfg.ServerURL)
 
-	var httpServer *http.Server
-	if cfg.RunTestServer == true {
-		_, httpServer = runServer()
-	}
+	_, s := runServer()
+	request = baloo.New(s.URL)
 
 	code := m.Run()
 
-	if cfg.RunTestServer == true {
-		stopServer(httpServer)
-	}
+	stopServer(s)
 
 	os.Exit(code)
 }
 
 // run identifo server and import test data
-func runServer() (model.Server, *http.Server) {
+func runServer() (model.Server, *httptest.Server) {
 	var settings model.FileStorageSettings
 
 	os.Remove("./db.db")
@@ -84,24 +79,15 @@ func runServer() (model.Server, *http.Server) {
 		log.Fatalf("error creating server: %v", err)
 	}
 
-	httpSrv := &http.Server{
-		Addr:    srv.Settings().GetPort(),
-		Handler: srv.Router(),
-	}
+	log.Println("misconfig ListenAndServe")
+	httpSrv := httptest.NewServer(srv.Router())
 
-	go func() {
-		if err := httpSrv.ListenAndServe(); err != http.ErrServerClosed {
-			log.Fatalf("ListenAndServe(): %s", err)
-		}
-	}()
-
-	// maybe move the te
 	return srv, httpSrv
 }
 
 // stop server and clear the data
-func stopServer(server *http.Server) {
-	server.Shutdown(context.Background())
+func stopServer(server *httptest.Server) {
+	server.Close()
 	log.Println("the server is gracefully stopped, bye 👋")
 	log.Println("Stop server")
 }

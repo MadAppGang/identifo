@@ -48,7 +48,7 @@ func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
 }
 
 func (w *FSWatcher) Watch() {
-	if w.isWatching == true {
+	if w.isWatching {
 		return
 	}
 

@@ -96,5 +96,3 @@ require (
 	gopkg.in/h2non/gentleman.v2 v2.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/sfreiberg/gotwilio => github.com/MadAppGang/gotwilio v0.0.0-20210820024906-f91dd2ebe762
