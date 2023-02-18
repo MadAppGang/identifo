@@ -56,6 +56,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar := Router{
 		server:             settings.Server,
+		logger:             settings.Logger,
 		router:             mux.NewRouter(),
 		Authorizer:         settings.Authorizer,
 		LoggerSettings:     settings.LoggerSettings,
@@ -70,8 +71,6 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 	// setup logger to stdout.
 	if settings.Logger == nil {
 		ar.logger = log.New(os.Stdout, "API_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
-	} else {
-		ar.logger = settings.Logger
 	}
 
 	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)

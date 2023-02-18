@@ -42,6 +42,7 @@ type RouterSettings struct {
 func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar := Router{
 		server:       settings.Server,
+		logger:       settings.Logger,
 		middleware:   negroni.New(middleware.NewNegroniLogger("ADMIN_API"), negroni.NewRecovery()),
 		router:       mux.NewRouter(),
 		Host:         settings.Host,

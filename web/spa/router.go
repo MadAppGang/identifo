@@ -13,6 +13,7 @@ import (
 
 func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.Logger) (model.Router, error) {
 	ar := Router{
+		Logger:     logger,
 		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()).With(middlewares...),
 		FS:         setting.FileSystem,
 	}
