@@ -204,14 +204,18 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	authResult, err := ar.loginFlow(app, user, fsess.Scopes)
+	// requestedScopes will contain OIDC scopes and custom requested scopes
+	requestedScopes := fsess.Scopes
+	requestedScopes = append(requestedScopes, getScopes(r)...)
+
+	authResult, err := ar.loginFlow(app, user, requestedScopes)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 		return
 	}
 
 	authResult.CallbackUrl = fsess.CallbackUrl
-	authResult.Scopes = fsess.Scopes
+	authResult.Scopes = requestedScopes
 
 	ar.ServeJSON(w, locale, http.StatusOK, authResult)
 }
