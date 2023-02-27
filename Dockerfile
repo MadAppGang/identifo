@@ -13,10 +13,10 @@ FROM golang:1.19.2-alpine3.16 as builder
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
 COPY . ./
 RUN go mod download
-RUN go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/... 
+RUN go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 RUN go build -o /identifo .
 
-FROM alpine:3.13.2
+FROM alpine:3.16
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /

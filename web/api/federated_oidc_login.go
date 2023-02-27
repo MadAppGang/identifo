@@ -208,6 +208,9 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 	requestedScopes := fsess.Scopes
 	requestedScopes = append(requestedScopes, getScopes(r)...)
 
+	// map OIDC scopes to Identifo scopes
+	requestedScopes = mapScopes(app.OIDCSettings.ScopeMapping, requestedScopes)
+
 	authResult, err := ar.loginFlow(app, user, requestedScopes)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
@@ -218,6 +221,20 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 	authResult.Scopes = requestedScopes
 
 	ar.ServeJSON(w, locale, http.StatusOK, authResult)
+}
+
+func mapScopes(m map[string]string, scopes []string) []string {
+	result := make([]string, 0, len(scopes))
+
+	for _, s := range scopes {
+		if mapped, ok := m[s]; ok {
+			result = append(result, mapped)
+		} else {
+			result = append(result, s)
+		}
+	}
+
+	return result
 }
 
 func makeRedirectURL(redirect string, app model.AppData) (string, error) {

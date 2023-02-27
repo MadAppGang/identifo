@@ -11,6 +11,8 @@ type OIDCSettings struct {
 	EmailClaimField  string   `bson:"email_claim_field,omitempty" json:"email_claim_field,omitempty"`
 	UserIDClaimField string   `bson:"user_id_claim_field,omitempty" json:"user_id_claim_field,omitempty"`
 	Scopes           []string `bson:"scopes,omitempty" json:"scopes,omitempty"`
+	// ScopeMapping maps OIDC scopes to Identifo scopes.
+	ScopeMapping map[string]string `bson:"scope_mapping,omitempty" json:"scope_mapping,omitempty"`
 }
 
 func (s OIDCSettings) IsValid() error {

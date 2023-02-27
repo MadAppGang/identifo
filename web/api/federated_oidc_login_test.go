@@ -98,7 +98,7 @@ func Test_Router_OIDCLogin_Redirect(t *testing.T) {
 
 	require.Equal(t, http.StatusFound, rw.Code, "should redirect to the provider", rw.Body.String())
 
-	expectedAuthURL := oidcServer.URL + "/auth?client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code&scope=openid+&state=test"
+	expectedAuthURL := oidcServer.URL + "/auth?client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code&scope=openid&state=test"
 
 	locURL, err := url.Parse(rw.Header().Get("Location"))
 	require.NoError(t, err)
