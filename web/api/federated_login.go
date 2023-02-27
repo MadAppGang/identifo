@@ -421,7 +421,16 @@ func getCallbackUrl(req *http.Request) string {
 }
 
 func getScopes(req *http.Request) []string {
-	return strings.Split(req.URL.Query().Get("scopes"), ",")
+	rs := strings.Split(req.URL.Query().Get("scopes"), ",")
+
+	result := []string{}
+	for _, scope := range rs {
+		if scope != "" {
+			result = append(result, scope)
+		}
+	}
+
+	return result
 }
 
 func sessionKey(appId, provider string) string {
