@@ -17,6 +17,7 @@ storage:
   tokenBlacklist: *mongo_settings
   verificationCodeStorage: *mongo_settings
   inviteStorage: *mongo_settings
+  managementKeysStorage: *mongo_settings
 sessionStorage:
   type: memory
   sessionDuration: 300

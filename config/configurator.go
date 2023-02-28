@@ -92,6 +92,12 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating invite storage: %v", err))
 	}
 
+	managementKeys, err := storage.NewManagementKeys(dbSettings(settings.Storage.ManagementKeysStorage, settings.Storage.DefaultStorage))
+	if err != nil {
+		log.Printf("Error on Create New management keys storage %v", err)
+		errs = append(errs, fmt.Errorf("error creating management keys storage: %v", err))
+	}
+
 	session, err := storage.NewSessionStorage(settings.SessionStorage)
 	if err != nil {
 		log.Printf("Error on Create New session storage %v", err)
@@ -126,17 +132,18 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	sc := model.ServerStorageCollection{
-		App:          app,
-		User:         user,
-		Token:        token,
-		Blocklist:    tokenBlacklist,
-		Invite:       invite,
-		Verification: verification,
-		Session:      session,
-		Config:       config,
-		Key:          key,
-		LoginAppFS:   loginFS,
-		AdminPanelFS: adminPanelFS,
+		App:           app,
+		User:          user,
+		Token:         token,
+		Blocklist:     tokenBlacklist,
+		Invite:        invite,
+		Verification:  verification,
+		Session:       session,
+		Config:        config,
+		Key:           key,
+		ManagementKey: managementKeys,
+		LoginAppFS:    loginFS,
+		AdminPanelFS:  adminPanelFS,
 	}
 
 	// create 3rd party services

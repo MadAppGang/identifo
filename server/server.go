@@ -67,7 +67,7 @@ func NewServer(storages model.ServerStorageCollection, services model.ServerServ
 		Locale:           settings.General.Locale,
 	}
 
-	r, err := web.NewRouter(routerSettings)
+	r, err := web.NewRootRouter(routerSettings)
 	if err != nil {
 		return nil, err
 	}

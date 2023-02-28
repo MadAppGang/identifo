@@ -17,6 +17,7 @@ var DefaultServerSettings = ServerSettings{
 		TokenBlacklist:          DatabaseSettings{Type: DBTypeDefault},
 		VerificationCodeStorage: DatabaseSettings{Type: DBTypeDefault},
 		InviteStorage:           DatabaseSettings{Type: DBTypeDefault},
+		ManagementKeysStorage:   DatabaseSettings{Type: DBTypeDefault},
 	},
 	SessionStorage: SessionStorageSettings{
 		Type:            SessionStorageMem,
@@ -87,6 +88,10 @@ func (ss *ServerSettings) RewriteDefaults() {
 	if len(ss.Storage.InviteStorage.Type) == 0 {
 		ss.Storage.InviteStorage.Type = DBTypeDefault
 	}
+	if len(ss.Storage.ManagementKeysStorage.Type) == 0 {
+		ss.Storage.ManagementKeysStorage.Type = DBTypeDefault
+	}
+
 	if len(ss.Storage.TokenBlacklist.Type) == 0 {
 		ss.Storage.TokenBlacklist.Type = DBTypeDefault
 	}
