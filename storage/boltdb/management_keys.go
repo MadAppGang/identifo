@@ -184,7 +184,7 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 
 		return nil
 	})
-	if err != nil {
+	if err != nil {		
 		return nil, err
 	}
 

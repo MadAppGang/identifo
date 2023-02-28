@@ -11,6 +11,7 @@ import (
 	"github.com/madappgang/identifo/v2/web/admin"
 	"github.com/madappgang/identifo/v2/web/api"
 	"github.com/madappgang/identifo/v2/web/authorization"
+	"github.com/madappgang/identifo/v2/web/management"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/madappgang/identifo/v2/web/spa"
 	"github.com/rs/cors"
@@ -19,6 +20,7 @@ import (
 
 const (
 	adminpanelPath    = "/adminpanel"
+	managementPath    = "/management"
 	adminpanelAPIPath = "/admin"
 	apiPath           = "/api"
 )
@@ -36,8 +38,8 @@ type RouterSetting struct {
 	Locale           string
 }
 
-// NewRouter creates and inits root http router.
-func NewRouter(settings RouterSetting) (model.Router, error) {
+// NewRootRouter creates and inits root http router.
+func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	r := Router{}
 	var err error
 	authorizer := authorization.NewAuthorizer()
@@ -67,6 +69,19 @@ func NewRouter(settings RouterSetting) (model.Router, error) {
 		return nil, err
 	}
 	r.APIRouter = apiRouter
+
+	managementRouter, err := management.NewRouter(management.RouterSettings{
+		Server:             settings.Server,
+		Logger:             settings.Logger,
+		LoggerSettings:     apiRouter.LoggerSettings,
+		Storage:            settings.Server.Storages().ManagementKey,
+		Locale:             settings.Locale,
+		SupportedLoginWays: settings.Server.Settings().Login.LoginWith,
+	})
+	if err != nil {
+		return nil, err
+	}
+	r.ManagementRouter = managementRouter
 
 	if settings.Server.Settings().LoginWebApp.Type == model.FileStorageTypeNone {
 		r.LoginAppRouter = nil
@@ -135,6 +150,7 @@ func fsWithConfig(fs fs.FS) fs.FS {
 // Router is a root router to handle REST API, web, and admin requests.
 type Router struct {
 	APIRouter        model.Router
+	ManagementRouter model.Router
 	LoginAppRouter   model.Router
 	AdminRouter      model.Router
 	AdminPanelRouter model.Router
@@ -151,6 +167,9 @@ func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 func (ar *Router) setupRoutes() {
 	ar.RootRouter = http.NewServeMux()
 	ar.RootRouter.Handle("/", ar.APIRouter)
+	if ar.ManagementRouter != nil {
+		ar.RootRouter.Handle(managementPath+"/", http.StripPrefix(managementPath, ar.ManagementRouter))
+	}
 	if ar.LoginAppRouter != nil {
 		ar.RootRouter.Handle(model.DefaultLoginWebAppSettings.LoginURL+"/", http.StripPrefix(model.DefaultLoginWebAppSettings.LoginURL, ar.LoginAppRouter))
 	}

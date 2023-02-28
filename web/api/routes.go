@@ -168,7 +168,7 @@ func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
 
 func with(n *negroni.Negroni, handlers ...negroni.Handler) *negroni.Negroni {
 	existing := n.Handlers()
-	h := make([]negroni.Handler, 0, len(existing)+len(handlers))
+	h := []negroni.Handler{}
 	h = append(h, existing...)
 	h = append(h, handlers...)
 	return negroni.New(h...)
