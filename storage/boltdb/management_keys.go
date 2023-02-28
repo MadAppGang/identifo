@@ -57,6 +57,7 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 
 		return json.Unmarshal(u, &res)
 	})
+	res.Secret = "***"
 	return res, err
 }
 
@@ -185,6 +186,10 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 	})
 	if err != nil {
 		return nil, err
+	}
+
+	for _, k := range keys {
+		k.Secret = "***"
 	}
 	return keys, nil
 }
