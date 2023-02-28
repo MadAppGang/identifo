@@ -58,7 +58,6 @@ func (os *OriginChecker) IsPresent(origin string) bool {
 	}
 
 	_, ok := os.origins[clean]
-	fmt.Printf(">>>>>>OriginChecker:IsPresent ok: %v with origins map: %+v\n", ok, os.origins)
 	return ok
 }
 
