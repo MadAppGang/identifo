@@ -14,15 +14,15 @@ import (
 func NewManagementKeys(settings model.DatabaseSettings) (model.ManagementKeysStorage, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
-		return boltdb.NewManagementKeys(settings.BoltDB)
+		return boltdb.NewManagementKeysStorage(settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewManagementKeys(settings.Mongo)
+		return mongo.NewManagementKeysStorage(settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewManagementKeys(settings.Dynamo)
+		return dynamodb.NewManagementKeysStorage(settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:
-		return mem.NewManagementKeys()
+		return mem.NewManagementKeysStorage()
 	default:
 		return nil, fmt.Errorf("token storage type is not supported %s ", settings.Type)
 	}
