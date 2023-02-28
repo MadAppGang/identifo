@@ -76,6 +76,9 @@ func (ss *StorageSettings) Validate() []error {
 	if err := ss.TokenBlacklist.Validate(); err != nil {
 		result = append(result, fmt.Errorf("TokenBlacklist settings: %s", err))
 	}
+	if err := ss.ManagementKeysStorage.Validate(); err != nil {
+		result = append(result, fmt.Errorf("ManagementKeysStorage settings: %s", err))
+	}
 	if err := ss.VerificationCodeStorage.Validate(); err != nil {
 		result = append(result, fmt.Errorf("VerificationCodeStorage settings: %s", err))
 	}
@@ -87,6 +90,7 @@ func (ss *StorageSettings) Validate() []error {
 		ss.TokenStorage.Type == DBTypeDefault ||
 		ss.TokenBlacklist.Type == DBTypeDefault ||
 		ss.VerificationCodeStorage.Type == DBTypeDefault ||
+		ss.ManagementKeysStorage.Type == DBTypeDefault ||
 		ss.InviteStorage.Type == DBTypeDefault {
 		// if one of the storages is reference default storage, let' validate default storage
 		if err := ss.DefaultStorage.Validate(); err != nil {
