@@ -56,6 +56,7 @@ type StorageSettings struct {
 	TokenBlacklist          DatabaseSettings `yaml:"tokenBlacklist" json:"token_blacklist"`
 	VerificationCodeStorage DatabaseSettings `yaml:"verificationCodeStorage" json:"verification_code_storage"`
 	InviteStorage           DatabaseSettings `yaml:"inviteStorage" json:"invite_storage"`
+	ManagementKeysStorage   DatabaseSettings `yaml:"managementKeysStorage" json:"management_keys_storage"`
 }
 
 // DatabaseSettings holds together all settings applicable to a particular database.

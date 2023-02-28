@@ -17,6 +17,7 @@ var DefaultServerSettings = ServerSettings{
 		TokenBlacklist:          DatabaseSettings{Type: DBTypeDefault},
 		VerificationCodeStorage: DatabaseSettings{Type: DBTypeDefault},
 		InviteStorage:           DatabaseSettings{Type: DBTypeDefault},
+		ManagementKeysStorage:   DatabaseSettings{Type: DBTypeDefault},
 	},
 	SessionStorage: SessionStorageSettings{
 		Type:            SessionStorageMem,
