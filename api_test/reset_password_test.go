@@ -25,7 +25,7 @@ func TestResetPasswordWithCustomURL(t *testing.T) {
 		AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/response_ok.json").
+		JSONSchema("../test/artifacts/api/response_ok.json").
 		Done()
 
 	// if running local server (the email sever will not be nil then), check the email content
@@ -56,7 +56,7 @@ func TestResetPasswordWithAppSpecificURL(t *testing.T) {
 		AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/response_ok.json").
+		JSONSchema("../test/artifacts/api/response_ok.json").
 		Done()
 
 	// if running local server (the email sever will not be nil then), check the email content
@@ -86,7 +86,7 @@ func TestResetPasswordWithDefaultURL(t *testing.T) {
 		AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/response_ok.json").
+		JSONSchema("../test/artifacts/api/response_ok.json").
 		Done()
 
 	// if running local server (the email sever will not be nil then), check the email content

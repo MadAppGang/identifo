@@ -1,4 +1,4 @@
-package redis_test
+package api_test
 
 import (
 	"os"

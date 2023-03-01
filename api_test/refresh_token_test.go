@@ -25,7 +25,7 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		// AssertFunc(dumpResponse).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			rt = data["refresh_token"].(string)
@@ -46,7 +46,7 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_refresh_token.json").
+		JSONSchema("../test/artifacts/api/jwt_refresh_token.json").
 		Done()
 }
 
@@ -69,7 +69,7 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		// AssertFunc(dumpResponse).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			rt = data["refresh_token"].(string)
@@ -90,6 +90,6 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_refresh_token_with_new_refresh.json").
+		JSONSchema("../test/artifacts/api/jwt_refresh_token_with_new_refresh.json").
 		Done()
 }

@@ -3,6 +3,9 @@ package api_test
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -49,7 +52,7 @@ var emailService *mock.EmailService
 // Some test helper function here to setup test environment
 // ============================================================
 func TestMain(m *testing.M) {
-	// forceIntegrationTests()
+	forceIntegrationTests()
 
 	// try to load dotenv file. If failed - just ignore. Dotenv file is optional
 	_ = godotenv.Load()
@@ -78,10 +81,10 @@ func runServer() (model.Server, *http.Server) {
 	// if we do regular isolated tests - use boldtb as a storage
 	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
 		os.Remove("../data/db.db")
-		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../test/artifacts/api/config.yaml")
 	} else {
 		// if we do integration tests with mongodb - run tests with mongodb
-		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config-mongo.yaml")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../test/artifacts/api/config-mongo.yaml")
 	}
 
 	configStorage, err := config.InitConfigurationStorage(settings)
@@ -96,10 +99,10 @@ func runServer() (model.Server, *http.Server) {
 
 	emailService = srv.Services().Email.Transport().(*mock.EmailService)
 
-	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
+	if err := config.ImportApps("../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
 	}
-	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
+	if err := config.ImportUsers("../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
 	// updates CORS after apps import
@@ -173,6 +176,16 @@ func validateBodyText(validator validatorFuncText) assert.Func {
 
 		return validator(string(body))
 	}
+}
+
+func Signature(data, secret string) (string, error) {
+	mac := hmac.New(sha256.New, []byte(secret))
+
+	if _, err := mac.Write([]byte(data)); err != nil {
+		return "", fmt.Errorf("error creating signature for data: %v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil)), nil
 }
 
 func forceIntegrationTests() {

@@ -42,7 +42,7 @@ func TestInvite(t *testing.T) {
 			at = data["access_token"].(string)
 			return nil
 		})).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 
 	require.NotEmpty(t, at)
@@ -115,7 +115,7 @@ func TestInviteWithCustomLoginAppURL(t *testing.T) {
 			at = data["access_token"].(string)
 			return nil
 		})).
-		JSONSchema("../../test/artifacts/api/jwt_token_scheme.json"). // no refresh token for this app, because it says offline = false
+		JSONSchema("../test/artifacts/api/jwt_token_scheme.json"). // no refresh token for this app, because it says offline = false
 		Done()
 
 	require.NotEmpty(t, at)
