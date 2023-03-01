@@ -3,7 +3,6 @@ package boltdb
 import (
 	"context"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"time"
 
@@ -70,6 +69,20 @@ func (ms *ManagementKeysStorage) CreateKey(ctx context.Context, name string, sco
 		CreatedAt: time.Now(),
 		LastUsed:  time.Now(),
 	}
+	err := ms.db.Update(func(tx *bolt.Tx) error {
+		b := tx.Bucket([]byte(ManagementKeysBucket))
+
+		data, err := json.Marshal(key)
+		if err != nil {
+			return err
+		}
+
+		return b.Put([]byte(key.ID), data)
+	})
+	return key, err
+}
+
+func (ms *ManagementKeysStorage) AddKey(ctx context.Context, key model.ManagementKey) (model.ManagementKey, error) {
 	err := ms.db.Update(func(tx *bolt.Tx) error {
 		b := tx.Bucket([]byte(ManagementKeysBucket))
 
@@ -188,10 +201,32 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 		return nil, err
 	}
 
-
 	return keys, nil
 }
 
 func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) error {
-	return errors.New("not implemented")
+	if cleanOldData {
+		ms.db.Update(func(tx *bolt.Tx) error {
+			tx.DeleteBucket([]byte(ManagementKeysBucket))
+			return nil
+		})
+		if err := ms.db.Update(func(tx *bolt.Tx) error {
+			if _, err := tx.CreateBucketIfNotExists([]byte(ManagementKeysBucket)); err != nil {
+				return fmt.Errorf("create bucket: %s", err)
+			}
+			return nil
+		}); err != nil {
+			return err
+		}
+	}
+	keys := []model.ManagementKey{}
+	if err := json.Unmarshal(data, &keys); err != nil {
+		return err
+	}
+	for _, k := range keys {
+		if _, err := ms.AddKey(context.TODO(), k); err != nil {
+			return err
+		}
+	}
+	return nil
 }
