@@ -20,12 +20,13 @@ func TestVerifySignature(t *testing.T) {
 		"http://google.com/whatever",
 		strings.NewReader(body),
 	)
+	request.Header.Add(sig.ContentTypeHeaderKey, "application/json")
 	bodyMD5 := sig.GetMD5([]byte(body))
 	err := sig.AddHeadersAndSignRequest(request, secret, bodyMD5)
 
 	require.NoError(t, err)
 
-	assert.Equal(t, bodyMD5, request.Header["Content-MD5"][0])
+	assert.Equal(t, bodyMD5, request.Header["Content-Md5"][0])
 	assert.NotEmpty(t, request.Header["Expires"][0])
 	assert.NotEmpty(t, request.Header["Date"][0])
 	assert.NotEmpty(t, request.Header["Digest"][0])
