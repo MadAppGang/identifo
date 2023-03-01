@@ -1,0 +1,35 @@
+package sig_test
+
+import (
+	"context"
+	"net/http"
+	"strings"
+	"testing"
+
+	"github.com/madappgang/identifo/v2/sig"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+func TestVerifySignature(t *testing.T) {
+	secret := []byte("the most secret secret")
+	body := "my request"
+	request, _ := http.NewRequestWithContext(
+		context.TODO(),
+		http.MethodPost,
+		"http://google.com/whatever",
+		strings.NewReader(body),
+	)
+	bodyMD5 := sig.GetMD5([]byte(body))
+	err := sig.AddHeadersAndSignRequest(request, secret, bodyMD5)
+
+	require.NoError(t, err)
+
+	assert.Equal(t, bodyMD5, request.Header["Content-MD5"][0])
+	assert.NotEmpty(t, request.Header["Expires"][0])
+	assert.NotEmpty(t, request.Header["Date"][0])
+	assert.NotEmpty(t, request.Header["Digest"][0])
+
+	err = sig.VerifySignature(request, secret)
+	assert.NoError(t, err)
+}
