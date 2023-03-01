@@ -26,11 +26,12 @@ func (ar *Router) initRoutes() {
 	ar.router.Use(middleware.Recoverer)
 	ar.router.Use(middleware.CleanPath)
 	ar.router.Use(middleware.Timeout(30 * time.Second))
-	ar.router.Get("/test", ar.test)
+	ar.router.Use(ar.AuthMiddleware)
 
+	ar.router.Get("/test", ar.test)
 	// token endpoints
 	ar.router.Route("/token", func(r chi.Router) {
-		r.Post("/invite_token", ar.getInviteToken)
-		r.Post("/reset_password_token", ar.getResetPasswordToken)
+		r.Post("/invite", ar.getInviteToken)
+		r.Post("/reset_password", ar.getResetPasswordToken)
 	})
 }

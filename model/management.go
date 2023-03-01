@@ -13,13 +13,14 @@ type ManagementKeysStorage interface {
 	RenameKey(ctx context.Context, id, name string) (ManagementKey, error)
 	ChangeScopesForKey(ctx context.Context, id string, scopes []string) (ManagementKey, error)
 	UseKey(ctx context.Context, id string) (ManagementKey, error)
+	ImportJSON(data []byte, clearOldData bool) error
 
 	GeyAllKeys(ctx context.Context) ([]ManagementKey, error)
 }
 
 // ManagementKey secret management key to communicate with management api
 type ManagementKey struct {
-	ID        string     `json:"id" bson:"id"`
+	ID        string     `json:"id" bson:"_id"`
 	Secret    string     `json:"secret" bson:"secret"`
 	Name      string     `json:"name" bson:"name"`
 	Active    bool       `json:"active" bson:"active"`

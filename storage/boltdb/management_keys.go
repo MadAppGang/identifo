@@ -3,6 +3,7 @@ package boltdb
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"time"
 
@@ -57,7 +58,6 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 
 		return json.Unmarshal(u, &res)
 	})
-	res.Secret = "***"
 	return res, err
 }
 
@@ -184,12 +184,14 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 
 		return nil
 	})
-	if err != nil {		
+	if err != nil {
 		return nil, err
 	}
 
-	for _, k := range keys {
-		k.Secret = "***"
-	}
+
 	return keys, nil
+}
+
+func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	return errors.New("not implemented")
 }

@@ -2,7 +2,9 @@ package mongo
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
+	"log"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -45,7 +47,6 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 		}
 		return model.ManagementKey{}, err
 	}
-	key.Secret = "***"
 	return key, nil
 }
 
@@ -59,6 +60,11 @@ func (ms *ManagementKeysStorage) CreateKey(ctx context.Context, name string, sco
 		LastUsed:  time.Now(),
 	}
 
+	_, err := ms.coll.InsertOne(ctx, key)
+	return key, err
+}
+
+func (ms *ManagementKeysStorage) AddKey(ctx context.Context, key model.ManagementKey) (model.ManagementKey, error) {
 	_, err := ms.coll.InsertOne(ctx, key)
 	return key, err
 }
@@ -122,9 +128,33 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 		return nil, err
 	}
 
-	for _, v := range keys {
-		v.Secret = "***"
+	return keys, nil
+}
+
+func (ms *ManagementKeysStorage) ClearAllData() {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second*10)
+	defer cancel()
+
+	if _, err := ms.coll.DeleteMany(ctx, bson.M{}); err != nil {
+		log.Printf("Error cleaning all user data: %s\n", err)
+	}
+}
+
+// ImportJSON imports data from JSON.
+func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	if cleanOldData {
+		ms.ClearAllData()
 	}
 
-	return keys, nil
+	keys := []model.ManagementKey{}
+	if err := json.Unmarshal(data, &keys); err != nil {
+		log.Println(err)
+		return err
+	}
+	for _, a := range keys {
+		if _, err := ms.AddKey(context.TODO(), a); err != nil {
+			return err
+		}
+	}
+	return nil
 }

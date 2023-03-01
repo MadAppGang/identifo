@@ -18,6 +18,15 @@ func SignString(s string, key []byte) string {
 	return str
 }
 
+// SignString sing the string -> base64 -> url encode
+func Sign(s string, key []byte) string {
+	mac := hmac.New(sha256.New, key)
+	mac.Write([]byte(s))
+	str := base64.StdEncoding.EncodeToString(mac.Sum(nil))
+	str = url.QueryEscape(str)
+	return str
+}
+
 func GetMD5(data []byte) string {
 	hasher := md5.New()
 	hasher.Write(data)

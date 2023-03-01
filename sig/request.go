@@ -33,14 +33,14 @@ const defaultExpireInSec = 30 * time.Second
 //		}
 //	}
 func VerifySignature(r *http.Request, secret []byte) error {
-	dh := r.Header["Digest"]
+	dh := r.Header[DigestHeaderKey]
 	hashB := []byte{}
 	if len(dh) > 0 {
 		digest := dh[0]
-		if !strings.HasPrefix(digest, "sha-256=") {
+		if !strings.HasPrefix(digest, DigestHeaderSHAPrefix) {
 			return ErrorIncorrectDigestHeader
 		}
-		hash := strings.TrimPrefix(digest, "sha-256=")
+		hash := strings.TrimPrefix(digest, DigestHeaderSHAPrefix)
 		var err error
 		hash, err = url.QueryUnescape(hash)
 		if err != nil {
@@ -58,9 +58,9 @@ func VerifySignature(r *http.Request, secret []byte) error {
 	if err != nil {
 		return err
 	}
-
+	fmt.Println(stringToSign.String())
 	mac := hmac.New(sha256.New, secret)
-	mac.Write([]byte(stringToSign))
+	mac.Write([]byte(stringToSign.String()))
 
 	equal := hmac.Equal(hashB, mac.Sum(nil))
 	if equal == false {
@@ -74,10 +74,10 @@ func AddHeadersAndSignRequest(r *http.Request, secret []byte, bodyMD5 string) er
 		bodyMD5 = GetBodyMD5(r)
 	}
 	if len(bodyMD5) > 0 {
-		r.Header["Content-MD5"] = []string{bodyMD5}
+		r.Header[ContentMD5HeaderKey] = []string{bodyMD5}
 	}
-	r.Header["Expires"] = []string{fmt.Sprintf("%d", time.Now().Add(defaultExpireInSec).Unix())}
-	r.Header["Date"] = []string{time.Now().Format(time.RFC3339)}
+	r.Header[ExpiresHeaderKey] = []string{fmt.Sprintf("%d", time.Now().Add(defaultExpireInSec).Unix())}
+	r.Header[DateHeaderKey] = []string{time.Now().Format(time.RFC3339)}
 	return SignRequest(r, secret, bodyMD5)
 }
 
@@ -86,44 +86,59 @@ func SignRequest(r *http.Request, secret []byte, bodyMD5 string) error {
 	if err != nil {
 		return err
 	}
-	signature := SignString(stringToSign, secret)
-	r.Header["Digest"] = []string{fmt.Sprintf("sha-256=%s", signature)}
+	signature := SignString(stringToSign.String(), secret)
+	r.Header[DigestHeaderKey] = []string{fmt.Sprintf("%s%s", DigestHeaderSHAPrefix, signature)}
 	return nil
 }
 
-func stringToSignFromRequest(r *http.Request, bodyMD5 string) (string, error) {
-	stringToSing := r.Method + "\n"
+func stringToSignFromRequest(r *http.Request, bodyMD5 string) (SigningData, error) {
+	data := SigningData{}
+	data.Method = r.Method
 	bmd5 := bodyMD5
 	if len(bodyMD5) == 0 {
 		bmd5 = GetBodyMD5(r)
 	}
-	md5 := r.Header["Content-MD5"]
+	md5 := r.Header[ContentMD5HeaderKey]
 	if len(md5) > 0 {
-		stringToSing += md5[0]
+		data.BodyMD5 = md5[0]
 		if bmd5 != md5[0] {
-			return "", ErrorIncorrectMD5Header
+			return data, ErrorIncorrectMD5Header
 		}
 	} else if len(bmd5) > 0 {
-		return "", ErrorMissingMD5Header
+		return data, ErrorMissingMD5Header
 	}
-	stringToSing += "/n"
 
-	eh := r.Header["Expires"]
+	ct := r.Header[ContentTypeHeaderKey]
+	if len(ct) > 0 {
+		data.ContentType = ct[0]
+	} else {
+		return data, ErrorMissingContentTypeHeader
+	}
+
+	eh := r.Header[ExpiresHeaderKey]
 	if len(eh) > 0 {
-		stringToSing += eh[0] + "\n"
 		exp, err := strconv.ParseInt(eh[0], 10, 0)
 		if err != nil {
-			return "", ErrorIncorrectExpireHeader
+			return data, ErrorIncorrectExpireHeader
 		}
 		if time.Now().After(time.Unix(exp, 0)) {
-			return "", ErrorExpiredRequest
+			return data, ErrorExpiredRequest
 		}
+
+		data.Expires = exp
 	} else {
-		return "", ErrorMissingExpiresHeader
+		return data, ErrorMissingExpiresHeader
 	}
 
-	stringToSing += r.URL.Host
-	return stringToSing, nil
+	dh := r.Header[DateHeaderKey]
+	if len(dh) > 0 {
+		data.Date = dh[0]
+	} else {
+		return data, ErrorMissingDateHeader
+	}
+
+	data.Host = r.Host
+	return data, nil
 }
 
 func GetBodyMD5(r *http.Request) string {
