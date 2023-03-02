@@ -1,4 +1,4 @@
-module github.com/madappgang/identifo/v2/sig
+module github.com/madappgang/identifo/sig
 
 go 1.19
 

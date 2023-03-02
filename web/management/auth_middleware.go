@@ -4,8 +4,8 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/madappgang/identifo/sig"
 	l "github.com/madappgang/identifo/v2/localization"
-	"github.com/madappgang/identifo/v2/sig"
 )
 
 var KeyIDHeaderKey = http.CanonicalHeaderKey("X-Nl-Key-Id")
