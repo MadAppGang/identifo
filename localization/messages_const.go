@@ -255,4 +255,19 @@ const (
 	//===========================================================================
 	// ErrorNativeLoginConfigErrors -> NativeLogin service initialized with errors: %+v
 	ErrorNativeLoginConfigErrors LocalizedString = "error.native.login.config.errors"
+
+	//===========================================================================
+	//  Management API
+	//===========================================================================
+	// ErrorMANoKeyID -> No key id found in request to management api
+	ErrorMANoKeyID LocalizedString = "error.native.login.ma.no.key.id"
+	// ErrorMAErrorGettingKeyWithID -> Error getting key with ID: %s, error: %s.
+	ErrorMAErrorGettingKeyWithID LocalizedString = "error.native.login.ma.error.key.with.id"
+	// ErrorMAErrorInvalidSignature -> "Invalid signature for request: %s."
+	ErrorMAErrorInvalidSignature LocalizedString = "error.native.login.ma.error.signature"
+	// ErrorMAErrorInactiveKey ->  "The management key is inactive."
+	ErrorMAErrorInactiveKey LocalizedString = "error.native.login.ma.key.inactive"
+	// ErrorMAErrorInactiveKey ->  "The management key is expired."
+	ErrorMAErrorExpiredKey LocalizedString = "error.native.login.ma.key.expired"
+
 )

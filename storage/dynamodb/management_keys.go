@@ -107,3 +107,7 @@ func (ms *ManagementKeysStorage) ensureTable() error {
 
 	return nil
 }
+
+func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	return errors.New("not implemented")
+}

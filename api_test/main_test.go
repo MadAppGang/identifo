@@ -3,6 +3,9 @@ package api_test
 import (
 	"bytes"
 	"context"
+	"crypto/hmac"
+	"crypto/sha256"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -22,20 +25,24 @@ import (
 )
 
 type Config struct {
-	ServerURL     string `env:"SERVER" envDefault:"http://localhost:8081"`
-	AppID         string `env:"APP_ID" envDefault:"59fd884d8f6b180001f5b4e2"`
-	AppSecret     string `env:"APP_SECRET" envDefault:"app_secret"`
-	AppID2        string `env:"APP_ID2" envDefault:"59fd884d8f6b180001f5b4e3"`
-	AppSecret2    string `env:"APP_SECRET2" envDefault:"app_secret_2"`
-	RunTestServer bool   `env:"RUN_TEST_SERVER" envDefault:"true"`
-	User1         string `env:"USER1" envDefault:"test@madappgang.com"`
-	User1Pswd     string `env:"USER1_PSWD" envDefault:"Secret3"`
-	User2         string `env:"USER2" envDefault:"new_user@madappgang.com"`
-	User2Pswd     string `env:"USER2_PSWD" envDefault:"Secret321"`
-	User3         string `env:"USER3" envDefault:"new_user3@madappgang.com"`
-	User3Pswd     string `env:"USER3_PSWD" envDefault:"Secret321"`
-	User4         string `env:"USER4" envDefault:"new_user4@madappgang.com"`
-	User4Pswd     string `env:"USER4_PSWD" envDefault:"Secret321_4"`
+	ServerURL            string `env:"SERVER" envDefault:"http://localhost:8081"`
+	AppID                string `env:"APP_ID" envDefault:"59fd884d8f6b180001f5b4e2"`
+	AppSecret            string `env:"APP_SECRET" envDefault:"app_secret"`
+	AppID2               string `env:"APP_ID2" envDefault:"59fd884d8f6b180001f5b4e3"`
+	AppSecret2           string `env:"APP_SECRET2" envDefault:"app_secret_2"`
+	RunTestServer        bool   `env:"RUN_TEST_SERVER" envDefault:"true"`
+	User1                string `env:"USER1" envDefault:"test@madappgang.com"`
+	User1Pswd            string `env:"USER1_PSWD" envDefault:"Secret3"`
+	User2                string `env:"USER2" envDefault:"new_user@madappgang.com"`
+	User2Pswd            string `env:"USER2_PSWD" envDefault:"Secret321"`
+	User3                string `env:"USER3" envDefault:"new_user3@madappgang.com"`
+	User3Pswd            string `env:"USER3_PSWD" envDefault:"Secret321"`
+	User4                string `env:"USER4" envDefault:"new_user4@madappgang.com"`
+	User4Pswd            string `env:"USER4_PSWD" envDefault:"Secret321_4"`
+	ManagementKeyID1     string `env:"MANAGEMENT_KEY1" envDefault:"63c6273a46504e3abdc00fc7"`
+	ManagementKeySecret1 string `env:"MANAGEMENT_KEY_SECRET1" envDefault:"secret1"`
+	ManagementKeyID2     string `env:"MANAGEMENT_KEY1" envDefault:"63c6273a46504e3abdc00fc6"`
+	ManagementKeySecret2 string `env:"MANAGEMENT_KEY_SECRET1" envDefault:"secret2"`
 }
 
 var cfg = Config{}
@@ -78,10 +85,10 @@ func runServer() (model.Server, *http.Server) {
 	// if we do regular isolated tests - use boldtb as a storage
 	if len(os.Getenv("IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION")) == 0 {
 		os.Remove("../data/db.db")
-		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config.yaml")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../test/artifacts/api/config.yaml")
 	} else {
 		// if we do integration tests with mongodb - run tests with mongodb
-		settings, _ = model.ConfigStorageSettingsFromString("file://../../test/artifacts/api/config-mongo.yaml")
+		settings, _ = model.ConfigStorageSettingsFromString("file://../test/artifacts/api/config-mongo.yaml")
 	}
 
 	configStorage, err := config.InitConfigurationStorage(settings)
@@ -96,12 +103,16 @@ func runServer() (model.Server, *http.Server) {
 
 	emailService = srv.Services().Email.Transport().(*mock.EmailService)
 
-	if err := config.ImportApps("../../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
+	if err := config.ImportApps("../test/artifacts/api/apps.json", srv.Storages().App, true); err != nil {
 		log.Fatalf("error importing apps to server: %v", err)
 	}
-	if err := config.ImportUsers("../../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
+	if err := config.ImportUsers("../test/artifacts/api/users.json", srv.Storages().User, true); err != nil {
 		log.Fatalf("error importing users to server: %v", err)
 	}
+	if err := config.ImportManagement("../test/artifacts/api/management_keys.json", srv.Storages().ManagementKey, true); err != nil {
+		log.Fatalf("error importing management keys to server: %v", err)
+	}
+
 	// updates CORS after apps import
 	srv.UpdateCORS()
 
@@ -173,6 +184,16 @@ func validateBodyText(validator validatorFuncText) assert.Func {
 
 		return validator(string(body))
 	}
+}
+
+func Signature(data, secret string) (string, error) {
+	mac := hmac.New(sha256.New, []byte(secret))
+
+	if _, err := mac.Write([]byte(data)); err != nil {
+		return "", fmt.Errorf("error creating signature for data: %v", err)
+	}
+
+	return base64.StdEncoding.EncodeToString(mac.Sum(nil)), nil
 }
 
 func forceIntegrationTests() {

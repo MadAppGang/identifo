@@ -30,6 +30,15 @@ func ImportUsers(filename string, storage model.UserStorage, cleanOldData bool) 
 	return storage.ImportJSON(data, cleanOldData)
 }
 
+// ImportUsers imports users from file.
+func ImportManagement(filename string, storage model.ManagementKeysStorage, cleanOldData bool) error {
+	data, err := dataFromFile(filename)
+	if err != nil {
+		return err
+	}
+	return storage.ImportJSON(data, cleanOldData)
+}
+
 func dataFromFile(filename string) ([]byte, error) {
 	file, err := os.Open(filename)
 	if err != nil {

@@ -37,11 +37,11 @@ login:
 keyStorage:
   type: local
   local:
-    path: ../../jwt/test_artifacts/private.pem
+    path: ../jwt/test_artifacts/private.pem
 emailTemplates:
   type: local
   local:
-    path: ../../static/email_templates
+    path: ../static/email_templates
 logger:
   dumpRequest: false
 adminPanel:

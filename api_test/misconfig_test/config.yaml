@@ -22,7 +22,7 @@ services:
 emailTemplates:
   type: local
   local:
-    path: ../../../static/email_templates
+    path: ../static/email_templates
 login:
   loginWith:
     username: true
@@ -34,7 +34,7 @@ login:
 keyStorage:
   type: local
   local:
-    path: ../../../jwt/test_artifacts/private.pem
+    path: ../jwt/test_artifacts/private.pem
 logger:
   dumpRequest: false
 adminPanel:

@@ -37,7 +37,7 @@ func TestLogin(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 }
 
@@ -70,7 +70,7 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		})).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_scheme.json").
 		Done()
 }
 
@@ -152,7 +152,7 @@ func TestLoginTokenClaims(t *testing.T) {
 			return nil
 		})).
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 
 	body := ""

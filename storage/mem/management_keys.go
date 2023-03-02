@@ -24,7 +24,6 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 	if !ok {
 		return key, errors.New("not found")
 	}
-	key.Secret = "***"
 	return key, nil
 }
 
@@ -88,8 +87,9 @@ func (ms *ManagementKeysStorage) UseKey(ctx context.Context, id string) (model.M
 
 func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.ManagementKey, error) {
 	keys := maps.Values(ms.storage)
-	for _, k := range keys {
-		k.Secret = "***"
-	}
 	return keys, nil
+}
+
+func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) error {
+	return errors.New("not implemented")
 }

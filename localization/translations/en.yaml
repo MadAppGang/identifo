@@ -125,3 +125,10 @@ error.service.otp.send.error: "Error sending OTP code with error: %v."
 
 # NativeLogin Service
 error.native.login.config.errors: "NativeLogin service initialized with errors: %+v"
+
+# Management API
+error.native.login.ma.no.key.id: "No key id found in request to management api."
+error.native.login.ma.error.key.with.id: "Error getting key with ID: %s, error: %s."
+error.native.login.ma.error.signature: "Invalid signature for request: %s."
+error.native.login.ma.key.inactive: "The management key is inactive."
+error.native.login.ma.key.expired: "The management key is expired."

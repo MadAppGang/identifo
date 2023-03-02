@@ -47,7 +47,7 @@ func TestLoginWithPhoneNumber(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 }
 
@@ -89,7 +89,7 @@ func TestLoginWithPhoneNumberTwoUsers(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 
 	data = fmt.Sprintf(`
@@ -128,6 +128,6 @@ func TestLoginWithPhoneNumberTwoUsers(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/jwt_token_with_refresh_scheme.json").
+		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
 		Done()
 }

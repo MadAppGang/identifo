@@ -24,7 +24,7 @@ func TestAppSettings(t *testing.T) {
 		// AssertFunc(dumpResponse).
 		Type("json").
 		Status(200).
-		JSONSchema("../../test/artifacts/api/app_settings_scheme.json").
+		JSONSchema("../test/artifacts/api/app_settings_scheme.json").
 		Done()
 }
 
@@ -57,5 +57,3 @@ func TestAppSettingsCORS(t *testing.T) {
 	assert.Contains(t, header.Get("Access-Control-Allow-Origin"), "http://localhost:3000")
 	assert.Contains(t, header.Get("Access-Control-Allow-Methods"), "GET")
 }
-
-

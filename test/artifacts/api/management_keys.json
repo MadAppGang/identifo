@@ -1,0 +1,14 @@
+[
+    {
+        "id": "63c6273a46504e3abdc00fc7",
+        "secret":"secret1",
+        "name": "The secret number one",
+        "active": true
+    },
+    {
+        "id": "63c6273a46504e3abdc00fc6",
+        "secret":"secret2",
+        "name": "The invactive secret",
+        "active": false
+    }
+]

@@ -8,8 +8,8 @@ import (
 	"os"
 	"runtime"
 
+	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
-	"github.com/gorilla/mux"
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 )
@@ -27,7 +27,7 @@ type Router struct {
 	server         model.Server
 	ls             *l.Printer // localized string
 	logger         *log.Logger
-	router         *mux.Router
+	router         *chi.Mux
 	loggerSettings model.LoggerSettings
 	stor           model.ManagementKeysStorage
 	loginWith      model.LoginWith
@@ -42,7 +42,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar := Router{
 		server:         settings.Server,
-		router:         mux.NewRouter(),
+		router:         chi.NewRouter(),
 		ls:             l,
 		loggerSettings: settings.LoggerSettings,
 		stor:           settings.Storage,
