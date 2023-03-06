@@ -101,6 +101,8 @@ error.federated.idtoken.missing: "No id_token returned for federated login"
 error.federated.idtoken.invalid: "Invalid id_token returned for federated login: %v"
 error.federated.claims.error: "Invalid claims error: %v"
 error.federated.oidc.provider.error: "Failed to init OIDC provider: %v"
+error.federated.oidc.disabled: "Federated OIDC login disabled"
+
 
 # Storages
 error.storage.update_user.error: "Unable to update user with id %s with error: %v"

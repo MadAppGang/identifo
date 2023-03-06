@@ -15,30 +15,30 @@ func (ar *Router) AuthMiddleware(next http.Handler) http.Handler {
 		locale := r.Header.Get("Accept-Language")
 
 		if len(r.Header[KeyIDHeaderKey]) != 1 || len(r.Header[KeyIDHeaderKey][0]) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorMANoKeyID)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorNativeLoginMaNoKeyID)
 			return
 		}
 
 		keyID := r.Header[KeyIDHeaderKey][0]
 		key, err := ar.stor.GetKey(r.Context(), keyID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorMAErrorGettingKeyWithID, keyID, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorNativeLoginMaErrorKeyWithID, keyID, err)
 			return
 		}
 
-		if key.Active == false {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorMAErrorInactiveKey)
+		if !key.Active {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorNativeLoginMaKeyInactive)
 			return
 		}
 
 		if key.ValidTill != nil && time.Now().After(*key.ValidTill) {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorMAErrorExpiredKey)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorNativeLoginMaKeyExpired)
 			return
 		}
 
 		err = sig.VerifySignature(r, []byte(key.Secret))
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorMAErrorInvalidSignature, err)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorNativeLoginMaErrorSignature, err)
 			return
 		}
 		next.ServeHTTP(w, r)

@@ -207,6 +207,8 @@ const (
 	ErrorFederatedClaimsError LocalizedString = "error.federated.claims.error"
 	// ErrorFederatedOidcProviderError -> Failed to init OIDC provider: %v
 	ErrorFederatedOidcProviderError LocalizedString = "error.federated.oidc.provider.error"
+	// ErrorFederatedOidcDisabled -> Federated OIDC login disabled
+	ErrorFederatedOidcDisabled LocalizedString = "error.federated.oidc.disabled"
 
 	//===========================================================================
 	//  Storages
@@ -259,15 +261,14 @@ const (
 	//===========================================================================
 	//  Management API
 	//===========================================================================
-	// ErrorMANoKeyID -> No key id found in request to management api
-	ErrorMANoKeyID LocalizedString = "error.native.login.ma.no.key.id"
-	// ErrorMAErrorGettingKeyWithID -> Error getting key with ID: %s, error: %s.
-	ErrorMAErrorGettingKeyWithID LocalizedString = "error.native.login.ma.error.key.with.id"
-	// ErrorMAErrorInvalidSignature -> "Invalid signature for request: %s."
-	ErrorMAErrorInvalidSignature LocalizedString = "error.native.login.ma.error.signature"
-	// ErrorMAErrorInactiveKey ->  "The management key is inactive."
-	ErrorMAErrorInactiveKey LocalizedString = "error.native.login.ma.key.inactive"
-	// ErrorMAErrorInactiveKey ->  "The management key is expired."
-	ErrorMAErrorExpiredKey LocalizedString = "error.native.login.ma.key.expired"
-
+	// ErrorNativeLoginMaNoKeyID -> No key id found in request to management api.
+	ErrorNativeLoginMaNoKeyID LocalizedString = "error.native.login.ma.no.key.id"
+	// ErrorNativeLoginMaErrorKeyWithID -> Error getting key with ID: %s, error: %s.
+	ErrorNativeLoginMaErrorKeyWithID LocalizedString = "error.native.login.ma.error.key.with.id"
+	// ErrorNativeLoginMaErrorSignature -> Invalid signature for request: %s.
+	ErrorNativeLoginMaErrorSignature LocalizedString = "error.native.login.ma.error.signature"
+	// ErrorNativeLoginMaKeyInactive -> The management key is inactive.
+	ErrorNativeLoginMaKeyInactive LocalizedString = "error.native.login.ma.key.inactive"
+	// ErrorNativeLoginMaKeyExpired -> The management key is expired.
+	ErrorNativeLoginMaKeyExpired LocalizedString = "error.native.login.ma.key.expired"
 )

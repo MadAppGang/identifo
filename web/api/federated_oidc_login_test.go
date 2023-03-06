@@ -45,6 +45,7 @@ var testServerSettings = model.DefaultServerSettings
 
 func (tc testConfig) LoadServerSettings(validate bool) (model.ServerSettings, []error) {
 	testServerSettings.KeyStorage.Local.Path = "../../jwt/test_artifacts/private.pem"
+	testServerSettings.Login.LoginWith.FederatedOIDC = true
 	return testServerSettings, nil
 }
 
@@ -62,6 +63,9 @@ func init() {
 	}
 
 	rs := api.RouterSettings{
+		LoginWith: model.LoginWith{
+			FederatedOIDC: true,
+		},
 		Server: testServer,
 		Cors:   cors.New(model.DefaultCors),
 	}

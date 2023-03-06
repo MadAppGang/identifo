@@ -87,6 +87,11 @@ func (ar *Router) OIDCLogin(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if !ar.SupportedLoginWays.FederatedOIDC {
+		ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
+		return
+	}
+
 	redirect := r.URL.Query().Get("redirectUrl")
 	if len(redirect) == 0 {
 		ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
@@ -148,6 +153,11 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 	app := middleware.AppFromContext(ctx)
 	if len(app.ID) == 0 {
 		ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+		return
+	}
+
+	if !ar.SupportedLoginWays.FederatedOIDC {
+		ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
 		return
 	}
 

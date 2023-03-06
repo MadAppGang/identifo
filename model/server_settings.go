@@ -294,10 +294,11 @@ type LoginSettings struct {
 
 // LoginWith is a type for configuring supported login ways.
 type LoginWith struct {
-	Username  bool `yaml:"username" json:"username"`
-	Phone     bool `yaml:"phone" json:"phone"`
-	Email     bool `yaml:"email" json:"email"`
-	Federated bool `yaml:"federated" json:"federated"`
+	Username      bool `yaml:"username" json:"username"`
+	Phone         bool `yaml:"phone" json:"phone"`
+	Email         bool `yaml:"email" json:"email"`
+	Federated     bool `yaml:"federated" json:"federated"`
+	FederatedOIDC bool `yaml:"federatedOIDC" json:"federated_oidc"`
 }
 
 // TFAType is a type of two-factor authentication for apps that support it.

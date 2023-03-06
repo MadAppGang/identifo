@@ -31,9 +31,10 @@ var DefaultServerSettings = ServerSettings{
 	},
 	Login: LoginSettings{
 		LoginWith: LoginWith{
-			Phone:     true,
-			Username:  true,
-			Federated: false,
+			Phone:         true,
+			Username:      true,
+			Federated:     false,
+			FederatedOIDC: false,
 		},
 		TFAType:          TFATypeApp,
 		TFAResendTimeout: 30,
