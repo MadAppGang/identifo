@@ -22,6 +22,7 @@ type appSettings struct {
 	LoginWith                    model.LoginWith `json:"loginWith"`
 	FederatedProviders           []string        `json:"federatedProviders"`
 	CustomEmailTemplates         bool            `json:"customEmailTemplates"`
+	FederatedOIDCInitURL         string          `json:"federatedOIDCInitURL"`
 }
 
 // GetAppSettings return app settings
@@ -49,6 +50,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 			LoginWith:                    ar.SupportedLoginWays,
 			FederatedProviders:           make([]string, 0, len(app.FederatedProviders)),
 			CustomEmailTemplates:         app.CustomEmailTemplates,
+			FederatedOIDCInitURL:         app.OIDCSettings.InitURL,
 		}
 
 		for k := range app.FederatedProviders {
