@@ -34,6 +34,8 @@ export namespace Components {
     }
     interface IdentifoFormLogin {
     }
+    interface IdentifoFormLoginOidc {
+    }
     interface IdentifoFormLoginPhone {
     }
     interface IdentifoFormLoginPhoneVerify {
@@ -105,6 +107,12 @@ declare global {
     var HTMLIdentifoFormLoginElement: {
         prototype: HTMLIdentifoFormLoginElement;
         new (): HTMLIdentifoFormLoginElement;
+    };
+    interface HTMLIdentifoFormLoginOidcElement extends Components.IdentifoFormLoginOidc, HTMLStencilElement {
+    }
+    var HTMLIdentifoFormLoginOidcElement: {
+        prototype: HTMLIdentifoFormLoginOidcElement;
+        new (): HTMLIdentifoFormLoginOidcElement;
     };
     interface HTMLIdentifoFormLoginPhoneElement extends Components.IdentifoFormLoginPhone, HTMLStencilElement {
     }
@@ -181,6 +189,7 @@ declare global {
         "identifo-form-forgot-success": HTMLIdentifoFormForgotSuccessElement;
         "identifo-form-goback": HTMLIdentifoFormGobackElement;
         "identifo-form-login": HTMLIdentifoFormLoginElement;
+        "identifo-form-login-oidc": HTMLIdentifoFormLoginOidcElement;
         "identifo-form-login-phone": HTMLIdentifoFormLoginPhoneElement;
         "identifo-form-login-phone-verify": HTMLIdentifoFormLoginPhoneVerifyElement;
         "identifo-form-login-ways": HTMLIdentifoFormLoginWaysElement;
@@ -224,6 +233,8 @@ declare namespace LocalJSX {
     }
     interface IdentifoFormLogin {
     }
+    interface IdentifoFormLoginOidc {
+    }
     interface IdentifoFormLoginPhone {
     }
     interface IdentifoFormLoginPhoneVerify {
@@ -255,6 +266,7 @@ declare namespace LocalJSX {
         "identifo-form-forgot-success": IdentifoFormForgotSuccess;
         "identifo-form-goback": IdentifoFormGoback;
         "identifo-form-login": IdentifoFormLogin;
+        "identifo-form-login-oidc": IdentifoFormLoginOidc;
         "identifo-form-login-phone": IdentifoFormLoginPhone;
         "identifo-form-login-phone-verify": IdentifoFormLoginPhoneVerify;
         "identifo-form-login-ways": IdentifoFormLoginWays;
@@ -280,6 +292,7 @@ declare module "@stencil/core" {
             "identifo-form-forgot-success": LocalJSX.IdentifoFormForgotSuccess & JSXBase.HTMLAttributes<HTMLIdentifoFormForgotSuccessElement>;
             "identifo-form-goback": LocalJSX.IdentifoFormGoback & JSXBase.HTMLAttributes<HTMLIdentifoFormGobackElement>;
             "identifo-form-login": LocalJSX.IdentifoFormLogin & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginElement>;
+            "identifo-form-login-oidc": LocalJSX.IdentifoFormLoginOidc & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginOidcElement>;
             "identifo-form-login-phone": LocalJSX.IdentifoFormLoginPhone & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginPhoneElement>;
             "identifo-form-login-phone-verify": LocalJSX.IdentifoFormLoginPhoneVerify & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginPhoneVerifyElement>;
             "identifo-form-login-ways": LocalJSX.IdentifoFormLoginWays & JSXBase.HTMLAttributes<HTMLIdentifoFormLoginWaysElement>;

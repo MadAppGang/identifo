@@ -18,6 +18,7 @@ import {
   State,
   StateCallback,
   StateError,
+  StateLoginOidc,
   StateLogout,
   StatePasswordForgotTFASelect,
   StatePasswordForgotTFAVerify,
@@ -126,6 +127,9 @@ export class CDK {
       case (!this.auth.config.loginWith && this.settings.loginWith['email']) ||
         (this.auth.config.loginWith === 'email' && this.settings.loginWith['email']):
         return this.loginWithPassword();
+      case (!this.auth.config.loginWith && this.settings.loginWith['federated_oidc']) ||
+        (this.auth.config.loginWith === 'federated_oidc' && this.settings.loginWith['federated_oidc']):
+        return this.loginWithOIDC();
       default:
         throw 'Unsupported login way';
     }
@@ -187,6 +191,25 @@ export class CDK {
       },
     } as StateLoginPhoneVerify);
   }
+
+  loginWithOIDC(): void {
+    this.state.next({
+      route: Routes.LOGIN_OIDC,
+      oidcLink: this.settings.federatedOIDCInitURL,
+      error: this.lastError,
+      verify: async (state?: string, code?: string) => {
+        if (!state || !code) {
+          return;
+        }
+        this.auth.api
+          .oidcVerify({ state, code, scopes: [...Array.from(this.scopes)] })
+          .then(this.afterLoginRedirect)
+          .catch(this.loginCatchRedirect)
+          .catch((e) => this.processError(e));
+      },
+    } as StateLoginOidc);
+  }
+
   loginWithPassword(): void {
     this.state.next({
       route: Routes.LOGIN,

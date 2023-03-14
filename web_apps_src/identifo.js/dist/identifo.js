@@ -312,6 +312,12 @@ class API {
       });
     });
   }
+  oidcVerify(data) {
+    return __async$3(this, null, function* () {
+      const url = `/auth/federated/oidc/complete?appId=${this.appId}&state=${data.state}&code=${data.code}`;
+      return this.post(url, { scopes: data.scopes }, { credentials: "include" }).then((r) => this.storeToken(r));
+    });
+  }
   invite(email, role, callbackUrl) {
     return __async$3(this, null, function* () {
       var _a, _b;
@@ -703,6 +709,7 @@ exports.Routes = void 0;
   Routes2["PASSWORD_FORGOT_TFA_SELECT"] = "password/forgot/tfa/select";
   Routes2["CALLBACK"] = "callback";
   Routes2["LOGIN_PHONE"] = "login_phone";
+  Routes2["LOGIN_OIDC"] = "login_oidc";
   Routes2["LOGIN_PHONE_VERIFY"] = "login_phone_verify";
   Routes2["ERROR"] = "error";
   Routes2["PASSWORD_FORGOT_SUCCESS"] = "password/forgot/success";
@@ -859,6 +866,8 @@ class CDK {
         return this.loginWithPhone();
       case (!this.auth.config.loginWith && this.settings.loginWith["email"] || this.auth.config.loginWith === "email" && this.settings.loginWith["email"]):
         return this.loginWithPassword();
+      case (!this.auth.config.loginWith && this.settings.loginWith["federated_oidc"] || this.auth.config.loginWith === "federated_oidc" && this.settings.loginWith["federated_oidc"]):
+        return this.loginWithOIDC();
       default:
         throw "Unsupported login way";
     }
@@ -906,6 +915,19 @@ class CDK {
       }),
       goback: () => __async(this, null, function* () {
         this.login();
+      })
+    });
+  }
+  loginWithOIDC() {
+    this.state.next({
+      route: exports.Routes.LOGIN_OIDC,
+      oidcLink: this.settings.federatedOIDCInitURL,
+      error: this.lastError,
+      verify: (state, code) => __async(this, null, function* () {
+        if (!state || !code) {
+          return;
+        }
+        this.auth.api.oidcVerify({ state, code, scopes: [...Array.from(this.scopes)] }).then(this.afterLoginRedirect).catch(this.loginCatchRedirect).catch((e) => this.processError(e));
       })
     });
   }
