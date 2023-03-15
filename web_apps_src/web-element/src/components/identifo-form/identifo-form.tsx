@@ -43,6 +43,8 @@ export class IdentifoForm {
     switch (route) {
       case Routes.LOGIN:
         return <identifo-form-login></identifo-form-login>;
+      case Routes.LOGIN_OIDC:
+        return <identifo-form-login-oidc></identifo-form-login-oidc>;
       case Routes.LOGIN_PHONE:
         return <identifo-form-login-phone></identifo-form-login-phone>;
       case Routes.LOGIN_PHONE_VERIFY:

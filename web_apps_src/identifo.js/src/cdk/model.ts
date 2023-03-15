@@ -27,6 +27,7 @@ export enum Routes {
   'PASSWORD_FORGOT_TFA_SELECT' = 'password/forgot/tfa/select',
   'CALLBACK' = 'callback',
   'LOGIN_PHONE' = 'login_phone',
+  'LOGIN_OIDC' = 'login_oidc',
   'LOGIN_PHONE_VERIFY' = 'login_phone_verify',
   'ERROR' = 'error',
   'PASSWORD_FORGOT_SUCCESS' = 'password/forgot/success',
@@ -71,6 +72,12 @@ export interface StateLogin extends State, StateWithError {
   signin: (email: string, password: string, remember?: boolean) => Promise<void>;
   socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
   passwordForgot: () => Promise<void>;
+}
+
+export interface StateLoginOidc extends State, StateWithError {
+  route: Routes.LOGIN_OIDC;
+  oidcLink: string;
+  verify: (state?: string, code?: string) => Promise<void>;
 }
 
 export interface StateLoginPhone extends State, StateWithError {
@@ -221,4 +228,5 @@ export type States =
   | StateCallback
   | StateLogin
   | StateRegister
-  | StateError;
+  | StateError
+  | StateLoginOidc;

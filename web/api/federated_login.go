@@ -440,6 +440,8 @@ func sessionKey(appId, provider string) string {
 // StoreInSession stores a specified key/value pair in the session.
 func storeInSession(sessionName, key string, value string, req *http.Request, res http.ResponseWriter) error {
 	session, _ := Store.New(req, sessionName)
+	session.Options.SameSite = http.SameSiteNoneMode
+	session.Options.Secure = true
 
 	if err := updateSessionValue(session, key, value); err != nil {
 		return err

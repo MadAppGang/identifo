@@ -298,6 +298,13 @@ export class API {
     });
   }
 
+  async oidcVerify(data: { state: string; code: string; scopes: string[] }): Promise<LoginResponse> {
+    const url = `/auth/federated/oidc/complete?appId=${this.appId}&state=${data.state}&code=${data.code}`;
+    return this.post<LoginResponse>(url, { scopes: data.scopes }, { credentials: 'include' }).then((r) =>
+      this.storeToken(r),
+    );
+  }
+
   async invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse> {
     if (!this.tokenService.getToken()?.token) {
       throw new Error('No token in token service.');

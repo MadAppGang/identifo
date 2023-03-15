@@ -99,6 +99,7 @@ declare enum TFAStatus {
 interface ServerSettingsLoginTypes {
     email: boolean;
     federated: boolean;
+    federated_oidc: boolean;
     phone: boolean;
     username: boolean;
 }
@@ -159,6 +160,7 @@ interface AppSettingsResponse {
     tfaStatus: TFAStatus;
     federatedProviders: FederatedLoginProvider[];
     loginWith: ServerSettingsLoginTypes;
+    federatedOIDCInitURL: string;
 }
 interface User {
     id: string;
@@ -231,6 +233,11 @@ declare class API {
     verifyTFA(code: string, scopes: string[]): Promise<LoginResponse>;
     resendTFA(): Promise<LoginResponse>;
     logout(): Promise<SuccessResponse>;
+    oidcVerify(data: {
+        state: string;
+        code: string;
+        scopes: string[];
+    }): Promise<LoginResponse>;
     invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse>;
     storeToken<T extends TokenResponse>(response: T): T;
 }
@@ -302,6 +309,7 @@ declare enum Routes {
     'PASSWORD_FORGOT_TFA_SELECT' = "password/forgot/tfa/select",
     'CALLBACK' = "callback",
     'LOGIN_PHONE' = "login_phone",
+    'LOGIN_OIDC' = "login_oidc",
     'LOGIN_PHONE_VERIFY' = "login_phone_verify",
     'ERROR' = "error",
     'PASSWORD_FORGOT_SUCCESS' = "password/forgot/success",
@@ -330,6 +338,11 @@ interface StateLogin extends State, StateWithError {
     signin: (email: string, password: string, remember?: boolean) => Promise<void>;
     socialLogin: (provider: FederatedLoginProvider) => Promise<void>;
     passwordForgot: () => Promise<void>;
+}
+interface StateLoginOidc extends State, StateWithError {
+    route: Routes.LOGIN_OIDC;
+    oidcLink: string;
+    verify: (state?: string, code?: string) => Promise<void>;
 }
 interface StateLoginPhone extends State, StateWithError {
     route: Routes.LOGIN_PHONE;
@@ -450,7 +463,7 @@ declare const typeToPasswordForgotTFAVerifyRoute: {
     email: Routes;
     sms: Routes;
 };
-declare type States = State | StateTFASetupApp | StateTFASetupEmail | StateTFASetupSMS | StatePasswordReset | StatePasswordForgot | StatePasswordForgotSuccess | StateLoading | StateCallback | StateLogin | StateRegister | StateError;
+declare type States = State | StateTFASetupApp | StateTFASetupEmail | StateTFASetupSMS | StatePasswordReset | StatePasswordForgot | StatePasswordForgotSuccess | StateLoading | StateCallback | StateLogin | StateRegister | StateError | StateLoginOidc;
 
 declare class CDK {
     auth: IdentifoAuth;
@@ -465,6 +478,7 @@ declare class CDK {
     login(): void;
     loginWithPhone(): void;
     loginWithPhoneVerify(phone: string, remember?: boolean): void;
+    loginWithOIDC(): void;
     loginWithPassword(): void;
     register(): void;
     forgotPassword(): void;
@@ -487,4 +501,4 @@ declare class CDK {
     private getLoginTypes;
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, InviteResponse, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, InviteResponse, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginOidc, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };

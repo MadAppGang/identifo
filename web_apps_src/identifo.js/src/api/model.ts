@@ -20,6 +20,7 @@ export enum TFAStatus {
 export interface ServerSettingsLoginTypes {
   email: boolean;
   federated: boolean;
+  federated_oidc: boolean;
   phone: boolean;
   username: boolean;
 }
@@ -87,6 +88,7 @@ export interface AppSettingsResponse {
   tfaStatus: TFAStatus;
   federatedProviders: FederatedLoginProvider[];
   loginWith: ServerSettingsLoginTypes;
+  federatedOIDCInitURL: string;
 }
 
 export interface User {

@@ -583,3 +583,7 @@
     margin-bottom: 48px;
   }
 }
+
+.oidc-login__subtitle {
+  margin-top: 12px;
+}
