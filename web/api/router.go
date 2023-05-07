@@ -8,6 +8,7 @@ import (
 	"net/url"
 	"os"
 	"runtime"
+	"sync"
 
 	"github.com/gorilla/mux"
 	l "github.com/madappgang/identifo/v2/localization"
@@ -18,20 +19,23 @@ import (
 
 // Router is a router that handles all API requests.
 type Router struct {
-	server               model.Server
-	cors                 *cors.Cors
-	logger               *log.Logger
-	router               *mux.Router
-	tfaType              model.TFAType
-	tfaResendTimeout     int
-	oidcConfiguration    *OIDCConfiguration
-	jwk                  *JWK
-	Authorizer           *authorization.Authorizer
-	Host                 *url.URL
-	SupportedLoginWays   model.LoginWith
-	tokenPayloadServices map[string]model.TokenPayloadProvider
-	LoggerSettings       model.LoggerSettings
-	ls                   *l.Printer // localized string
+	server             model.Server
+	cors               *cors.Cors
+	logger             *log.Logger
+	router             *mux.Router
+	tfaType            model.TFAType
+	tfaResendTimeout   int
+	oidcConfiguration  *OIDCConfiguration
+	jwk                *JWK
+	Authorizer         *authorization.Authorizer
+	Host               *url.URL
+	SupportedLoginWays model.LoginWith
+
+	tokenPayloadServices     map[string]model.TokenPayloadProvider
+	tokenPayloadServicesLock sync.RWMutex
+
+	LoggerSettings model.LoggerSettings
+	ls             *l.Printer // localized string
 }
 
 type RouterSettings struct {

@@ -8,7 +8,8 @@ import (
 
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
-	thp "github.com/madappgang/identifo/v2/user_payload_provider/http"
+	pphttp "github.com/madappgang/identifo/v2/user_payload_provider/http"
+	"github.com/madappgang/identifo/v2/user_payload_provider/plugin"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/xlzd/gotp"
@@ -235,23 +236,62 @@ func (ar *Router) GetUser() http.HandlerFunc {
 
 // getTokenPayloadForApp get additional token payload data
 func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map[string]interface{}, error) {
-	if app.TokenPayloadService == model.TokenPayloadServiceHttp {
-		// check if we have service cached
-		ps, exists := ar.tokenPayloadServices[app.ID]
-		if !exists {
-			var err error
-			ps, err = thp.NewTokenPayloadProvider(
-				app.TokenPayloadServiceHttpSettings.Secret,
-				app.TokenPayloadServiceHttpSettings.URL,
-			)
-			if err != nil {
-				return nil, err
-			}
-			ar.tokenPayloadServices[app.ID] = ps
-		}
-		return ps.TokenPayloadForApp(app.ID, app.Name, user.ID)
+	if app.TokenPayloadService == model.TokenPayloadServiceNone ||
+		app.TokenPayloadService == "" {
+		return nil, nil
 	}
-	return nil, nil
+
+	ps, err := ar.getTokenPayloadService(app)
+	if err != nil {
+		return nil, err
+	}
+
+	return ps.TokenPayloadForApp(app.ID, app.Name, user.ID)
+}
+
+func (ar *Router) getTokenPayloadService(app model.AppData) (model.TokenPayloadProvider, error) {
+	ar.tokenPayloadServicesLock.RLock()
+
+	ps, exists := ar.tokenPayloadServices[app.ID]
+
+	ar.tokenPayloadServicesLock.RUnlock()
+
+	if exists {
+		return ps, nil
+	}
+
+	ar.tokenPayloadServicesLock.Lock()
+	defer ar.tokenPayloadServicesLock.Unlock()
+
+	ps, exists = ar.tokenPayloadServices[app.ID]
+	if exists {
+		return ps, nil
+	}
+
+	var err error
+
+	switch app.TokenPayloadService {
+	case model.TokenPayloadServiceHttp:
+		ps, err = pphttp.NewTokenPayloadProvider(
+			app.TokenPayloadServiceHttpSettings.Secret,
+			app.TokenPayloadServiceHttpSettings.URL,
+		)
+
+	case model.TokenPayloadServicePlugin:
+		ps, err = plugin.NewTokenPayloadProvider(
+			model.PluginSettings{
+				Cmd:    app.TokenPayloadServicePluginSettings.Cmd,
+				Params: app.TokenPayloadServicePluginSettings.Params,
+			}, app.TokenPayloadServicePluginSettings.ClientTimeout)
+	}
+
+	if err != nil {
+		return nil, err
+	}
+
+	ar.tokenPayloadServices[app.ID] = ps
+
+	return ps, nil
 }
 
 // loginUser creates and returns access token for a user.
