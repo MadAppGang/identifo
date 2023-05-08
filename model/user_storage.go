@@ -1,15 +1,8 @@
 package model
 
 import (
-	"encoding/json"
 	"errors"
-	"log"
-	"math/rand"
 	"regexp"
-	"strings"
-	"time"
-
-	"golang.org/x/crypto/bcrypt"
 )
 
 // ErrUserNotFound is when user not found.

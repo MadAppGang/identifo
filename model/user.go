@@ -1,119 +1,132 @@
 package model
 
-import "time"
+import (
+	"encoding/json"
+	"log"
+	"time"
+)
 
-//Add metadata
-// https://auth0.com/docs/manage-users/user-accounts/metadata/metadata-fields-data
-
-//2FA connectors
+// 2FA connectors
 // https://community.auth0.com/t/when-will-api-v2-users-userid-authenticators-be-documented/52722
 
-//Guardian authenticators
-//https://auth0.com/docs/secure/multi-factor-authentication/auth0-guardian
+// Guardian authenticators
+// https://auth0.com/docs/secure/multi-factor-authentication/auth0-guardian
 
 // User is a user identitty data
 // do not mix it with login strategy
-//https://auth0.com/docs/manage-users/user-accounts/user-profiles
+// https://auth0.com/docs/manage-users/user-accounts/user-profiles
+
+// oidc claims
+// https://www.iana.org/assignments/jwt/jwt.xhtml#claims
 type User struct {
-	ID              string   `json:"id" bson:"_id"`
-  ExternalID string //external system user ID
-	Username        string   `json:"username" bson:"username"`
-	Email           string   `json:"email" bson:"email"`
-  EmailVerified string
-  FamilyName string
-  GivenName string
-  PhoneNumber string
-  PhoneVerificationDetailes struct {
-    VerifiedAt time.Time
-    VerifiedDetails string
-  }
-  AvatarURL string
+	ID string `json:"id" bson:"_id"`
 
-  Authenticators []UserAuthenticator
-  Identities []UserIdentity
-  LastIP string
-  LastLoginAt time.Time
-  LastPasswordResetAt time.Time
-  LoginsCount integer
-  MFAEnrollments []UserMFA
-
-
-  PasswordHash string
-  Blocked bool
-  BlockedDetails struct {
-    BlockedReason string
-    BlockedAt time.Time
-    BlockedBy string
-  }
-  EmailVerificationDetailes struct {
-    VerifiedAt time.Time
-    VerifiedDetails string
-  }
-  CreatedAt time.Time
-  UpdatedAt time.Time
-}
-
-//https://auth0.com/docs/manage-users/user-migration/bulk-user-import-database-schema-and-examples
-type UserMFA struct {
-  
-}
-
-func maskLeft(s string, hideFraction int) string {
-	rs := []rune(s)
-	for i := 0; i < len(rs)-len(rs)/hideFraction; i++ {
-		rs[i] = '*'
-	}
-	return string(rs)
-}
-
-// Sanitized returns data structure without sensitive information
-func (u User) Sanitized() User {
-	u.Pswd = ""
-	u.TFAInfo.Secret = ""
-	u.TFAInfo.HOTPCounter = 0
-	u.TFAInfo.HOTPExpiredAt = time.Time{}
-	return u
-}
-
-func (u *User) AddFederatedId(provider string, id string) string {
-	fid := provider + ":" + id
-	for _, ele := range u.FederatedIDs {
-		if ele == fid {
-			return fid
-		}
-	}
-	u.FederatedIDs = append(u.FederatedIDs, fid)
-	return fid
-}
-
-// SanitizedTFA returns data structure with masked sensitive data
-func (u User) SanitizedTFA() User {
-	u.Sanitized()
-	if len(u.Email) > 0 {
-		emailParts := strings.Split(u.Email, "@")
-		u.Email = maskLeft(emailParts[0], 2) + "@" + maskLeft(emailParts[1], 2)
+	TenantMembership *struct {
+		TenantID   string            `json:"tenant_id"`
+		TenantName string            `json:"tenant_name"`
+		Groups     map[string]string // map of group names to ids
 	}
 
-	if len(u.Phone) > 0 {
-		u.Phone = maskLeft(u.Phone, 3)
+	// user information
+	Username          string `json:"username" bson:"username"` // it is a nickname for login purposes
+	Email             string `json:"email" bson:"email"`
+	GivenName         string
+	FamilyName        string
+	MiddleName        string
+	Nickname          string
+	PreferredUsername string
+	PhoneNumber       string
+	AvatarURL         string
+
+	//  authentication data for user
+	PasswordHash          string // TODO: do we need salt and pepper here as well?
+	PasswordResetRequired string
+	PasswordChangeForced  string
+	Authenticators        []UserAuthenticator
+	Identities            []UserIdentity
+	MFAEnrollments        []UserMFAEnrollment
+
+	// login stats
+	LastIP              string
+	LastLoginAt         time.Time
+	LastPasswordResetAt time.Time
+	LoginsCount         int
+
+	// verification data
+	PhoneVerificationDetails struct {
+		VerifiedAt      time.Time
+		VerifiedDetails string
 	}
-	return u
+
+	EmailVerificationDetails struct {
+		VerifiedAt      time.Time
+		VerifiedDetails string
+	}
+
+	// blocked user
+	Blocked        bool
+	BlockedDetails struct {
+		BlockedReason string
+		BlockedAt     time.Time
+		BlockedBy     string
+	}
+
+	// mapping to external systems
+	ExternalID      string            // external system user ID
+	ExternalMapping map[string]string // external systems mapping
+
+	// User push devices
+	ActiveDevices []UserDevice
+
+	// Additional data for user
+	AppsData []ApplicationUserData
+	Data     []AdditionalUserData
+
+	// oidc claims
+	// https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+	Profile  string
+	Picture  string
+	Website  string
+	Gender   string
+	Birthday time.Time
+	Timezone string
+	Locale   string
+	Address  map[string]UserAddress // addresses for home, work, etc
+
+	// user record metadata
+	CreatedAt time.Time
+	UpdatedAt time.Time
 }
 
-// Deanonimized returns model with all fields set for deanonimized user
-func (u User) Deanonimized() User {
-	u.Anonymous = false
-	return u
+// ApplicationUserData is custom data that could be attached by application to the user,
+// could be theme settings, preferences or some other information
+type ApplicationUserData struct {
+	AppID       string
+	Data        map[string]any
+	LastUpdated time.Time
 }
 
-// TFAInfo encapsulates two-factor authentication user info.
-type TFAInfo struct {
-	IsEnabled     bool      `json:"is_enabled" bson:"is_enabled"`
-	HOTPCounter   int       `json:"hotp_counter" bson:"hotp_counter"`
-	HOTPExpiredAt time.Time `json:"hotp_expired_at" bson:"hotp_expired_at"`
-	Email         string    `json:"email" bson:"email"`
-	Phone         string    `json:"phone" bson:"phone"`
-	Secret        string    `json:"secret" bson:"secret"`
+// AdditionalUserData is custom data attached to the user
+// the data is organized in buckets
+type AdditionalUserData struct {
+	BucketName string
+	BucketData map[string]any
+}
+
+const (
+	HomeAddress  = "home"
+	WorkAddress  = "work"
+	OtherAddress = "other"
+)
+
+// https://openid.net/specs/openid-connect-core-1_0.html#AddressClaim
+type UserAddress struct {
+	Formatted     string
+	StreetAddress string
+	Locality      string // City or locality component.
+	Region        string
+	PostalCode    string
+	Country       string
 }
 
 // UserFromJSON deserialize user data from JSON.
@@ -125,26 +138,3 @@ func UserFromJSON(d []byte) (User, error) {
 	}
 	return user, nil
 }
-
-// PasswordHash creates hash with salt for password.
-func PasswordHash(pwd string) string {
-	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
-	return string(hash)
-}
-
-// RandomPassword creates random password
-func RandomPassword(length int) string {
-	rand.Seed(time.Now().UnixNano())
-	return randSeq(length)
-}
-
-var rndPassLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?!@#")
-
-func randSeq(n int) string {
-	b := make([]rune, n)
-	for i := range b {
-		b[i] = rndPassLetters[rand.Intn(len(rndPassLetters))]
-	}
-	return string(b)
-}
-

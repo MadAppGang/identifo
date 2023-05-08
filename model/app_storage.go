@@ -2,6 +2,16 @@ package model
 
 import "encoding/json"
 
+// The list of default claims. Custom claims could be used as well.
+// https://openid.net/specs/openid-connect-core-1_0.html#ScopeClaims
+const (
+	AppScopeOpenID        = "openid"
+	AppScopeOfflineAccess = "offline_access"
+	AppScopeProfile       = "profile"
+	AppScopeEmail         = "email"
+	AppScopeAddress       = "address"
+)
+
 // AppStorage is an abstract representation of applications data storage.
 type AppStorage interface {
 	AppByID(id string) (AppData, error)
