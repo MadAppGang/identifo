@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/go-plugin v1.4.5
 	github.com/joho/godotenv v1.4.0
 	github.com/jszwec/s3fs v0.4.0
-	github.com/madappgang/identifo/sig/v2 v2.5.0-20230509071730-6703d20e5a9e
+	github.com/madappgang/identifo/sig/v2 v2.5.3
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/markbates/goth v1.74.1
 	github.com/njern/gonexmo v2.0.0+incompatible
@@ -40,9 +40,9 @@ require (
 	go.mongodb.org/mongo-driver v1.10.3
 	golang.org/x/crypto v0.1.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
-	golang.org/x/net v0.5.0
+	golang.org/x/net v0.10.0
 	golang.org/x/oauth2 v0.4.0
-	golang.org/x/text v0.6.0
+	golang.org/x/text v0.9.0
 	google.golang.org/grpc v1.52.0-dev
 	google.golang.org/protobuf v1.28.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
@@ -99,7 +99,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.5.0 // indirect
+	golang.org/x/sys v0.8.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
 	google.golang.org/genproto v0.0.0-20220804142021-4e6b2dfa6612 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
