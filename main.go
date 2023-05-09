@@ -100,4 +100,6 @@ func startHTTPServer(server *http.Server) {
 	if err := server.ListenAndServe(); err != http.ErrServerClosed {
 		log.Fatalf("ListenAndServe() error: %v", err)
 	}
+
+	log.Print("Server stopped")
 }

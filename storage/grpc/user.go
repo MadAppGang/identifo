@@ -18,15 +18,7 @@ func NewUserStorage(settings model.GRPCSettings) (model.UserStorage, error) {
 
 	uc := proto.NewUserStorageClient(&grpc.ClientConn{})
 
-	user := shared.GRPCClient{Client: uc, ClosableClient: grpcClosableClient{client: conn}}
+	user := shared.GRPCClient{Client: uc, Closable: conn}
 
 	return user, nil
-}
-
-type grpcClosableClient struct {
-	client *grpc.ClientConn
-}
-
-func (g grpcClosableClient) Close() {
-	g.client.Close()
 }

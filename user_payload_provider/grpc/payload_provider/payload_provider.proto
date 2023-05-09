@@ -1,0 +1,25 @@
+syntax = "proto3";
+package payload_provider;
+option go_package = "github.com/madappgang/identifo/v2/user_payload_provider/grpc/payload_provider";
+
+
+message TokenPayloadRequest {
+    string user_id  = 1;
+    string app_id   = 2;
+    string app_name = 3;
+}
+
+message TokenPayloadResponse {
+    string payload_json = 1;
+}
+
+message CloseRequest {}
+
+message CloseResponse {}
+
+
+service PayloadProviderService {
+    rpc TokenPayload(TokenPayloadRequest) returns (TokenPayloadResponse);
+
+    rpc Close(CloseRequest) returns (CloseResponse);
+}

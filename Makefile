@@ -6,12 +6,12 @@ export NODE_OPTIONS=--openssl-legacy-provider
 
 run_boltdb:
 	mkdir -p ./data
-	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/... 
+	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 	go run main.go --config=file://./cmd/config-boltdb.yaml
 run_mem:
 	go run main.go --config=file://./cmd/config-mem.yaml
 run_mongo:
-	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/... 
+	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 	go run main.go --config=file://./cmd/config-mongodb.yaml
 run_dynamodb:
 	AWS_ACCESS_KEY_ID=DUMMYIDEXAMPLE \
@@ -35,7 +35,7 @@ test.module: ## run tests except integration ones
 
 
 build:
-	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/... 
+	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 	go build -o ./identifo
 
 lint:
@@ -53,11 +53,25 @@ build_web: build_admin_panel build_login_web_app
 
 
 run_ui_tests:
-	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/... 
+	go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 	go run main.go --config=file://./cmd/config-boltdb.yaml &
 	cd web_apps_src/web-element && npx cypress run
 	kill $$(ps  | grep config-boltdb.yaml | awk '{print $1}')
 
 open_ui_tests:
 	$$(cd web_apps_src/web-element; npm install; $$(npm bin)/cypress open )
-	
+
+## first install protoc compiler https://grpc.io/docs/protoc-installation/
+install_go_protoc:
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.30
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
+
+gen_payload_plugin:
+	protoc --go_out=. --go_opt=paths=source_relative \
+    	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		user_payload_provider/grps/payload_provider/payload_provider.proto
+
+gen_user_storage_plugin:
+	protoc --go_out=. --go_opt=paths=source_relative \
+		--go-grpc_out=. --go-grpc_opt=paths=source_relative \
+		storage/grpc/proto/user.proto

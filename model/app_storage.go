@@ -1,6 +1,9 @@
 package model
 
-import "encoding/json"
+import (
+	"encoding/json"
+	"time"
+)
 
 // AppStorage is an abstract representation of applications data storage.
 type AppStorage interface {
@@ -98,7 +101,10 @@ const (
 
 // TokenPayloadServicePluginSettings settings for token payload service
 type TokenPayloadServicePluginSettings struct {
-	Name string `json:"name,omitempty" bson:"name,omitempty"`
+	Name          string            `json:"name" bson:"name,omitempty"`
+	Cmd           string            `json:"cmd" bson:"cmd,omitempty"`
+	Params        map[string]string `json:"params" bson:"params,omitempty"`
+	ClientTimeout time.Duration     `json:"client_timeout" bson:"client_timeout,omitempty"`
 }
 
 // TokenPayloadServiceHttpSettings settings for token payload service

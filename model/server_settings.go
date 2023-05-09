@@ -316,7 +316,7 @@ func (ss ServerSettings) GetPort() string {
 	if port == "" {
 		panic("can't start without port")
 	}
-	return strings.Join([]string{":", port}, "")
+	return ":" + port
 }
 
 type LoggerSettings struct {

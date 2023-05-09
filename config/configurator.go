@@ -48,51 +48,51 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	// helper function get settings from default or override
-	dbSettings := func(settings, def model.DatabaseSettings) model.DatabaseSettings {
-		if settings.Type == model.DBTypeDefault {
-			return def
+	dbSettings := func(s model.DatabaseSettings) model.DatabaseSettings {
+		if s.Type == model.DBTypeDefault {
+			return settings.Storage.DefaultStorage
 		}
-		return settings
+		return s
 	}
 
 	// Create all storages
-	app, err := storage.NewAppStorage(dbSettings(settings.Storage.AppStorage, settings.Storage.DefaultStorage))
+	app, err := storage.NewAppStorage(dbSettings(settings.Storage.AppStorage))
 	if err != nil {
 		log.Printf("Error on Create New AppStorage %v", err)
 		errs = append(errs, fmt.Errorf("error creating app storage: %v", err))
 	}
 
-	user, err := storage.NewUserStorage(dbSettings(settings.Storage.UserStorage, settings.Storage.DefaultStorage))
+	user, err := storage.NewUserStorage(dbSettings(settings.Storage.UserStorage))
 	if err != nil {
 		log.Printf("Error on Create New user storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
-	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage, settings.Storage.DefaultStorage))
+	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage))
 	if err != nil {
 		log.Printf("Error on Create New token storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating token storage: %v", err))
 	}
 
-	tokenBlacklist, err := storage.NewTokenBlacklistStorage(dbSettings(settings.Storage.TokenBlacklist, settings.Storage.DefaultStorage))
+	tokenBlacklist, err := storage.NewTokenBlacklistStorage(dbSettings(settings.Storage.TokenBlacklist))
 	if err != nil {
 		log.Printf("Error on Create New blacklist storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating blacklist storage: %v", err))
 	}
 
-	verification, err := storage.NewVerificationCodesStorage(dbSettings(settings.Storage.VerificationCodeStorage, settings.Storage.DefaultStorage))
+	verification, err := storage.NewVerificationCodesStorage(dbSettings(settings.Storage.VerificationCodeStorage))
 	if err != nil {
 		log.Printf("Error on Create New verification codes storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating verification codes storage: %v", err))
 	}
 
-	invite, err := storage.NewInviteStorage(dbSettings(settings.Storage.InviteStorage, settings.Storage.DefaultStorage))
+	invite, err := storage.NewInviteStorage(dbSettings(settings.Storage.InviteStorage))
 	if err != nil {
 		log.Printf("Error on Create New invite storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating invite storage: %v", err))
 	}
 
-	managementKeys, err := storage.NewManagementKeys(dbSettings(settings.Storage.ManagementKeysStorage, settings.Storage.DefaultStorage))
+	managementKeys, err := storage.NewManagementKeys(dbSettings(settings.Storage.ManagementKeysStorage))
 	if err != nil {
 		log.Printf("Error on Create New management keys storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating management keys storage: %v", err))
@@ -112,7 +112,8 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	// maybe just not serve login web app if type is none?
 	lwas := settings.LoginWebApp
-	if settings.LoginWebApp.Type == model.FileStorageTypeNone || settings.LoginWebApp.Type == model.FileStorageTypeDefault {
+	if settings.LoginWebApp.Type == model.FileStorageTypeNone ||
+		settings.LoginWebApp.Type == model.FileStorageTypeDefault {
 		// if not set, use default value
 		lwas = defaultLoginWebAppFSSettings
 	}

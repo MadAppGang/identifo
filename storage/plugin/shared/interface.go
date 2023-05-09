@@ -10,6 +10,8 @@ import (
 	"google.golang.org/grpc"
 )
 
+const PluginName = "user-storage"
+
 // Handshake is a common handshake that is shared by plugin and host.
 var Handshake = plugin.HandshakeConfig{
 	// This isn't required when using VersionedPlugins
@@ -20,7 +22,7 @@ var Handshake = plugin.HandshakeConfig{
 
 // PluginMap is the map of plugins we can dispense.
 var PluginMap = map[string]plugin.Plugin{
-	"user-storage": &UserStoragePlugin{},
+	PluginName: &UserStoragePlugin{},
 }
 
 // This is the implementation of plugin.GRPCPlugin so we can serve/consume this.

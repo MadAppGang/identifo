@@ -2,15 +2,16 @@ package plugin
 
 import (
 	"os/exec"
+	"time"
 
 	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
-	grpcShared "github.com/madappgang/identifo/v2/storage/grpc/shared"
-	"github.com/madappgang/identifo/v2/storage/plugin/shared"
+	grpcShared "github.com/madappgang/identifo/v2/user_payload_provider/grpc/shared"
+	"github.com/madappgang/identifo/v2/user_payload_provider/plugin/shared"
 )
 
-// NewUserStorage creates and inits plugin user storage.
-func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
+// NewTokenPayloadProvider creates and inits plugin for payload provider.
+func NewTokenPayloadProvider(settings model.PluginSettings, timeout time.Duration) (model.TokenPayloadProvider, error) {
 	var err error
 	params := []string{}
 	for k, v := range settings.Params {
@@ -37,11 +38,16 @@ func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
 		return nil, err
 	}
 
-	user := raw.(*grpcShared.GRPCClient)
+	tpp := raw.(*grpcShared.GRPCClient)
 
-	user.Closable = pluginClosableClient{client: client}
+	if timeout == 0 {
+		timeout = time.Second
+	}
 
-	return user, err
+	tpp.Timeout = timeout
+	tpp.Closable = pluginClosableClient{client: client}
+
+	return tpp, err
 }
 
 type pluginClosableClient struct {
