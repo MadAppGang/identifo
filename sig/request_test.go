@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/madappgang/identifo/sig"
+	sig "github.com/madappgang/identifo/sig/v2"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
