@@ -2,7 +2,7 @@ module github.com/madappgang/identifo/v2
 
 go 1.19
 
-replace github.com/madappgang/identifo/sig => ./sig
+replace github.com/madappgang/identifo/sig/v2 => ./sig
 
 require (
 	github.com/MadAppGang/httplog v1.3.0
@@ -21,7 +21,7 @@ require (
 	github.com/hashicorp/go-plugin v1.4.5
 	github.com/joho/godotenv v1.4.0
 	github.com/jszwec/s3fs v0.4.0
-	github.com/madappgang/identifo/sig v0.0.0-00010101000000-000000000000
+	github.com/madappgang/identifo/sig/v2 v2.5.0-20230509071730-6703d20e5a9e
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
 	github.com/markbates/goth v1.74.1
 	github.com/njern/gonexmo v2.0.0+incompatible

@@ -6,7 +6,7 @@ import (
 	"testing"
 	"time"
 
-	"github.com/madappgang/identifo/sig"
+	"github.com/madappgang/identifo/sig/v2"
 	"github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/stretchr/testify/assert"
