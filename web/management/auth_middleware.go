@@ -4,7 +4,7 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/madappgang/identifo/sig/v2"
+	sig "github.com/madappgang/digestsig"
 	l "github.com/madappgang/identifo/v2/localization"
 )
 
