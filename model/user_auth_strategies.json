@@ -1,0 +1,121 @@
+{
+  "strategies" : [
+    {
+      "name" : "Anonymous",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "anonymous",
+          "challenge" : "none",
+          "transport" : "none"
+        }
+      },
+      "score" : 6
+    },
+    {
+      "name" : "Email and Password",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "email",
+          "challenge" : "password",
+          "transport" : "none"
+        }
+      },
+      "score" : 6
+    },
+     {
+      "name" : "Username and Password",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "username",
+          "challenge" : "password",
+          "transport" : "none"
+        }
+      },
+      "score" : 6
+    },
+    {
+      "name" : "Phone and Password",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "phone",
+          "challenge" : "password",
+          "transport" : "none"
+        }
+      },
+      "score" : 6
+    },
+    {
+      "name" : "UserID and Password",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "id",
+          "challenge" : "password",
+          "transport" : "none"
+        }
+      },
+      "score" : 4
+    },
+    {
+      "name" : "Email and Magic Link",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "email",
+          "challenge" : "magic_link",
+          "transport" : "email"
+        }
+      },
+      "score" : 7
+    },
+    {
+      "name" : "Phone and OTP",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "phone",
+          "challenge" : "otp",
+          "transport" : "sms"
+        }
+      },
+      "score" : 4
+    },
+    {
+      "name" : "Phone and OTP",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "phone",
+          "challenge" : "otp",
+          "transport" : "sms"
+        }
+      },
+      "score" : 7
+    },
+    {
+      "name" : "Phone and OTP",
+      "type" : "first_factor",
+      "first_factor" : {
+        "type": "local",
+        "local": {
+          "identity" : "phone",
+          "challenge" : "otp",
+          "transport" : "sms"
+        }
+      },
+      "score" : 7
+    }
+  ]
+}

@@ -8,6 +8,7 @@
     "identifo",
     "mongodb",
     "nexmo",
-    "twilio"
+    "twilio",
+    "webauthn"
   ]
 }
