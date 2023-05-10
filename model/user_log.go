@@ -3,12 +3,14 @@ package model
 import "time"
 
 type UserLogEntity struct {
-	ID        string
-	timestamp time.Time
-	UserID    string
-	UserEmail string
-	Event     UserLogEntityType
-	Data      map[string]any
+	ID        string            `json:"id,omitempty"`
+	UserID    string            `json:"user_id,omitempty"`
+	Email     string            `json:"email,omitempty"`
+	DeviceID  string            `json:"device_id,omitempty"`
+	Phone     string            `json:"phone,omitempty"`
+	Event     UserLogEntityType `json:"event,omitempty"`
+	Data      map[string]any    `json:"data,omitempty"`
+	Timestamp time.Time         `json:"timestamp,omitempty"`
 }
 
 // some log entities
@@ -27,4 +29,13 @@ const (
 	UserLogEntityTypeBlocked        UserLogEntityType = "blocked"
 	UserLogEntityTypeUnblocked      UserLogEntityType = "unblocked"
 	UserLogEntityTypeMFAEnrolled    UserLogEntityType = "mfa_enrolled"
+)
+
+type UserLifecycleEventSource string
+
+const (
+	UserLifecycleEventSourceUser          UserLifecycleEventSource = "user"
+	UserLifecycleEventSourceAdmin         UserLifecycleEventSource = "admin"
+	UserLifecycleEventSourceManagementAPI UserLifecycleEventSource = "management_api"
+	UserLifecycleEventSourceUnknown       UserLifecycleEventSource = "unknown"
 )
