@@ -43,7 +43,7 @@ type federatedUserID struct {
 }
 
 // NewUserStorage creates and provisions new user storage instance.
-func NewUserStorage(settings model.DynamoDatabaseSettings) (model.UserStorage, error) {
+func NewUserStorage(settings model.DynamoDatabaseSettings) (UserStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
