@@ -24,12 +24,12 @@ type UserStorage interface {
 	UserByID(ctx context.Context, ID string) (User, error)
 	UserByPhone(ctx context.Context, Phone string) (User, error)
 	UserByEmail(ctx context.Context, Email string) (User, error)
-	UserByIdentity(ctx context.Context, idType UserIdentityType, otherType, externalID string) (User, error)
+	UserByIdentity(ctx context.Context, idType UserIdentityType, userIdentityTypeOther, externalID string) (User, error)
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)
 
 	AddUser(ctx context.Context, user User) (User, error)
 	UpdateUser(ctx context.Context, user User) (User, error)
-	UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (User, error)
+	UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (UserData, error)
 }
 
 // UserAuthStorage is a storage which keep all auth information for user.

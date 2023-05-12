@@ -14,3 +14,8 @@ type Storage interface {
 type ImportableStorage interface {
 	ImportJSON(data []byte, clearOldData bool) error
 }
+
+type UserImportData struct {
+	Users []User     `json:"users"`
+	Data  []UserData `json:"data"`
+}

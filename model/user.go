@@ -74,6 +74,7 @@ type User struct {
 
 // UserData model represents all collective information about the user
 type UserData struct {
+	UserID           string `json:"user_id,omitempty"`
 	TenantMembership *struct {
 		TenantID   string            `json:"tenant_id,omitempty"`
 		TenantName string            `json:"tenant_name,omitempty"`
@@ -98,7 +99,8 @@ const (
 	UserDataFieldMFAEnrollments   UserDataField = "mfa_enrollments"
 	UserDataFieldActiveDevices    UserDataField = "active_devices"
 	UserDataFieldAppsData         UserDataField = "apps_data"
-	USerDataFieldData             UserDataField = "data"
+	UserDataFieldData             UserDataField = "data"
+	UserDataFieldAll              UserDataField = "all"
 )
 
 // ApplicationUserData is custom data that could be attached by application to the user,
