@@ -1,0 +1,182 @@
+
+
+Table User {
+  ID string [pk]
+  
+  // General user information
+  Username string
+  Email string
+  GivenName string
+  FamilyName string
+  MiddleName string
+  Nickname string
+  PreferredUsername string
+  PhoneNumber string
+
+  // password info
+  PasswordHash string
+  PasswordResetRequired bool
+  PasswordChangeForced bool
+
+  Tags []string
+
+  // oidc claims: https://openid.net/specs/openid-connect-core-1_0.html#StandardClaims
+  Profile string
+  Picture string
+  Website string
+  Gender string
+  Birthday "time.Time"
+  Timezone string
+  Local string
+  Address map[string]UserAddress [ref: - UserAddress.Formatted]
+
+  // Login stats
+  LastLoginIP string
+  LastLoginAt "time.Time"
+  LastPasswordResetAt "time.Time"
+  LoginsCount int
+
+  // verification data
+  PhoneVerificationDetails struct
+  "PhoneVerificationDetails.VerifiedAt" "time.Time"
+  "PhoneVerificationDetails.VerifiedDetails" string
+
+  EmailVerificationDetails struct
+  "EmailVerificationDetails.VerifiedAt" "time.Time"
+  "EmailVerificationDetails.VerifiedDetails" "string"
+
+  //blocked account details
+  Blocked bool
+  BlockedDetails struct
+  "BlockedDetails.BlockedReason" string
+  "BlockedDetails.BlockedAt" "time.Time"
+  "BlockedDetails.BlockedBy" string
+
+  // mappings to external user
+  ExternalID string
+  ExternalMapping map[string]string
+
+  // user metadata
+  CreatedAt "time.Time"
+  UpdatedAt "time.Time"
+}
+
+Table UserAddress [ headerColor: #FFFFFF] {
+  Formatted string
+  StreetAddress string
+  Locality string [note: 'City or locality component like suburb or neighbouhood']
+  Region string
+  PostalCode string
+  Country string
+}
+
+// Tenant
+
+Table Tenant {
+  ID string [pk]
+  Name string
+  Default bool
+  Tags [string]
+  UpdatedAt "time.Time"
+  CreatedAt "time.Time"
+}
+
+
+// User Auth
+
+Table AuthStrategy {
+  Name string
+  Type AuthStrategyType
+  FirstFactor "*FirstFactorStrategy" [ ref: > FirstFactorStrategy.Type ] 
+  SecondFactor "*SecondFactorStrategy" [ ref: > SecondFactorStrategy.Challenge ] 
+  Score int
+  note: 'AuthStrategy - a auth strategy to auth the user'
+}
+
+Enum AuthStrategyType {
+  first_factor
+  second_factor
+  none
+  anonymous
+}
+
+Table FirstFactorStrategy {
+  Type FirstFactorType
+  Local "*LocalStrategy" [ref: - LocalStrategy.Identity]
+  SSO "*SSOStrategy" [ref: - SSOStrategy.Type]
+}
+
+Enum FirstFactorType {
+  local
+  sso 
+  enterprise
+}
+
+Table LocalStrategy {
+  Identity AuthIdentityType
+  Challenge AuthChallengeType
+  Transport AuthTransportType
+}
+
+Enum AuthIdentityType {
+  id
+  email
+  phone
+  username
+  anonymous
+}
+
+Enum AuthChallengeType {
+  password
+  otp
+  magic_link
+  none
+  recovery_code
+  guardian
+  webauthn
+}
+
+Enum AuthTransportType {
+  email
+  sms
+  push
+  none
+  socket
+}
+
+Table SSOStrategy {
+  Type SSOStrategyType
+  TODO "not implemented yet"
+  note: 'TODO, not implemented yet'
+}
+
+Enum SSOStrategyType {
+  none
+  oidc
+  apple
+  firebase
+  google
+}
+
+
+Table SecondFactorStrategy {
+  Challenge AuthChallengeType
+  Transport   AuthTransportType
+  EnrolPolicy SecondFactorEnrolPolicy
+  Policy      SecondFactorPolicy
+}
+
+Enum SecondFactorEnrolPolicy {
+  never
+  self_enrol
+  deny
+}
+
+Enum SecondFactorPolicy{
+  never
+  naive
+  always
+  adaptive
+  adaptive_mfa_required
+  custom
+}

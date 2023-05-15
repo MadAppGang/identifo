@@ -75,33 +75,12 @@ func (us *UserStorage) UserByIdentity(ctx context.Context, idType model.UserIden
 
 // UserData returns user data for user for specific fields.
 func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...model.UserDataField) (model.UserData, error) {
-	result := model.UserData{UserID: userID}
 	data, ok := us.userData[userID]
 	if !ok {
-		return result, model.ErrUserNotFound
+		return model.UserData{}, model.ErrUserNotFound
 	}
 
-	for _, f := range fields {
-		switch f {
-		case model.UserDataFieldTenantMembership:
-			result.TenantMembership = data.TenantMembership
-		case model.UserDataFieldAuthEnrollments:
-			result.AuthEnrollments = data.AuthEnrollments
-		case model.UserDataFieldIdentities:
-			result.Identities = data.Identities
-		case model.UserDataFieldMFAEnrollments:
-			result.MFAEnrollments = data.MFAEnrollments
-		case model.UserDataFieldActiveDevices:
-			result.ActiveDevices = data.ActiveDevices
-		case model.UserDataFieldAppsData:
-			result.AppsData = data.AppsData
-		case model.UserDataFieldData:
-			result.Data = data.Data
-		case model.UserDataFieldAll:
-			result = data
-		default:
-		}
-	}
+	result := model.FilterUserDataFields(data, fields...)
 	return result, nil
 }
 

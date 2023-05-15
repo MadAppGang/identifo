@@ -16,8 +16,6 @@ func Strategies() []AuthStrategy {
 	return res
 }
 
-
-
 // AuthStrategy - a auth strategy to auth the user
 type AuthStrategy struct {
 	Name         string                `json:"name,omitempty"`

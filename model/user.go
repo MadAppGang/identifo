@@ -18,12 +18,11 @@ type User struct {
 	Nickname          string `json:"nickname,omitempty"`
 	PreferredUsername string `json:"preferred_username,omitempty"`
 	PhoneNumber       string `json:"phone_number,omitempty"`
-	AvatarURL         string `json:"avatar_url,omitempty"`
 
 	//  authentication data for user
 	PasswordHash          string `json:"password_hash,omitempty"` // TODO: do we need salt and pepper here as well?
-	PasswordResetRequired string `json:"password_reset_required,omitempty"`
-	PasswordChangeForced  string `json:"password_change_forced,omitempty"`
+	PasswordResetRequired bool   `json:"password_reset_required,omitempty"`
+	PasswordChangeForced  bool   `json:"password_change_forced,omitempty"`
 
 	Tags []string `json:"tags,omitempty"`
 
@@ -39,7 +38,7 @@ type User struct {
 	Address  map[string]UserAddress `json:"address,omitempty"` // addresses for home, work, etc
 
 	// login stats
-	LastIP              string    `json:"last_ip,omitempty"`
+	LastLoginIP         string    `json:"last_login_ip,omitempty"`
 	LastLoginAt         time.Time `json:"last_login_at,omitempty"`
 	LastPasswordResetAt time.Time `json:"last_password_reset_at,omitempty"`
 	LoginsCount         int       `json:"logins_count,omitempty"`
@@ -134,7 +133,7 @@ type UserAddress struct {
 	Country       string `json:"country,omitempty"`
 }
 
-// UserFromJSON deserialize user data from JSON.
+// UserFromJSON deserialize user from JSON.
 func UserFromJSON(d []byte) (User, error) {
 	var user User
 	if err := json.Unmarshal(d, &user); err != nil {
@@ -142,4 +141,41 @@ func UserFromJSON(d []byte) (User, error) {
 		return User{}, err
 	}
 	return user, nil
+}
+
+// UserDataFromJSON deserialize user data from JSON.
+func UserDataFromJSON(d []byte) (UserData, error) {
+	var userData UserData
+	if err := json.Unmarshal(d, &userData); err != nil {
+		log.Println("Error while unmarshal user data:", err)
+		return UserData{}, err
+	}
+	return userData, nil
+}
+
+// FilterUserDataFields get User data only with fields requested
+func FilterUserDataFields(source UserData, fields ...UserDataField) UserData {
+	result := UserData{UserID: source.UserID}
+	for _, f := range fields {
+		switch f {
+		case UserDataFieldTenantMembership:
+			result.TenantMembership = source.TenantMembership
+		case UserDataFieldAuthEnrollments:
+			result.AuthEnrollments = source.AuthEnrollments
+		case UserDataFieldIdentities:
+			result.Identities = source.Identities
+		case UserDataFieldMFAEnrollments:
+			result.MFAEnrollments = source.MFAEnrollments
+		case UserDataFieldActiveDevices:
+			result.ActiveDevices = source.ActiveDevices
+		case UserDataFieldAppsData:
+			result.AppsData = source.AppsData
+		case UserDataFieldData:
+			result.Data = source.Data
+		case UserDataFieldAll:
+			result = source
+		default:
+		}
+	}
+	return result
 }

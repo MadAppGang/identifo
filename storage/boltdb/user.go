@@ -1,6 +1,7 @@
 package boltdb
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -16,6 +17,7 @@ import (
 
 const (
 	UserBucket              = "Users"             // UserBucket is a name for bucket with users.
+	UserDataBucket          = "UserData"          // UserDataBucket is a name for bucket with user data.
 	UserBySocialIDBucket    = "UserBySocialID"    // UserBySocialIDBucket is a name for bucket with social IDs as keys.
 	UserByUsername          = "UserByUsername"    // UserByUsername  is a name for bucket with user names as keys.
 	UserByPhoneNumberBucket = "UserByPhoneNumber" // UserByPhoneNumberBucket is a name for bucket with phone numbers as keys.
@@ -23,7 +25,7 @@ const (
 )
 
 // NewUserStorage creates and inits an embedded user storage.
-func NewUserStorage(settings model.BoltDBDatabaseSettings) (UserStorage, error) {
+func NewUserStorage(settings model.BoltDBDatabaseSettings) (*UserStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -53,6 +55,9 @@ func (us *UserStorage) createBuckets() error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
+		if _, err := tx.CreateBucketIfNotExists([]byte(UserDataBucket)); err != nil {
+			return fmt.Errorf("create bucket: %s", err)
+		}
 		if _, err := tx.CreateBucketIfNotExists([]byte(UserBySocialIDBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
 		}
@@ -69,19 +74,59 @@ func (us *UserStorage) createBuckets() error {
 	})
 }
 
-// UserByID returns user by ID.
-func (us *UserStorage) UserByID(id string) (model.User, error) {
+// ================================================================
+// UserStorage implementations
+// ================================================================
+
+// UserByID returns user from storage by ID.
+func (us *UserStorage) UserByID(ctx context.Context, ID string) (model.User, error) {
 	var res model.User
 	err := us.db.View(func(tx *bolt.Tx) error {
-		b := tx.Bucket([]byte(UserBucket))
-		u := b.Get([]byte(id))
+		ub := tx.Bucket([]byte(UserBucket))
+		// Get user by userID.
+		u := ub.Get([]byte(ID))
 		if u == nil {
 			return model.ErrUserNotFound
 		}
 
 		var err error
 		res, err = model.UserFromJSON(u)
-		return err
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	return res, nil
+}
+
+// UserByPhone fetches user by phone number.
+func (us *UserStorage) UserByPhone(ctx context.Context, Phone string) (model.User, error) {
+	var res model.User
+	err := us.db.View(func(tx *bolt.Tx) error {
+		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
+		// We use phone number as a key.
+		// Get user ID.
+		userID := upnb.Get([]byte(Phone))
+		if userID == nil {
+			return model.ErrUserNotFound
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		// Get user by userID.
+		u := ub.Get(userID)
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+		return nil
 	})
 	if err != nil {
 		return model.User{}, err
@@ -90,7 +135,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 }
 
 // UserByEmail returns user by its email.
-func (us *UserStorage) UserByEmail(email string) (model.User, error) {
+func (us *UserStorage) UserByEmail(ctx context.Context, email string) (model.User, error) {
 	var res model.User
 	err := us.db.View(func(tx *bolt.Tx) error {
 		ueb := tx.Bucket([]byte(UserByEmailBucket))
@@ -118,10 +163,118 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	if err != nil {
 		return model.User{}, err
 	}
-	// clear password hash
-	res.Pswd = ""
 	return res, nil
 }
+
+// UserByIdentity returns user by federated ID.
+func (us *UserStorage) UserByIdentity(ctx context.Context, idType model.UserIdentityType, userIdentityTypeOther, externalID string) (model.User, error) {
+	var res model.User
+	sid := string(idType) + ":" + userIdentityTypeOther + ":" + externalID
+
+	err := us.db.View(func(tx *bolt.Tx) error {
+		usib := tx.Bucket([]byte(UserBySocialIDBucket))
+		// get userID from index.
+		userID := usib.Get([]byte(sid))
+		if userID == nil {
+			return model.ErrUserNotFound
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		// get user by userID.
+		u := ub.Get(userID)
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserFromJSON(u)
+		return err
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	return res, nil
+}
+
+// UserByUsername returns user by name
+func (us *UserStorage) UserByUsername(ctx context.Context, username string) (model.User, error) {
+	var res model.User
+	err := us.db.View(func(tx *bolt.Tx) error {
+		unpb := tx.Bucket([]byte(UserByUsername))
+		// we use username and password hash as a key
+		key := username
+		// get user ID from index
+		userID := unpb.Get([]byte(key))
+		if userID == nil {
+			return model.ErrUserNotFound
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		// get user by userID
+		u := ub.Get(userID)
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserFromJSON(u)
+		if err != nil {
+			return err
+		}
+		return err
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	return res, nil
+}
+
+func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...model.UserDataField) (model.UserData, error) {
+	var res model.UserData
+	err := us.db.View(func(tx *bolt.Tx) error {
+		ub := tx.Bucket([]byte(UserBucket))
+		// Get user by userID.
+		u := ub.Get([]byte(userID))
+		if u == nil {
+			return model.ErrUserNotFound
+		}
+
+		var err error
+		res, err = model.UserDataFromJSON(u)
+		if err != nil {
+			return err
+		}
+		return nil
+	})
+	if err != nil {
+		return model.UserData{}, err
+	}
+	return model.FilterUserDataFields(res, fields...), nil
+}
+
+func (us *UserStorage) AddUser(ctx context.Context, user model.User) (model.User, error) {
+	err := us.db.Update(func(tx *bolt.Tx) error {
+		data, err := json.Marshal(user)
+		if err != nil {
+			return err
+		}
+
+		ub := tx.Bucket([]byte(UserBucket))
+		if err := ub.Put([]byte(user.ID), data); err != nil {
+			return err
+		}
+
+		err = us.UpdateUserBuckets(tx, user)
+		return err
+	})
+	if err != nil {
+		return model.User{}, err
+	}
+	return user, nil
+}
+
+// UpdateUser(ctx context.Context, user User) (User, error)
+// UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (UserData, error)
 
 // DeleteUser deletes user by ID.
 func (us *UserStorage) DeleteUser(id string) error {
@@ -159,158 +312,8 @@ func (us *UserStorage) DeleteUser(id string) error {
 	})
 }
 
-// UserByFederatedID returns user by federated ID.
-func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User, error) {
-	var res model.User
-	sid := string(provider) + ":" + id
-
-	err := us.db.View(func(tx *bolt.Tx) error {
-		usib := tx.Bucket([]byte(UserBySocialIDBucket))
-		// get userID from index.
-		userID := usib.Get([]byte(sid))
-		if userID == nil {
-			return model.ErrUserNotFound
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		// get user by userID.
-		u := ub.Get(userID)
-		if u == nil {
-			return model.ErrUserNotFound
-		}
-
-		var err error
-		res, err = model.UserFromJSON(u)
-		return err
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-	// clear password hash
-	res.Pswd = ""
-	return res, nil
-}
-
-// AttachDeviceToken does nothing here.
-func (us *UserStorage) AttachDeviceToken(id, token string) error {
-	// BoltDB-backed implementation does not support user devices.
-	return model.ErrorNotImplemented
-}
-
-// DetachDeviceToken does nothing here.
-func (us *UserStorage) DetachDeviceToken(token string) error {
-	// BoltDB-backed implementation does not support user devices.
-	return model.ErrorNotImplemented
-}
-
-// RequestScopes returns requested scopes.
-func (us *UserStorage) RequestScopes(userID string, scopes []string) ([]string, error) {
-	// We allow all scopes for embedded database, you can implement your own logic in the external service.
-	return scopes, nil
-}
-
-// Scopes returns supported scopes.
-func (us *UserStorage) Scopes() []string {
-	// We allow all scopes for embedded database, you can implement your own logic in the external service.
-	return []string{"offline", "user"}
-}
-
-// TODO: implement get all device tokens logic
-func (us *UserStorage) AllDeviceTokens(userID string) ([]string, error) {
-	return nil, nil
-}
-
-// UserByPhone fetches user by phone number.
-func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
-	var res model.User
-	err := us.db.View(func(tx *bolt.Tx) error {
-		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
-		// We use phone number as a key.
-		// Get user ID.
-		userID := upnb.Get([]byte(phone))
-		if userID == nil {
-			return model.ErrUserNotFound
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		// Get user by userID.
-		u := ub.Get(userID)
-		if u == nil {
-			return model.ErrUserNotFound
-		}
-
-		var err error
-		res, err = model.UserFromJSON(u)
-		if err != nil {
-			return err
-		}
-		return nil
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-	// clear password hash
-	res.Pswd = ""
-	return res, nil
-}
-
-// UserByUsername returns user by name
-func (us *UserStorage) UserByUsername(username string) (model.User, error) {
-	var res model.User
-	err := us.db.View(func(tx *bolt.Tx) error {
-		unpb := tx.Bucket([]byte(UserByUsername))
-		// we use username and password hash as a key
-		key := username
-		// get user ID from index
-		userID := unpb.Get([]byte(key))
-		if userID == nil {
-			return model.ErrUserNotFound
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		// get user by userID
-		u := ub.Get(userID)
-		if u == nil {
-			return model.ErrUserNotFound
-		}
-
-		var err error
-		res, err = model.UserFromJSON(u)
-		if err != nil {
-			return err
-		}
-		return err
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-	// clear password hash
-	res.Pswd = ""
-	return res, nil
-}
-
 // AddNewUser adds new user to the storage.
 func (us *UserStorage) AddNewUser(user model.User, password string) (model.User, error) {
-	user.Pswd = model.PasswordHash(password)
-
-	err := us.db.Update(func(tx *bolt.Tx) error {
-		data, err := json.Marshal(user)
-		if err != nil {
-			return err
-		}
-
-		ub := tx.Bucket([]byte(UserBucket))
-		if err := ub.Put([]byte(user.ID), data); err != nil {
-			return err
-		}
-
-		err = us.UpdateUserBuckets(tx, user)
-		return err
-	})
-	if err != nil {
-		return model.User{}, err
-	}
-	return user, nil
 }
 
 // AddUserWithFederatedID adds new user with social ID.
@@ -462,7 +465,7 @@ func (us *UserStorage) FetchUsers(filterString string, skip, limit int) ([]model
 				users = append(users, user)
 			} else if strings.Contains(strings.ToLower(string(user.Email)), strings.ToLower(filterString)) {
 				users = append(users, user)
-			} else if strings.Contains(strings.ToLower(string(user.Phone)), strings.ToLower(filterString)) {
+			} else if strings.Contains(strings.ToLower(string(user.PhoneNumber)), strings.ToLower(filterString)) {
 				users = append(users, user)
 			} else if strings.Contains(strings.ToLower(string(user.Username)), strings.ToLower(filterString)) {
 				users = append(users, user)
@@ -551,18 +554,19 @@ func (us *UserStorage) UpdateUserBuckets(tx *bolt.Tx, user model.User) error {
 			return err
 		}
 	}
-	if user.Phone != "" {
+	if user.PhoneNumber != "" {
 		upnb := tx.Bucket([]byte(UserByPhoneNumberBucket))
-		if err := upnb.Put([]byte(user.Phone), []byte(user.ID)); err != nil {
+		if err := upnb.Put([]byte(user.PhoneNumber), []byte(user.ID)); err != nil {
 			return err
 		}
 	}
-	for _, fid := range user.FederatedIDs {
-		usib := tx.Bucket([]byte(UserBySocialIDBucket))
-		if err := usib.Put([]byte(fid), []byte(user.ID)); err != nil {
-			return err
-		}
-	}
+
+	// for _, fid := range user.FederatedIDs {
+	// 	usib := tx.Bucket([]byte(UserBySocialIDBucket))
+	// 	if err := usib.Put([]byte(fid), []byte(user.ID)); err != nil {
+	// 		return err
+	// 	}
+	// }
 
 	return nil
 }

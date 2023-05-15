@@ -21,9 +21,10 @@ type UserStorage interface {
 	Storage
 	ImportableStorage
 
-	UserByID(ctx context.Context, ID string) (User, error)
-	UserByPhone(ctx context.Context, Phone string) (User, error)
-	UserByEmail(ctx context.Context, Email string) (User, error)
+	UserByID(ctx context.Context, id string) (User, error)
+	UserByUsername(ctx context.Context, username string) (User, error)
+	UserByPhone(ctx context.Context, phone string) (User, error)
+	UserByEmail(ctx context.Context, email string) (User, error)
 	UserByIdentity(ctx context.Context, idType UserIdentityType, userIdentityTypeOther, externalID string) (User, error)
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)
 
