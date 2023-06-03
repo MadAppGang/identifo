@@ -39,8 +39,19 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		// Get refresh token from context.
 		oldRefreshToken := tokenFromContext(r.Context())
 
+		if err := oldRefreshToken.Validate(); err != nil {
+			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorTokenInvalidError, err)
+			return
+		}
+
+		tokenPayload, err := ar.getTokenPayloadForApp(app, oldRefreshToken.Subject())
+		if err != nil {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPUnableToTokenPayloadForAPPError)
+			return
+		}
+
 		// Issue new access token and stringify it for response.
-		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
+		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken, tokenPayload)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
 			return

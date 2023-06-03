@@ -139,7 +139,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			scopes = append(scopes, "offline")
 		}
 
-		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
