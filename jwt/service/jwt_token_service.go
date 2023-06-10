@@ -318,7 +318,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 }
 
 // RefreshAccessToken issues new access token for provided refresh token.
-func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.Token, error) {
+func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token, tokenPayload map[string]interface{}) (model.Token, error) {
 	rt, ok := refreshToken.(*model.JWToken)
 	if !ok || rt == nil {
 		return nil, model.ErrTokenInvalid
@@ -343,7 +343,12 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.To
 		return nil, ErrInvalidUser
 	}
 
-	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app, false, nil)
+	token, err := ts.NewAccessToken(
+		user,
+		strings.Split(claims.Scopes, " "),
+		app,
+		false,
+		tokenPayload)
 	if err != nil {
 		return nil, err
 	}

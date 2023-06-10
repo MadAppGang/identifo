@@ -235,7 +235,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 }
 
 // getTokenPayloadForApp get additional token payload data
-func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map[string]interface{}, error) {
+func (ar *Router) getTokenPayloadForApp(app model.AppData, userID string) (map[string]interface{}, error) {
 	if app.TokenPayloadService == model.TokenPayloadServiceNone ||
 		app.TokenPayloadService == "" {
 		return nil, nil
@@ -246,7 +246,7 @@ func (ar *Router) getTokenPayloadForApp(app model.AppData, user model.User) (map
 		return nil, err
 	}
 
-	return ps.TokenPayloadForApp(app.ID, app.Name, user.ID)
+	return ps.TokenPayloadForApp(app.ID, app.Name, userID)
 }
 
 func (ar *Router) getTokenPayloadService(app model.AppData) (model.TokenPayloadProvider, error) {
@@ -346,7 +346,7 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes 
 	}
 
 	offline := contains(scopes, model.OfflineScope)
-	tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+	tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 	if err != nil {
 		return AuthResponse{}, err
 	}

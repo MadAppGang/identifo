@@ -81,7 +81,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
@@ -276,7 +276,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			scopes = append(scopes, "offline")
 		}
 
-		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
+		tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
