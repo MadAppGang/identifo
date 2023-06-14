@@ -13,6 +13,7 @@ import (
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/xlzd/gotp"
+	"golang.org/x/oauth2"
 )
 
 var (
@@ -35,13 +36,14 @@ const (
 
 // AuthResponse is a response with successful auth data.
 type AuthResponse struct {
-	AccessToken  string     `json:"access_token,omitempty" bson:"access_token,omitempty"`
-	RefreshToken string     `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
-	User         model.User `json:"user,omitempty" bson:"user,omitempty"`
-	Require2FA   bool       `json:"require_2fa" bson:"require_2fa"`
-	Enabled2FA   bool       `json:"enabled_2fa" bson:"enabled_2fa"`
-	CallbackUrl  string     `json:"callback_url,omitempty" bson:"callback_url,omitempty"`
-	Scopes       []string   `json:"scopes,omitempty" bson:"scopes,omitempty"`
+	AccessToken  string        `json:"access_token,omitempty" bson:"access_token,omitempty"`
+	RefreshToken string        `json:"refresh_token,omitempty" bson:"refresh_token,omitempty"`
+	User         model.User    `json:"user,omitempty" bson:"user,omitempty"`
+	Require2FA   bool          `json:"require_2fa" bson:"require_2fa"`
+	Enabled2FA   bool          `json:"enabled_2fa" bson:"enabled_2fa"`
+	CallbackUrl  string        `json:"callback_url,omitempty" bson:"callback_url,omitempty"`
+	Scopes       []string      `json:"scopes,omitempty" bson:"scopes,omitempty"`
+	ProviderData *oauth2.Token `json:"provider_data,omitempty" bson:"provider_data,omitempty"`
 }
 
 type login struct {
