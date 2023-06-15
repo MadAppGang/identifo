@@ -41,15 +41,17 @@ type FirstFactorType string
 
 const (
 	FirstFactorTypeLocal      FirstFactorType = "local"
-	FirstFactorTypeSSO        FirstFactorType = "sso"
+	FirstFactorTypeFIM        FirstFactorType = "fim" // FIM if federated identity, also called as social login
 	FirstFactorTypeEnterprise FirstFactorType = "enterprise"
 )
 
 // FirstFactorStrategy - the strategy for the first factor authentication.
 type FirstFactorStrategy struct {
 	Type  FirstFactorType `json:"type,omitempty"`
-	Local *LocalStrategy  `json:"local,omitempty"`
-	SSO   *SSOStrategy    `json:"sso,omitempty"`
+	Local *LocalStrategy  `json:"local,omitempty"` // User Identity is managed directly by Identifo
+	FIM   *FIMStrategy    `json:"fim,omitempty"`   // FIM if federated identity, also called as social login
+	// TODO:
+	// SSO: SAML // user identity managed by someone else, delegated
 }
 
 // LocalStrategy - local first factor strategy, the user can authenticate with local account.
@@ -59,8 +61,8 @@ type LocalStrategy struct {
 	Transport AuthTransportType `json:"transport,omitempty"`
 }
 
-type SSOStrategy struct {
-	Type SSOStrategyType `json:"type,omitempty"`
+type FIMStrategy struct {
+	Type FIMStrategyType `json:"type,omitempty"`
 	// TODO: add fields for OIDC and plugin strategy
 }
 
@@ -69,7 +71,7 @@ type (
 	AuthIdentityType  string
 	AuthChallengeType string
 	AuthTransportType string
-	SSOStrategyType   string
+	FIMStrategyType   string
 )
 
 const (
@@ -96,12 +98,12 @@ const (
 	AuthTransportTypeNone   AuthTransportType = "none"
 	AuthTransportTypeSocket AuthTransportType = "socket"
 
-	// SSOStrategyType - the SSO provider strategy name.
-	SSOStrategyTypeNone     SSOStrategyType = "none"
-	SSOStrategyTypeOIDC     SSOStrategyType = "oidc"
-	SSOStrategyTypeApple    SSOStrategyType = "apple"
-	SSOStrategyTypeFirebase SSOStrategyType = "firebase"
-	SSOStrategyTypeGoogle   SSOStrategyType = "google"
+	// FIMStrategyType - the FIM (Federated Identity Management) provider strategy name.
+	FIMStrategyTypeNone     FIMStrategyType = "none"
+	FIMStrategyTypeOIDC     FIMStrategyType = "oidc"
+	FIMStrategyTypeApple    FIMStrategyType = "apple"
+	FIMStrategyTypeFirebase FIMStrategyType = "firebase"
+	FIMStrategyTypeGoogle   FIMStrategyType = "google"
 )
 
 // SecondFactorStrategy - the strategy for the second factor authentication.
