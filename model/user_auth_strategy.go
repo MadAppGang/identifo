@@ -18,6 +18,7 @@ func Strategies() []AuthStrategy {
 
 // AuthStrategy - a auth strategy to auth the user
 type AuthStrategy struct {
+	ID           string                `json:"id,omitempty"`
 	Name         string                `json:"name,omitempty"`
 	Type         AuthStrategyType      `json:"type,omitempty"`
 	FirstFactor  *FirstFactorStrategy  `json:"first_factor,omitempty"`

@@ -113,8 +113,9 @@ type ApplicationUserData struct {
 // AdditionalUserData is custom data attached to the user
 // the data is organized in buckets
 type AdditionalUserData struct {
-	BucketName string         `json:"bucket_name,omitempty"`
-	BucketData map[string]any `json:"bucket_data,omitempty"`
+	BucketName  string         `json:"bucket_name,omitempty"`
+	BucketData  map[string]any `json:"bucket_data,omitempty"`
+	LastUpdated time.Time      `json:"last_updated,omitempty"`
 }
 
 const (
