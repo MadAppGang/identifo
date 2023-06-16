@@ -85,8 +85,9 @@ type UserData struct {
 	// User push devices
 	ActiveDevices []UserDevice `json:"active_devices,omitempty"`
 	// Additional data for user
-	AppsData []ApplicationUserData `json:"apps_data,omitempty"`
-	Data     []AdditionalUserData  `json:"data,omitempty"`
+	AppsData     []ApplicationUserData `json:"apps_data,omitempty"`
+	Data         []AdditionalUserData  `json:"data,omitempty"`
+	DebugOTPCode string                `json:"debug_otp,omitempty"`
 }
 
 type UserDataField string
