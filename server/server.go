@@ -124,7 +124,6 @@ func (s *Server) Close() {
 	maybeClose(s.storages.Token)
 	maybeClose(s.storages.Blocklist)
 	maybeClose(s.storages.Invite)
-	maybeClose(s.storages.Verification)
 	maybeClose(s.storages.Session)
 }
 

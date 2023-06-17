@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// UserLogEntity is activity atomic action for user auth process.
 type UserLogEntity struct {
 	ID        string            `json:"id,omitempty"`
 	UserID    string            `json:"user_id,omitempty"`
@@ -13,7 +14,7 @@ type UserLogEntity struct {
 	Timestamp time.Time         `json:"timestamp,omitempty"`
 }
 
-// some log entities
+// UserLogEntityType is a type of log for later filter, use structured logs 💪🏽.
 type UserLogEntityType string
 
 const (
@@ -31,6 +32,7 @@ const (
 	UserLogEntityTypeMFAEnrolled    UserLogEntityType = "mfa_enrolled"
 )
 
+// UserLifecycleEventSource dedicate user activity regarding the API interaction
 type UserLifecycleEventSource string
 
 const (

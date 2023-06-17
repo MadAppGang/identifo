@@ -1,6 +1,7 @@
 package service
 
 import (
+	"context"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/sha1"
@@ -27,6 +28,8 @@ var (
 	ErrInvalidOfflineScope = errors.New("Requested scope don't have offline value")
 	// ErrInvalidUser is when the user cannot obtain the new token.
 	ErrInvalidUser = errors.New("The user cannot obtain the new token")
+	// ErrUserIsBlocked the user is blocked.
+	ErrUserIsBlocked = errors.New("The user is blocked")
 
 	// TokenLifespan is a token expiration time, one week.
 	TokenLifespan = int64(604800) // int64(1*7*24*60*60)
@@ -206,7 +209,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		return nil, ErrInvalidApp
 	}
 
-	if !u.Active {
+	if u.Blocked {
 		return nil, ErrInvalidUser
 	}
 
@@ -267,8 +270,8 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		return nil, ErrInvalidOfflineScope
 	}
 
-	if !u.Active {
-		return nil, ErrInvalidUser
+	if u.Blocked {
+		return nil, ErrUserIsBlocked
 	}
 
 	payload := make(map[string]interface{})
@@ -338,8 +341,8 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.To
 		return nil, ErrInvalidApp
 	}
 
-	user, err := ts.userStorage.UserByID(claims.Subject)
-	if err != nil || !user.Active {
+	user, err := ts.userStorage.UserByID(context.TODO(), claims.Subject)
+	if err != nil || user.Blocked {
 		return nil, ErrInvalidUser
 	}
 
@@ -435,8 +438,8 @@ func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 
 // NewWebCookieToken creates new web cookie token.
 func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
-	if !u.Active {
-		return nil, ErrInvalidUser
+	if u.Blocked {
+		return nil, ErrUserIsBlocked
 	}
 	now := ijwt.TimeFunc().Unix()
 	lifespan := ts.resetTokenLifespan

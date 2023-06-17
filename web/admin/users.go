@@ -15,14 +15,12 @@ const (
 )
 
 type registrationData struct {
-	Username   string        `json:"username,omitempty"`
-	Email      string        `json:"email,omitempty"`
-	FullName   string        `json:"full_name,omitempty"`
-	Phone      string        `json:"phone,omitempty"`
-	Password   string        `json:"pswd,omitempty"`
-	AccessRole string        `json:"access_role,omitempty"`
-	Scopes     []string      `json:"scopes,omitempty"`
-	TFAInfo    model.TFAInfo `json:"tfa_info,omitempty"`
+	Username   string `json:"username,omitempty"`
+	Email      string `json:"email,omitempty"`
+	FullName   string `json:"full_name,omitempty"`
+	Phone      string `json:"phone,omitempty"`
+	Password   string `json:"pswd,omitempty"`
+	AccessRole string `json:"access_role,omitempty"`
 }
 
 type passwordResetData struct {
@@ -31,7 +29,7 @@ type passwordResetData struct {
 	ResetPageURL string `json:"reset_page_url,omitempty"`
 }
 
-type ResetEmailData struct {
+type resetEmailData struct {
 	User  model.User
 	Token string
 	URL   string
@@ -53,17 +51,6 @@ func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		userID := getRouteVar("id", r)
 
-		user, err := ar.server.Storages().User.UserByID(userID)
-		if err != nil {
-			if err == model.ErrUserNotFound {
-				ar.Error(w, err, http.StatusNotFound, "")
-			} else {
-				ar.Error(w, err, http.StatusInternalServerError, "")
-			}
-			return
-		}
-
-		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

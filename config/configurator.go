@@ -80,12 +80,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating blacklist storage: %v", err))
 	}
 
-	verification, err := storage.NewVerificationCodesStorage(dbSettings(settings.Storage.VerificationCodeStorage, settings.Storage.DefaultStorage))
-	if err != nil {
-		log.Printf("Error on Create New verification codes storage %v", err)
-		errs = append(errs, fmt.Errorf("error creating verification codes storage: %v", err))
-	}
-
 	invite, err := storage.NewInviteStorage(dbSettings(settings.Storage.InviteStorage, settings.Storage.DefaultStorage))
 	if err != nil {
 		log.Printf("Error on Create New invite storage %v", err)
@@ -137,7 +131,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		Token:         token,
 		Blocklist:     tokenBlacklist,
 		Invite:        invite,
-		Verification:  verification,
 		Session:       session,
 		Config:        config,
 		Key:           key,

@@ -4,7 +4,7 @@ import "time"
 
 // UserDevice is a user push device
 type UserDevice struct {
-	ID          string         `json:"id,omitempty"`
+	ID          string         `json:"id,omitempty"` // ID is used as a cookie for device remember.
 	UserID      string         `json:"user_id,omitempty"`
 	DeviceType  UserDeviceType `json:"device_type,omitempty"`
 	UserAgent   string         `json:"user_agent,omitempty"`

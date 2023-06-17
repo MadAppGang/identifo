@@ -18,6 +18,7 @@ type UserAuthEnrolment struct {
 	ExpiresAt         time.Time     `json:"expires_at,omitempty"`
 	AccessToken       string        `json:"access_token,omitempty"`
 	RefreshToken      string        `json:"refresh_token,omitempty"`
+	// TODO: Jack: add some service specific enrollment fields
 	// Facebook scopes
 	// Some other additional fields
 }

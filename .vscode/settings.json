@@ -1,13 +1,16 @@
 {
   "cSpell.words": [
+    "Blocklist",
     "boltdb",
     "bson",
     "dynamodb",
+    "fieldset",
     "fsnotify",
     "hotp",
     "identifo",
     "mongodb",
     "nexmo",
+    "pswd",
     "twilio",
     "webauthn"
   ]

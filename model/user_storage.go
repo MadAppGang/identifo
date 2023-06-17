@@ -21,13 +21,17 @@ type UserStorage interface {
 	Storage
 	ImportableStorage
 
+	// Get user with key parameters for a user.
 	UserByID(ctx context.Context, id string) (User, error)
 	UserByUsername(ctx context.Context, username string) (User, error)
 	UserByPhone(ctx context.Context, phone string) (User, error)
 	UserByEmail(ctx context.Context, email string) (User, error)
 	UserByIdentity(ctx context.Context, idType UserIdentityType, userIdentityTypeOther, externalID string) (User, error)
+
+	// Get user data, we can filter the fields we need to handle from data, as it is a large structure.
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)
 
+	// User mutation
 	AddUser(ctx context.Context, user User) (User, error)
 	UpdateUser(ctx context.Context, user User) (User, error)
 	UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (UserData, error)
@@ -46,14 +50,6 @@ type UserAuthStorage interface {
 	// Remove2FAEnrolment
 	// Solve2FAChallenge
 	// Solve2Challenge
-}
-
-// UserAuthStatsStorage is a storage which keep all auth login stats for user.
-type UserAuthStatsStorage interface {
-	Storage
-	ImportableStorage
-
-	LogUserEvent(ctx context.Context, event UserLogEntity, device UserDevice) error
 }
 
 // UserAdminStorage is a storage to manage users from admin panel and management api.

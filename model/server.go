@@ -32,7 +32,6 @@ type ServerStorageCollection struct {
 	Token         TokenStorage
 	Blocklist     TokenBlacklist
 	Invite        InviteStorage
-	Verification  VerificationCodeStorage
 	Config        ConfigurationStorage
 	Session       SessionStorage
 	Key           KeyStorage

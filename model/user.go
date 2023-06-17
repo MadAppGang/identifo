@@ -79,11 +79,12 @@ type UserData struct {
 		TenantName string            `json:"tenant_name,omitempty"`
 		Groups     map[string]string `json:"groups,omitempty"` // map of group names to ids
 	} `json:"tenant_membership,omitempty"`
-	AuthEnrollments []UserAuthEnrolment `json:"auth_enrollments,omitempty"`
-	Identities      []UserIdentity      `json:"identities,omitempty"`
-	MFAEnrollments  []UserMFAEnrollment `json:"mfa_enrollments,omitempty"`
-	// User push devices
+	AuthEnrollments []UserAuthEnrolment  `json:"auth_enrollments,omitempty"`
+	Identities      []UnitedUserIdentity `json:"identities,omitempty"`
+
+	// User devices
 	ActiveDevices []UserDevice `json:"active_devices,omitempty"`
+
 	// Additional data for user
 	AppsData     []ApplicationUserData `json:"apps_data,omitempty"`
 	Data         []AdditionalUserData  `json:"data,omitempty"`
@@ -166,8 +167,6 @@ func FilterUserDataFields(source UserData, fields ...UserDataField) UserData {
 			result.AuthEnrollments = source.AuthEnrollments
 		case UserDataFieldIdentities:
 			result.Identities = source.Identities
-		case UserDataFieldMFAEnrollments:
-			result.MFAEnrollments = source.MFAEnrollments
 		case UserDataFieldActiveDevices:
 			result.ActiveDevices = source.ActiveDevices
 		case UserDataFieldAppsData:
