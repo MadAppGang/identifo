@@ -229,7 +229,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 
 	authResult.CallbackUrl = fsess.CallbackUrl
 	authResult.Scopes = requestedScopes
-	authResult.ProviderData = providerData
+	authResult.ProviderData = *providerData
 
 	ar.ServeJSON(w, locale, http.StatusOK, authResult)
 }
@@ -282,7 +282,7 @@ func extractField(data map[string]any, key string) string {
 	return ""
 }
 
-func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[string]interface{}, *model.FederatedSession, *oauth2.Token, error) {
+func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[string]interface{}, *model.FederatedSession, *providerData, error) {
 	ctx := r.Context()
 
 	var fsess *model.FederatedSession
@@ -352,7 +352,14 @@ func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[stri
 		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedClaimsError, err)
 	}
 
-	return claims, fsess, oauth2Token, nil
+	providerData := &providerData{
+		AccessToken:  oauth2Token.AccessToken,
+		RefreshToken: oauth2Token.RefreshToken,
+		TokenType:    oauth2Token.TokenType,
+		Expiry:       oauth2Token.Expiry,
+	}
+
+	return claims, fsess, providerData, nil
 }
 
 func (ar *Router) tryFindFederatedUser(provider, fedUserID, email string) (model.User, error) {
