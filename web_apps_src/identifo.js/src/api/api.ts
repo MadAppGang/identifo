@@ -300,9 +300,9 @@ export class API {
 
   async oidcVerify(data: { state: string; code: string; scopes: string[] }): Promise<LoginResponse> {
     const url = `/auth/federated/oidc/complete?appId=${this.appId}&state=${data.state}&code=${data.code}`;
-    return this.post<LoginResponse>(url, { scopes: data.scopes }, { credentials: 'include' }).then((r) =>
-      this.storeToken(r),
-    );
+    return this.post<LoginResponse>(url, { scopes: data.scopes }, { credentials: 'include' })
+      .then((r) => this.storeToken(r))
+      .then((r) => this.handleOIDCResponse(r));
   }
 
   async invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse> {
@@ -322,6 +322,13 @@ export class API {
         },
       },
     );
+  }
+
+  handleOIDCResponse<T extends LoginResponse>(response: T): T {
+    if (response.provider_data) {
+      this.tokenService.saveOIDCProviderData(response.provider_data);
+    }
+    return response;
   }
 
   storeToken<T extends TokenResponse>(response: T): T {

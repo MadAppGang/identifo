@@ -10,6 +10,8 @@ interface TokenManager {
     saveToken: (token: string, tokenType: TokenType) => boolean;
     getToken: (tokenType: TokenType) => string;
     deleteToken: (tokenType: TokenType) => void;
+    saveOIDCProviderData: (data: Record<string, unknown>) => void;
+    getOIDCProviderData: () => Record<string, string>;
 }
 declare type IdentifoConfig = {
     issuer?: string;
@@ -76,6 +78,8 @@ declare class TokenService {
     validateToken(token: string, audience: string, issuer?: string): Promise<boolean>;
     parseJWT(token: string): JWTPayload;
     isJWTExpired(token: JWTPayload): boolean;
+    saveOIDCProviderData(data: Record<string, unknown>): void;
+    getOIDCProviderData(): Record<string, string>;
     saveToken(token: string, type?: TokenType): boolean;
     removeToken(type?: TokenType): void;
     getToken(type?: TokenType): ClientToken | null;
@@ -137,6 +141,7 @@ interface LoginResponse {
     };
     scopes?: string[];
     callbackUrl?: string;
+    provider_data?: OIDCProviderData;
 }
 interface EnableTFAResponse {
     provisioning_uri?: string;
@@ -146,6 +151,13 @@ interface EnableTFAResponse {
 interface TokenResponse {
     access_token?: string;
     refresh_token?: string;
+}
+interface OIDCProviderData {
+    token_type?: string;
+    access_token?: string;
+    refresh_token?: string;
+    expiry?: string;
+    [x: string]: string | undefined;
 }
 interface AppSettingsResponse {
     anonymousResitrationAllowed: boolean;
@@ -239,6 +251,7 @@ declare class API {
         scopes: string[];
     }): Promise<LoginResponse>;
     invite(email: string, role: string, callbackUrl: string): Promise<InviteResponse>;
+    handleOIDCResponse<T extends LoginResponse>(response: T): T;
     storeToken<T extends TokenResponse>(response: T): T;
 }
 
@@ -259,6 +272,7 @@ declare class IdentifoAuth {
     handleAuthentication(): Promise<boolean>;
     private getTokenFromUrl;
     getToken(): Promise<ClientToken | null>;
+    getOIDCProviderData(): Record<string, string>;
     renewSession(): Promise<string>;
     private renewSessionWithToken;
 }
@@ -275,11 +289,14 @@ declare class StorageManager implements TokenManager {
     storageType: 'localStorage' | 'sessionStorage';
     access: string;
     refresh: string;
+    oidcProviderDataKey: string;
     isAccessible: boolean;
     constructor(storageType: 'localStorage' | 'sessionStorage', accessKey?: string, refreshKey?: string);
     saveToken(token: string, tokenType: TokenType): boolean;
     getToken(tokenType: TokenType): string;
     deleteToken(tokenType: TokenType): void;
+    getOIDCProviderData(): Record<string, string>;
+    saveOIDCProviderData(data?: Record<string, unknown>): void;
 }
 
 declare class LocalStorage extends StorageManager {
@@ -501,4 +518,4 @@ declare class CDK {
     private getLoginTypes;
 }
 
-export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, InviteResponse, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginOidc, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };
+export { APIErrorCodes, ApiError, ApiRequestError, AppSettingsResponse, CDK, ClientToken, CookieStorage as CookieStorageManager, EnableTFAResponse, FederatedLoginProvider, IdentifoAuth, IdentifoConfig, InviteResponse, JWTPayload, LocalStorage as LocalStorageManager, LoginResponse, LoginTypes, OIDCProviderData, Routes, ServerSettingsLoginTypes, SessionStorage as SessionStorageManager, State, StateCallback, StateError, StateLoading, StateLogin, StateLoginOidc, StateLoginPhone, StateLoginPhoneVerify, StateLogout, StatePasswordForgot, StatePasswordForgotSuccess, StatePasswordForgotTFASelect, StatePasswordForgotTFAVerify, StatePasswordReset, StateRegister, StateTFASetupApp, StateTFASetupEmail, StateTFASetupSMS, StateTFASetupSelect, StateTFAVerifyApp, StateTFAVerifyEmailSms, StateTFAVerifySelect, StateWithError, States, SuccessResponse, TFALoginVerifyRoutes, TFARequiredRespopnse, TFAResetVerifyRoutes, TFASetupRoutes, TFAStatus, TFAType, TokenManager, TokenResponse, TokenType, UpdateUser, UrlBuilderInit, UrlFlows, User, typeToPasswordForgotTFAVerifyRoute, typeToSetupRoute, typeToTFAVerifyRoute };

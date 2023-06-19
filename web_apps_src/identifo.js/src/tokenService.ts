@@ -56,6 +56,14 @@ class TokenService {
     return false;
   }
 
+  saveOIDCProviderData(data: Record<string, unknown>) {
+    this.tokenManager.saveOIDCProviderData(data);
+  }
+
+  getOIDCProviderData(): Record<string, string> {
+    return this.tokenManager.getOIDCProviderData();
+  }
+
   saveToken(token: string, type: TokenType = 'access'): boolean {
     if (type === 'access') {
       this.isAuth = true;
