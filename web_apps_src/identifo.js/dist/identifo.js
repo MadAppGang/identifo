@@ -315,7 +315,7 @@ class API {
   oidcVerify(data) {
     return __async$3(this, null, function* () {
       const url = `/auth/federated/oidc/complete?appId=${this.appId}&state=${data.state}&code=${data.code}`;
-      return this.post(url, { scopes: data.scopes }, { credentials: "include" }).then((r) => this.storeToken(r));
+      return this.post(url, { scopes: data.scopes }, { credentials: "include" }).then((r) => this.storeToken(r)).then((r) => this.handleOIDCResponse(r));
     });
   }
   invite(email, role, callbackUrl) {
@@ -334,6 +334,12 @@ class API {
         }
       });
     });
+  }
+  handleOIDCResponse(response) {
+    if (response.provider_data) {
+      this.tokenService.saveOIDCProviderData(response.provider_data);
+    }
+    return response;
   }
   storeToken(response) {
     if (response.access_token) {
@@ -371,6 +377,7 @@ class StorageManager {
     this.storageType = "localStorage";
     this.access = `${this.preffix}access_token`;
     this.refresh = `${this.preffix}refresh_token`;
+    this.oidcProviderDataKey = `${this.preffix}oidc_provider_data`;
     this.isAccessible = true;
     this.access = accessKey ? this.preffix + accessKey : this.access;
     this.refresh = refreshKey ? this.preffix + refreshKey : this.refresh;
@@ -389,6 +396,18 @@ class StorageManager {
   }
   deleteToken(tokenType) {
     window[this.storageType].removeItem(this[tokenType]);
+  }
+  getOIDCProviderData() {
+    var _a;
+    try {
+      return JSON.parse((_a = window[this.storageType].getItem(this.oidcProviderDataKey)) != null ? _a : "{}");
+    } catch (error) {
+      console.error(error);
+      return {};
+    }
+  }
+  saveOIDCProviderData(data = {}) {
+    window[this.storageType].setItem(this.oidcProviderDataKey, JSON.stringify(data));
   }
 }
 
@@ -470,6 +489,12 @@ class TokenService {
       return true;
     }
     return false;
+  }
+  saveOIDCProviderData(data) {
+    this.tokenManager.saveOIDCProviderData(data);
+  }
+  getOIDCProviderData() {
+    return this.tokenManager.getOIDCProviderData();
   }
   saveToken(token, type = "access") {
     if (type === "access") {
@@ -664,6 +689,9 @@ class IdentifoAuth {
       }
       return Promise.resolve(null);
     });
+  }
+  getOIDCProviderData() {
+    return this.tokenService.getOIDCProviderData();
   }
   renewSession() {
     return __async$1(this, null, function* () {

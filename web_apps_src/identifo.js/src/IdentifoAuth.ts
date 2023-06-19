@@ -118,6 +118,10 @@ class IdentifoAuth {
     return Promise.resolve(null);
   }
 
+  getOIDCProviderData(): Record<string, string> {
+    return this.tokenService.getOIDCProviderData();
+  }
+
   async renewSession(): Promise<string> {
     try {
       const { access, refresh } = await this.renewSessionWithToken();

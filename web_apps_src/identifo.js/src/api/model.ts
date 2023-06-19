@@ -65,6 +65,7 @@ export interface LoginResponse {
   };
   scopes?: string[];
   callbackUrl?: string;
+  provider_data?: OIDCProviderData;
 }
 export interface EnableTFAResponse {
   provisioning_uri?: string;
@@ -74,6 +75,13 @@ export interface EnableTFAResponse {
 export interface TokenResponse {
   access_token?: string;
   refresh_token?: string;
+}
+export interface OIDCProviderData {
+  token_type?: string;
+  access_token?: string;
+  refresh_token?: string;
+  expiry?: string;
+  [x: string]: string | undefined;
 }
 export interface AppSettingsResponse {
   anonymousResitrationAllowed: boolean;

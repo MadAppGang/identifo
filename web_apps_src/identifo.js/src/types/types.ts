@@ -11,6 +11,8 @@ export interface TokenManager {
   saveToken: (token: string, tokenType: TokenType) => boolean;
   getToken: (tokenType: TokenType) => string;
   deleteToken: (tokenType: TokenType) => void;
+  saveOIDCProviderData: (data: Record<string, unknown>) => void;
+  getOIDCProviderData: () => Record<string, string>;
 }
 
 export type IdentifoConfig = {

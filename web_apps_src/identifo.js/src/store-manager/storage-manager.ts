@@ -9,6 +9,8 @@ class StorageManager implements TokenManager {
 
   refresh = `${this.preffix}refresh_token`;
 
+  oidcProviderDataKey = `${this.preffix}oidc_provider_data`;
+
   isAccessible = true;
 
   constructor(storageType: 'localStorage' | 'sessionStorage', accessKey?: string, refreshKey?: string) {
@@ -31,6 +33,19 @@ class StorageManager implements TokenManager {
 
   deleteToken(tokenType: TokenType): void {
     window[this.storageType].removeItem(this[tokenType]);
+  }
+
+  getOIDCProviderData(): Record<string, string> {
+    try {
+      return JSON.parse(window[this.storageType].getItem(this.oidcProviderDataKey) ?? '{}');
+    } catch (error) {
+      console.error(error);
+      return {};
+    }
+  }
+
+  saveOIDCProviderData(data: Record<string, unknown> = {}): void {
+    window[this.storageType].setItem(this.oidcProviderDataKey, JSON.stringify(data));
   }
 }
 

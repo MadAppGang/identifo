@@ -161,7 +161,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	claims, fsess, err := ar.completeOIDCAuth(r, app)
+	claims, fsess, providerData, err := ar.completeOIDCAuth(r, app)
 	if err != nil {
 		ar.ErrorResponse(w, err)
 		return
@@ -229,6 +229,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 
 	authResult.CallbackUrl = fsess.CallbackUrl
 	authResult.Scopes = requestedScopes
+	authResult.ProviderData = *providerData
 
 	ar.ServeJSON(w, locale, http.StatusOK, authResult)
 }
@@ -281,7 +282,7 @@ func extractField(data map[string]any, key string) string {
 	return ""
 }
 
-func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[string]interface{}, *model.FederatedSession, error) {
+func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[string]interface{}, *model.FederatedSession, *providerData, error) {
 	ctx := r.Context()
 
 	var fsess *model.FederatedSession
@@ -290,33 +291,33 @@ func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[stri
 
 	oidcProvider, verifier, err := getCachedOIDCProvider(ctx, app)
 	if err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusInternalServerError, locale, l.ErrorFederatedOidcProviderError, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusInternalServerError, locale, l.ErrorFederatedOidcProviderError, err)
 	}
 
 	authCode := r.URL.Query().Get("code")
 	if len(authCode) == 0 {
 		log.Println("failed ot authorize user with OIDC: no code in response", r.URL.Query())
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedCodeError)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedCodeError)
 	}
 
 	sn := oidcSessionKey(app.ID, app.OIDCSettings.ProviderName)
 	value, err := ar.getFromSession(SessionNameOIDC, sn, r)
 	if err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedUnmarshalSessionError, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedUnmarshalSessionError, err)
 	}
 
 	fsess, err = model.UnmarshalFederatedSession(value)
 	if err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedUnmarshalSessionError, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedUnmarshalSessionError, err)
 	}
 
 	if fsess.AppId != app.ID {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
 	}
 
 	errv := validateState(r, fsess.AuthUrl)
 	if errv != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedStateError)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedStateError)
 	}
 
 	// Configure an OpenID Connect aware OAuth2 client.
@@ -330,28 +331,35 @@ func (ar *Router) completeOIDCAuth(r *http.Request, app model.AppData) (map[stri
 
 	oauth2Token, err := oauth2Config.Exchange(ctx, authCode)
 	if err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedExchangeError, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedExchangeError, err)
 	}
 
 	// Extract the ID Token from OAuth2 token.
 	rawIDToken, ok := oauth2Token.Extra("id_token").(string)
 	if !ok {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedIDtokenMissing)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedIDtokenMissing)
 	}
 
 	// Parse and verify ID Token payload.
 	idToken, err := verifier.Verify(ctx, rawIDToken)
 	if err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedIDtokenInvalid, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedIDtokenInvalid, err)
 	}
 
 	// Extract custom claims
 	var claims map[string]interface{}
 	if err := idToken.Claims(&claims); err != nil {
-		return nil, fsess, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedClaimsError, err)
+		return nil, fsess, nil, NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedClaimsError, err)
 	}
 
-	return claims, fsess, nil
+	providerData := &providerData{
+		AccessToken:  oauth2Token.AccessToken,
+		RefreshToken: oauth2Token.RefreshToken,
+		TokenType:    oauth2Token.TokenType,
+		Expiry:       oauth2Token.Expiry,
+	}
+
+	return claims, fsess, providerData, nil
 }
 
 func (ar *Router) tryFindFederatedUser(provider, fedUserID, email string) (model.User, error) {
