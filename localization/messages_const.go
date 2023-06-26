@@ -271,4 +271,12 @@ const (
 	ErrorNativeLoginMaKeyInactive LocalizedString = "error.native.login.ma.key.inactive"
 	// ErrorNativeLoginMaKeyExpired -> The management key is expired.
 	ErrorNativeLoginMaKeyExpired LocalizedString = "error.native.login.ma.key.expired"
+
+	//===========================================================================
+	//  Admin API
+	//===========================================================================
+	// ErrorAdminPanelNoSkipAndLimitParams -> Error parsing Skip and Limit params from request: %s.
+	ErrorAdminPanelNoSkipAndLimitParams LocalizedString = "error.admin.panel.no.skip.limit"
+	// ErrorAdminPanelErrorGettingUserList -> Error getting users list: %s.
+	ErrorAdminPanelErrorGettingUserList LocalizedString = "error.admin.panel.get.users"
 )

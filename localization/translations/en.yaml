@@ -134,3 +134,7 @@ error.native.login.ma.error.key.with.id: "Error getting key with ID: %s, error: 
 error.native.login.ma.error.signature: "Invalid signature for request: %s."
 error.native.login.ma.key.inactive: "The management key is inactive."
 error.native.login.ma.key.expired: "The management key is expired."
+
+# Admin panel API
+error.admin.panel.no.skip.limit: "Error parsing Skip and Limit params from request: %s."
+error.admin.panel.get.users: "Error getting users list: %s."

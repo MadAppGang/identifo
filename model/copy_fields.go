@@ -5,7 +5,8 @@ import (
 	"reflect"
 )
 
-// CopyFields creates the new instance of src type and  copies specific fields to the new value.
+// CopyFields creates the new instance of src type
+// and copies specific fields in 'fields' argument to the new value.
 func CopyFields[T any](src T, fields []string) T {
 	rr := reflect.New(reflect.TypeOf(src))
 	resultVal := rr.Elem()
@@ -20,6 +21,10 @@ func CopyFields[T any](src T, fields []string) T {
 	return resultVal.Interface().(T)
 }
 
+// CopyDstFields copy fields from src struct or pointer to struct
+// to dst struct. dst Should be a pointer to a struct.
+// Only the fields with the same name and type will be copied.
+// If the type is mismatch - the field will be ignored.
 func CopyDstFields[T any, K any](src T, dst K) error {
 	res := reflect.ValueOf(dst)
 	if res.Kind() != reflect.Ptr {

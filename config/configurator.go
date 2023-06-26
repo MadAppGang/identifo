@@ -68,6 +68,8 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
+	userController := storage.NewUserStorageController(user)
+
 	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage, settings.Storage.DefaultStorage))
 	if err != nil {
 		log.Printf("Error on Create New token storage %v", err)
@@ -128,6 +130,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	sc := model.ServerStorageCollection{
 		App:           app,
 		User:          user,
+		UC:            userController,
 		Token:         token,
 		Blocklist:     tokenBlacklist,
 		Invite:        invite,

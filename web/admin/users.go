@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -14,76 +15,52 @@ const (
 	defaultUserLimit = 20
 )
 
-type registrationData struct {
-	Username   string `json:"username,omitempty"`
-	Email      string `json:"email,omitempty"`
-	FullName   string `json:"full_name,omitempty"`
-	Phone      string `json:"phone,omitempty"`
-	Password   string `json:"pswd,omitempty"`
-	AccessRole string `json:"access_role,omitempty"`
-}
-
-type passwordResetData struct {
-	UserID       string `json:"user_id,omitempty"`
-	AppID        string `json:"app_id,omitempty"`
-	ResetPageURL string `json:"reset_page_url,omitempty"`
-}
-
-type resetEmailData struct {
-	User  model.User
-	Token string
-	URL   string
-	Host  string
-}
-
-func (rd *registrationData) validate() error {
-	if usernameLen := len(rd.Username); usernameLen < 6 || usernameLen > 50 {
-		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
-	}
-	if pswdLen := len(rd.Password); pswdLen < 6 || pswdLen > 50 {
-		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
-	}
-	return nil
-}
-
 // GetUser fetches user by ID from the database.
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		userID := getRouteVar("id", r)
 
-		ar.ServeJSON(w, http.StatusOK, user)
+		user, err := ar.server.Storages().UC.UserByID(r.Context(), userID)
+		if err != nil {
+			ar.Error(w, locale, http.StatusNotFound, l.ErrorStorageFindUserIDError, userID, err)
+			return
+		}
+		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
 
 // FetchUsers fetches users from the database.
 func (ar *Router) FetchUsers() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		filterStr := strings.TrimSpace(r.URL.Query().Get("search"))
 
 		skip, limit, err := ar.parseSkipAndLimit(r, defaultUserSkip, defaultUserLimit, 0)
 		if err != nil {
-			ar.Error(w, ErrorWrongInput, http.StatusBadRequest, "")
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAdminPanelNoSkipAndLimitParams, err.Error())
 			return
 		}
 
-		users, total, err := ar.server.Storages().User.FetchUsers(filterStr, skip, limit)
+		users, total, err := ar.server.Storages().UC.GetUsers(r.Context(), filterStr, skip, limit)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelErrorGettingUserList, err.Error())
 			return
-		}
-		for i, user := range users {
-			users[i] = user.Sanitized()
 		}
 
 		searchResponse := struct {
 			Users []model.User `json:"users"`
+			Skip  int          `json:"skip"`
+			Limit int          `json:"limit"`
 			Total int          `json:"total"`
 		}{
 			Users: users,
 			Total: total,
+			Skip:  skip,
+			Limit: limit,
 		}
 
-		ar.ServeJSON(w, http.StatusOK, &searchResponse)
+		ar.ServeJSON(w, locale, http.StatusOK, &searchResponse)
 	}
 }
 
@@ -95,27 +72,9 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		if err := rd.validate(); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
-			return
-		}
-
-		if err := model.StrongPswd(rd.Password); err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
-			return
-		}
-
-		// Create new user.
-		um := model.User{
-			Username: rd.Username,
-			FullName: rd.FullName,
-			Email:    rd.Email,
-			Phone:    rd.Phone,
-			TFAInfo:  rd.TFAInfo,
-			Scopes:   rd.Scopes, // we are creating user from admin panel - we can set any scopes we want
-		}
-
-		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, rd.AccessRole, false)
+		um := model.User{}
+		model.CopyDstFields(rd, um)
+		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, false)
 		if err != nil {
 			ar.Error(w, err, http.StatusBadRequest, "")
 			return

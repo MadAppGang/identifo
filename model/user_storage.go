@@ -42,7 +42,6 @@ type UserStorage interface {
 // All 2FA strategies must implement this interface.
 type UserAuthStorage interface {
 	Storage
-	ImportableStorage
 
 	// AddAuthEnrolment
 	// RemoveAuthEnrolment
@@ -55,7 +54,6 @@ type UserAuthStorage interface {
 // UserAdminStorage is a storage to manage users from admin panel and management api.
 type UserAdminStorage interface {
 	Storage
-	ImportableStorage
 
 	FindUsers(ctx context.Context, search string, skip, limit int) ([]User, int, error)
 	DeleteUser(ctx context.Context, id string) error
