@@ -273,10 +273,26 @@ const (
 	ErrorNativeLoginMaKeyExpired LocalizedString = "error.native.login.ma.key.expired"
 
 	//===========================================================================
-	//  Admin API
+	//  Admin panel API
 	//===========================================================================
-	// ErrorAdminPanelNoSkipAndLimitParams -> Error parsing Skip and Limit params from request: %s.
-	ErrorAdminPanelNoSkipAndLimitParams LocalizedString = "error.admin.panel.no.skip.limit"
-	// ErrorAdminPanelErrorGettingUserList -> Error getting users list: %s.
-	ErrorAdminPanelErrorGettingUserList LocalizedString = "error.admin.panel.get.users"
+	// ErrorAdminPanelNoSkipLimit -> Error parsing Skip and Limit params from request: %s.
+	ErrorAdminPanelNoSkipLimit LocalizedString = "error.admin.panel.no.skip.limit"
+	// ErrorAdminPanelGetUsers -> Error getting users list: %s.
+	ErrorAdminPanelGetUsers LocalizedString = "error.admin.panel.get.users"
+
+	//===========================================================================
+	//  Password
+	//===========================================================================
+	// PasswordLengthPolicy -> Password length must be at least %d characters.
+	PasswordLengthPolicy LocalizedString = "password.length.policy"
+	// PasswordRejectCompromised -> Reject compromised passwords, powered by HaveBeenPwned.
+	PasswordRejectCompromised LocalizedString = "password.reject.compromised"
+	// PasswordRequireLowercase -> Require at least one lowercase characters.
+	PasswordRequireLowercase LocalizedString = "password.require.lowercase"
+	// PasswordRequireUppercase -> Require at least one uppercase characters.
+	PasswordRequireUppercase LocalizedString = "password.require.uppercase"
+	// PasswordRequireNumber -> Require at least one number.
+	PasswordRequireNumber LocalizedString = "password.require.number"
+	// PasswordRequireSymbol -> Require at least special character: !$%^&*()_+{}:@[];'#<>?,./|\\-=?.
+	PasswordRequireSymbol LocalizedString = "password.require.symbol"
 )

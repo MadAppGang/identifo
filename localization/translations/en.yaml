@@ -138,3 +138,11 @@ error.native.login.ma.key.expired: "The management key is expired."
 # Admin panel API
 error.admin.panel.no.skip.limit: "Error parsing Skip and Limit params from request: %s."
 error.admin.panel.get.users: "Error getting users list: %s."
+
+# Password
+password.length.policy: "Password length must be at least %d characters."
+password.reject.compromised: "Reject compromised passwords, powered by HaveBeenPwned."
+password.require.lowercase: "Require at least one lowercase characters."
+password.require.uppercase: "Require at least one uppercase characters."
+password.require.number: "Require at least one number."
+password.require.symbol: "Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?."
