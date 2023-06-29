@@ -57,7 +57,8 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 }
 
 func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password string) (model.User, error) {
-	// Password policy: set of parameters for password
+	// Password policy: set of parameters for password +++
+	// https: // www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
 	// Password hasher: salt, pepper, algorithm
 }
 
