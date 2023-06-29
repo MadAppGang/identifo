@@ -60,6 +60,8 @@ func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u mo
 	// Password policy: set of parameters for password +++
 	// https: // www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
 	// Password hasher: salt, pepper, algorithm
+	// password hash and password policy done!
+	// TODO: add password policy and password hash settings to settings
 }
 
 // AddUserWithPassword(um, rd.Password, rd.AccessRole, false)
