@@ -1,5 +1,7 @@
 package model
 
+import "golang.org/x/crypto/bcrypt"
+
 // TODO: Server settings:
 // - password policy
 // - hash algorithm with parameters
@@ -17,6 +19,10 @@ var DefaultPasswordHashArgonParams = PasswordHashArgonParams{
 	Iterations:  3,
 	Parallelism: 2,
 	KeyLength:   32,
+}
+
+var DefaultPasswordHashBcryptParams = PasswordHashBcryptParams{
+	Cost: bcrypt.DefaultCost,
 }
 
 const (

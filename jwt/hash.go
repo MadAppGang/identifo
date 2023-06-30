@@ -34,7 +34,7 @@ func PasswordHash(password string, params model.PasswordHashParams, pepper []byt
 		if params.Bcrypt == nil {
 			err = ErrorHashParamsMissing
 		} else {
-			hash, err = PasswordHashBcrypt(password, *params.Bcrypt, salt, pepper)
+			hash, err = PasswordHashBcrypt(password, *params.Bcrypt, pepper)
 		}
 	default:
 		err = ErrorUnknownPasswordHashType
