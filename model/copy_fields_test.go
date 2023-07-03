@@ -87,17 +87,21 @@ func TestFilledValues(t *testing.T) {
 
 	expected := []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
 
+	// pointer to struct should works
 	result := model.Filled(&tu)
 	assert.EqualValues(t, result, expected)
 
+	// reference to struct should works
 	result = model.Filled(tu)
 	assert.EqualValues(t, result, expected)
 
+	// let's clear the Name
 	tu.Name = nil
 	expected = []string{"ID", "Married", "Company.Name", "Company.People"}
 	result = model.Filled(tu)
 	assert.EqualValues(t, result, expected)
 
+	// empty value should be treated as non nil
 	tu.Name = sp("")
 	expected = []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
 	result = model.Filled(tu)
@@ -114,4 +118,40 @@ func ip(i int) *int {
 
 func ib(b bool) *bool {
 	return &b
+}
+
+func TestCopyOnlyFilledValues(t *testing.T) {
+	tu := testUserPointer{
+		ID:         sp("1"),
+		Name:       sp("Jack"),
+		Married:    ib(true),
+		NonPointer: "NonPointer",
+		Company: &Company{
+			Name:   sp("Apple"),
+			People: ip(98),
+		},
+	}
+
+	dst := model.User{}
+	err := model.CopyDstFields(tu, &dst)
+
+	assert.NoError(t, err)
+	assert.Equal(t, *tu.ID, dst.ID)
+}
+
+func TestContainsFields(t *testing.T) {
+	tu := testUserPointer{
+		ID:         sp("1"),
+		Name:       sp("Jack"),
+		Married:    ib(true),
+		NonPointer: "NonPointer",
+		Company: &Company{
+			Name:   sp("Apple"),
+			People: ip(98),
+		},
+	}
+
+	contains := model.ContainsFields(tu, []string{"ID", "Name", "NonPointer", "Whatever", "Company.Name", "Company.People", "Company"})
+	expected := []string{"ID", "Name", "NonPointer", "Company.Name", "Company.People"}
+	assert.Equal(t, contains, expected)
 }
