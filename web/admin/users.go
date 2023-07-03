@@ -103,43 +103,36 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 
 // UpdateUser updates user in the database.
 func (ar *Router) UpdateUser() http.HandlerFunc {
+	type updateUserData struct {
+		Username          *string `json:"username"`
+		Email             *string `json:"email"`
+		GivenName         *string `json:"given_name"`
+		FamilyName        *string `json:"family_name"`
+		MiddleName        *string `json:"middle_name"`
+		Nickname          *string `json:"nickname"`
+		PreferredUsername *string `json:"preferred_username"`
+		PhoneNumber       *string `json:"phone_number"`
+		Password          *string `json:"password"`
+		Blocked           *bool   `json:"blocked"`
+		BlockReason       *string `json:"block_reason"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		userID := getRouteVar("id", r)
 
-		u := model.User{}
+		u := updateUserData{}
 		if ar.mustParseJSON(w, r, &u) != nil {
 			return
 		}
 
-		existing, err := ar.server.Storages().User.UserByID(userID)
-		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
-			return
-		}
-
-		if u.TFAInfo.IsEnabled == existing.TFAInfo.IsEnabled {
-			u.TFAInfo = existing.TFAInfo
-		}
-
-		if !u.TFAInfo.IsEnabled {
-			u.TFAInfo = model.TFAInfo{
-				IsEnabled: false,
-			}
-		}
-
 		// update password if password is part of update process
-		if len(u.Pswd) > 0 {
-			if err := model.StrongPswd(u.Pswd); err != nil {
-				ar.Error(w, err, http.StatusBadRequest, "")
-				return
-			}
-
-			err := ar.server.Storages().User.ResetPassword(userID, u.Pswd)
+		if u.Password != nil && len(*u.Password) > 0 {
+			err := ar.server.Storages().UC.UpdateUserPassword(r.Context(), userID, *u.Password, locale)
 			if err != nil {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 				return
 			}
-			u.Pswd = ""
 		}
 
 		user, err := ar.server.Storages().User.UpdateUser(userID, u)
@@ -148,9 +141,6 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("User %s updated", userID)
-
-		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
 	}
 }

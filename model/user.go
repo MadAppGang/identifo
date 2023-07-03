@@ -57,9 +57,10 @@ type User struct {
 	// blocked user
 	Blocked        bool `json:"blocked,omitempty"`
 	BlockedDetails struct {
-		BlockedReason string    `json:"blocked_reason,omitempty"`
+		Reason        string    `json:"reason,omitempty"`
 		BlockedAt     time.Time `json:"blocked_at,omitempty"`
-		BlockedBy     string    `json:"blocked_by,omitempty"`
+		BlockedByName string    `json:"blocked_by_name,omitempty"`
+		BlockedById   string    `json:"blocked_by_id,omitempty"`
 	} `json:"blocked_details,omitempty"`
 
 	// mapping to external systems
