@@ -8,6 +8,7 @@ import (
 
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/storage"
 )
 
 const (
@@ -38,13 +39,13 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 		skip, limit, err := ar.parseSkipAndLimit(r, defaultUserSkip, defaultUserLimit, 0)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAdminPanelNoSkipAndLimitParams, err.Error())
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAdminPanelNoSkipLimit, err.Error())
 			return
 		}
 
 		users, total, err := ar.server.Storages().UC.GetUsers(r.Context(), filterStr, skip, limit)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelErrorGettingUserList, err.Error())
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelGetUsers, err.Error())
 			return
 		}
 
@@ -66,7 +67,22 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 // CreateUser registers new user.
 func (ar *Router) CreateUser() http.HandlerFunc {
+	// registrationData is a request data to create new user form admin panel.
+	type registrationData struct {
+		Username          string `json:"username"`
+		Email             string `json:"email"`
+		GivenName         string `json:"given_name"`
+		FamilyName        string `json:"family_name"`
+		MiddleName        string `json:"middle_name"`
+		Nickname          string `json:"nickname"`
+		PreferredUsername string `json:"preferred_username"`
+		PhoneNumber       string `json:"phone_number"`
+		Password          string `json:"password"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		rd := registrationData{}
 		if ar.mustParseJSON(w, r, &rd) != nil {
 			return
@@ -74,14 +90,14 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 
 		um := model.User{}
 		model.CopyDstFields(rd, um)
-		user, err := ar.server.Storages().User.AddUserWithPassword(um, rd.Password, false)
+		user, err := ar.server.Storages().UC.CreateUserWithPassword(r.Context(), um, rd.Password, locale)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.Error(w, locale, http.StatusBadRequest, l.LocalizedString(err.Error()))
 			return
 		}
 
-		user = user.Sanitized()
-		ar.ServeJSON(w, http.StatusOK, user)
+		user = model.CopyFields(user, storage.UserFieldsetBasic.Fields())
+		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
 

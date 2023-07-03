@@ -22,6 +22,10 @@ func PasswordHash(password string, params model.PasswordHashParams, pepper []byt
 		return "", err
 	}
 
+	if params.Type == model.PasswordHashDefault {
+		params = model.DefaultPasswordHashParams
+	}
+
 	var hash string
 	switch params.Type {
 	case model.PasswordHashArgon2i:

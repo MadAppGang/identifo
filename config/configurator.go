@@ -13,6 +13,7 @@ import (
 	"github.com/madappgang/identifo/v2/storage"
 
 	jwt "github.com/madappgang/identifo/v2/jwt/service"
+	l "github.com/madappgang/identifo/v2/localization"
 )
 
 var adminPanelFSSettings = model.FileStorageSettings{
@@ -68,7 +69,13 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
-	userController := storage.NewUserStorageController(user)
+	userController := storage.NewUserStorageController(user, settings.SecuritySettings)
+	l, err := l.NewPrinter(settings.General.Locale)
+	if err != nil {
+		log.Printf("Error on Create Localized printer for User Controller %v", err)
+		errs = append(errs, fmt.Errorf("error creating user controller: %v", err))
+	}
+	userController.LP = l
 
 	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage, settings.Storage.DefaultStorage))
 	if err != nil {

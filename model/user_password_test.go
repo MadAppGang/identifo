@@ -20,7 +20,7 @@ func TestValidPassword(t *testing.T) {
 		RequireSymbol:           true,
 	}
 	p, _ := localization.NewPrinter("en")
-	results := policy.Validate(p, "Abcdefg1", true)
+	_, results := policy.Validate("Abcdefg1", true, p)
 
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordLengthPolicy, policy.MinPasswordLength),
@@ -62,13 +62,13 @@ func TestSymbolPassword(t *testing.T) {
 	}
 	p, _ := localization.NewPrinter("en")
 
-	results := policy.Validate(p, "Abcdefg1", true)
+	_, results := policy.Validate("Abcdefg1", true, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordRequireSymbol),
 		Valid:          false,
 	})
 
-	results = policy.Validate(p, "Abcdef!<>g1", true)
+	_, results = policy.Validate("Abcdef!<>g1", true, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordRequireSymbol),
 		Valid:          true,
@@ -89,13 +89,13 @@ func TestLengthPassword(t *testing.T) {
 	}
 	p, _ := localization.NewPrinter("en")
 
-	results := policy.Validate(p, "Abcdefg1", true)
+	_, results := policy.Validate("Abcdefg1", true, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordLengthPolicy, policy.MinPasswordLength),
 		Valid:          false,
 	})
 
-	results = policy.Validate(p, "Abcdef!<>g1fffdd", true)
+	_, results = policy.Validate("Abcdef!<>g1fffdd", true, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordLengthPolicy, policy.MinPasswordLength),
 		Valid:          true,
@@ -116,19 +116,19 @@ func TestCompromised(t *testing.T) {
 	}
 	p, _ := localization.NewPrinter("en")
 
-	results := policy.Validate(p, "Abcdefg1", true)
+	_, results := policy.Validate("Abcdefg1", true, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordRejectCompromised),
 		Valid:          false,
 	})
-	results = policy.Validate(p, "Abcdefg1", false)
+	_, results = policy.Validate("Abcdefg1", false, p)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordRejectCompromised),
 		Valid:          true,
 	})
 
 	policy.RejectCompromised = false
-	results = policy.Validate(p, "Abcdefg1", true)
+	_, results = policy.Validate("Abcdefg1", true, p)
 	assert.NotContains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: p.SD(localization.PasswordRejectCompromised),
 		Valid:          true,

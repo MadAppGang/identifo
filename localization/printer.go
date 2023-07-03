@@ -1,6 +1,7 @@
 package localization
 
 import (
+	"errors"
 	"fmt"
 
 	"golang.org/x/text/language"
@@ -40,6 +41,19 @@ func NewPrinter(defaultLocale string) (*Printer, error) {
 	}, nil
 }
 
+// PrinterForLocale returns new printer which used locale as default locale.
+// this method is faster than creating a new printer, because it reused parsed tags.
+func (p *Printer) PrinterForLocale(locale string) *Printer {
+	l, err := language.Parse(locale)
+	if err != nil {
+		return p
+	}
+	return &Printer{
+		printers:   p.printers,
+		defaultTag: l,
+	}
+}
+
 // String with language.
 func (p *Printer) S(l language.Tag, s LocalizedString, params ...any) string {
 	pp, ok := p.printers[l]
@@ -60,4 +74,14 @@ func (p *Printer) SL(localeOptions string, s LocalizedString, params ...any) str
 	matcher := language.NewMatcher(SupportedLangs)
 	l, _ := language.MatchStrings(matcher, localeOptions)
 	return p.S(l, s, params...)
+}
+
+// Error from string.
+func (p *Printer) E(s LocalizedString, params ...any) error {
+	return errors.New(p.S(p.defaultTag, s, params...))
+}
+
+// Localized error from error.
+func (p *Printer) EL(s error, params ...any) error {
+	return errors.New(p.S(p.defaultTag, LocalizedString(s.Error()), params...))
 }

@@ -59,3 +59,59 @@ func TestCopyDstFields(t *testing.T) {
 	assert.Equal(t, u.Name, dst.Name)
 	assert.Equal(t, u.Password, dst.Password)
 }
+
+type testUserPointer struct {
+	ID         *string
+	Name       *string
+	Married    *bool
+	NonPointer string
+	Company    *Company
+}
+
+type Company struct {
+	Name   *string
+	People *int
+}
+
+func TestFilledValues(t *testing.T) {
+	tu := testUserPointer{
+		ID:         sp("1"),
+		Name:       sp("Jack"),
+		Married:    ib(true),
+		NonPointer: "NonPointer",
+		Company: &Company{
+			Name:   sp("Apple"),
+			People: ip(98),
+		},
+	}
+
+	expected := []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
+
+	result := model.Filled(&tu)
+	assert.EqualValues(t, result, expected)
+
+	result = model.Filled(tu)
+	assert.EqualValues(t, result, expected)
+
+	tu.Name = nil
+	expected = []string{"ID", "Married", "Company.Name", "Company.People"}
+	result = model.Filled(tu)
+	assert.EqualValues(t, result, expected)
+
+	tu.Name = sp("")
+	expected = []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
+	result = model.Filled(tu)
+	assert.EqualValues(t, result, expected)
+}
+
+func sp(s string) *string {
+	return &s
+}
+
+func ip(i int) *int {
+	return &i
+}
+
+func ib(b bool) *bool {
+	return &b
+}

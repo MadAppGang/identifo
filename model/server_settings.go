@@ -18,18 +18,19 @@ var s3ServerFlagRegexp = regexp.MustCompile(`^s3://(?P<region>[a-zA-Z0-9\-]{5,})
 
 // ServerSettings are server settings.
 type ServerSettings struct {
-	General        GeneralServerSettings  `yaml:"general" json:"general"`
-	AdminAccount   AdminAccountSettings   `yaml:"adminAccount" json:"admin_account"`
-	Storage        StorageSettings        `yaml:"storage" json:"storage"`
-	SessionStorage SessionStorageSettings `yaml:"sessionStorage" json:"session_storage"`
-	Services       ServicesSettings       `yaml:"services" json:"external_services"`
-	Login          LoginSettings          `yaml:"login" json:"login"`
-	KeyStorage     FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
-	Config         FileStorageSettings    `yaml:"-" json:"config"`
-	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
-	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
-	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
-	EmailTemplates FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
+	General          GeneralServerSettings  `yaml:"general" json:"general"`
+	SecuritySettings SecurityServerSettings `yaml:"security" json:"security"`
+	AdminAccount     AdminAccountSettings   `yaml:"adminAccount" json:"admin_account"`
+	Storage          StorageSettings        `yaml:"storage" json:"storage"`
+	SessionStorage   SessionStorageSettings `yaml:"sessionStorage" json:"session_storage"`
+	Services         ServicesSettings       `yaml:"services" json:"external_services"`
+	Login            LoginSettings          `yaml:"login" json:"login"`
+	KeyStorage       FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
+	Config           FileStorageSettings    `yaml:"-" json:"config"`
+	Logger           LoggerSettings         `yaml:"logger" json:"logger"`
+	AdminPanel       AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
+	LoginWebApp      FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
+	EmailTemplates   FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
 }
 
 // GeneralServerSettings are general server settings.
@@ -320,11 +321,16 @@ func (ss ServerSettings) GetPort() string {
 }
 
 type LoggerSettings struct {
-	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
+	DumpRequest bool `yaml:"dumpRequest" json:"dump_request"`
 }
 
 type AdminPanelSettings struct {
 	Enabled bool `json:"enabled" yaml:"enabled"`
+}
+
+type SecurityServerSettings struct {
+	PasswordHash   PasswordHashParams `json:"password_hash" yaml:"passwordHash"`
+	PasswordPolicy PasswordPolicy     `json:"password_policy" yaml:"passwordPolicy"`
 }
 
 func ConfigStorageSettingsFromString(config string) (FileStorageSettings, error) {

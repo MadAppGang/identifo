@@ -17,14 +17,14 @@ var DefaultPasswordPolicy = PasswordPolicy{
 }
 
 type PasswordPolicy struct {
-	RestrictMinPasswordLength bool
-	MinPasswordLength         int
-	RejectCompromised         bool // use HaveBeenPwned passwords to check compromised
-	EnforcePasswordStrength   PasswordStrength
-	RequireLowercase          bool
-	RequireUppercase          bool
-	RequireNumber             bool
-	RequireSymbol             bool
+	RestrictMinPasswordLength bool             `yaml:"restrictMinPasswordLength" json:"restrict_min_password_length"`
+	MinPasswordLength         int              `yaml:"minPasswordLength" json:"min_password_length"`
+	RejectCompromised         bool             `yaml:"rejectCompromised" json:"reject_compromised"` // use HaveBeenPwned passwords to check compromised
+	EnforcePasswordStrength   PasswordStrength `yaml:"enforcePasswordStrength" json:"enforce_password_strength"`
+	RequireLowercase          bool             `yaml:"requireLowercase" json:"require_lowercase"`
+	RequireUppercase          bool             `yaml:"requireUppercase" json:"require_uppercase"`
+	RequireNumber             bool             `yaml:"requireNumber" json:"require_number"`
+	RequireSymbol             bool             `yaml:"requireSymbol" json:"require_symbol"`
 }
 
 type PasswordPolicyValidationResult struct {
@@ -51,14 +51,18 @@ var (
 	symbolRx    = regexp.MustCompile(`[!\$%\^&\*\(\)_\+{}:@\[\];'#<>\?,\./\|\-=\?]+`)
 )
 
-func (pp PasswordPolicy) Validate(p *localization.Printer, pswd string, isCompromised bool) []PasswordPolicyValidationResult {
+func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localization.Printer) (bool, []PasswordPolicyValidationResult) {
 	result := []PasswordPolicyValidationResult{}
+	v := true
 
 	valid := len(pswd) >= pp.MinPasswordLength
 	result = append(result, PasswordPolicyValidationResult{
 		p.SD(localization.PasswordLengthPolicy, pp.MinPasswordLength),
 		valid,
 	})
+	if !valid {
+		v = false
+	}
 
 	if pp.RejectCompromised {
 		valid = !isCompromised
@@ -66,6 +70,9 @@ func (pp PasswordPolicy) Validate(p *localization.Printer, pswd string, isCompro
 			p.SD(localization.PasswordRejectCompromised),
 			valid,
 		})
+		if !valid {
+			v = false
+		}
 	}
 
 	// TODO: we need port this lib: https://github.com/dwolfhub/zxcvbn-python
@@ -74,32 +81,48 @@ func (pp PasswordPolicy) Validate(p *localization.Printer, pswd string, isCompro
 	// }
 
 	if pp.RequireLowercase {
+		valid = lowercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			p.SD(localization.PasswordRequireLowercase),
-			lowercaseRx.Match([]byte(pswd)),
+			valid,
 		})
+		if !valid {
+			v = false
+		}
 	}
 
 	if pp.RequireUppercase {
+		valid = uppercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			p.SD(localization.PasswordRequireUppercase),
-			uppercaseRx.Match([]byte(pswd)),
+			valid,
 		})
+		if !valid {
+			v = false
+		}
 	}
 
 	if pp.RequireNumber {
+		valid = numberRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			p.SD(localization.PasswordRequireNumber),
-			numberRx.Match([]byte(pswd)),
+			valid,
 		})
+		if !valid {
+			v = false
+		}
 	}
 
 	if pp.RequireSymbol {
+		valid = symbolRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			p.SD(localization.PasswordRequireSymbol),
-			symbolRx.Match([]byte(pswd)),
+			valid,
 		})
+		if !valid {
+			v = false
+		}
 	}
 
-	return result
+	return v, result
 }

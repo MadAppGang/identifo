@@ -3,26 +3,33 @@ package storage
 import (
 	"context"
 
+	l "github.com/madappgang/identifo/v2/localization"
+
+	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil)
+var _uc model.UserController = NewUserStorageController(nil, model.SecurityServerSettings{})
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
 // All user business logic is implemented in controller and all storage things are dedicated to storage implementations.
 type UserStorageController struct {
+	s  model.SecurityServerSettings
 	u  model.UserStorage
 	ua model.UserAdminStorage
+	LP *l.Printer // localized string
 }
 
 // NewUserStorageController composes new storage controller, no validation and connections happens here.
 // The functions expects all the storages already initialized and connected.
-func NewUserStorageController(u model.UserStorage) *UserStorageController {
+func NewUserStorageController(u model.UserStorage, s model.SecurityServerSettings) *UserStorageController {
 	return &UserStorageController{
 		u: u,
+		s: s,
 	}
 }
 
@@ -56,42 +63,41 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 	return users, total, nil
 }
 
-func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password string) (model.User, error) {
-	// Password policy: set of parameters for password +++
-	// https: // www.alexedwards.net/blog/how-to-hash-and-verify-passwords-with-argon2-in-go
-	// Password hasher: salt, pepper, algorithm
-	// password hash and password policy done!
-	// TODO: add password policy and password hash settings to settings
+// CreateUserWithPassword validates password policy, creates password hash and creates new user
+// it also responsible to call pre-create and post-create callbacks
+func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password, locale string) (model.User, error) {
+	// TODO: implement check for isCompromised property
+	pr := c.LP.PrinterForLocale(locale)
+	valid, vr := c.s.PasswordPolicy.Validate(password, false, pr)
+	if !valid {
+		// find firs violated rule
+		es := ""
+		for _, r := range vr {
+			if !r.Valid {
+				es = r.ValidationRule
+				break
+			}
+		}
+		return model.User{}, pr.E(localization.ErrorAPIRequestPasswordWeak, es)
+	}
+
+	hash, err := jwt.PasswordHash(password, c.s.PasswordHash, []byte(c.s.PasswordHash.Pepper))
+	if err != nil {
+		return model.User{}, err
+	}
+	u.PasswordHash = hash
+
+	// TODO: Call pre-create callbacks
+
+	nu, err := c.u.AddUser(ctx, u)
+	if err != nil {
+		return model.User{}, pr.EL(err)
+	}
+
+	// TODO: Call post-create callbacks
+
+	return nu, nil
 }
 
-// AddUserWithPassword(um, rd.Password, rd.AccessRole, false)
 // GenerateNewResetTokenUser
 // DeleteUser(userID);
-
-func (c *UserStorageController) TODO(ctx context.Context) {
-}
-
-// TODO: implement this logic in User Controller.
-// and make it properly using OWASP recommendations.
-
-// // PasswordHash creates hash with salt for password.
-// func PasswordHash(pwd string) string {
-// 	hash, _ := bcrypt.GenerateFromPassword([]byte(pwd), bcrypt.DefaultCost)
-// 	return string(hash)
-// }
-
-// // RandomPassword creates random password
-// func RandomPassword(length int) string {
-// 	rand.Seed(time.Now().UnixNano())
-// 	return randSeq(length)
-// }
-
-// var rndPassLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890?!@#")
-
-// func randSeq(n int) string {
-// 	b := make([]rune, n)
-// 	for i := range b {
-// 		b[i] = rndPassLetters[rand.Intn(len(rndPassLetters))]
-// 	}
-// 	return string(b)
-// }

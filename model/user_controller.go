@@ -1,6 +1,8 @@
 package model
 
-import "context"
+import (
+	"context"
+)
 
 // UserController is a business logic around user storage.
 type UserController interface {
@@ -9,5 +11,5 @@ type UserController interface {
 	GetUsers(ctx context.Context, filter string, skip, limit int) ([]User, int, error)
 
 	// Mutations
-	CreateUserWithPassword(ctx context.Context, u User, password string) (User, error)
+	CreateUserWithPassword(ctx context.Context, u User, password, locale string) (User, error)
 }

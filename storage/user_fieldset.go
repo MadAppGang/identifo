@@ -16,3 +16,7 @@ var UserFieldsetMap = map[UserFieldset][]string{
 		"whatever",
 	},
 }
+
+func (f UserFieldset) Fields() []string {
+	return UserFieldsetMap[f]
+}
