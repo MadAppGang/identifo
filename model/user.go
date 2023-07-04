@@ -20,9 +20,10 @@ type User struct {
 	PhoneNumber       string `json:"phone_number,omitempty"`
 
 	//  authentication data for user
-	PasswordHash          string `json:"password_hash,omitempty"` // TODO: do we need salt and pepper here as well?
-	PasswordResetRequired bool   `json:"password_reset_required,omitempty"`
-	PasswordChangeForced  bool   `json:"password_change_forced,omitempty"`
+	PasswordHash          string    `json:"password_hash,omitempty"` // TODO: do we need salt and pepper here as well?
+	PasswordResetRequired bool      `json:"password_reset_required,omitempty"`
+	PasswordChangeForced  bool      `json:"password_change_forced,omitempty"`
+	LastPasswordResetAt   time.Time `json:"last_password_reset_at,omitempty"`
 
 	Tags []string `json:"tags,omitempty"`
 
@@ -38,10 +39,9 @@ type User struct {
 	Address  map[string]UserAddress `json:"address,omitempty"` // addresses for home, work, etc
 
 	// login stats
-	LastLoginIP         string    `json:"last_login_ip,omitempty"`
-	LastLoginAt         time.Time `json:"last_login_at,omitempty"`
-	LastPasswordResetAt time.Time `json:"last_password_reset_at,omitempty"`
-	LoginsCount         int       `json:"logins_count,omitempty"`
+	LastLoginIP string    `json:"last_login_ip,omitempty"`
+	LastLoginAt time.Time `json:"last_login_at,omitempty"`
+	LoginsCount int       `json:"logins_count,omitempty"`
 
 	// verification data
 	PhoneVerificationDetails struct {
@@ -55,13 +55,8 @@ type User struct {
 	} `json:"email_verification_details,omitempty"`
 
 	// blocked user
-	Blocked        bool `json:"blocked,omitempty"`
-	BlockedDetails struct {
-		Reason        string    `json:"reason,omitempty"`
-		BlockedAt     time.Time `json:"blocked_at,omitempty"`
-		BlockedByName string    `json:"blocked_by_name,omitempty"`
-		BlockedById   string    `json:"blocked_by_id,omitempty"`
-	} `json:"blocked_details,omitempty"`
+	Blocked        bool                `json:"blocked,omitempty"`
+	BlockedDetails *UserBlockedDetails `json:"blocked_details,omitempty"`
 
 	// mapping to external systems
 	ExternalID      string            `json:"external_id,omitempty"`      // external system user ID
@@ -92,12 +87,12 @@ type UserData struct {
 	DebugOTPCode string                `json:"debug_otp,omitempty"`
 }
 
-type UserField string
-
-const (
-	UserFieldAll      UserField = "all"
-	UserFieldPassword UserField = "password"
-)
+type UserBlockedDetails struct {
+	Reason        string    `json:"reason,omitempty"`
+	BlockedAt     time.Time `json:"blocked_at,omitempty"`
+	BlockedByName string    `json:"blocked_by_name,omitempty"`
+	BlockedById   string    `json:"blocked_by_id,omitempty"`
+}
 
 type UserDataField string
 

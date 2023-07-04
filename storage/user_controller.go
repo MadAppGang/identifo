@@ -40,17 +40,17 @@ func NewUserStorageController(u model.UserStorage, s model.SecurityServerSetting
 
 // UserByID returns User with ID with basic fields
 func (c *UserStorageController) UserByID(ctx context.Context, userID string) (model.User, error) {
-	return c.UserByIDWithFields(ctx, userID, UserFieldsetBasic)
+	return c.UserByIDWithFields(ctx, userID, model.UserFieldsetBasic)
 }
 
 // UserByIDWithFields returns user with specific fieldset
-func (c *UserStorageController) UserByIDWithFields(ctx context.Context, userID string, fields UserFieldset) (model.User, error) {
+func (c *UserStorageController) UserByIDWithFields(ctx context.Context, userID string, fields model.UserFieldset) (model.User, error) {
 	user, err := c.u.UserByID(ctx, userID)
 	if err != nil {
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, UserFieldsetMap[fields])
+	result := model.CopyFields(user, fields.Fields())
 	return result, nil
 }
 
@@ -63,7 +63,7 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 
 	// strip user fields
 	for i, user := range users {
-		users[i] = model.CopyFields(user, UserFieldsetMap[UserFieldsetBasic])
+		users[i] = model.CopyFields(user, model.UserFieldsetBasic.Fields())
 	}
 	return users, total, nil
 }
@@ -135,7 +135,7 @@ func (c *UserStorageController) UpdateUserPassword(ctx context.Context, userID, 
 		UpdatedAt:           time.Now(),
 		LastPasswordResetAt: time.Now(),
 	}
-	_, err = c.ums.UpdateUser(ctx, user, model.UserFieldPassword)
+	_, err = c.ums.UpdateUser(ctx, user, model.UserFieldsetPassword.UpdateFields()...)
 	if err != nil {
 		return err
 	}
@@ -146,10 +146,52 @@ func (c *UserStorageController) UpdateUserPassword(ctx context.Context, userID, 
 }
 
 func (c *UserStorageController) ChangeBlockStatus(ctx context.Context, userID, reason, whoName, whoID string, blocked bool) error {
+	user := model.User{
+		ID:        userID,
+		UpdatedAt: time.Now(),
+		Blocked:   blocked,
+	}
+	if blocked {
+		user.BlockedDetails = &model.UserBlockedDetails{
+			Reason:        reason,
+			BlockedByName: whoName,
+			BlockedById:   whoID,
+			BlockedAt:     time.Now(),
+		}
+	}
+
+	// TODO: Call  pre-block callback
+
+	_, err := c.ums.UpdateUser(ctx, user, model.UserFieldsetBlockStatus.Fields()...)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Call  post-block callback
+
+	return nil
 }
 
-func (c *UserStorageController) UpdateUser(ctx context.Context, u model.User, fields []string) (model.User, error) {
+func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User, fields []string) (model.User, error) {
+	// TODO: Call  pre-update callback
+
+	u, err := c.ums.UpdateUser(ctx, user, fields...)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	// TODO: Call  post-update callback
+	return u, nil
 }
 
 func (c *UserStorageController) DeleteUser(ctx context.Context, userID string) error {
+	// TODO: Call  pre-update callback
+
+	err := c.ums.DeleteUser(ctx, userID)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Call  post-update callback
+	return nil
 }

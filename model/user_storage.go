@@ -35,8 +35,9 @@ type UserStorage interface {
 type UserMutableStorage interface {
 	// User mutation
 	AddUser(ctx context.Context, user User) (User, error)
-	UpdateUser(ctx context.Context, user User, fields ...UserField) (User, error)
+	UpdateUser(ctx context.Context, user User, fields ...string) (User, error)
 	UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (UserData, error)
+	DeleteUser(ctx context.Context, userID string) error
 }
 
 // UserAuthStorage is a storage which keep all auth information for user.
