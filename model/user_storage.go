@@ -30,10 +30,12 @@ type UserStorage interface {
 
 	// Get user data, we can filter the fields we need to handle from data, as it is a large structure.
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)
+}
 
+type UserMutableStorage interface {
 	// User mutation
 	AddUser(ctx context.Context, user User) (User, error)
-	UpdateUser(ctx context.Context, user User) (User, error)
+	UpdateUser(ctx context.Context, user User, fields ...UserField) (User, error)
 	UpdateUserData(ctx context.Context, userID string, data UserData, fields ...UserDataField) (UserData, error)
 }
 

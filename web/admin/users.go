@@ -24,7 +24,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 
 		user, err := ar.server.Storages().UC.UserByID(r.Context(), userID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusNotFound, l.ErrorStorageFindUserIDError, userID, err)
+			ar.LocalizedError(w, locale, http.StatusNotFound, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 		ar.ServeJSON(w, locale, http.StatusOK, user)
@@ -39,13 +39,13 @@ func (ar *Router) FetchUsers() http.HandlerFunc {
 
 		skip, limit, err := ar.parseSkipAndLimit(r, defaultUserSkip, defaultUserLimit, 0)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAdminPanelNoSkipLimit, err.Error())
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAdminPanelNoSkipLimit, err)
 			return
 		}
 
 		users, total, err := ar.server.Storages().UC.GetUsers(r.Context(), filterStr, skip, limit)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelGetUsers, err.Error())
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelGetUsers, err)
 			return
 		}
 
@@ -90,9 +90,9 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 
 		um := model.User{}
 		model.CopyDstFields(rd, um)
-		user, err := ar.server.Storages().UC.CreateUserWithPassword(r.Context(), um, rd.Password, locale)
-		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.LocalizedString(err.Error()))
+		user, err := ar.server.Storages().UMC.CreateUserWithPassword(r.Context(), um, rd.Password)
+		if err != nil { // this error is already localized.
+			ar.Error(w, err)
 			return
 		}
 
@@ -128,34 +128,39 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 
 		// update password if password is part of update process
 		if u.Password != nil && len(*u.Password) > 0 {
-			err := ar.server.Storages().UC.UpdateUserPassword(r.Context(), userID, *u.Password, locale)
+			err := ar.server.Storages().UMC.UpdateUserPassword(r.Context(), userID, *u.Password)
 			if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
+				ar.Error(w, l.ErrorWithLocale(err, locale))
 				return
 			}
 		}
 
-		user, err := ar.server.Storages().User.UpdateUser(userID, u)
+		fields := model.Filled(u)
+		fields = model.ContainsFields(u, fields)
+		user := model.User{}
+		model.CopyDstFields(u, &user)
+		user, err := ar.server.Storages().UMC.UpdateUser(r.Context(), user, fields, locale)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 			return
 		}
-
-		ar.ServeJSON(w, http.StatusOK, user)
+		user = model.CopyFields(user, storage.UserFieldsetBasic.Fields())
+		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
 
 // DeleteUser deletes user from the database.
 func (ar *Router) DeleteUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		userID := getRouteVar("id", r)
-		if err := ar.server.Storages().User.DeleteUser(userID); err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+
+		if err := ar.server.Storages().UC.DeleteUser(r.Context(), userID, locale); err != nil {
+			ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 			return
 		}
 
-		ar.logger.Printf("User %s deleted", userID)
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }
 

@@ -4,6 +4,10 @@ package localization
 
 type LocalizedString string
 
+func (l LocalizedString) Error() string {
+	return string(l)
+}
+
 const (
 
 	//===========================================================================
@@ -293,6 +297,6 @@ const (
 	PasswordRequireUppercase LocalizedString = "password.require.uppercase"
 	// PasswordRequireNumber -> Require at least one number.
 	PasswordRequireNumber LocalizedString = "password.require.number"
-	// PasswordRequireSymbol -> Require at least special character: !$%^&*()_+{}:@[];'#<>?,./|\\-=?.
+	// PasswordRequireSymbol -> Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?.
 	PasswordRequireSymbol LocalizedString = "password.require.symbol"
 )

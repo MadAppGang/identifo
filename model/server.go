@@ -26,6 +26,7 @@ type ServerStorageCollection struct {
 	App           AppStorage
 	User          UserStorage
 	UC            UserController
+	UMC           UserMutationController
 	Token         TokenStorage
 	Blocklist     TokenBlacklist
 	Invite        InviteStorage

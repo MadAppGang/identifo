@@ -92,6 +92,13 @@ type UserData struct {
 	DebugOTPCode string                `json:"debug_otp,omitempty"`
 }
 
+type UserField string
+
+const (
+	UserFieldAll      UserField = "all"
+	UserFieldPassword UserField = "password"
+)
+
 type UserDataField string
 
 const (

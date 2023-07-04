@@ -2,10 +2,12 @@ package router
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"log"
 	"net/http"
 	"runtime"
+	"time"
 
 	l "github.com/madappgang/identifo/v2/localization"
 )
@@ -20,7 +22,7 @@ type LocalizedRouter struct {
 func (ar *LocalizedRouter) ServeJSON(w http.ResponseWriter, locale string, status int, v interface{}) {
 	data, err := json.Marshal(v)
 	if err != nil {
-		ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
+		ar.LocalizedError(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 		return
 	}
 
@@ -31,49 +33,53 @@ func (ar *LocalizedRouter) ServeJSON(w http.ResponseWriter, locale string, statu
 	}
 }
 
-func NewLocalizedError(status int, locale string, errID l.LocalizedString, details ...any) *LocalizedError {
-	return &LocalizedError{
-		status:  status,
-		locale:  locale,
-		errID:   errID,
-		details: details,
+func (ar *LocalizedRouter) HTTPError(w http.ResponseWriter, err error, status int) {
+	var le l.LocalizedError
+	if errors.As(err, &le) {
+		e := l.HTTPLocalizedError{
+			LE:     le,
+			Time:   time.Now(),
+			Status: status,
+		}
+		ar.Error(w, e)
+		return
 	}
+
+	ar.error(w, 3, "", http.StatusInternalServerError, time.Now(), l.APIInternalServerErrorWithError, err)
 }
 
-type LocalizedError struct {
-	status  int
-	locale  string
-	errID   l.LocalizedString
-	details []any
-}
-
-func (e *LocalizedError) Error() string {
-	return fmt.Sprintf("localized error: %v (status=%v). Details: %v.", e.errID, e.status, e.details)
-}
-
-func (ar *LocalizedRouter) ErrorResponse(w http.ResponseWriter, err error) {
+func (ar *LocalizedRouter) Error(w http.ResponseWriter, err error) {
 	ar.Logger.Printf("api error: %v", err)
 
-	switch e := err.(type) {
-	case *LocalizedError:
-		ar.error(w, 3, e.locale, e.status, e.errID, e.details...)
-	default:
-		ar.error(w, 3, "", http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
+	var he l.HTTPLocalizedError
+	if errors.As(err, &he) {
+		ar.error(w, 3, he.LE.Locale, he.Status, he.Time, he.LE.ErrID, he.LE.Details...)
+		return
 	}
+
+	var le l.LocalizedError
+	if errors.As(err, &le) {
+		ar.error(w, 3, le.Locale, 0, time.Now(), le.ErrID, le.Details...)
+		return
+	}
+
+	// default unsupported error
+	ar.error(w, 3, "", http.StatusInternalServerError, time.Now(), l.APIInternalServerErrorWithError, err)
 }
 
-// Error writes an API error message to the response and logger.
-func (ar *LocalizedRouter) Error(w http.ResponseWriter, locale string, status int, errID l.LocalizedString, details ...any) {
-	ar.error(w, 2, locale, status, errID, details...)
+// LocalizedError writes an API error message to the response and logger.
+func (ar *LocalizedRouter) LocalizedError(w http.ResponseWriter, locale string, status int, errID l.LocalizedString, details ...any) {
+	ar.error(w, 2, locale, status, time.Now(), errID, details...)
 }
 
-func (ar *LocalizedRouter) error(w http.ResponseWriter, callerDepth int, locale string, status int, errID l.LocalizedString, details ...any) {
+func (ar *LocalizedRouter) error(w http.ResponseWriter, callerDepth int, locale string, status int, t time.Time, errID l.LocalizedString, details ...any) {
 	// errorResponse is a generic response for sending an error.
 	type errorResponse struct {
-		ID       string `json:"id"`
-		Message  string `json:"message,omitempty"`
-		Status   int    `json:"status"`
-		Location string `json:"location"`
+		ID       string    `json:"id"`
+		Message  string    `json:"message,omitempty"`
+		Status   int       `json:"status"`
+		Location string    `json:"location"`
+		Time     time.Time `json:"time"`
 	}
 
 	if errID == "" {
@@ -102,6 +108,7 @@ func (ar *LocalizedRouter) error(w http.ResponseWriter, callerDepth int, locale 
 			Message:  message,
 			Status:   status,
 			Location: fmt.Sprintf("%s:%d", file, no),
+			Time:     t,
 		},
 	}
 

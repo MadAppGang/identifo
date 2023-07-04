@@ -23,7 +23,10 @@ func main() {
 	g.Printf("\n")
 	g.Printf("package localization")
 	g.Printf("\n")
-	g.Printf("type LocalizedString string\n")
+	g.Printf("type LocalizedString string\n\n")
+	g.Printf("func (l LocalizedString) Error() string {\n")
+	g.Printf("	return string(l)\n")
+	g.Printf("}\n\n")
 	g.Printf("const (\n")
 
 	// TODO: Jack we need iterate all files for all language and compare that they have the same set of keys

@@ -28,8 +28,24 @@ type PasswordPolicy struct {
 }
 
 type PasswordPolicyValidationResult struct {
-	ValidationRule string
+	ValidationRule ValidationRule
 	Valid          bool
+}
+
+// Validation Rule is localizable human-readable rule description with params to be rendered.
+type ValidationRule struct {
+	Description localization.LocalizedString
+	Params      []any
+}
+
+func (vr PasswordPolicyValidationResult) Error() error {
+	if vr.Valid == true {
+		return nil // no error
+	}
+	return localization.LocalizedError{
+		ErrID:   vr.ValidationRule.Description,
+		Details: vr.ValidationRule.Params,
+	}
 }
 
 type PasswordStrength = string
@@ -51,13 +67,16 @@ var (
 	symbolRx    = regexp.MustCompile(`[!\$%\^&\*\(\)_\+{}:@\[\];'#<>\?,\./\|\-=\?]+`)
 )
 
-func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localization.Printer) (bool, []PasswordPolicyValidationResult) {
+func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []PasswordPolicyValidationResult) {
 	result := []PasswordPolicyValidationResult{}
 	v := true
 
 	valid := len(pswd) >= pp.MinPasswordLength
 	result = append(result, PasswordPolicyValidationResult{
-		p.SD(localization.PasswordLengthPolicy, pp.MinPasswordLength),
+		ValidationRule{
+			Description: localization.PasswordLengthPolicy,
+			Params:      []any{pp.MinPasswordLength},
+		},
 		valid,
 	})
 	if !valid {
@@ -67,7 +86,10 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localizati
 	if pp.RejectCompromised {
 		valid = !isCompromised
 		result = append(result, PasswordPolicyValidationResult{
-			p.SD(localization.PasswordRejectCompromised),
+			ValidationRule{
+				Description: localization.PasswordRejectCompromised,
+				Params:      []any{},
+			},
 			valid,
 		})
 		if !valid {
@@ -83,7 +105,10 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localizati
 	if pp.RequireLowercase {
 		valid = lowercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
-			p.SD(localization.PasswordRequireLowercase),
+			ValidationRule{
+				Description: localization.PasswordRequireLowercase,
+				Params:      []any{},
+			},
 			valid,
 		})
 		if !valid {
@@ -94,7 +119,10 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localizati
 	if pp.RequireUppercase {
 		valid = uppercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
-			p.SD(localization.PasswordRequireUppercase),
+			ValidationRule{
+				Description: localization.PasswordRequireUppercase,
+				Params:      []any{},
+			},
 			valid,
 		})
 		if !valid {
@@ -105,7 +133,10 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localizati
 	if pp.RequireNumber {
 		valid = numberRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
-			p.SD(localization.PasswordRequireNumber),
+			ValidationRule{
+				Description: localization.PasswordRequireNumber,
+				Params:      []any{},
+			},
 			valid,
 		})
 		if !valid {
@@ -116,7 +147,10 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool, p *localizati
 	if pp.RequireSymbol {
 		valid = symbolRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
-			p.SD(localization.PasswordRequireSymbol),
+			ValidationRule{
+				Description: localization.PasswordRequireSymbol,
+				Params:      []any{},
+			},
 			valid,
 		})
 		if !valid {

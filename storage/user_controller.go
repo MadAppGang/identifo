@@ -2,26 +2,31 @@ package storage
 
 import (
 	"context"
+	"errors"
+	"time"
 
 	l "github.com/madappgang/identifo/v2/localization"
 
 	"github.com/madappgang/identifo/v2/jwt"
-	"github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil, model.SecurityServerSettings{})
+var (
+	_uc  model.UserController         = NewUserStorageController(nil, model.SecurityServerSettings{})
+	_umc model.UserMutationController = NewUserStorageController(nil, model.SecurityServerSettings{})
+)
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
 // All user business logic is implemented in controller and all storage things are dedicated to storage implementations.
 type UserStorageController struct {
-	s  model.SecurityServerSettings
-	u  model.UserStorage
-	ua model.UserAdminStorage
-	LP *l.Printer // localized string
+	s   model.SecurityServerSettings
+	u   model.UserStorage
+	ums model.UserMutableStorage
+	ua  model.UserAdminStorage
+	LP  *l.Printer // localized string
 }
 
 // NewUserStorageController composes new storage controller, no validation and connections happens here.
@@ -63,22 +68,25 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 	return users, total, nil
 }
 
+// ====================================
+// Data mutation
+// ====================================
+
 // CreateUserWithPassword validates password policy, creates password hash and creates new user
 // it also responsible to call pre-create and post-create callbacks
-func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password, locale string) (model.User, error) {
+func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password string) (model.User, error) {
 	// TODO: implement check for isCompromised property
-	pr := c.LP.PrinterForLocale(locale)
-	valid, vr := c.s.PasswordPolicy.Validate(password, false, pr)
+	isCompromised := false
+	valid, vr := c.s.PasswordPolicy.Validate(password, isCompromised)
 	if !valid {
-		// find firs violated rule
-		es := ""
+		ee := []error{}
 		for _, r := range vr {
 			if !r.Valid {
-				es = r.ValidationRule
-				break
+				ee = append(ee, r.Error())
 			}
 		}
-		return model.User{}, pr.E(localization.ErrorAPIRequestPasswordWeak, es)
+		// return all violated rules
+		return model.User{}, errors.Join(ee...)
 	}
 
 	hash, err := jwt.PasswordHash(password, c.s.PasswordHash, []byte(c.s.PasswordHash.Pepper))
@@ -89,9 +97,9 @@ func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u mo
 
 	// TODO: Call pre-create callbacks
 
-	nu, err := c.u.AddUser(ctx, u)
+	nu, err := c.ums.AddUser(ctx, u)
 	if err != nil {
-		return model.User{}, pr.EL(err)
+		return model.User{}, err
 	}
 
 	// TODO: Call post-create callbacks
@@ -99,5 +107,49 @@ func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u mo
 	return nu, nil
 }
 
-// GenerateNewResetTokenUser
-// DeleteUser(userID);
+func (c *UserStorageController) UpdateUserPassword(ctx context.Context, userID, password string) error {
+	// TODO: implement check for isCompromised property
+	isCompromised := false
+	valid, vr := c.s.PasswordPolicy.Validate(password, isCompromised)
+	if !valid {
+		ee := []error{}
+		for _, r := range vr {
+			if !r.Valid {
+				ee = append(ee, r.Error())
+			}
+		}
+		// return all violated rules
+		return errors.Join(ee...)
+	}
+
+	hash, err := jwt.PasswordHash(password, c.s.PasswordHash, []byte(c.s.PasswordHash.Pepper))
+	if err != nil {
+		return err
+	}
+
+	// TODO: Call pre-change password callback
+
+	user := model.User{
+		ID:                  userID,
+		PasswordHash:        hash,
+		UpdatedAt:           time.Now(),
+		LastPasswordResetAt: time.Now(),
+	}
+	_, err = c.ums.UpdateUser(ctx, user, model.UserFieldPassword)
+	if err != nil {
+		return err
+	}
+
+	// TODO: Call  post-change password callback
+
+	return nil
+}
+
+func (c *UserStorageController) ChangeBlockStatus(ctx context.Context, userID, reason, whoName, whoID string, blocked bool) error {
+}
+
+func (c *UserStorageController) UpdateUser(ctx context.Context, u model.User, fields []string) (model.User, error) {
+}
+
+func (c *UserStorageController) DeleteUser(ctx context.Context, userID string) error {
+}
