@@ -108,7 +108,6 @@ func (dbs *DatabaseSettings) Validate() error {
 	switch dbs.Type {
 	case DBTypeFake:
 	case DBTypeDefault:
-	case DBTypeMem:
 		return nil
 	case DBTypeBoltDB:
 		if len(dbs.BoltDB.Path) == 0 {

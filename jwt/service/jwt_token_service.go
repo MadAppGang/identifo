@@ -92,6 +92,12 @@ func (ts *JWTokenService) Issuer() string {
 	return ts.issuer
 }
 
+// CreateToken creates token with specific types.
+func (ts *JWTokenService) NewToken(tokenType model.TokenType, userID string, payload []any) (model.Token, error) {
+	// TODO: implement general token creation for all token types
+	return &model.JWToken{}, nil
+}
+
 // Algorithm  returns signature algorithm.
 func (ts *JWTokenService) Algorithm() string {
 	if len(ts.cachedAlgorithm) > 0 {
@@ -220,7 +226,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 
 	tokenType := model.TokenTypeAccess
 	if requireTFA {
-		scopes = []string{model.TokenTypeTFAPreauth}
+		scopes = []string{string(model.TokenTypeTFAPreauth)}
 	}
 	if len(tokenPayload) > 0 {
 		for k, v := range tokenPayload {
@@ -238,7 +244,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 	claims := model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
-		Type:    tokenType,
+		Type:    string(tokenType),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -288,7 +294,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 	claims := model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
-		Type:    model.TokenTypeRefresh,
+		Type:    string(model.TokenTypeRefresh),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -384,7 +390,7 @@ func (ts *JWTokenService) NewInviteToken(email, role, audience string, data map[
 
 	claims := &model.Claims{
 		Payload: data,
-		Type:    model.TokenTypeInvite,
+		Type:    string(model.TokenTypeInvite),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: now + lifespan,
 			Issuer:    ts.issuer,
@@ -413,7 +419,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := model.Claims{
-		Type: model.TokenTypeReset,
+		Type: string(model.TokenTypeReset),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -445,7 +451,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	lifespan := ts.resetTokenLifespan
 
 	claims := model.Claims{
-		Type: model.TokenTypeWebCookie,
+		Type: string(model.TokenTypeWebCookie),
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,

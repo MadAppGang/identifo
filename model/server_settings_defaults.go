@@ -10,7 +10,12 @@ var DefaultServerSettings = ServerSettings{
 		Issuer: "Identifo",
 	},
 	Storage: StorageSettings{
-		DefaultStorage:          DatabaseSettings{Type: DBTypeMem},
+		DefaultStorage: DatabaseSettings{
+			Type: DBTypeBoltDB,
+			BoltDB: BoltDBDatabaseSettings{
+				Path: "./db.db",
+			},
+		},
 		AppStorage:              DatabaseSettings{Type: DBTypeDefault},
 		UserStorage:             DatabaseSettings{Type: DBTypeDefault},
 		TokenStorage:            DatabaseSettings{Type: DBTypeDefault},

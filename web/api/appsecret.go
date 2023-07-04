@@ -33,7 +33,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -42,17 +42,17 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 		if r.Method == "GET" {
 			body = []byte(r.URL.RequestURI() + t)
-			ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(GET request)")
+			ar.Logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(GET request)")
 		} else {
 			// Extract body.
 			b, err := ioutil.ReadAll(r.Body)
 			if err != nil {
-				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 				return
 			}
 			if len(b) == 0 {
 				b = []byte(r.URL.RequestURI() + t)
-				ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(POST request)")
+				ar.Logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(POST request)")
 			}
 			body = b
 		}
@@ -61,12 +61,12 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 			// Read request signature from header and decode it.
 			reqMAC := extractSignature(r.Header.Get(SignatureHeaderKey))
 			if reqMAC == nil {
-				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureInvalid)
+				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureInvalid)
 				return
 
 			}
 			if err := validateBodySignature(body, reqMAC, []byte(app.Secret)); err != nil {
-				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureValidationError, err)
+				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestSignatureValidationError, err)
 				return
 			}
 		}

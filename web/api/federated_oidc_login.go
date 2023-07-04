@@ -83,24 +83,24 @@ func (ar *Router) OIDCLogin(w http.ResponseWriter, r *http.Request) {
 
 	app := middleware.AppFromContext(r.Context())
 	if len(app.ID) == 0 {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 		return
 	}
 
 	if !ar.SupportedLoginWays.FederatedOIDC {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
 		return
 	}
 
 	redirect := r.URL.Query().Get("redirectUrl")
 	if len(redirect) == 0 {
-		ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
 		return
 	}
 
 	oidcProvider, _, err := getCachedOIDCProvider(ctx, app)
 	if err != nil {
-		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+		ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 		return
 	}
 
@@ -134,7 +134,7 @@ func (ar *Router) OIDCLogin(w http.ResponseWriter, r *http.Request) {
 	sn := oidcSessionKey(app.ID, app.OIDCSettings.ProviderName)
 	err = storeInSession(SessionNameOIDC, sn, fsess.Marshal(), r, w)
 	if err != nil {
-		ar.Error(w, locale, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
 		return
 	}
 
@@ -152,18 +152,18 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 
 	app := middleware.AppFromContext(ctx)
 	if len(app.ID) == 0 {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 		return
 	}
 
 	if !ar.SupportedLoginWays.FederatedOIDC {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorFederatedOidcDisabled)
 		return
 	}
 
 	claims, fsess, err := ar.completeOIDCAuth(r, app)
 	if err != nil {
-		ar.ErrorResponse(w, err)
+		ar.Error(w, err)
 		return
 	}
 
@@ -180,12 +180,12 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 	user, err := ar.tryFindFederatedUser(providerName, fedUserID, email)
 	if err != nil {
 		if !errors.Is(err, model.ErrUserNotFound) {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 			return
 		}
 
 		if app.RegistrationForbidden {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
 			return
 		}
 
@@ -197,7 +197,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 			Scopes: scopes,
 		}, providerName, fedUserID, app.NewUserDefaultRole)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 			return
 		}
 	}
@@ -223,7 +223,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 
 	authResult, err := ar.loginFlow(app, user, requestedScopes)
 	if err != nil {
-		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
+		ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 		return
 	}
 

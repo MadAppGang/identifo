@@ -22,7 +22,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.logger.Println("Cannot fetch access token bytes from context")
+			ar.Logger.Println("Cannot fetch access token bytes from context")
 			ar.ServeJSON(w, locale, http.StatusNoContent, nil)
 			return
 		}
@@ -45,14 +45,14 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		// Revoke refresh token, if present.
 		if err := ar.revokeRefreshToken(d.RefreshToken, accessTokenString); err != nil {
-			ar.logger.Printf("Cannot revoke refresh token: %s\n", err)
+			ar.Logger.Printf("Cannot revoke refresh token: %s\n", err)
 		}
 
 		// Detach device token, if present.
 		if len(d.DeviceToken) > 0 {
 			// TODO: check for ownership when device tokens are supported.
 			if err := ar.server.Storages().User.DetachDeviceToken(d.DeviceToken); err != nil {
-				ar.logger.Println("Cannot detach device token")
+				ar.Logger.Println("Cannot detach device token")
 			}
 		}
 

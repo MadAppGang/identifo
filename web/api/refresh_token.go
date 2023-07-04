@@ -32,7 +32,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -42,26 +42,26 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		// Issue new access token and stringify it for response.
 		accessToken, err := ar.server.Services().Token.RefreshAccessToken(oldRefreshToken)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshAccessToken, err)
 			return
 		}
 		accessTokenString, err := ar.server.Services().Token.String(accessToken)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
 		}
 
 		// Stringify old refresh token and issue new one.
 		oldRefreshTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
 		if !ok || oldRefreshTokenBytes == nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshEmpty)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenRefreshEmpty)
 			return
 		}
 		oldRefreshTokenString := string(oldRefreshTokenBytes)
 
 		newRefreshTokenString, err := ar.issueNewRefreshToken(oldRefreshTokenString, rd.Scopes, app)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateRefreshTokenError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateRefreshTokenError, err)
 			return
 		}
 
@@ -107,10 +107,10 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 
 func (ar *Router) invalidateOldRefreshToken(oldRefreshTokenString string) {
 	if err := ar.server.Storages().Token.DeleteToken(oldRefreshTokenString); err != nil {
-		ar.logger.Println("Cannot delete old refresh token from token storage:", err)
+		ar.Logger.Println("Cannot delete old refresh token from token storage:", err)
 	}
 	if err := ar.server.Storages().Blocklist.Add(oldRefreshTokenString); err != nil {
-		ar.logger.Println("Cannot blacklist old refresh token:", err)
+		ar.Logger.Println("Cannot blacklist old refresh token:", err)
 	}
-	ar.logger.Println("Old refresh token successfully invalidated")
+	ar.Logger.Println("Old refresh token successfully invalidated")
 }

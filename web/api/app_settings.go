@@ -32,7 +32,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 

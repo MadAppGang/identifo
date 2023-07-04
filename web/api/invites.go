@@ -34,7 +34,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		audience := tokenFromContext(r.Context()).Audience()
 		requester, err := ar.server.Storages().User.UserByID(requesterID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, err)
+			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, err)
 			return
 		}
 
@@ -45,34 +45,34 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			Data        map[string]interface{} `json:"data"`
 		}{}
 		if err := ar.MustParseJSON(w, r, &d); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyEmailInvalid)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyEmailInvalid)
 			return
 		}
 
 		_, err = ar.server.Storages().Invite.GetByEmail(d.Email)
 		if err != nil && !errors.Is(err, model.ErrorNotFound) {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
 			return
 		}
 
 		if err := ar.server.Storages().Invite.ArchiveAllByEmail(d.Email); err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteArchiveEmailError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteArchiveEmailError, err)
 			return
 		}
 
 		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, audience, d.Data)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return
 		}
 
 		inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return
 		}
 
@@ -91,7 +91,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		if app.LoginAppSettings != nil && len(app.LoginAppSettings.RegisterURL) > 0 {
 			appSpecificURL, err := url.Parse(app.LoginAppSettings.RegisterURL)
 			if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPPRegisterUrlError, app.LoginAppSettings.RegisterURL, app.ID, err)
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPPRegisterUrlError, app.LoginAppSettings.RegisterURL, app.ID, err)
 				return
 			}
 
@@ -109,7 +109,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 			err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, app.ID, requester.ID, inviteToken.ExpiresAt())
 			if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteSaveError, err)
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteSaveError, err)
 				return
 			}
 			requestData := InviteEmailData{
@@ -132,7 +132,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 					Data: requestData,
 				},
 			); err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 				return
 			}
 

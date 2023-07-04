@@ -64,7 +64,7 @@ type Config struct {
 // NewConfig creates and returns default config
 func NewConfig() Config {
 	return Config{
-		TokenType:          []string{model.TokenTypeAccess},
+		TokenType:          []string{string(model.TokenTypeAccess)},
 		IsAudienceRequired: true,
 		IsIssuerRequired:   true,
 	}

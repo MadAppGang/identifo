@@ -26,18 +26,18 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 
 		if !ar.SupportedLoginWays.Phone {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPPhoneLoginNotSupported)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPPhoneLoginNotSupported)
 			return
 		}
 
 		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := authData.validatePhone(); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
@@ -49,7 +49,7 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 		}
 
 		if err := ar.server.Services().SMS.SendSMS(authData.PhoneNumber, fmt.Sprintf(smsVerificationCode, code)); err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceSmsSendError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorServiceSmsSendError, err)
 			return
 		}
 		result := map[string]string{"result": "ok", "message": "SMS code is sent"}
@@ -67,17 +67,17 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		var authData PhoneLogin
 		if err := json.NewDecoder(r.Body).Decode(&authData); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 		if err := authData.validateCodeAndPhone(); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -87,7 +87,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageVerificationFindError, err)
 				return
 			} else if !exists {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginCodeInvalid)
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPILoginCodeInvalid)
 				return
 			}
 		}
@@ -95,7 +95,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		user, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
 		if err == model.ErrUserNotFound {
 			if !ar.server.Settings().Login.AllowRegisterMissing {
-				ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIAPPRegistrationForbidden)
+				ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIAPPRegistrationForbidden)
 				return
 			}
 
@@ -119,13 +119,13 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, locale, http.StatusForbidden, l.APIAccessDenied)
+			ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
 			return
 		}
 
 		// if app requires scope, we need to check user has at leas one scope
 		if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
-			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPPLoginNoScope)
+			ar.LocalizedError(w, locale, http.StatusForbidden, l.ErrorAPPLoginNoScope)
 			return
 		}
 
@@ -141,14 +141,14 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
 		}
 
 		offline := contains(scopes, model.OfflineScope)
 		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
 

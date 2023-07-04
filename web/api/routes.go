@@ -101,21 +101,22 @@ func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
 		ar.Token(model.TokenTypeAccess, nil)(ar.RequestInviteLink()),
 	).Methods(http.MethodPost)
 
-	auth.Path("/tfa/enable").Handler(
-		ar.Token(model.TokenTypeAccess, nil)(ar.EnableTFA()),
-	).Methods(http.MethodPut)
-	auth.Path("/tfa/disable").Handler(
-		ar.RequestDisabledTFA(),
-	).Methods(http.MethodPut)
-	auth.Path("/tfa/login").Handler(
-		ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.FinalizeTFA()),
-	).Methods(http.MethodPost)
-	auth.Path("/tfa/resend").Handler(
-		ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.ResendTFA()),
-	).Methods(http.MethodPost)
-	auth.Path("/tfa/reset").Handler(
-		ar.Token(model.TokenTypeAccess, nil)(ar.RequestTFAReset()),
-	).Methods(http.MethodPut)
+	// TODO: refactor all 2FA
+	// auth.Path("/tfa/enable").Handler(
+	// 	ar.Token(model.TokenTypeAccess, nil)(ar.EnableTFA()),
+	// ).Methods(http.MethodPut)
+	// auth.Path("/tfa/disable").Handler(
+	// 	ar.RequestDisabledTFA(),
+	// ).Methods(http.MethodPut)
+	// auth.Path("/tfa/login").Handler(
+	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.FinalizeTFA()),
+	// ).Methods(http.MethodPost)
+	// auth.Path("/tfa/resend").Handler(
+	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.ResendTFA()),
+	// ).Methods(http.MethodPost)
+	// auth.Path("/tfa/reset").Handler(
+	// 	ar.Token(model.TokenTypeAccess, nil)(ar.RequestTFAReset()),
+	// ).Methods(http.MethodPut)
 
 	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods(http.MethodPost)
 	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods(http.MethodGet)

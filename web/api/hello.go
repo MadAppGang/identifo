@@ -15,7 +15,7 @@ func (ar *Router) HandleHello() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
-		ar.logger.Println("trace Hello handler")
+		ar.Logger.Println("trace Hello handler")
 		hello := helloResponse{
 			Answer: "Hello, my name is Identifo",
 			Date:   time.Now(),
@@ -33,7 +33,7 @@ func (ar *Router) HandlePing(w http.ResponseWriter, r *http.Request) {
 
 	locale := r.Header.Get("Accept-Language")
 
-	ar.logger.Println("trace pong handler")
+	ar.Logger.Println("trace pong handler")
 	pong := pongResponse{
 		Message: "Pong!",
 		Date:    time.Now(),

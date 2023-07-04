@@ -14,13 +14,13 @@ func (ar *Router) MustParseJSON(w http.ResponseWriter, r *http.Request, out inte
 	locale := r.Header.Get("Accept-Language")
 
 	if err := json.NewDecoder(r.Body).Decode(out); err != nil {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 		return err
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(out); err != nil {
-		ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 		return err
 	}
 

@@ -124,12 +124,12 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		if err := ld.validate(); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := ar.checkSupportedWays(ld.login); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
@@ -145,19 +145,19 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 		}
 
 		if err != nil {
-			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
+			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
 			return
 		}
 
 		if err = ar.server.Storages().User.CheckPassword(user.ID, ld.Password); err != nil {
 			// return this error to hide the existence of the user.
-			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
+			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -169,13 +169,13 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, locale, http.StatusForbidden, l.APIAccessDenied)
+			ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
 			return
 		}
 
 		authResult, err := ar.loginFlow(app, user, ld.Scopes)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
 
@@ -272,7 +272,7 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 
 	refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
-		ar.logger.Println(err)
+		ar.Logger.Println(err)
 		return accessTokenString, "", nil
 	}
 	refreshTokenString, err := ar.server.Services().Token.String(refresh)

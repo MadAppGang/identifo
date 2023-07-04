@@ -34,13 +34,23 @@ var (
 var keySet = false
 
 func init() {
-	key := []byte(model.RandomPassword(64))
+	key, _ := getRandomPassword(64)
 	keySet = len(key) != 0
 
 	cookieStore := sessions.NewCookieStore([]byte(key))
 	cookieStore.Options.HttpOnly = true
 	Store = cookieStore
 	defaultStore = Store
+}
+
+func getRandomPassword(n uint32) ([]byte, error) {
+	unencodedSalt := make([]byte, n)
+	_, err := io.ReadFull(rand.Reader, unencodedSalt)
+	if err != nil {
+		return nil, err
+	}
+
+	return unencodedSalt, err
 }
 
 // SetState sets the state string associated with the given request.
@@ -91,13 +101,13 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		redirect := r.URL.Query().Get("redirectUrl")
 		if len(redirect) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmptyRedirect)
 			return
 		}
 
@@ -107,7 +117,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 
 		url, err := ar.GetAuthURL(w, r)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIFederatedCreateAuthUrlError, err)
 			return
 		}
 
@@ -123,37 +133,37 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		providerName := r.URL.Query().Get("provider")
 		if providerName == "" {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmpty)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderEmpty)
 			return
 		}
 
 		value, err := ar.getFromSession(SessionName, sessionKey(app.ID, providerName), r)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
+			ar.LocalizedError(w, locale, http.StatusBadRequest, "Can't get session", "FederatedLogin.AppByID")
 			return
 		}
 
 		fsess, err := model.UnmarshalFederatedSession(value)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedUnmarshalSessionError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorFederatedUnmarshalSessionError, err)
 			return
 		}
 
 		if fsess.AppId != app.ID {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorFederatedSessionAPPIDMismatch, fsess.AppId, app.ID)
 		}
 
 		initProviders(app, fsess.RedirectUrl)
 
 		gothUser, err := ar.CompleteUserAuth(w, r)
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPFederatedProviderCantCompleteError, err)
 			return
 		}
 
@@ -176,14 +186,14 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 				Scopes:   scopes,
 			}, providerName, gothUser.UserID, app.NewUserDefaultRole)
 			if err != nil {
-				ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 				return
 			}
 		} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
 			return
 		} else if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 			return
 		}
 
@@ -195,13 +205,13 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			Method:      r.Method,
 		}
 		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
+			ar.LocalizedError(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
 			return
 		}
 
 		authResult, err := ar.loginFlow(app, user, fsess.Scopes)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 			return
 		}
 

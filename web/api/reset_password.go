@@ -27,30 +27,30 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		if err := d.login.validate(); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
 		if err := ar.checkSupportedWays(d.login); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
 		if err == model.ErrUserNotFound {
 			// return ok, but there is no user
-			ar.logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
+			ar.Logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
 			result := map[string]string{"result": "ok"}
 			ar.ServeJSON(w, locale, http.StatusOK, result)
 			return
 		} else if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
@@ -83,13 +83,13 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 			return
 		}
 
@@ -112,7 +112,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 
 		resetPathURL, err := url.Parse(resetPath)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
 			return
 		}
 
@@ -143,7 +143,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
 			return
 		}
 
@@ -179,13 +179,13 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		// Get userID from token and update user with this ID.
 		userID, err := ar.getTokenSubject(string(accessTokenBytes))
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
 			return
 		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
+			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 
