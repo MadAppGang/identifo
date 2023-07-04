@@ -1,14 +1,14 @@
 package admin
 
 import (
+	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/storage"
 )
 
 const (
@@ -96,7 +96,7 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 			return
 		}
 
-		user = model.CopyFields(user, storage.UserFieldsetBasic.Fields())
+		user = model.CopyFields(user, model.UserFieldsetBasic.Fields())
 		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
@@ -139,12 +139,12 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		fields = model.ContainsFields(u, fields)
 		user := model.User{}
 		model.CopyDstFields(u, &user)
-		user, err := ar.server.Storages().UMC.UpdateUser(r.Context(), user, fields, locale)
+		user, err := ar.server.Storages().UMC.UpdateUser(r.Context(), user, fields)
 		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
-		user = model.CopyFields(user, storage.UserFieldsetBasic.Fields())
+		user = model.CopyFields(user, model.UserFieldsetBasic.Fields())
 		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
@@ -155,8 +155,8 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 		userID := getRouteVar("id", r)
 
-		if err := ar.server.Storages().UC.DeleteUser(r.Context(), userID, locale); err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
+		if err := ar.server.Storages().UMC.DeleteUser(r.Context(), userID); err != nil {
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -165,31 +165,40 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 }
 
 func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
+	// password reset data from admin panel.
+	type passwordResetData struct {
+		UserID       string `json:"user_id,omitempty"`
+		AppID        string `json:"app_id,omitempty"`
+		ResetPageURL string `json:"reset_page_url,omitempty"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		resetData := passwordResetData{}
 		if ar.mustParseJSON(w, r, &resetData) != nil {
 			return
 		}
 
-		user, err := ar.server.Storages().User.UserByID(resetData.UserID)
+		user, err := ar.server.Storages().User.UserByID(r.Context(), resetData.UserID)
 		if err != nil {
-			if err == model.ErrUserNotFound {
-				ar.Error(w, err, http.StatusNotFound, "")
-			} else {
-				ar.Error(w, err, http.StatusInternalServerError, "")
+			status := http.StatusInternalServerError
+			if errors.Is(err, model.ErrUserNotFound) {
+				status = http.StatusNotFound
 			}
+			ar.HTTPError(w, err, status)
 			return
 		}
 
 		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
 		resetTokenString, err := ar.server.Services().Token.String(resetToken)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -203,15 +212,15 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 		}
 		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
-		resetEmailData := ResetEmailData{
-			Token: resetTokenString,
-			URL:   u.String(),
-			Host:  uu.String(),
+		resetEmailData := map[string]string{
+			"Token": resetTokenString,
+			"URL":   u.String(),
+			"Host":  uu.String(),
 		}
 
 		app, err := ar.server.Storages().App.AppByID(resetData.AppID)
 		if err != nil {
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
@@ -225,15 +234,10 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 				Data: resetEmailData,
 			},
 		); err != nil {
-			ar.Error(
-				w,
-				err,
-				http.StatusInternalServerError,
-				"Email sending error: "+err.Error(),
-			)
+			ar.HTTPError(w, fmt.Errorf("email sending error: %w", err), http.StatusInternalServerError)
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, resetEmailData)
+		ar.ServeJSON(w, locale, http.StatusOK, resetEmailData)
 	}
 }

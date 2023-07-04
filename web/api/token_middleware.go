@@ -8,7 +8,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/jwt"
 	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )

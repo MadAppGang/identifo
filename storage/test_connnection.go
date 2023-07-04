@@ -7,7 +7,6 @@ import (
 	"github.com/madappgang/identifo/v2/storage/boltdb"
 	"github.com/madappgang/identifo/v2/storage/dynamodb"
 	"github.com/madappgang/identifo/v2/storage/fs"
-	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 	"github.com/madappgang/identifo/v2/storage/s3"
 )
@@ -49,10 +48,6 @@ func NewDatabaseConnectionTester(settings model.DatabaseSettings) model.Connecti
 		return mongo.NewConnectionTester(settings.Mongo)
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewConnectionTester(settings.Dynamo)
-	case model.DBTypeFake:
-		fallthrough
-	case model.DBTypeMem:
-		return mem.NewConnectionTester()
 	}
 	return nil
 }

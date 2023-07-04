@@ -3,7 +3,7 @@ package model
 import (
 	"regexp"
 
-	"github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 )
 
 var DefaultPasswordPolicy = PasswordPolicy{
@@ -34,7 +34,7 @@ type PasswordPolicyValidationResult struct {
 
 // Validation Rule is localizable human-readable rule description with params to be rendered.
 type ValidationRule struct {
-	Description localization.LocalizedString
+	Description l.LocalizedString
 	Params      []any
 }
 
@@ -42,7 +42,7 @@ func (vr PasswordPolicyValidationResult) Error() error {
 	if vr.Valid == true {
 		return nil // no error
 	}
-	return localization.LocalizedError{
+	return l.LocalizedError{
 		ErrID:   vr.ValidationRule.Description,
 		Details: vr.ValidationRule.Params,
 	}
@@ -74,7 +74,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 	valid := len(pswd) >= pp.MinPasswordLength
 	result = append(result, PasswordPolicyValidationResult{
 		ValidationRule{
-			Description: localization.PasswordLengthPolicy,
+			Description: l.PasswordLengthPolicy,
 			Params:      []any{pp.MinPasswordLength},
 		},
 		valid,
@@ -87,7 +87,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 		valid = !isCompromised
 		result = append(result, PasswordPolicyValidationResult{
 			ValidationRule{
-				Description: localization.PasswordRejectCompromised,
+				Description: l.PasswordRejectCompromised,
 				Params:      []any{},
 			},
 			valid,
@@ -106,7 +106,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 		valid = lowercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			ValidationRule{
-				Description: localization.PasswordRequireLowercase,
+				Description: l.PasswordRequireLowercase,
 				Params:      []any{},
 			},
 			valid,
@@ -120,7 +120,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 		valid = uppercaseRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			ValidationRule{
-				Description: localization.PasswordRequireUppercase,
+				Description: l.PasswordRequireUppercase,
 				Params:      []any{},
 			},
 			valid,
@@ -134,7 +134,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 		valid = numberRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			ValidationRule{
-				Description: localization.PasswordRequireNumber,
+				Description: l.PasswordRequireNumber,
 				Params:      []any{},
 			},
 			valid,
@@ -148,7 +148,7 @@ func (pp PasswordPolicy) Validate(pswd string, isCompromised bool) (bool, []Pass
 		valid = symbolRx.Match([]byte(pswd))
 		result = append(result, PasswordPolicyValidationResult{
 			ValidationRule{
-				Description: localization.PasswordRequireSymbol,
+				Description: l.PasswordRequireSymbol,
 				Params:      []any{},
 			},
 			valid,

@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/v2/l"
 	"gopkg.in/go-playground/validator.v9"
 )
 
@@ -20,14 +21,15 @@ const (
 // mustParseJSON parses request body json data to the `out` interface and then validates it.
 // Writes error to ResponseWriter if error happens.
 func (ar *Router) mustParseJSON(w http.ResponseWriter, r *http.Request, out interface{}) error {
+	locale := r.Header.Get("Accept-Language")
 	if err := json.NewDecoder(r.Body).Decode(out); err != nil {
-		ar.Error(w, err, http.StatusBadRequest, "")
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIJsonParseError, err)
 		return err
 	}
 
 	validate := validator.New()
 	if err := validate.Struct(out); err != nil {
-		ar.Error(w, err, http.StatusBadRequest, "")
+		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIJsonParseError, err)
 		return err
 	}
 

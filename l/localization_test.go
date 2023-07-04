@@ -1,9 +1,9 @@
-package localization_test
+package l_test
 
 import (
 	"testing"
 
-	"github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"golang.org/x/text/language"
@@ -11,7 +11,7 @@ import (
 )
 
 func TestLoadDefaultCatalog(t *testing.T) {
-	err := localization.LoadDefaultCatalog()
+	err := l.LoadDefaultCatalog()
 	require.NoError(t, err)
 	peng := message.NewPrinter(language.English)
 	assert.Equal(t, "I am test string", peng.Sprintf("test"))
@@ -22,7 +22,7 @@ func TestLoadDefaultCatalog(t *testing.T) {
 }
 
 func TestParseLanguageFromString(t *testing.T) {
-	err := localization.LoadDefaultCatalog()
+	err := l.LoadDefaultCatalog()
 	require.NoError(t, err)
 
 	l, err := language.Parse("uk")

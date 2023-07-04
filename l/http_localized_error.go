@@ -1,4 +1,4 @@
-package localization
+package l
 
 import (
 	"fmt"

@@ -5,9 +5,8 @@ import (
 	"errors"
 	"time"
 
-	l "github.com/madappgang/identifo/v2/localization"
-
 	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 

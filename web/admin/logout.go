@@ -2,11 +2,15 @@ package admin
 
 import (
 	"net/http"
+
+	"github.com/madappgang/identifo/v2/l"
 )
 
 // Logout logs admin out.
 func (ar *Router) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		c := &http.Cookie{
 			Name:     cookieName,
 			Value:    "",
@@ -20,24 +24,24 @@ func (ar *Router) Logout() http.HandlerFunc {
 		if err != nil {
 			switch err {
 			case http.ErrNoCookie:
-				ar.logger.Println("No cookie")
-				ar.ServeJSON(w, http.StatusOK, nil)
+				ar.Logger.Println("No cookie")
+				ar.ServeJSON(w, locale, http.StatusOK, nil)
 			default:
-				ar.Error(w, err, http.StatusInternalServerError, "")
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelMissingCookie, err.Error())
 			}
 			return
 		}
 
 		sessionID, err := decode(cookie.Value)
 		if err != nil {
-			ar.Error(w, ErrorRequestInvalidCookie, http.StatusBadRequest, "")
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelInvalidCookie, err.Error())
 			return
 		}
 		if err := ar.server.Storages().Session.DeleteSession(sessionID); err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.APIInternalServerError)
 			return
 		}
 
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }

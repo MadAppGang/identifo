@@ -5,6 +5,7 @@ const (
 	OfflineScope = "offline"
 )
 
+// TODO: refactor to reduce number of methods
 // TokenService is an abstract token manager.
 type TokenService interface {
 	NewAccessToken(u User, scopes []string, app AppData, requireTFA bool, tokenPayload map[string]interface{}) (Token, error)
@@ -12,6 +13,7 @@ type TokenService interface {
 	RefreshAccessToken(token Token) (Token, error)
 	NewInviteToken(email, role, audience string, data map[string]interface{}) (Token, error)
 	NewResetToken(userID string) (Token, error)
+	NewToken(tokenType TokenType, userID string, payload []any) (Token, error)
 	NewWebCookieToken(u User) (Token, error)
 	Parse(string) (Token, error)
 	String(Token) (string, error)

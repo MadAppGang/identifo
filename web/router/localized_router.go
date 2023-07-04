@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 )
 
 // LocalizedRouter router with provide localized error output.

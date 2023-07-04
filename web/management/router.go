@@ -10,7 +10,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 

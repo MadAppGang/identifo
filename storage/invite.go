@@ -6,7 +6,6 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
 	"github.com/madappgang/identifo/v2/storage/dynamodb"
-	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 )
 
@@ -21,8 +20,6 @@ func NewInviteStorage(settings model.DatabaseSettings) (model.InviteStorage, err
 		return dynamodb.NewInviteStorage(settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
-	case model.DBTypeMem:
-		return mem.NewInviteStorage()
 	default:
 		return nil, fmt.Errorf("invite storage type is not supported %s ", settings.Type)
 	}

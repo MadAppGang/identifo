@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/stretchr/testify/assert"
 )
@@ -23,42 +23,42 @@ func TestValidPassword(t *testing.T) {
 
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordLengthPolicy,
+			Description: l.PasswordLengthPolicy,
 			Params:      []any{policy.MinPasswordLength},
 		},
 		Valid: false,
 	})
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRejectCompromised,
+			Description: l.PasswordRejectCompromised,
 			Params:      []any{},
 		},
 		Valid: false,
 	})
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireLowercase,
+			Description: l.PasswordRequireLowercase,
 			Params:      []any{},
 		},
 		Valid: true,
 	})
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireUppercase,
+			Description: l.PasswordRequireUppercase,
 			Params:      []any{},
 		},
 		Valid: true,
 	})
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireNumber,
+			Description: l.PasswordRequireNumber,
 			Params:      []any{},
 		},
 		Valid: true,
 	})
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireSymbol,
+			Description: l.PasswordRequireSymbol,
 			Params:      []any{},
 		},
 		Valid: false,
@@ -81,7 +81,7 @@ func TestSymbolPassword(t *testing.T) {
 	_, results := policy.Validate("Abcdefg1", true)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireSymbol,
+			Description: l.PasswordRequireSymbol,
 			Params:      []any{},
 		},
 		Valid: false,
@@ -90,7 +90,7 @@ func TestSymbolPassword(t *testing.T) {
 	_, results = policy.Validate("Abcdef!<>g1", true)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRequireSymbol,
+			Description: l.PasswordRequireSymbol,
 			Params:      []any{},
 		},
 		Valid: true,
@@ -113,7 +113,7 @@ func TestLengthPassword(t *testing.T) {
 	_, results := policy.Validate("Abcdefg1", true)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordLengthPolicy,
+			Description: l.PasswordLengthPolicy,
 			Params:      []any{policy.MinPasswordLength},
 		},
 		Valid: false,
@@ -122,7 +122,7 @@ func TestLengthPassword(t *testing.T) {
 	_, results = policy.Validate("Abcdef!<>g1fffdd", true)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordLengthPolicy,
+			Description: l.PasswordLengthPolicy,
 			Params:      []any{policy.MinPasswordLength},
 		},
 
@@ -146,7 +146,7 @@ func TestCompromised(t *testing.T) {
 	_, results := policy.Validate("Abcdefg1", true)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRejectCompromised,
+			Description: l.PasswordRejectCompromised,
 			Params:      []any{},
 		},
 		Valid: false,
@@ -154,7 +154,7 @@ func TestCompromised(t *testing.T) {
 	_, results = policy.Validate("Abcdefg1", false)
 	assert.Contains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRejectCompromised,
+			Description: l.PasswordRejectCompromised,
 			Params:      []any{},
 		},
 		Valid: true,
@@ -164,14 +164,14 @@ func TestCompromised(t *testing.T) {
 	_, results = policy.Validate("Abcdefg1", true)
 	assert.NotContains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRejectCompromised,
+			Description: l.PasswordRejectCompromised,
 			Params:      []any{},
 		},
 		Valid: true,
 	})
 	assert.NotContains(t, results, model.PasswordPolicyValidationResult{
 		ValidationRule: model.ValidationRule{
-			Description: localization.PasswordRejectCompromised,
+			Description: l.PasswordRejectCompromised,
 			Params:      []any{},
 		},
 		Valid: false,

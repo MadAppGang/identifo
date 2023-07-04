@@ -9,6 +9,7 @@ import (
 // GetApp fetches app by ID from the database.
 func (ar *Router) FederatedProvidersList() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		ar.ServeJSON(w, http.StatusOK, model.FederatedProviders)
+		locale := r.Header.Get("Accept-Language")
+		ar.ServeJSON(w, locale, http.StatusOK, model.FederatedProviders)
 	}
 }

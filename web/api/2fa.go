@@ -10,7 +10,7 @@ import (
 	"time"
 
 	ijwt "github.com/madappgang/identifo/v2/jwt"
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"

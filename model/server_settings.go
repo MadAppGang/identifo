@@ -117,7 +117,6 @@ const (
 	DBTypeMongoDB  DatabaseType = "mongo"   // DBTypeMongoDB is for MongoDB.
 	DBTypeDynamoDB DatabaseType = "dynamo"  // DBTypeDynamoDB is for DynamoDB.
 	DBTypeFake     DatabaseType = "fake"    // DBTypeFake is return some predefined const data.
-	DBTypeMem      DatabaseType = "mem"     // DBTypeMem is for in-memory storage.
 	DBTypePlugin   DatabaseType = "plugin"  // DBTypePlugin is used for hashicorp/go-plugin.
 	DBTypeGRPC     DatabaseType = "grpc"    // DBTypeGRPC is used for pure grpc.
 )

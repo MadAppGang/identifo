@@ -9,9 +9,11 @@ type ServerInitErrors struct {
 // return all server errors
 func (ar *Router) GetServerErrors() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		response := ServerInitErrors{
 			Errors: ar.server.Errors(),
 		}
-		ar.ServeJSON(w, http.StatusOK, response)
+		ar.ServeJSON(w, locale, http.StatusOK, response)
 	}
 }

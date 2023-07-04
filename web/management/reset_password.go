@@ -3,7 +3,7 @@ package management
 import (
 	"net/http"
 
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -25,7 +25,7 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := ar.server.Storages().User.UserByEmail(d.Email)
+	user, err := ar.server.Storages().User.UserByEmail(r.Context(), d.Email)
 	if err == model.ErrUserNotFound {
 		// return ok, but there is no user
 		ar.logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)

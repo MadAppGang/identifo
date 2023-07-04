@@ -7,7 +7,7 @@ import (
 	"os"
 
 	"github.com/gorilla/mux"
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	r "github.com/madappgang/identifo/v2/web/router"

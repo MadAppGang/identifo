@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"time"
 
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	thp "github.com/madappgang/identifo/v2/user_payload_provider/http"
 	"github.com/madappgang/identifo/v2/web/authorization"

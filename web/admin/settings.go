@@ -1,9 +1,10 @@
 package admin
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -34,48 +35,50 @@ type StorageSettingsAPI struct {
 // FetchSettings returns server settings.
 func (ar *Router) FetchSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		s := ar.server.Storages().Config.LoadedSettings()
-		ar.ServeJSON(w, http.StatusOK, s)
+		ar.ServeJSON(w, locale, http.StatusOK, s)
 	}
 }
 
 // UpdateSettings handles the request to update server settings.
 func (ar *Router) UpdateSettings() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		s := ar.server.Settings()
 
 		us := ServerSettingsAPI{}
 		if err := ar.mustParseJSON(w, r, &us); err != nil {
-			ar.Error(w, fmt.Errorf("error parsing api settings: %v", err), http.StatusBadRequest, "")
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIJsonParseError, err.Error())
 			return
 		}
 
 		merged, changed := mergeSettings(s, us)
 		if !changed {
-			ar.Error(w, fmt.Errorf("no settings has been changed, skipping the update"), http.StatusBadRequest, "")
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorServerUpdateSettingsNoChange)
 			return
 		}
 
 		if err := merged.Validate(true); err != nil {
-			ar.Error(w, fmt.Errorf("settings validation failed with error: %v", err), http.StatusBadRequest, "")
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorServerUpdateSettingsValidationError, errors.Join(err...))
 			return
 		}
 
 		if err := ar.server.Storages().Config.WriteConfig(merged); err != nil {
-			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
-			ar.Error(w, fmt.Errorf("error saving new config: %v", err), http.StatusInternalServerError, "")
+			ar.Logger.Println("Cannot insert new settings into configuration storage:", err)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorServerUpdateSettingsAPPlyError, err.Error())
 			return
 		}
 
 		// if the config storage is not supporting instant reloading - let's force restart it
 		if ar.forceRestart != nil && ar.server.Storages().Config.ForceReloadOnWriteConfig() {
 			go func() {
-				ar.logger.Println("sending server restart")
+				ar.Logger.Println("sending server restart")
 				ar.forceRestart <- true
 			}()
 		}
 
-		ar.ServeJSON(w, http.StatusOK, merged)
+		ar.ServeJSON(w, locale, http.StatusOK, merged)
 	}
 }
 
@@ -171,10 +174,12 @@ func mergeSettings(settings model.ServerSettings, updatedSettings ServerSettings
 // TestDatabaseConnection tests database connection.
 func (ar *Router) TestDatabaseConnection() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		if err := ar.server.Storages().App.TestDatabaseConnection(); err != nil {
-			ar.ServeJSON(w, http.StatusInternalServerError, nil)
+			ar.ServeJSON(w, locale, http.StatusInternalServerError, nil)
 		} else {
-			ar.ServeJSON(w, http.StatusOK, nil)
+			ar.ServeJSON(w, locale, http.StatusOK, nil)
 		}
 	}
 }

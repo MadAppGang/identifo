@@ -7,7 +7,6 @@ import (
 	"github.com/madappgang/identifo/v2/storage/boltdb"
 	"github.com/madappgang/identifo/v2/storage/dynamodb"
 	"github.com/madappgang/identifo/v2/storage/grpc"
-	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 	"github.com/madappgang/identifo/v2/storage/plugin"
 )
@@ -21,8 +20,6 @@ func NewUserStorage(settings model.DatabaseSettings) (model.UserStorage, error) 
 		return mongo.NewUserStorage(settings.Mongo)
 	case model.DBTypeDynamoDB:
 		return dynamodb.NewUserStorage(settings.Dynamo)
-	case model.DBTypeMem, model.DBTypeFake:
-		return mem.NewUserStorage()
 	case model.DBTypePlugin:
 		return plugin.NewUserStorage(settings.Plugin)
 	case model.DBTypeGRPC:

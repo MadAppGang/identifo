@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/urfave/negroni"
 )
 
@@ -13,10 +14,12 @@ import (
 // If not, forces to login.
 func (ar *Router) Session() negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
+		locale := r.Header.Get("Accept-Language")
+
 		if ar.isLoggedIn(w, r) {
 			sessionID, err := ar.getSessionID(r)
 			if err != nil {
-				ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
+				ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAdminPanelNotAuthorized)
 				return
 			}
 			ar.prolongSession(w, sessionID)
@@ -28,27 +31,31 @@ func (ar *Router) Session() negroni.HandlerFunc {
 // IsLoggedIn checks if admin is logged in.
 func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		if ar.isLoggedIn(w, r) {
-			ar.ServeJSON(w, http.StatusOK, nil)
+			ar.ServeJSON(w, locale, http.StatusOK, nil)
 		}
 	}
 }
 
 func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
+	locale := r.Header.Get("Accept-Language")
+
 	sessionID, err := ar.getSessionID(r)
 	if err != nil {
-		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, err.Error())
+		ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAdminPanelNotAuthorized)
 		return false
 	}
 
 	session, err := ar.server.Storages().Session.GetSession(sessionID)
 	if err != nil {
-		ar.Error(w, err, http.StatusUnauthorized, err.Error())
+		ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAdminPanelMissingSession)
 		return false
 	}
 
 	if time.Unix(session.ExpirationTime, 0).Before(time.Now()) {
-		ar.Error(w, ErrorNotAuthorized, http.StatusUnauthorized, "")
+		ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAdminPanelMissingSession)
 		return false
 	}
 
@@ -57,7 +64,7 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 
 func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 	if err := ar.server.Services().Session.ProlongSession(sessionID); err != nil {
-		ar.logger.Println("Error prolonging session:", err)
+		ar.Logger.Println("Error prolonging session:", err)
 		return
 	}
 	c := &http.Cookie{

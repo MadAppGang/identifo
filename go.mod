@@ -26,7 +26,6 @@ require (
 	github.com/markbates/goth v1.74.1
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/onsi/gomega v1.22.1
-	github.com/pallinder/go-randomdata v1.2.0
 	github.com/qiangmzsx/string-adapter v1.0.0
 	github.com/rs/cors v1.8.2
 	github.com/rs/xid v1.4.0

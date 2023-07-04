@@ -3,11 +3,12 @@ package admin
 import (
 	"crypto/rand"
 	"encoding/base64"
-	"fmt"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -19,29 +20,30 @@ const (
 // GetApp fetches app by ID from the database.
 func (ar *Router) GetApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		appID := getRouteVar("id", r)
-
 		app, err := ar.server.Storages().App.AppByID(appID)
 		if err != nil {
-			if err == model.ErrorNotFound {
-				ar.Error(w, err, http.StatusNotFound, "")
-				return
+			status := http.StatusInternalServerError
+			if errors.Is(err, model.ErrUserNotFound) {
+				status = http.StatusNotFound
 			}
-			ar.Error(w, err, http.StatusInternalServerError, "")
+			ar.HTTPError(w, err, status)
 			return
 		}
-		ar.ServeJSON(w, http.StatusOK, app)
+		ar.ServeJSON(w, locale, http.StatusOK, app)
 	}
 }
 
 // FetchApps fetches apps from the database.
 func (ar *Router) FetchApps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		filterStr := strings.TrimSpace(r.URL.Query().Get("search"))
 
 		apps, err := ar.server.Storages().App.FetchApps(filterStr)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 		for i, app := range apps {
@@ -53,36 +55,40 @@ func (ar *Router) FetchApps() http.HandlerFunc {
 		}{
 			Apps: apps,
 		}
-		ar.ServeJSON(w, http.StatusOK, &searchResponse)
+		ar.ServeJSON(w, locale, http.StatusOK, &searchResponse)
 	}
 }
 
 // CreateApp adds new app to the database.
 func (ar *Router) CreateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		ad := model.AppData{}
 		if ar.mustParseJSON(w, r, &ad) != nil {
 			return
 		}
 
-		appSecret, err := ar.generateAppSecret(w)
+		appSecret, err := ar.generateAppSecret()
 		if err != nil {
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAdminPanelGenerateSecret, err)
 			return
 		}
 		ad.Secret = appSecret
 
 		app, err := ar.server.Storages().App.CreateApp(ad)
 		if err != nil {
-			ar.Error(w, err, http.StatusBadRequest, "")
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 			return
 		}
-		ar.ServeJSON(w, http.StatusOK, app)
+		ar.ServeJSON(w, locale, http.StatusOK, app)
 	}
 }
 
 // UpdateApp updates app in the database.
 func (ar *Router) UpdateApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
 		appID := getRouteVar("id", r)
 
 		ad := model.AppData{}
@@ -91,44 +97,44 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 		}
 
 		if lenSecret := len(ad.Secret); lenSecret < 24 || lenSecret > 48 {
-			err := fmt.Errorf("Incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAdminPanelAPPSecretLength, lenSecret)
 			return
 		}
 		if !isBase64(ad.Secret) {
-			err := fmt.Errorf("Expecting appsecret to be base64 encoded")
-			ar.Error(w, err, http.StatusBadRequest, err.Error())
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAdminPanelAPPSecretNotBase64)
 			return
 		}
 
 		app, err := ar.server.Storages().App.UpdateApp(appID, ad)
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 			return
 		}
 
 		if err = ar.updateAllowedOrigins(); err != nil {
-			ar.logger.Printf("Error occurred during updating allowed origins for App %s, error: %v", appID, err)
+			ar.Logger.Printf("Error occurred during updating allowed origins for App %s, error: %v", appID, err)
 		}
 
-		ar.logger.Printf("App %s updated", appID)
+		ar.Logger.Printf("App %s updated", appID)
 
-		ar.ServeJSON(w, http.StatusOK, app)
+		ar.ServeJSON(w, locale, http.StatusOK, app)
 	}
 }
 
 // DeleteApp deletes app from the database by id.
 func (ar *Router) DeleteApp() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		appID := getRouteVar("id", r)
 		if err := ar.server.Storages().App.DeleteApp(appID); err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, "")
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 			return
 		}
 
-		ar.logger.Printf("App %s deleted", appID)
+		ar.Logger.Printf("App %s deleted", appID)
 
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }
 
@@ -136,29 +142,30 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 // now we are using it for tests
 func (ar *Router) DeleteAllApps() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
 		apps, err := ar.server.Storages().App.FetchApps("")
 		if err != nil {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, err.Error())
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 		}
 		var errs []error
 		for _, a := range apps {
 			err := ar.server.Storages().App.DeleteApp(a.ID)
 			if err != nil {
 				errs = append(errs, err)
-				ar.logger.Printf("Error deleting app: %s, error: %s. Ignoring and moving next.", a.ID, err)
+				ar.Logger.Printf("Error deleting app: %s, error: %s. Ignoring and moving next.", a.ID, err)
 			}
 		}
 		if len(errs) > 0 {
-			ar.Error(w, ErrorInternalError, http.StatusInternalServerError, fmt.Sprintf("%v", errs))
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, errors.Join(errs...))
 		}
-		ar.ServeJSON(w, http.StatusOK, nil)
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }
 
-func (ar *Router) generateAppSecret(w http.ResponseWriter) (string, error) {
+func (ar *Router) generateAppSecret() (string, error) {
 	secret := make([]byte, 16)
 	if _, err := io.ReadFull(rand.Reader, secret); err != nil {
-		ar.Error(w, err, http.StatusInternalServerError, "Cannot create app secret")
 		return "", err
 	}
 	return base64.StdEncoding.EncodeToString(secret), nil

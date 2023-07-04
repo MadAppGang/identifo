@@ -6,6 +6,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
 	"github.com/madappgang/identifo/v2/services/mail"
@@ -13,7 +14,6 @@ import (
 	"github.com/madappgang/identifo/v2/storage"
 
 	jwt "github.com/madappgang/identifo/v2/jwt/service"
-	l "github.com/madappgang/identifo/v2/localization"
 )
 
 var adminPanelFSSettings = model.FileStorageSettings{

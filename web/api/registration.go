@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
-	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"

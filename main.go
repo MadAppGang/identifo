@@ -12,13 +12,13 @@ import (
 	"time"
 
 	"github.com/madappgang/identifo/v2/config"
-	"github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 func main() {
 	// load default translations
-	localization.LoadDefaultCatalog()
+	l.LoadDefaultCatalog()
 
 	// load config
 	configFlag := flag.String("config", "", "The location of a server configuration file (local file, s3 or etcd)")
