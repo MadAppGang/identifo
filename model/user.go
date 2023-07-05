@@ -44,15 +44,8 @@ type User struct {
 	LoginsCount int       `json:"logins_count,omitempty"`
 
 	// verification data
-	PhoneVerificationDetails struct {
-		VerifiedAt      time.Time `json:"verified_at,omitempty"`
-		VerifiedDetails string    `json:"verified_details,omitempty"`
-	} `json:"phone_verification_details,omitempty"`
-
-	EmailVerificationDetails struct {
-		VerifiedAt      time.Time `json:"verified_at,omitempty"`
-		VerifiedDetails string    `json:"verified_details,omitempty"`
-	} `json:"email_verification_details,omitempty"`
+	PhoneVerificationDetails *VerificationDetails `json:"phone_verification_details,omitempty"`
+	EmailVerificationDetails *VerificationDetails `json:"email_verification_details,omitempty"`
 
 	// blocked user
 	Blocked        bool                `json:"blocked,omitempty"`
@@ -65,6 +58,11 @@ type User struct {
 	// user record metadata
 	CreatedAt time.Time `json:"created_at,omitempty"`
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
+}
+
+type VerificationDetails struct {
+	VerifiedAt      time.Time `json:"verified_at,omitempty"`
+	VerifiedDetails string    `json:"verified_details,omitempty"`
 }
 
 // UserData model represents all collective information about the user
@@ -182,4 +180,22 @@ func FilterUserDataFields(source UserData, fields ...UserDataField) UserData {
 		}
 	}
 	return result
+}
+
+// IDValueForAuthType returns ID value for auth type
+func (u User) IDValueForAuthType(a AuthIdentityType) string {
+	switch a {
+	case AuthIdentityTypeEmail:
+		return u.Email
+	case AuthIdentityTypeID:
+		return u.ID
+	case AuthIdentityTypeAnonymous:
+		return u.ID
+	case AuthIdentityTypePhone:
+		return u.PhoneNumber
+	case AuthIdentityTypeUsername:
+		return u.Username
+	}
+
+	return ""
 }

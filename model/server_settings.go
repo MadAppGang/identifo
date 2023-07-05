@@ -35,11 +35,13 @@ type ServerSettings struct {
 
 // GeneralServerSettings are general server settings.
 type GeneralServerSettings struct {
-	Locale          string   `yaml:"locale" json:"locale"`
-	Host            string   `yaml:"host" json:"host"`
-	Port            string   `yaml:"port" json:"port"`
-	Issuer          string   `yaml:"issuer" json:"issuer"`
-	SupportedScopes []string `yaml:"supported_scopes" json:"supported_scopes"`
+	Locale            string             `yaml:"locale" json:"locale"`
+	Host              string             `yaml:"host" json:"host"`
+	Port              string             `yaml:"port" json:"port"`
+	Issuer            string             `yaml:"issuer" json:"issuer"`
+	SupportedScopes   []string           `yaml:"supported_scopes" json:"supported_scopes"`
+	ImmutableIDFields []AuthIdentityType `yaml:"immutable_id_fields" json:"immutable_id_fields"`
+	UniqueIDFields    []AuthIdentityType `yaml:"unique_id_fields" json:"unique_id_fields"`
 }
 
 // AdminAccountSettings are names of environment variables that store admin credentials.

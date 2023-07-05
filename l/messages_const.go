@@ -191,6 +191,22 @@ const (
 	ErrorAPPResetUrlError LocalizedString = "error.app.reset_url.error"
 
 	//===========================================================================
+	//  Login
+	//===========================================================================
+	// ErrorUpdateUserImmutableField -> Field %s could not be updated.
+	ErrorUpdateUserImmutableField LocalizedString = "error.update.user.immutable.field"
+	// ErrorUpdateUserFieldValueAlreadyOccupied -> %s %s already exists, choose other one
+	ErrorUpdateUserFieldValueAlreadyOccupied LocalizedString = "error.update.user.field.value.already.occupied"
+	// ErrorInvalidPhone -> invalid phone number
+	ErrorInvalidPhone LocalizedString = "error.invalid.phone"
+	// ErrorEmailEmpty -> email could not be empty
+	ErrorEmailEmpty LocalizedString = "error.email.empty"
+	// ErrorPhoneEmpty -> phone could not be empty
+	ErrorPhoneEmpty LocalizedString = "error.phone.empty"
+	// ErrorUsernameEmpty -> username could not be empty
+	ErrorUsernameEmpty LocalizedString = "error.username.empty"
+
+	//===========================================================================
 	//  Federated login
 	//===========================================================================
 	// APIAPPFederatedProviderNotSupported -> Federated provider is not supported.

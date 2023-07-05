@@ -90,6 +90,13 @@ error.app.register_url.error: "Invalid register URL (%s) for app (%s): %v."
 error.app.login.no_scope: "User has no required scopes by this app."
 error.app.reset_url.error: "Invalid reset password URL (%s) for app (%s): %v."
 
+# Login
+error.update.user.immutable.field: "Field %s could not be updated."
+error.update.user.field.value.already.occupied: "%s %s already exists, choose other one"
+error.invalid.phone: "invalid phone number"
+error.email.empty: "email could not be empty"
+error.phone.empty: "phone could not be empty"
+error.username.empty: "username could not be empty"
 
 # Federated login
 api.app.federated.provider.not_supported: Federated provider is not supported.

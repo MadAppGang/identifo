@@ -25,7 +25,7 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := ar.server.Storages().User.UserByEmail(r.Context(), d.Email)
+	user, err := ar.server.Storages().UC.UserBySecondaryID(r.Context(), model.UserIdentityTypeEmail, d.Email)
 	if err == model.ErrUserNotFound {
 		// return ok, but there is no user
 		ar.logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
@@ -37,7 +37,6 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	// TODO: add TFA support, now it ignores TFA support
 	resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)

@@ -3,11 +3,18 @@ package model
 type UserFieldset string
 
 const (
-	UserFieldsetBasic       UserFieldset = "basic"
-	UserFieldsetAll         UserFieldset = "all"
-	UserFieldsetBlockStatus UserFieldset = "block_status"
-	UserFieldsetPassword    UserFieldset = "password"
+	UserFieldsetBasic             UserFieldset = "basic"
+	UserFieldsetAll               UserFieldset = "all"
+	UserFieldsetBlockStatus       UserFieldset = "block_status"
+	UserFieldsetPassword          UserFieldset = "password"
+	UserFieldsetSecondaryIdentity UserFieldset = "secondary_identity"
+	UserFieldsetUpdatableByUser   UserFieldset = "updatable_by_user"
 	// TODO: Add fieldset cases for other cases.
+
+	UserFieldEmail    = "Email"
+	UserFieldID       = "ID"
+	UserFieldUsername = "Username"
+	UserFieldPhone    = "PhoneNumber"
 )
 
 // TODO: Add more fieldset for a map.
@@ -30,6 +37,28 @@ var UserFieldsetMap = map[UserFieldset][]string{
 		"PasswordResetRequired",
 		"PasswordChangeForced",
 		"LastPasswordResetAt",
+	},
+	UserFieldsetUpdatableByUser: {
+		"Username",
+		"Email",
+		"GivenName",
+		"FamilyName",
+		"MiddleName",
+		"Nickname",
+		"PreferredUsername",
+		"PhoneNumber",
+		"Profile",
+		"Picture",
+		"Website",
+		"Gender",
+		"Birthday",
+		"Timezone",
+		"Locale",
+		"Address",
+	},
+	UserFieldsetSecondaryIdentity: {
+		"Username",
+		"PhoneNumber",
 	},
 }
 

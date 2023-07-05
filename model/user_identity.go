@@ -8,8 +8,8 @@ type UnitedUserIdentity struct {
 	UserID string `json:"user_id,omitempty"`
 
 	// ExternalID is the ID of the user identity in the external system.
-	ExternalID string           `json:"external_id,omitempty"`
-	Type       UserIdentityType `json:"type,omitempty"`
+	ExternalID string            `json:"external_id,omitempty"`
+	Type       UserFederatedType `json:"federated_type,omitempty"`
 
 	// TypeOther, if Type is UserIdentityTypeOther, this field keeps unique name for those other identity type.
 	TypeOther   string    `json:"type_other,omitempty"`
@@ -24,26 +24,32 @@ type UnitedUserIdentity struct {
 	OIDC     map[string]UserIdentityOIDC `json:"oidc,omitempty"`
 }
 
-type UserIdentityType string
+// UserFederatedType the user federated identity type.
+type UserFederatedType string
 
 const (
-	UserIdentityTypeApple    UserIdentityType = "apple"
-	UserIdentityTypeGoogle   UserIdentityType = "google"
-	UserIdentityTypeFacebook UserIdentityType = "facebook"
-	UserIdentityTypeTwitter  UserIdentityType = "twitter"
-	UserIdentityTypeOIDC     UserIdentityType = "oidc"
-	UserIdentityTypeUnknown  UserIdentityType = "unknown"
-	UserIdentityTypeOther    UserIdentityType = "other"
+	UserIdentityTypeApple    UserFederatedType = "apple"
+	UserIdentityTypeGoogle   UserFederatedType = "google"
+	UserIdentityTypeFacebook UserFederatedType = "facebook"
+	UserIdentityTypeTwitter  UserFederatedType = "twitter"
+	UserIdentityTypeOIDC     UserFederatedType = "oidc"
+	UserIdentityTypeUnknown  UserFederatedType = "unknown"
+	UserIdentityTypeOther    UserFederatedType = "other"
 )
 
 // TODO: Jack: implement FIM fields for user identity.
 
+// UserIdentityFacebook facebook specific fields.
 type UserIdentityFacebook struct{}
 
+// UserIdentityGoogle google specific fields.
 type UserIdentityGoogle struct{}
 
+// UserIdentityTwitter twitter specific fields.
 type UserIdentityTwitter struct{}
 
+// UserIdentityApple apple specific fields.
 type UserIdentityApple struct{}
 
+// UserIdentityOIDC oidc specific fields.
 type UserIdentityOIDC struct{}

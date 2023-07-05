@@ -143,3 +143,18 @@ const (
 	// SecondFactorPolicyCustom - we delegate the policy to a plugin.
 	SecondFactorPolicyCustom SecondFactorPolicy = "custom"
 )
+
+func (a AuthIdentityType) Field() string {
+	switch a {
+	case AuthIdentityTypeID:
+		return UserFieldID
+	case AuthIdentityTypeEmail:
+		return UserFieldEmail
+	case AuthIdentityTypeUsername:
+		return UserFieldUsername
+	case AuthIdentityTypePhone:
+		return UserFieldPhone
+	default:
+		return ""
+	}
+}
