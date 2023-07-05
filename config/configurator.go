@@ -69,7 +69,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
-	userController := storage.NewUserStorageController(user, settings.SecuritySettings)
+	userController := storage.NewUserStorageController(user, settings)
 	l, err := l.NewPrinter(settings.General.Locale)
 	if err != nil {
 		log.Printf("Error on Create Localized printer for User Controller %v", err)

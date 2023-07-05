@@ -13,8 +13,6 @@ api.internal_server_error_with_error: Internal server error; %v.
 api.access_denied: Access denied.
 error.api.user.unable_to_create: Unable to create use, please try again or contact support team.
 error.api.verification_code.invalid: Sorry, the code you entered is invalid or has expired. Please get a new one.
-error.api.user.not_found: User not found.
-error.api.user.not_found.error: User not found with error; %v.
 error.api.username.taken: Username is taken. Try to choose another one.
 error.api.username_phone_email.taken: Username, email or/and phone is taken. Try to choose another one.
 error.api.email.taken: Email is taken. Try to choose another one.
@@ -97,6 +95,8 @@ error.invalid.phone: "invalid phone number"
 error.email.empty: "email could not be empty"
 error.phone.empty: "phone could not be empty"
 error.username.empty: "username could not be empty"
+error.user.not_found: User not found.
+error.user.not_found.error: User not found with error; %v.
 
 # Federated login
 api.app.federated.provider.not_supported: Federated provider is not supported.
@@ -184,3 +184,4 @@ password.require.lowercase: "Require at least one lowercase characters."
 password.require.uppercase: "Require at least one uppercase characters."
 password.require.number: "Require at least one number."
 password.require.symbol: "Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?."
+

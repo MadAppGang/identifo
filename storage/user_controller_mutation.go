@@ -10,7 +10,7 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 )
 
-var _umc model.UserMutationController = NewUserStorageController(nil, model.ServerSettings{})
+var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // ====================================
 // Data mutation
@@ -174,7 +174,7 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 				// 2.7
 				if err == nil {
 					return user, l.LocalizedError{ErrID: l.ErrorAPIEmailTaken}
-				} else if !errors.Is(err, model.ErrUserNotFound) {
+				} else if !errors.Is(err, l.ErrorUserNotFound) {
 					// some other error
 					return user, err
 				}
@@ -199,7 +199,7 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 				// 2.7
 				if err == nil {
 					return user, l.LocalizedError{ErrID: l.ErrorAPIPhoneTaken}
-				} else if !errors.Is(err, model.ErrUserNotFound) {
+				} else if !errors.Is(err, l.ErrorUserNotFound) {
 					// some other error
 					return user, err
 				}
@@ -224,7 +224,7 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 				// 2.7
 				if err == nil {
 					return user, l.LocalizedError{ErrID: l.ErrorAPIUsernameTaken}
-				} else if !errors.Is(err, model.ErrUserNotFound) {
+				} else if !errors.Is(err, l.ErrorUserNotFound) {
 					// some other error
 					return user, err
 				}

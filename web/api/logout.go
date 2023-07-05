@@ -30,7 +30,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		// Blacklist current access token.
 		if err := ar.server.Storages().Blocklist.Add(accessTokenString); err != nil {
-			ar.logger.Printf("Cannot blacklist access token: %s\n", err)
+			ar.Logger.Printf("Cannot blacklist access token: %s\n", err)
 		}
 
 		if r.Body == http.NoBody {

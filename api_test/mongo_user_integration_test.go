@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 	"github.com/stretchr/testify/assert"
@@ -79,12 +80,12 @@ func TestFetchUser(t *testing.T) {
 
 	t.Run("user not found", func(t *testing.T) {
 		_, err := s.UserByID(primitive.NewObjectID().Hex())
-		require.ErrorIs(t, err, model.ErrUserNotFound)
+		require.ErrorIs(t, err, l.ErrorUserNotFound)
 
 		_, err = s.UserByPhone("+71111111112")
-		require.ErrorIs(t, err, model.ErrUserNotFound)
+		require.ErrorIs(t, err, l.ErrorUserNotFound)
 
 		_, err = s.UserByEmail("noemail@example.com")
-		require.ErrorIs(t, err, model.ErrUserNotFound)
+		require.ErrorIs(t, err, l.ErrorUserNotFound)
 	})
 }

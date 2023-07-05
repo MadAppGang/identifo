@@ -8,6 +8,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -85,7 +86,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.D{{Key: "_id", Value: id}}).Decode(&u); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.User{}, model.ErrUserNotFound
+			return model.User{}, l.ErrorUserNotFound
 		}
 
 		return model.User{}, err
@@ -106,7 +107,7 @@ func (us *UserStorage) UserByEmail(email string) (model.User, error) {
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.D{{Key: "email", Value: email}}).Decode(&u); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.User{}, model.ErrUserNotFound
+			return model.User{}, l.ErrorUserNotFound
 		}
 
 		return model.User{}, err
@@ -126,7 +127,7 @@ func (us *UserStorage) UserByFederatedID(provider string, id string) (model.User
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.D{{Key: "federated_ids", Value: sid}}).Decode(&u); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.User{}, model.ErrUserNotFound
+			return model.User{}, l.ErrorUserNotFound
 		}
 
 		return model.User{}, err
@@ -174,7 +175,7 @@ func (us *UserStorage) UserByPhone(phone string) (model.User, error) {
 	var u model.User
 	if err := us.coll.FindOne(ctx, bson.D{{Key: "phone", Value: phone}}).Decode(&u); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.User{}, model.ErrUserNotFound
+			return model.User{}, l.ErrorUserNotFound
 		}
 
 		return model.User{}, err
@@ -194,7 +195,7 @@ func (us *UserStorage) UserByUsername(username string) (model.User, error) {
 	var u model.User
 	if err := us.coll.FindOne(ctx, q).Decode(&u); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.User{}, model.ErrUserNotFound
+			return model.User{}, l.ErrorUserNotFound
 		}
 
 		return model.User{}, err
@@ -272,7 +273,7 @@ func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, 
 	}
 
 	// unknown error during user existnce check
-	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
+	if err != nil && !errors.Is(err, l.ErrorUserNotFound) {
 		return model.User{}, err
 	}
 
@@ -338,7 +339,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 	err = us.coll.FindOneAndUpdate(ctx, bson.D{{Key: "_id", Value: id}}, update, opts).Decode(&ud)
 	if err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		return err
@@ -351,12 +352,12 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 func (us *UserStorage) CheckPassword(id, password string) error {
 	user, err := us.UserByID(id)
 	if err != nil {
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
 		// return this error to hide the existence of the user.
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 	return nil
 }

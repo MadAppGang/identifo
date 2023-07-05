@@ -4,13 +4,11 @@ import (
 	"io/fs"
 	"log"
 	"net/http"
-	"net/url"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/madappgang/identifo/v2/web/admin"
 	"github.com/madappgang/identifo/v2/web/api"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/management"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/madappgang/identifo/v2/web/spa"
@@ -30,7 +28,6 @@ type RouterSetting struct {
 	Server           model.Server
 	Logger           *log.Logger
 	ServeAdminPanel  bool
-	Host             *url.URL
 	LoggerSettings   model.LoggerSettings
 	AppOriginChecker model.OriginChecker
 	APICors          *cors.Cors
@@ -42,7 +39,6 @@ type RouterSetting struct {
 func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	r := Router{}
 	var err error
-	authorizer := authorization.NewAuthorizer()
 
 	// API router setup
 	apiCorsSettings := model.DefaultCors
@@ -52,16 +48,11 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	apiCors := cors.New(apiCorsSettings)
 
 	apiSettings := api.RouterSettings{
-		Server:           settings.Server,
-		Logger:           settings.Logger,
-		LoggerSettings:   settings.LoggerSettings,
-		Authorizer:       authorizer,
-		Host:             settings.Host,
-		LoginWith:        settings.Server.Settings().Login.LoginWith,
-		TFAType:          settings.Server.Settings().Login.TFAType,
-		TFAResendTimeout: settings.Server.Settings().Login.TFAResendTimeout,
-		Cors:             apiCors,
-		Locale:           settings.Locale,
+		Server:         settings.Server,
+		Logger:         settings.Logger,
+		LoggerSettings: settings.LoggerSettings,
+		Cors:           apiCors,
+		Locale:         settings.Locale,
 	}
 
 	apiRouter, err := api.NewRouter(apiSettings)
@@ -103,8 +94,6 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 		routerSettings := admin.RouterSettings{
 			Server:  settings.Server,
 			Logger:  settings.Logger,
-			Host:    settings.Host,
-			Prefix:  adminpanelAPIPath,
 			Restart: settings.RestartChan,
 		}
 

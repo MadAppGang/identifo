@@ -3,13 +3,11 @@ package api
 import (
 	"log"
 	"net/http"
-	"net/url"
 	"os"
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	r "github.com/madappgang/identifo/v2/web/router"
 	"github.com/rs/cors"
 )
@@ -17,31 +15,20 @@ import (
 // Router is a router that handles all API requests.
 type Router struct {
 	r.LocalizedRouter
-	server               model.Server
-	cors                 *cors.Cors
-	router               *mux.Router
-	tfaType              model.TFAType
-	tfaResendTimeout     int
-	oidcConfiguration    *OIDCConfiguration
-	jwk                  *JWK
-	Authorizer           *authorization.Authorizer
-	Host                 *url.URL
-	SupportedLoginWays   model.LoginWith
-	tokenPayloadServices map[string]model.TokenPayloadProvider
-	LoggerSettings       model.LoggerSettings
+	server            model.Server
+	cors              *cors.Cors
+	router            *mux.Router
+	oidcConfiguration *OIDCConfiguration
+	jwk               *JWK
+	LoggerSettings    model.LoggerSettings
 }
 
 type RouterSettings struct {
-	Server           model.Server
-	Logger           *log.Logger
-	LoggerSettings   model.LoggerSettings
-	Authorizer       *authorization.Authorizer
-	Host             *url.URL
-	TFAType          model.TFAType
-	TFAResendTimeout int
-	LoginWith        model.LoginWith
-	Cors             *cors.Cors
-	Locale           string
+	Server         model.Server
+	Logger         *log.Logger
+	LoggerSettings model.LoggerSettings
+	Cors           *cors.Cors
+	Locale         string
 }
 
 // NewRouter creates and inits new router.
@@ -52,15 +39,10 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 	}
 
 	ar := Router{
-		server:             settings.Server,
-		router:             mux.NewRouter(),
-		Authorizer:         settings.Authorizer,
-		LoggerSettings:     settings.LoggerSettings,
-		Host:               settings.Host,
-		tfaType:            settings.TFAType,
-		tfaResendTimeout:   settings.TFAResendTimeout,
-		SupportedLoginWays: settings.LoginWith,
-		cors:               settings.Cors,
+		server:         settings.Server,
+		router:         mux.NewRouter(),
+		LoggerSettings: settings.LoggerSettings,
+		cors:           settings.Cors,
 	}
 
 	ar.LP = l
@@ -71,10 +53,7 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 		ar.Logger = settings.Logger
 	}
 
-	ar.tokenPayloadServices = make(map[string]model.TokenPayloadProvider)
-
 	ar.initRoutes()
-
 	return &ar, nil
 }
 

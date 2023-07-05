@@ -11,6 +11,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 	"golang.org/x/crypto/bcrypt"
@@ -85,7 +86,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 		return model.User{}, ErrorInternalError
 	}
 	if result.Item == nil {
-		return model.User{}, model.ErrUserNotFound
+		return model.User{}, l.ErrorUserNotFound
 	}
 
 	userdata := model.User{}
@@ -119,7 +120,7 @@ func (us *UserStorage) userIDByFederatedID(provider string, id string) (string, 
 		return "", ErrorInternalError
 	}
 	if result.Item == nil {
-		return "", model.ErrUserNotFound
+		return "", l.ErrorUserNotFound
 	}
 
 	fedData := federatedUserID{}
@@ -193,7 +194,7 @@ func (us *UserStorage) userIdxByName(name string) (*userIndexByNameData, error) 
 		return nil, ErrorInternalError
 	}
 	if len(result.Items) == 0 {
-		return nil, model.ErrUserNotFound
+		return nil, l.ErrorUserNotFound
 	}
 
 	item := result.Items[0]
@@ -221,7 +222,7 @@ func (us *UserStorage) userIdxByPhone(phone string) (*userIndexByPhoneData, erro
 		return nil, ErrorInternalError
 	}
 	if len(result.Items) == 0 {
-		return nil, model.ErrUserNotFound
+		return nil, l.ErrorUserNotFound
 	}
 
 	item := result.Items[0]
@@ -357,7 +358,7 @@ func (us *UserStorage) AddUserWithPassword(user model.User, password, role strin
 // AddUserWithFederatedID adds new user with social ID.
 func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, federatedID, role string) (model.User, error) {
 	_, err := us.userIDByFederatedID(provider, federatedID)
-	if err != nil && err != model.ErrUserNotFound {
+	if err != nil && err != l.ErrorUserNotFound {
 		log.Println("error getting user by name: ", err)
 		return model.User{}, err
 	} else if err == nil {
@@ -448,12 +449,12 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 func (us *UserStorage) CheckPassword(id, password string) error {
 	user, err := us.UserByID(id)
 	if err != nil {
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
 		// return this error to hide the existence of the user.
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 	return nil
 }

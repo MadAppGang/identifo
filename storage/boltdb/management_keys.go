@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/google/uuid"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
@@ -52,7 +53,7 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 		b := tx.Bucket([]byte(ManagementKeysBucket))
 		u := b.Get([]byte(id))
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		return json.Unmarshal(u, &res)

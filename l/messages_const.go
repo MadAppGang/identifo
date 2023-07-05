@@ -41,10 +41,6 @@ const (
 	ErrorAPIUserUnableToCreate LocalizedString = "error.api.user.unable_to_create"
 	// ErrorAPIVerificationCodeInvalid -> Sorry, the code you entered is invalid or has expired. Please get a new one.
 	ErrorAPIVerificationCodeInvalid LocalizedString = "error.api.verification_code.invalid"
-	// ErrorAPIUserNotFound -> User not found.
-	ErrorAPIUserNotFound LocalizedString = "error.api.user.not_found"
-	// ErrorAPIUserNotFoundError -> User not found with error; %v.
-	ErrorAPIUserNotFoundError LocalizedString = "error.api.user.not_found.error"
 	// ErrorAPIUsernameTaken -> Username is taken. Try to choose another one.
 	ErrorAPIUsernameTaken LocalizedString = "error.api.username.taken"
 	// ErrorAPIUsernamePhoneEmailTaken -> Username, email or/and phone is taken. Try to choose another one.
@@ -205,6 +201,10 @@ const (
 	ErrorPhoneEmpty LocalizedString = "error.phone.empty"
 	// ErrorUsernameEmpty -> username could not be empty
 	ErrorUsernameEmpty LocalizedString = "error.username.empty"
+	// ErrorUserNotFound -> User not found.
+	ErrorUserNotFound LocalizedString = "error.user.not_found"
+	// ErrorUserNotFoundError -> User not found with error; %v.
+	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
 
 	//===========================================================================
 	//  Federated login

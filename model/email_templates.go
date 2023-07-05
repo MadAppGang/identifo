@@ -7,13 +7,22 @@ const (
 	EmailTemplateTypeResetPassword EmailTemplateType = "reset-password-email"
 	EmailTemplateTypeTFAWithCode   EmailTemplateType = "tfa-code-email"
 	EmailTemplateTypeVerifyEmail   EmailTemplateType = "verify-email"
-	// EmailTemplateTypeWelcome       EmailTemplateType = "welcome-email"
+	// TODO: Implement welcome email
+	EmailTemplateTypeWelcome EmailTemplateType = "welcome-email"
 
 	DefaultTemplateExtension = "html"
 )
 
 func (t EmailTemplateType) FileName() string {
 	return string(t) + "." + DefaultTemplateExtension
+}
+
+func (t EmailTemplateType) FileNameWithLocale(locale string) string {
+	postfix := ""
+	if len(locale) > 0 {
+		postfix = "_" + locale
+	}
+	return string(t) + "." + DefaultTemplateExtension + postfix
 }
 
 func (t EmailTemplateType) String() string {
@@ -26,6 +35,6 @@ func AllEmailTemplatesFileNames() []string {
 		EmailTemplateTypeResetPassword.FileName(),
 		EmailTemplateTypeTFAWithCode.FileName(),
 		EmailTemplateTypeVerifyEmail.FileName(),
-		// EmailTemplateTypeWelcome.FileName(),
+		EmailTemplateTypeWelcome.FileName(),
 	}
 }

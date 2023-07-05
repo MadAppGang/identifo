@@ -37,7 +37,7 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 		}
 
 		user, err := ar.server.Storages().User.UserByEmail(d.Email)
-		if err == model.ErrUserNotFound {
+		if err == l.ErrorUserNotFound {
 			// return ok, but there is no user
 			ar.Logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
 			result := map[string]string{"result": "ok"}

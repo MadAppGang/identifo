@@ -93,7 +93,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		user, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
-		if err == model.ErrUserNotFound {
+		if err == l.ErrorUserNotFound {
 			if !ar.server.Settings().Login.AllowRegisterMissing {
 				ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIAPPRegistrationForbidden)
 				return

@@ -2,7 +2,7 @@ package model
 
 // EmailService manages sending emails.
 type EmailService interface {
-	SendTemplateEmail(emailType EmailTemplateType, subfolder, subject, recipient string, data EmailData) error
+	SendUserEmail(emailType EmailTemplateType, subfolder string, user User, data any) error
 	Transport() EmailTransport
 	Start()
 	Stop()
@@ -15,5 +15,11 @@ type EmailTransport interface {
 
 type EmailData struct {
 	User User
-	Data interface{}
+	Data any
+}
+
+type ResetEmailData struct {
+	Token string
+	URL   string
+	Host  string
 }

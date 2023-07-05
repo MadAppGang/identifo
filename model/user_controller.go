@@ -26,6 +26,7 @@ type UserMutationController interface {
 
 	SendEmailConfirmation(ctx context.Context, userID string) error
 	SendPhoneConfirmation(ctx context.Context, userID string) error
+	SendPasswordResetEmail(ctx context.Context, userID, appID string) (ResetEmailData, error)
 
 	InvalidateCache()
 }

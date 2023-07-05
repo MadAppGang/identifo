@@ -2,12 +2,11 @@ package model
 
 import (
 	"context"
-	"errors"
 	"regexp"
 )
 
 // ErrUserNotFound is when user not found.
-var ErrUserNotFound = errors.New("user not found")
+// var ErrUserNotFound = errors.New("user not found")
 
 var (
 	// EmailRegexp is a regexp which all valid emails must match.

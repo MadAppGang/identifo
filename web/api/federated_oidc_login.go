@@ -179,7 +179,7 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 
 	user, err := ar.tryFindFederatedUser(providerName, fedUserID, email)
 	if err != nil {
-		if !errors.Is(err, model.ErrUserNotFound) {
+		if !errors.Is(err, l.ErrorUserNotFound) {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 			return
 		}
@@ -363,13 +363,13 @@ func (ar *Router) tryFindFederatedUser(provider, fedUserID, email string) (model
 			return user, nil
 		}
 
-		if !errors.Is(err, model.ErrUserNotFound) {
+		if !errors.Is(err, l.ErrorUserNotFound) {
 			return model.User{}, fmt.Errorf("can not find user by federated ID: %w", err)
 		}
 	}
 
 	if email == "" {
-		return model.User{}, model.ErrUserNotFound
+		return model.User{}, l.ErrorUserNotFound
 	}
 
 	user, err := us.UserByEmail(email)

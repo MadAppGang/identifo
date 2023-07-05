@@ -67,33 +67,64 @@ func (es *EmailService) SendHTML(subject, html, recipient string) error {
 	return es.transport.SendHTML(subject, html, recipient)
 }
 
-func (es *EmailService) SendTemplateEmail(emailType model.EmailTemplateType, subfolder, subject string, recipient string, data model.EmailData) error {
+type templatePair struct {
+	body    *template.Template
+	subject *template.Template
+}
+
+func (es *EmailService) SendUserEmail(emailType model.EmailTemplateType, subfolder string, user model.User, data any) error {
 	p := path.Join(es.templatesPath, subfolder, emailType.FileName())
-	// check template in cache
-	var tt template.Template
+	// trying to load user localized version
+	if len(user.Locale) > 0 {
+		pl := path.Join(es.templatesPath, subfolder, emailType.FileNameWithLocale(user.Locale))
+		fi, err := fs.Stat(es.fs, pl)
+		if err == nil && fi.Mode().IsRegular() {
+			p = pl
+		}
+	}
+
+	tp := templatePair{}
 	tpll, ok := es.cache.Load(p)
 	if ok {
-		tt = tpll.(template.Template)
+		tp = tpll.(templatePair)
 	} else {
 		data, err := fs.ReadFile(es.fs, p)
 		if err != nil {
 			return err
 		}
-		tmpl, err := template.New(p).Parse(string(data))
+		// extract subject and body from template
+		subjectText, bodyText, err := extractSubjectAndBody(data)
 		if err != nil {
 			return err
 		}
-		tt = *tmpl
-		es.cache.Store(p, tt)
+		tp.body, err = template.New(p).Parse(string(bodyText))
+		if err != nil {
+			return err
+		}
+		tp.subject, err = template.New(p).Parse(string(subjectText))
+		if err != nil {
+			return err
+		}
+
+		es.cache.Store(p, tp)
 		es.watcher.AppendForWatching(p) // add for watching to invalidate cache if we need
 	}
 
 	// read template, parse it and send it with underlying service
-	var tpl bytes.Buffer
-	if err := tt.Execute(&tpl, data); err != nil {
+	var subject bytes.Buffer
+	var body bytes.Buffer
+	d := map[string]any{
+		"Data": data,
+		"User": user,
+	}
+	if err := tp.subject.Execute(&subject, d); err != nil {
 		return err
 	}
-	return es.SendHTML(subject, tpl.String(), recipient)
+	if err := tp.body.Execute(&body, d); err != nil {
+		return err
+	}
+
+	return es.SendHTML(subject.String(), body.String(), user.Email)
 }
 
 func (es *EmailService) Start() {

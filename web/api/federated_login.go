@@ -169,7 +169,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 
 		user, err := ar.server.Storages().User.UserByFederatedID(providerName, gothUser.UserID)
 
-		if err == model.ErrUserNotFound && gothUser.Email != "" {
+		if err == l.ErrorUserNotFound && gothUser.Email != "" {
 			user, err = ar.server.Storages().User.UserByEmail(gothUser.Email)
 			if err == nil {
 				user.AddFederatedId(providerName, gothUser.UserID)
@@ -177,7 +177,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			}
 		}
 
-		if err == model.ErrUserNotFound && !app.RegistrationForbidden {
+		if err == l.ErrorUserNotFound && !app.RegistrationForbidden {
 			scopes := model.MergeScopes(app.Scopes, app.NewUserDefaultScopes, nil)
 
 			user, err = ar.server.Storages().User.AddUserWithFederatedID(model.User{
@@ -189,7 +189,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
 				return
 			}
-		} else if err == model.ErrUserNotFound && app.RegistrationForbidden {
+		} else if err == l.ErrorUserNotFound && app.RegistrationForbidden {
 			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPRegistrationForbidden)
 			return
 		} else if err != nil {

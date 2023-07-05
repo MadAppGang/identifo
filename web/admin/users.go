@@ -1,10 +1,7 @@
 package admin
 
 import (
-	"errors"
-	"fmt"
 	"net/http"
-	"net/url"
 	"strings"
 
 	"github.com/madappgang/identifo/v2/l"
@@ -167,9 +164,8 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 	// password reset data from admin panel.
 	type passwordResetData struct {
-		UserID       string `json:"user_id,omitempty"`
-		AppID        string `json:"app_id,omitempty"`
-		ResetPageURL string `json:"reset_page_url,omitempty"`
+		UserID string `json:"user_id,omitempty"`
+		AppID  string `json:"app_id,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -180,64 +176,12 @@ func (ar *Router) GenerateNewResetTokenUser() http.HandlerFunc {
 			return
 		}
 
-		user, err := ar.server.Storages().User.UserByID(r.Context(), resetData.UserID)
+		red, err := ar.server.Storages().UMC.SendPasswordResetEmail(r.Context(), resetData.UserID, resetData.AppID)
 		if err != nil {
-			status := http.StatusInternalServerError
-			if errors.Is(err, model.ErrUserNotFound) {
-				status = http.StatusNotFound
-			}
-			ar.HTTPError(w, err, status)
-			return
-		}
-
-		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
-		if err != nil {
+			// TODO: generate proper localized error with details
 			ar.HTTPError(w, err, http.StatusInternalServerError)
-			return
 		}
 
-		resetTokenString, err := ar.server.Services().Token.String(resetToken)
-		if err != nil {
-			ar.HTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		query := fmt.Sprintf("appId=%s&token=%s", resetData.AppID, resetTokenString)
-
-		u := &url.URL{
-			Scheme:   ar.Host.Scheme,
-			Host:     ar.Host.Host,
-			Path:     model.DefaultLoginWebAppSettings.ResetPasswordURL,
-			RawQuery: query,
-		}
-		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
-
-		resetEmailData := map[string]string{
-			"Token": resetTokenString,
-			"URL":   u.String(),
-			"Host":  uu.String(),
-		}
-
-		app, err := ar.server.Storages().App.AppByID(resetData.AppID)
-		if err != nil {
-			ar.HTTPError(w, err, http.StatusInternalServerError)
-			return
-		}
-
-		if err = ar.server.Services().Email.SendTemplateEmail(
-			model.EmailTemplateTypeResetPassword,
-			app.GetCustomEmailTemplatePath(),
-			"Reset Password",
-			user.Email,
-			model.EmailData{
-				User: user,
-				Data: resetEmailData,
-			},
-		); err != nil {
-			ar.HTTPError(w, fmt.Errorf("email sending error: %w", err), http.StatusInternalServerError)
-			return
-		}
-
-		ar.ServeJSON(w, locale, http.StatusOK, resetEmailData)
+		ar.ServeJSON(w, locale, http.StatusOK, red)
 	}
 }

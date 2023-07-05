@@ -9,6 +9,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 	bolt "go.etcd.io/bbolt"
@@ -86,7 +87,7 @@ func (us *UserStorage) UserByID(ctx context.Context, ID string) (model.User, err
 		// Get user by userID.
 		u := ub.Get([]byte(ID))
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -111,14 +112,14 @@ func (us *UserStorage) UserByPhone(ctx context.Context, Phone string) (model.Use
 		// Get user ID.
 		userID := upnb.Get([]byte(Phone))
 		if userID == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// Get user by userID.
 		u := ub.Get(userID)
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -143,14 +144,14 @@ func (us *UserStorage) UserByEmail(ctx context.Context, email string) (model.Use
 		// Get user ID.
 		userID := ueb.Get([]byte(email))
 		if userID == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// Get user by userID.
 		u := ub.Get(userID)
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -176,14 +177,14 @@ func (us *UserStorage) UserByIdentity(ctx context.Context, idType model.UserIden
 		// get userID from index.
 		userID := usib.Get([]byte(sid))
 		if userID == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// get user by userID.
 		u := ub.Get(userID)
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -206,14 +207,14 @@ func (us *UserStorage) UserByUsername(ctx context.Context, username string) (mod
 		// get user ID from index
 		userID := unpb.Get([]byte(key))
 		if userID == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		ub := tx.Bucket([]byte(UserBucket))
 		// get user by userID
 		u := ub.Get(userID)
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -236,7 +237,7 @@ func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...mo
 		// Get user by userID.
 		u := ub.Get([]byte(userID))
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		var err error
@@ -408,7 +409,7 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 		ub := tx.Bucket([]byte(UserBucket))
 		u := ub.Get([]byte(id))
 		if u == nil {
-			return model.ErrUserNotFound
+			return l.ErrorUserNotFound
 		}
 
 		user, err := model.UserFromJSON(u)
@@ -430,12 +431,12 @@ func (us *UserStorage) ResetPassword(id, password string) error {
 func (us *UserStorage) CheckPassword(id, password string) error {
 	user, err := us.UserByID(id)
 	if err != nil {
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 
 	if err = bcrypt.CompareHashAndPassword([]byte(user.Pswd), []byte(password)); err != nil {
 		// return this error to hide the existence of the user.
-		return model.ErrUserNotFound
+		return l.ErrorUserNotFound
 	}
 	return nil
 }

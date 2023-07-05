@@ -65,7 +65,3 @@ func LoadDefaultCatalog() error {
 	})
 	return err
 }
-
-// func Sprintf(lan language.Tag, s string, params ...any) string {
-
-// }

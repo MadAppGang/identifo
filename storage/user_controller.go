@@ -2,6 +2,8 @@ package storage
 
 import (
 	"context"
+	"net/url"
+	"os"
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
@@ -9,13 +11,14 @@ import (
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil, model.ServerSettings{})
+var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
 // All user business logic is implemented in controller and all storage things are dedicated to storage implementations.
 type UserStorageController struct {
 	s model.SecurityServerSettings
+	h *url.URL
 	// lgs model.LogStorage //TODO: implement logs
 	uidfs  []string // unique ID fields
 	imudfs []string // immutable ID fields
@@ -23,6 +26,9 @@ type UserStorageController struct {
 	ums    model.UserMutableStorage
 	ua     model.UserAdminStorage
 	as     model.AppStorage
+	ts     model.TokenService
+	es     model.EmailService
+	ss     model.SMSService
 	LP     *l.Printer // localized string
 
 	// cache
@@ -32,9 +38,36 @@ type UserStorageController struct {
 
 // NewUserStorageController composes new storage controller, no validation and connections happens here.
 // The functions expects all the storages already initialized and connected.
-func NewUserStorageController(u model.UserStorage, s model.ServerSettings) *UserStorageController {
+func NewUserStorageController(
+	u model.UserStorage,
+	ums model.UserMutableStorage,
+	ua model.UserAdminStorage,
+	as model.AppStorage,
+	ts model.TokenService,
+	es model.EmailService,
+	ss model.SMSService,
+	s model.ServerSettings,
+) *UserStorageController {
+	// env variable can rewrite host option
+	hostName := os.Getenv("IDENTIFO_HOST_NAME")
+	if len(hostName) == 0 {
+		hostName = s.General.Host
+	}
+
+	host, err := url.ParseRequestURI(hostName)
+	if err != nil {
+		host, _ = url.ParseRequestURI("http://localhost")
+	}
+
 	return &UserStorageController{
+		h:      host,
 		u:      u,
+		ua:     ua,
+		ums:    ums,
+		as:     as,
+		ts:     ts,
+		es:     es,
+		ss:     ss,
 		s:      s.SecuritySettings,
 		uidfs:  authTypeToField(s.General.UniqueIDFields),
 		imudfs: authTypeToField(s.General.ImmutableIDFields),

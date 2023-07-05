@@ -25,8 +25,8 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	user, err := ar.server.Storages().UC.UserBySecondaryID(r.Context(), model.UserIdentityTypeEmail, d.Email)
-	if err == model.ErrUserNotFound {
+	user, err := ar.server.Storages().UC.UserBySecondaryID(r.Context(), model.AuthIdentityTypeEmail, d.Email)
+	if err == l.ErrorUserNotFound {
 		// return ok, but there is no user
 		ar.logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
 		result := map[string]string{"result": "ok"}
