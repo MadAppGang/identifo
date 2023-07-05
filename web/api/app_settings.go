@@ -18,7 +18,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 			return
 		}
 
-		//TODO
+		// TODO: Implement new app settings with field sets like users
 		app.Secret = ""
 
 		ar.ServeJSON(w, locale, http.StatusOK, app)

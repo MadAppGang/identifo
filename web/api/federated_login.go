@@ -17,7 +17,6 @@ import (
 	"github.com/gorilla/sessions"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/markbates/goth"
 )
@@ -194,18 +193,6 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			return
 		} else if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUserFederatedCreateError, err)
-			return
-		}
-
-		// Authorize user if the app requires authorization.
-		azi := authorization.AuthzInfo{
-			App:         app,
-			UserRole:    user.AccessRole,
-			ResourceURI: r.RequestURI,
-			Method:      r.Method,
-		}
-		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.LocalizedError(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
 			return
 		}
 
