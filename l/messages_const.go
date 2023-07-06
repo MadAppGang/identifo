@@ -205,6 +205,8 @@ const (
 	ErrorUserNotFound LocalizedString = "error.user.not_found"
 	// ErrorUserNotFoundError -> User not found with error; %v.
 	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
+	// ErrorRequestChallengeUnsupportedByAPP -> This login type is not supported by the app.
+	ErrorRequestChallengeUnsupportedByAPP LocalizedString = "error.request.challenge.unsupported.by.app"
 
 	//===========================================================================
 	//  Federated login

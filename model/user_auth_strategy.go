@@ -255,3 +255,6 @@ func (s SecondFactorStrategy) Compatible(other SecondFactorStrategy) bool {
 	}
 	return false
 }
+
+
+func (a AuthStrategy)LoginType

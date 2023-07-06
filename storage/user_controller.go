@@ -139,3 +139,8 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 	}
 	return users, total, nil
 }
+
+// UserByAuthStrategy extract the authentication id and tries to find the user with this ID.
+func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy) (model.User, error) {
+	
+}
