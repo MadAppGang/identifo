@@ -30,3 +30,7 @@ type UserMutationController interface {
 
 	InvalidateCache()
 }
+
+type ChallengeController interface {
+	RequestChallenge(ctx context.Context, challenge UserAuthChallenge) (UserAuthChallenge, error)
+}

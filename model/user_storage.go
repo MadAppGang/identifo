@@ -39,20 +39,6 @@ type UserMutableStorage interface {
 	DeleteUser(ctx context.Context, userID string) error
 }
 
-// UserAuthStorage is a storage which keep all auth information for user.
-// All login strategies must implement this interface.
-// All 2FA strategies must implement this interface.
-type UserAuthStorage interface {
-	Storage
-
-	// AddAuthEnrolment
-	// RemoveAuthEnrolment
-	// Add2FAEnrolment
-	// Remove2FAEnrolment
-	// Solve2FAChallenge
-	// Solve2Challenge
-}
-
 // UserAdminStorage is a storage to manage users from admin panel and management api.
 type UserAdminStorage interface {
 	Storage

@@ -21,6 +21,14 @@ const (
 
 // RequestVerificationCode requests SMS with verification code.
 // To authenticate, user must have a valid phone number.
+// check the app is supported for phone login
+// check there are user with this phone number
+// if no user just return "ok" for security purposes
+// if yes, create challenge
+// save challenge to database
+// send SMS with challenge
+// return ok
+
 func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")

@@ -299,6 +299,10 @@ const (
 	ErrorServiceSmsSendError LocalizedString = "error.service.sms.send.error"
 	// ErrorServiceOtpSendError -> Error sending OTP code with error: %v.
 	ErrorServiceOtpSendError LocalizedString = "error.service.otp.send.error"
+	// ErrorServiceEmailTemplateMissingSubject -> Missing subject in email template for: %v.
+	ErrorServiceEmailTemplateMissingSubject LocalizedString = "error.service.email.template.missing.subject"
+	// ErrorServiceEmailTemplateMissingBody -> Missing body in email template for: %v.
+	ErrorServiceEmailTemplateMissingBody LocalizedString = "error.service.email.template.missing.body"
 
 	//===========================================================================
 	//  NativeLogin Service

@@ -3,7 +3,12 @@ package mail
 import (
 	"bufio"
 	"bytes"
-	"fmt"
+	"errors"
+)
+
+var (
+	ErrorNoSubject = errors.New("no subject")
+	ErrorNoBody    = errors.New("no body")
 )
 
 // extractSubjectAndBody extracts subject and email body from template
@@ -17,12 +22,12 @@ func ExtractSubjectAndBody(d []byte) (string, string, error) {
 	scanner.Split(Split)
 	haveSubject := scanner.Scan()
 	if !haveSubject {
-		return "", "", fmt.Errorf("no subject") // TODO: localized error
+		return "", "", ErrorNoSubject
 	}
 	subject := scanner.Text()
 	haveBody := scanner.Scan()
 	if !haveBody {
-		return "", "", fmt.Errorf("no body") // TODO: localized error
+		return "", "", ErrorNoBody
 	}
 	body := scanner.Text()
 	return subject, body, nil

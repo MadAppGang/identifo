@@ -23,11 +23,14 @@ import "time"
 // issue the JWT tokens and mark the strategy as Solved
 
 type UserAuthChallenge struct {
-	ID        string
-	UserID    string
-	DeviceID  string
-	Strategy  AuthStrategy
-	Solved    bool // is the challenge already solved, could not be solved again. One time challenge.
-	CreatedAt time.Time
-	ExpiresAt time.Time
+	ID                string       `json:"id"`
+	UserID            string       `json:"user_id"`
+	DeviceID          string       `json:"device_id"`
+	AppID             string       `json:"app_id"`
+	UserAgent         string       `json:"user_agent"`
+	UserCodeChallenge string       `json:"user_code_challenge"`
+	Strategy          AuthStrategy `json:"strategy"`
+	Solved            bool         `json:"solved"` // is the challenge already solved, could not be solved again. One time challenge.
+	CreatedAt         time.Time    `json:"created_at"`
+	ExpiresAt         time.Time    `json:"expires_at"`
 }

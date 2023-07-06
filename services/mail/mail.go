@@ -2,6 +2,7 @@ package mail
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"io/fs"
 	"log"
@@ -10,6 +11,7 @@ import (
 	"text/template"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/services/mail/mailgun"
 	"github.com/madappgang/identifo/v2/services/mail/mock"
@@ -95,7 +97,19 @@ func (es *EmailService) SendUserEmail(emailType model.EmailTemplateType, subfold
 		// extract subject and body from template
 		subjectText, bodyText, err := ExtractSubjectAndBody(data)
 		if err != nil {
-			return err
+			if errors.Is(err, ErrorNoSubject) {
+				return l.LocalizedError{
+					ErrID:   l.ErrorServiceEmailTemplateMissingSubject,
+					Details: []any{emailType},
+				}
+			} else if errors.Is(err, ErrorNoBody) {
+				return l.LocalizedError{
+					ErrID:   l.ErrorServiceEmailTemplateMissingBody,
+					Details: []any{emailType},
+				}
+			} else {
+				return err
+			}
 		}
 		tp.body, err = template.New(p).Parse(string(bodyText))
 		if err != nil {

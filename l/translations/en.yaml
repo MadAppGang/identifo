@@ -145,6 +145,8 @@ error.storage.request.error: "error making request to db: %v"
 error.service.email.send.error: "Error sending email: %v."
 error.service.sms.send.error: "Error sending SMS with code: %v."
 error.service.otp.send.error: "Error sending OTP code with error: %v."
+error.service.email.template.missing.subject: "Missing subject in email template for: %v."
+error.service.email.template.missing.body: "Missing body in email template for: %v."
 
 # NativeLogin Service
 error.native.login.config.errors: "NativeLogin service initialized with errors: %+v"
