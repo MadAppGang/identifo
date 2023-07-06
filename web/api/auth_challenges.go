@@ -1,7 +1,13 @@
 package api
 
 import (
+	"errors"
 	"net/http"
+	"time"
+
+	"github.com/madappgang/identifo/v2/l"
+	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // check the app is supported for auth challenge requested
@@ -37,34 +43,68 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		app := middleware.AppFromContext(r.Context())
 
 		d := challengeRequest{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
-		// AuthChallengeType
-		err := ar.server.Services().Challenge.RequestChallenge(r.Context())
+
+		agent := r.Header.Get("User-Agent")
+
+		idType := model.AuthIdentityTypePhone
+		if len(d.Email) > 0 {
+			idType = model.AuthIdentityTypeEmail
+		}
+
+		// create uncompleted UserAuthChallenge to challenge controller to create a full challenge
+		// if possible
+		ch := model.UserAuthChallenge{
+			AppID:             app.ID,
+			DeviceID:          d.Device,
+			UserAgent:         agent,
+			CreatedAt:         time.Now(),
+			UserCodeChallenge: d.ClientCodeChallenge,
+			Strategy: model.AuthStrategy{
+				Type: model.AuthStrategyFirstFactor,
+				FirstFactor: &model.FirstFactorStrategy{
+					Type: model.FirstFactorTypeLocal,
+					Local: &model.LocalStrategy{
+						Identity:  idType,
+						Challenge: model.AuthChallengeType(d.ChallengeType),
+					},
+				},
+			},
+		}
+
+		_, err := ar.server.Services().Challenge.RequestChallenge(r.Context(), ch)
+		if err != nil && !errors.Is(err, l.ErrorUserNotFound) {
+			ar.Error(w, l.ErrorWithLocale(err, locale))
+			return
+		}
+
+		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }
 
 // Solve challenge could be called for requested challenge (for first factor)
 // or for user enforced dialog (second factor)
-func (ar *Router) SolveChallenge() http.HandlerFunc {
-	type challengeRequest struct {
-		PhoneNumber string   `json:"phone_number"`
-		Code        string   `json:"code"`
-		Scopes      []string `json:"scopes"`
-	}
+// func (ar *Router) SolveChallenge() http.HandlerFunc {
+// 	type challengeRequest struct {
+// 		PhoneNumber string   `json:"phone_number"`
+// 		Code        string   `json:"code"`
+// 		Scopes      []string `json:"scopes"`
+// 	}
 
-	return func(w http.ResponseWriter, r *http.Request) {
-		locale := r.Header.Get("Accept-Language")
+// 	return func(w http.ResponseWriter, r *http.Request) {
+// 		locale := r.Header.Get("Accept-Language")
 
-		// check the app is supported for auth challenge requested
-		// check there are user with this auth challenge factor
-		// if no user just return "ok" for security purposes
-		// if yes, create challenge
-		// save challenge to database
-		// send SMS/Email or whatever for the challenge
-		// return ok
-	}
-}
+// 		// check the app is supported for auth challenge requested
+// 		// check there are user with this auth challenge factor
+// 		// if no user just return "ok" for security purposes
+// 		// if yes, create challenge
+// 		// save challenge to database
+// 		// send SMS/Email or whatever for the challenge
+// 		// return ok
+// 	}
+// }

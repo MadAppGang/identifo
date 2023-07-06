@@ -158,3 +158,100 @@ func (a AuthIdentityType) Field() string {
 		return ""
 	}
 }
+
+// FilterCompatible returns all compatible strategies from stats slice.
+func (s AuthStrategy) FilterCompatible(strats []AuthStrategy) []AuthStrategy {
+	res := []AuthStrategy{}
+	for _, strat := range strats {
+		if s.Compatible(strat) {
+			res = append(res, strat)
+		}
+	}
+	return res
+}
+
+// Compatible return true if other strategy is compatible with s.
+func (s AuthStrategy) Compatible(other AuthStrategy) bool {
+	// should be the same strategy type
+	if s.Type == other.Type {
+		// if the strategy is not none or anonymous, it is compatible, no other values to check.
+		if s.Type == AuthStrategyNone || s.Type == AuthStrategyAnonymous {
+			return true
+		}
+		// let's check the first factor
+		if s.Type == AuthStrategyFirstFactor {
+			// no other requirements, we are looking for the first factor strategy only
+			if s.FirstFactor == nil {
+				return true
+			}
+			// the strategy from the list is incomplete, it has not first factor strategy data
+			if other.FirstFactor == nil {
+				return false
+			}
+			return s.FirstFactor.Compatible(*other.FirstFactor)
+		}
+		if s.Type == AuthStrategySecondFactor {
+			if s.SecondFactor == nil {
+				return true
+			}
+			if other.SecondFactor == nil {
+				return false
+			}
+			return s.SecondFactor.Compatible(*other.SecondFactor)
+		}
+	}
+	return false
+}
+
+// Compatible returns true other strategy is compatible with s
+func (s FirstFactorStrategy) Compatible(other FirstFactorStrategy) bool {
+	if s.Type == other.Type {
+		// check local strategy
+		if s.Type == FirstFactorTypeLocal {
+			// we are happy for any local strategy
+			if s.Local == nil {
+				return true
+			}
+			// s has requirements, but other strategy has no local strategy data
+			if other.Local == nil {
+				return false
+			}
+			return s.Local.Compatible(*other.Local)
+		}
+		if s.Type == FirstFactorTypeFIM {
+			// we are happy for any federated identity management(FIM) strategy
+			if s.FIM == nil {
+				return true
+			}
+			if other.FIM == nil {
+				return false
+			}
+			return s.FIM.Compatible(*other.FIM)
+		}
+	}
+	return false
+}
+
+// Compatible returns true other strategy is compatible with s
+func (s LocalStrategy) Compatible(other LocalStrategy) bool {
+	if (len(s.Identity) == 0 || s.Identity == other.Identity) &&
+		(len(s.Challenge) == 0 || s.Challenge == other.Challenge) &&
+		(len(s.Transport) == 0 || s.Transport == other.Transport) {
+		return true
+	}
+	return false
+}
+
+// Compatible returns true other strategy is compatible with s
+func (s FIMStrategy) Compatible(other FIMStrategy) bool {
+	return s.Type == other.Type || len(s.Type) == 0
+}
+
+// Compatible returns true other strategy is compatible with s
+func (s SecondFactorStrategy) Compatible(other SecondFactorStrategy) bool {
+	if (len(s.Challenge) == 0 || s.Challenge == other.Challenge) &&
+		(len(s.Transport) == 0 || s.Transport == other.Transport) {
+		return true
+	}
+	return false
+}
