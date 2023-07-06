@@ -7,7 +7,7 @@ import (
 )
 
 type EmailService struct {
-	SendMessages []string
+	SendMessages []map[string]string
 }
 
 // NewTransport creates new email mock transport, all it does just prints everything to console.
@@ -19,7 +19,12 @@ func NewTransport() model.EmailTransport {
 func (es *EmailService) SendMessage(subject, body, recipient string) error {
 	msg := fmt.Sprintf("✉️: MOCK EMAIL SERVICE: Sending message \nsubject: %s\nbody: %s\n recipient: %s\n\n", subject, body, recipient)
 	fmt.Printf(msg)
-	es.SendMessages = append(es.SendMessages, msg)
+	message := map[string]string{
+		"subject":   subject,
+		"body":      body,
+		"recipient": recipient,
+	}
+	es.SendMessages = append(es.SendMessages, message)
 	return nil
 }
 
@@ -27,10 +32,16 @@ func (es *EmailService) SendMessage(subject, body, recipient string) error {
 func (es *EmailService) SendHTML(subject, html, recipient string) error {
 	msg := fmt.Sprintf("✉️: MOCK EMAIL SERVICE: Sending HTML \nsubject: %s\nhtml: %s\n recipient: %s\n\n", subject, html, recipient)
 	fmt.Printf(msg)
-	es.SendMessages = append(es.SendMessages, msg)
+	message := map[string]string{
+		"subject":   subject,
+		"body":      html,
+		"recipient": recipient,
+	}
+
+	es.SendMessages = append(es.SendMessages, message)
 	return nil
 }
 
-func (es *EmailService) Messages() []string {
+func (es *EmailService) Messages() []map[string]string {
 	return es.SendMessages
 }
