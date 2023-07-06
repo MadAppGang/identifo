@@ -93,7 +93,7 @@ func (es *EmailService) SendUserEmail(emailType model.EmailTemplateType, subfold
 			return err
 		}
 		// extract subject and body from template
-		subjectText, bodyText, err := extractSubjectAndBody(data)
+		subjectText, bodyText, err := ExtractSubjectAndBody(data)
 		if err != nil {
 			return err
 		}
