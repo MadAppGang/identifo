@@ -34,11 +34,22 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 	// selecting the first strategy from the list.
 	// if there are more than one strategy we need to choose better one.
 	auth := compatibleStrategies[0]
+
+	// using the challenge he requested
+	// if no user found, just silently return with no error for security reason
+	u, err := c.UserByAuthStrategy(ctx, auth)
+	if err != nil {
+		return zr, nil
+	}
+
 	cha := challenge
+	cha.UserID = u.ID
 	cha.Strategy = auth
 	cha.Solved = false
 	cha.CreatedAt = time.Now()
 	cha.ExpiresAt = cha.CreatedAt.Add(time.Minute * model.ExpireChallengeDuration(auth)) // challenge should know how long ti expire
+
+	// this challenge type is about random OTP code, so generate it
 	if auth.Type() == model.AuthStrategyFirstFactorInternal {
 		f, ok := auth.(model.FirstFactorInternalStrategy)
 		if ok {
@@ -48,11 +59,17 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 			}
 		}
 	}
+
 	ch, err := c.uas.AddChallenge(ctx, cha)
 	if err != nil {
 		return zr, err
 	}
 
+	_ = c.sendChallengeToUser(ctx, cha, u)
+	return ch, nil
+}
+
+func (c *UserStorageController) sendChallengeToUser(ctx context.Context, challenge model.UserAuthChallenge, u model.User) error {
 	// no we need send the challenge to the user:
 	// - sms
 	// - email
@@ -61,7 +78,8 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 	// sending the challenge itself with the rendered text, each transport has it's own template
 	// - magic link - build a link like reset password, but with OTP code to validate it
 	// - OTP -- generate random number
-	return ch, nil
+	// using user
+	return nil
 }
 
 var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}
