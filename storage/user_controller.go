@@ -11,7 +11,7 @@ import (
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
@@ -29,10 +29,11 @@ type UserStorageController struct {
 	ts     model.TokenService
 	es     model.EmailService
 	ss     model.SMSService
+	uas    model.UserAuthStorage
 	LP     *l.Printer // localized string
 
 	// cache
-	ffs  []model.FirstFactorStrategy
+	ffs  []model.FirstFactorInternalStrategy
 	idts []model.AuthIdentityType // identity types in use
 }
 
@@ -43,6 +44,7 @@ func NewUserStorageController(
 	ums model.UserMutableStorage,
 	ua model.UserAdminStorage,
 	as model.AppStorage,
+	uas model.UserAuthStorage,
 	ts model.TokenService,
 	es model.EmailService,
 	ss model.SMSService,
@@ -65,6 +67,7 @@ func NewUserStorageController(
 		ua:     ua,
 		ums:    ums,
 		as:     as,
+		uas:    uas,
 		ts:     ts,
 		es:     es,
 		ss:     ss,
@@ -142,5 +145,13 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 
 // UserByAuthStrategy extract the authentication id and tries to find the user with this ID.
 func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy) (model.User, error) {
-	
+	//TODO: implement UserByAuthStrategy
+	//we need to check each stategy type
+	//if it's local:
+	//- get identity type id - userbyid
+	//- other? user userbysecoindaryID
+	//- anonymous - get user by id
+	//- fim - find federated identity
+	//- second factor - has no identity
+	return model.User{}, nil
 }

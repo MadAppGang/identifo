@@ -10,7 +10,7 @@ type UserAuthStorage interface {
 	Storage
 	ImportableStorage
 
-	AddChallenge(ctx context.Context, challenge UserAuthChallenge) error
+	AddChallenge(ctx context.Context, challenge UserAuthChallenge) (UserAuthChallenge, error)
 	GetLatestChallenge(ctx context.Context, strategy AuthStrategy, userID string) (UserAuthChallenge, error)
 
 	// AddAuthEnrolment

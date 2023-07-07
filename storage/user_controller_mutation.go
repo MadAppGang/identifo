@@ -10,7 +10,7 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 )
 
-var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // ====================================
 // Data mutation
@@ -279,8 +279,8 @@ func (c *UserStorageController) allIdentityTypesInUse() ([]model.AuthIdentityTyp
 		c.idts = []model.AuthIdentityType{}
 		for _, s := range ffs {
 			// only unique local strategies, skipping federated ones
-			if s.Type == model.FirstFactorTypeLocal && s.Local != nil && !sliceContains(c.idts, s.Local.Identity) {
-				c.idts = append(c.idts, s.Local.Identity)
+			if !sliceContains(c.idts, s.Identity) {
+				c.idts = append(c.idts, s.Identity)
 			}
 		}
 	}
@@ -288,7 +288,7 @@ func (c *UserStorageController) allIdentityTypesInUse() ([]model.AuthIdentityTyp
 }
 
 // allActiveFirstFactorStrategies return all first factor strategies
-func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstFactorStrategy, error) {
+func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstFactorInternalStrategy, error) {
 	if c.ffs == nil {
 		// get strategies first
 		apps, err := c.as.FetchApps("")
@@ -296,11 +296,12 @@ func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstF
 			return nil, err
 		}
 		// fill the cache
-		c.ffs = []model.FirstFactorStrategy{}
+		c.ffs = []model.FirstFactorInternalStrategy{}
 		for _, a := range apps {
 			for _, s := range a.AuthStrategies {
-				if s.Type == model.AuthStrategyFirstFactor && s.FirstFactor != nil {
-					c.ffs = append(c.ffs, *s.FirstFactor)
+				f, ok := s.(model.FirstFactorInternalStrategy)
+				if ok {
+					c.ffs = append(c.ffs, f)
 				}
 			}
 		}
@@ -320,17 +321,3 @@ func authTypeToField(a []model.AuthIdentityType) []string {
 	}
 	return res
 }
-
-// // authTypeForField converts string to auth type
-// func authTypeForField(f string) model.AuthIdentityType {
-// 	switch f {
-// 	case model.UserFieldEmail:
-// 		return model.AuthIdentityTypeEmail
-// 	case model.UserFieldUsername:
-// 		return model.AuthIdentityTypeUsername
-// 	case model.UserFieldPhone:
-// 		return model.AuthIdentityTypePhone
-// 	}
-
-// 	return model.AuthIdentityTypeAnonymous
-// }

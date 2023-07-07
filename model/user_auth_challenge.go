@@ -33,4 +33,5 @@ type UserAuthChallenge struct {
 	Solved            bool         `json:"solved"` // is the challenge already solved, could not be solved again. One time challenge.
 	CreatedAt         time.Time    `json:"created_at"`
 	ExpiresAt         time.Time    `json:"expires_at"`
+	OTP               string       `json:"value"` // OTP value, it the challenge is OTP code
 }

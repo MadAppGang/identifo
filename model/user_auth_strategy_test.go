@@ -47,27 +47,27 @@ func TestSecondFactorStrategyCompatible(t *testing.T) {
 }
 
 func TestFIMStrategyCompatible(t *testing.T) {
-	s1 := model.FIMStrategy{Type: model.FIMStrategyTypeApple}
-	s2 := model.FIMStrategy{Type: model.FIMStrategyTypeApple}
+	s1 := model.FirstFactorFIMStrategy{FIMType: model.FIMStrategyTypeApple}
+	s2 := model.FirstFactorFIMStrategy{FIMType: model.FIMStrategyTypeApple}
 
 	assert.True(t, s1.Compatible(s2))
 
-	s1.Type = ""
-	assert.True(t, s1.Compatible(s2))
-
-	s1 = model.FIMStrategy{Type: model.FIMStrategyTypeApple}
-	s2.Type = model.FIMStrategyTypeFirebase
+	s1.FIMType = ""
 	assert.False(t, s1.Compatible(s2))
 
-	s2.Type = ""
+	s1 = model.FirstFactorFIMStrategy{FIMType: model.FIMStrategyTypeApple}
+	s2.FIMType = model.FIMStrategyTypeFirebase
+	assert.False(t, s1.Compatible(s2))
+
+	s2.FIMType = ""
 	assert.False(t, s1.Compatible(s2))
 }
 
 func TestLocalStrategyCompatible(t *testing.T) {
-	s1 := model.LocalStrategy{
+	s1 := model.FirstFactorInternalStrategy{
 		Identity: model.AuthIdentityTypePhone,
 	}
-	s2 := model.LocalStrategy{
+	s2 := model.FirstFactorInternalStrategy{
 		Identity:  model.AuthIdentityTypePhone,
 		Challenge: model.AuthChallengeTypeOTP,
 		Transport: model.AuthTransportTypePush,
@@ -83,80 +83,49 @@ func TestLocalStrategyCompatible(t *testing.T) {
 }
 
 func TestFirstFactorStrategyCompatible(t *testing.T) {
-	s1 := model.FirstFactorStrategy{Type: model.FirstFactorTypeLocal}
-	s2 := model.FirstFactorStrategy{
-		Type: model.FirstFactorTypeLocal,
-		Local: &model.LocalStrategy{
-			Identity:  model.AuthIdentityTypeEmail,
-			Challenge: model.AuthChallengeTypeOTP,
-			Transport: model.AuthTransportTypePush,
-		},
+	s1 := model.FirstFactorInternalStrategy{}
+	s2 := model.FirstFactorInternalStrategy{
+		Identity:  model.AuthIdentityTypeEmail,
+		Challenge: model.AuthChallengeTypeOTP,
+		Transport: model.AuthTransportTypePush,
 	}
 	assert.True(t, s1.Compatible(s2))
 
-	s1.Local = &model.LocalStrategy{
-		Identity: model.AuthIdentityTypeAnonymous,
-	}
+	s1.Identity = model.AuthIdentityTypeAnonymous
 	assert.False(t, s1.Compatible(s2))
 
-	s1.Local.Identity = ""
+	s1.Identity = ""
 	assert.True(t, s1.Compatible(s2))
 
-	s1.Local.Identity = model.AuthIdentityTypeEmail
+	s1.Identity = model.AuthIdentityTypeEmail
 	assert.True(t, s1.Compatible(s2))
-
-	s2.Local = nil
-	assert.False(t, s1.Compatible(s2))
 }
 
 func TestFilterCompatible(t *testing.T) {
-	a := model.AuthStrategy{
-		Type:        model.AuthStrategyFirstFactor,
-		FirstFactor: &model.FirstFactorStrategy{Type: model.FirstFactorTypeLocal},
+	a := model.FirstFactorInternalStrategy{}
+	a0 := model.FirstFactorInternalStrategy{
+		Identity:  model.AuthIdentityTypeEmail,
+		Challenge: model.AuthChallengeTypeOTP,
+		Transport: model.AuthTransportTypePush,
 	}
-	a0 := model.AuthStrategy{
-		Type: model.AuthStrategyFirstFactor,
-		FirstFactor: &model.FirstFactorStrategy{
-			Type: model.FirstFactorTypeLocal,
-			Local: &model.LocalStrategy{
-				Identity:  model.AuthIdentityTypeEmail,
-				Challenge: model.AuthChallengeTypeOTP,
-				Transport: model.AuthTransportTypePush,
-			},
-		},
+	a1 := model.AnonymousStrategy{}
+	a2 := model.FirstFactorEnterpriseStrategy{}
+	a3 := model.FirstFactorFIMStrategy{
+		FIMType: model.FIMStrategyTypeApple,
 	}
-	a1 := model.AuthStrategy{Type: model.AuthStrategyNone}
-	a2 := model.AuthStrategy{Type: model.AuthStrategyAnonymous}
-	a3 := model.AuthStrategy{
-		Type: model.AuthStrategyFirstFactor,
-		FirstFactor: &model.FirstFactorStrategy{
-			Type: model.FirstFactorTypeFIM,
-			FIM: &model.FIMStrategy{
-				Type: model.FIMStrategyTypeApple,
-			},
-		},
-	}
-	a4 := model.AuthStrategy{
-		Type: model.AuthStrategyFirstFactor,
-		FirstFactor: &model.FirstFactorStrategy{
-			Type: model.FirstFactorTypeLocal,
-			Local: &model.LocalStrategy{
-				Identity:  model.AuthIdentityTypePhone,
-				Challenge: model.AuthChallengeTypeMagicLink,
-			},
-		},
+	a4 := model.FirstFactorInternalStrategy{
+		Identity:  model.AuthIdentityTypePhone,
+		Challenge: model.AuthChallengeTypeMagicLink,
 	}
 	al := []model.AuthStrategy{a0, a1, a2, a3, a4}
 
-	f := a.FilterCompatible(al)
+	f := model.FilterCompatible(a, al)
 	assert.Len(t, f, 2)
 	assert.Contains(t, f, a0)
 	assert.Contains(t, f, a4)
 
-	a.FirstFactor.Local = &model.LocalStrategy{
-		Identity: model.AuthIdentityTypePhone,
-	}
-	f = a.FilterCompatible(al)
+	a.Identity = model.AuthIdentityTypePhone
+	f = model.FilterCompatible(a, al)
 	assert.Len(t, f, 1)
 	assert.Contains(t, f, a4)
 }
