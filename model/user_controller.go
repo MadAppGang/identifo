@@ -32,5 +32,5 @@ type UserMutationController interface {
 }
 
 type ChallengeController interface {
-	RequestChallenge(ctx context.Context, challenge UserAuthChallenge) (UserAuthChallenge, error)
+	RequestChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (UserAuthChallenge, error)
 }

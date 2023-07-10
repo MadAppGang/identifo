@@ -144,14 +144,43 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 }
 
 // UserByAuthStrategy extract the authentication id and tries to find the user with this ID.
-func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy) (model.User, error) {
-	//TODO: implement UserByAuthStrategy
-	//we need to check each stategy type
+func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy, userIDValue string) (model.User, error) {
+	//we need to check each strategy type
 	//if it's local:
 	//- get identity type id - userbyid
 	//- other? user userbysecoindaryID
 	//- anonymous - get user by id
 	//- fim - find federated identity
 	//- second factor - has no identity
-	return model.User{}, nil
+
+	if auth.Type() == model.AuthStrategyAnonymous {
+		return c.UserByID(ctx, userIDValue)
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorInternal {
+		a, ok := auth.(model.FirstFactorInternalStrategy)
+		if !ok {
+			return model.User{}, l.LocalizedError{ErrID: l.ErrorUserNotFound}
+		}
+		if a.Identity == model.AuthIdentityTypeID {
+			return c.UserByID(ctx, userIDValue)
+		} else {
+			return c.UserBySecondaryID(ctx, a.Identity, userIDValue)
+		}
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorFIM {
+		a, ok := auth.(model.FirstFactorFIMStrategy)
+		if !ok {
+			return model.User{}, l.LocalizedError{ErrID: l.ErrorUserNotFound}
+		}
+		return c.UserByFederatedID(ctx, model.UserFederatedType(a.FIMType), "", userIDValue)
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorEnterprise {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+
+	if auth.Type() == model.AuthStrategySecondFactor {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+
+	return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
 }

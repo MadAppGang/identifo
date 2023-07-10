@@ -41,7 +41,7 @@ type FirstFactorInternalStrategy struct {
 
 type FirstFactorFIMStrategy struct {
 	AuthStrategyInfo
-	FIMType FIMStrategyType `json:"fim_type,omitempty"`
+	FIMType UserFederatedType `json:"fim_type,omitempty"`
 	// TODO: add fields for OIDC and plugin strategy
 }
 
@@ -172,7 +172,6 @@ type (
 	AuthIdentityType  string
 	AuthChallengeType string
 	AuthTransportType string
-	FIMStrategyType   string
 )
 
 const (
@@ -199,13 +198,6 @@ const (
 	AuthTransportTypeNone          AuthTransportType = "none"
 	AuthTransportTypeSocket        AuthTransportType = "socket"
 	AuthTransportTypeAuthenticator AuthTransportType = "authenticator"
-
-	// FIMStrategyType - the FIM (Federated Identity Management) provider strategy name.
-	FIMStrategyTypeNone     FIMStrategyType = "none"
-	FIMStrategyTypeOIDC     FIMStrategyType = "oidc"
-	FIMStrategyTypeApple    FIMStrategyType = "apple"
-	FIMStrategyTypeFirebase FIMStrategyType = "firebase"
-	FIMStrategyTypeGoogle   FIMStrategyType = "google"
 )
 
 // SecondFactorEnrolPolicy - the policy for the second factor enrolment, the way is user can enrol second factor.

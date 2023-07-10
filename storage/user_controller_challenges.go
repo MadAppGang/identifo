@@ -17,7 +17,7 @@ import (
 // send it to the user
 // save it in db
 // return it back
-func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge model.UserAuthChallenge) (model.UserAuthChallenge, error) {
+func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.UserAuthChallenge, error) {
 	zr := model.UserAuthChallenge{}
 	app, err := c.as.AppByID(challenge.AppID)
 	if err != nil {
@@ -37,10 +37,11 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 
 	// using the challenge he requested
 	// if no user found, just silently return with no error for security reason
-	u, err := c.UserByAuthStrategy(ctx, auth)
+	u, err := c.UserByAuthStrategy(ctx, auth, userIDValue)
 	if err != nil {
 		return zr, nil
 	}
+	// TODO: Add log entry about the challenge
 
 	cha := challenge
 	cha.UserID = u.ID
@@ -79,6 +80,11 @@ func (c *UserStorageController) sendChallengeToUser(ctx context.Context, challen
 	// - magic link - build a link like reset password, but with OTP code to validate it
 	// - OTP -- generate random number
 	// using user
+
+	// who is responsible to find sender, create message and send it?
+	// services should satisfy some protocol, like: message(SMS/EMAIL/PUSH/SOCKET) for specific type (OTP/MagicLink).
+	// this method should find service
+	// magic link itself we create here:
 	return nil
 }
 

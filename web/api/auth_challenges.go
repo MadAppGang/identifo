@@ -53,8 +53,10 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 		agent := r.Header.Get("User-Agent")
 
 		idType := model.AuthIdentityTypePhone
+		idValue := d.PhoneNumber
 		if len(d.Email) > 0 {
 			idType = model.AuthIdentityTypeEmail
+			idValue = d.Email
 		}
 
 		// create uncompleted UserAuthChallenge to challenge controller to create a full challenge
@@ -65,19 +67,16 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 			UserAgent:         agent,
 			CreatedAt:         time.Now(),
 			UserCodeChallenge: d.ClientCodeChallenge,
-			Strategy: model.AuthStrategy{
-				Type: model.AuthStrategyFirstFactor,
-				FirstFactor: &model.FirstFactorStrategy{
-					Type: model.FirstFactorTypeLocal,
-					Local: &model.LocalStrategy{
-						Identity:  idType,
-						Challenge: model.AuthChallengeType(d.ChallengeType),
-					},
-				},
+			Strategy: model.FirstFactorInternalStrategy{
+				Identity:  idType,
+				Challenge: model.AuthChallengeType(d.ChallengeType),
 			},
 		}
 
-		_, err := ar.server.Services().Challenge.RequestChallenge(r.Context(), ch)
+		// now we need to pass phone number or email to requestChallenge
+		// question, where to put it in?
+		// in challenge, authstrategy, create user instance for that or create other type?
+		_, err := ar.server.Services().Challenge.RequestChallenge(r.Context(), ch, idValue)
 		if err != nil && !errors.Is(err, l.ErrorUserNotFound) {
 			ar.Error(w, l.ErrorWithLocale(err, locale))
 			return
