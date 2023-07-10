@@ -55,7 +55,7 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 	path := model.DefaultLoginWebAppSettings.ResetPasswordURL
 
 	if app.LoginAppSettings != nil && app.LoginAppSettings.ResetPasswordURL != "" {
-		ah, err := url.ParseRequestURI("http://localhost")
+		ah, err := url.ParseRequestURI(app.LoginAppSettings.ResetPasswordURL)
 		if err == nil {
 			// if custom url is valid, use it
 			host = ah
