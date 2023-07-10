@@ -9,8 +9,15 @@ import (
 	"golang.org/x/exp/maps"
 )
 
-var _a model.AppStorage = &App{}
+var (
+	ErrNotFound       = errors.New("not found")
+	ErrNotImplemented = errors.New("not implemented")
 
+	_a model.AppStorage = &App{}
+)
+
+// App is mock implementation of model.AppStorage interface.
+// ! User it for tests only!
 type App struct {
 	Apps map[string]model.AppData
 }
@@ -28,7 +35,7 @@ func (a *App) AppByID(id string) (model.AppData, error) {
 			return app, nil
 		}
 	}
-	return model.AppData{}, errors.New("not found")
+	return model.AppData{}, ErrNotFound
 }
 
 func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
@@ -37,7 +44,7 @@ func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
 		return model.AppData{}, err
 	}
 	if !app.Active {
-		return model.AppData{}, errors.New("not found")
+		return model.AppData{}, ErrNotFound
 	}
 	return app, nil
 }
@@ -76,7 +83,7 @@ func (a *App) DeleteApp(id string) error {
 
 func (a *App) ImportJSON(data []byte, cleanOldData bool) error {
 	// TODO: implement
-	return errors.New("not implemented")
+	return ErrNotImplemented
 }
 
 func (a *App) TestDatabaseConnection() error {
