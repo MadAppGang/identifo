@@ -30,6 +30,7 @@ var UserFieldsetMap = map[UserFieldset][]string{
 		"Nickname",
 		"PreferredUsername",
 		"PhoneNumber",
+		"Locale",
 	},
 	UserFieldsetPassword: {
 		"ID",

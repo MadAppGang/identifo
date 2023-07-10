@@ -43,7 +43,7 @@ func TestRequestSMSTestNoApp(t *testing.T) {
 			Transport: model.AuthTransportTypeSMS,
 		},
 	}
-	_, err := cc.RequestChallenge(context.TODO(), ch)
+	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.Error(t, err)
 	require.True(t, errors.Is(err, mock.ErrNotFound))
 }
@@ -85,7 +85,7 @@ func TestRequestSMSNoStrategyFound(t *testing.T) {
 			Transport: model.AuthTransportTypeSMS,
 		},
 	}
-	_, err := cc.RequestChallenge(context.TODO(), ch)
+	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.Error(t, err)
 	assert.True(t, errors.Is(err, l.ErrorRequestChallengeUnsupportedByAPP))
 }
@@ -101,6 +101,7 @@ func TestRequestSMSSend(t *testing.T) {
 			model.FirstFactorInternalStrategy{
 				Challenge: model.AuthChallengeTypeOTP,
 				Transport: model.AuthTransportTypeSMS,
+				Identity:  model.AuthIdentityTypePhone,
 			},
 		},
 	})
@@ -108,11 +109,18 @@ func TestRequestSMSSend(t *testing.T) {
 	// auth storage
 	uas := &mock.UserAuthStorage{}
 
+	// user storage
+	u := &mock.UserStorage{}
+	u.Users = append(u.Users, model.User{
+		ID:          "u1",
+		PhoneNumber: "+61450123456",
+	})
+
 	// sms service
 	ss := &smock.SMSService{}
 
 	cc := storage.NewUserStorageController(
-		nil, // u
+		u,   // u
 		nil, // ums
 		nil, // ua
 		as,  // as
@@ -135,19 +143,21 @@ func TestRequestSMSSend(t *testing.T) {
 		AppID:             "a1",
 		Strategy: model.FirstFactorInternalStrategy{
 			Challenge: model.AuthChallengeTypeOTP,
+			Identity:  model.AuthIdentityTypePhone,
 			Transport: model.AuthTransportTypeSMS,
 		},
 	}
-	_, err := cc.RequestChallenge(context.TODO(), ch)
+	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.NoError(t, err)
 	e, _ := ss.Last()
+	require.Equal(t, 1, len(uas.Challenges))
 	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
 	assert.Equal(t, fmt.Sprintf("Here is the OTP code %s, expire in 5 minutes.", ch.OTP), e)
 }
 
 func TestRequestSMSSendUK(t *testing.T) {
 	dm := map[model.SMSMessageType]string{
-		model.SMSMessageTypeOTPMagicLink: "Here is your magic link {{.URL}} which will expire in {{.Expires}} mins.",
+		model.SMSMessageTypeOTPMagicLink: "Here is your test magic link {{.URL}} which will expire in {{.Expires}} mins.",
 	}
 	uk := map[model.SMSMessageType]string{
 		model.SMSMessageTypeOTPMagicLink: "Тримай своє посилання {{.URL}} яке буде недійсно через {{.Expires}} хвилин.",
@@ -166,6 +176,7 @@ func TestRequestSMSSendUK(t *testing.T) {
 			model.FirstFactorInternalStrategy{
 				Challenge: model.AuthChallengeTypeMagicLink,
 				Transport: model.AuthTransportTypeSMS,
+				Identity:  model.AuthIdentityTypePhone,
 			},
 		},
 	})
@@ -173,11 +184,18 @@ func TestRequestSMSSendUK(t *testing.T) {
 	// auth storage
 	uas := &mock.UserAuthStorage{}
 
+	// user storage
+	u := &mock.UserStorage{}
+	u.Users = append(u.Users, model.User{
+		ID:          "u1",
+		PhoneNumber: "+61450123456",
+	})
+
 	// sms service
 	ss := &smock.SMSService{}
 
 	cc := storage.NewUserStorageController(
-		nil, // u
+		u,   // u
 		nil, // ums
 		nil, // ua
 		as,  // as
@@ -200,15 +218,28 @@ func TestRequestSMSSendUK(t *testing.T) {
 		Strategy: model.FirstFactorInternalStrategy{
 			Challenge: model.AuthChallengeTypeMagicLink,
 			Transport: model.AuthTransportTypeSMS,
+			Identity:  model.AuthIdentityTypePhone,
 		},
 	}
 
-	_, err := cc.RequestChallenge(context.TODO(), ch)
+	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.NoError(t, err)
 	e, _ := ss.Last()
 	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
 	// localized version should be here, as get user by strategy not implemented yet, we are getting english result here
-	assert.NotEqual(t, fmt.Sprintf("Here is your magic link http://localhost/web/otp_confirm?appId=a1&amp;otp=%s which will expire in 30 mins.", ch.OTP), e)
+	assert.Equal(t, fmt.Sprintf("Here is your test magic link http://localhost/web/otp_confirm?appId=a1&amp;otp=%s which will expire in 30 mins.", ch.OTP), e)
+
+	// user with ukrainian locale
+	u.Users = append(u.Users, model.User{
+		ID:          "u2",
+		PhoneNumber: "+61450123455",
+		Locale:      language.Ukrainian.String(),
+	})
+	_, err = cc.RequestChallenge(context.TODO(), ch, "+61450123455")
+	require.NoError(t, err)
+	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
+	e, _ = ss.Last()
+	assert.Equal(t, fmt.Sprintf("Тримай своє посилання http://localhost/web/otp_confirm?appId=a1&amp;otp=%s яке буде недійсно через 30 хвилин.", ch.OTP), e)
 }
 
 func TestRequestEmailSend(t *testing.T) {
@@ -221,12 +252,20 @@ func TestRequestEmailSend(t *testing.T) {
 			model.FirstFactorInternalStrategy{
 				Challenge: model.AuthChallengeTypeMagicLink,
 				Transport: model.AuthTransportTypeEmail,
+				Identity:  model.AuthIdentityTypeEmail,
 			},
 		},
 	})
 
 	// auth storage
 	uas := &mock.UserAuthStorage{}
+
+	// user storage
+	u := &mock.UserStorage{}
+	u.Users = append(u.Users, model.User{
+		ID:    "u1",
+		Email: "mail@aooth.com",
+	})
 
 	// email service
 	etFS, _ := storage.NewFS(model.FileStorageSettings{
@@ -243,7 +282,7 @@ func TestRequestEmailSend(t *testing.T) {
 	)
 
 	cc := storage.NewUserStorageController(
-		nil, // u
+		u,   // u
 		nil, // ums
 		nil, // ua
 		as,  // as
@@ -267,16 +306,17 @@ func TestRequestEmailSend(t *testing.T) {
 		Strategy: model.FirstFactorInternalStrategy{
 			Challenge: model.AuthChallengeTypeMagicLink,
 			Transport: model.AuthTransportTypeEmail,
+			Identity:  model.AuthIdentityTypeEmail,
 		},
 	}
-	_, err := cc.RequestChallenge(context.TODO(), ch)
+	_, err := cc.RequestChallenge(context.TODO(), ch, "mail@aooth.com")
 	require.NoError(t, err)
 
 	emailTransport, ok := es.Transport().(*emock.EmailService)
 	require.True(t, ok)
 	// TODO: now no messages send as user has no email, that's why it shows ok, but it's not ok
-	assert.Equal(t, 1, len(emailTransport.Messages()))
+	require.Equal(t, 1, len(emailTransport.Messages()))
 	e, _ := emailTransport.Messages()[len(emailTransport.Messages())-1]["body"]
 	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
-	assert.Equal(t, fmt.Sprintf("Here is the OTP code %s, expire in 5 minutes.", ch.OTP), e)
+	assert.Contains(t, e, fmt.Sprintf("Click <a href=\"http://localhost/web/otp_confirm?appId=a1&otp=%s\">here</a> to login.", ch.OTP))
 }

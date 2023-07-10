@@ -29,4 +29,5 @@ type OPTConfirmationData struct {
 	URL     string
 	Host    string
 	Expires int // expire time in minutes
+	User    User
 }

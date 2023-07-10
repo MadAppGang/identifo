@@ -33,12 +33,12 @@ import (
 // - guardian response with guardian SDK?(TODO)
 func (ar *Router) RequestChallenge() http.HandlerFunc {
 	type challengeRequest struct {
-		PhoneNumber         string   `json:"phone"` // email or phone should be filled
-		Email               string   `json:"email"`
-		ChallengeType       string   `json:"challenge_type"`   // preferable challenge type: otp or magic link for now
-		ClientCodeChallenge string   `json:"client_challenge"` // random verification code from user
-		Scopes              []string `json:"scopes"`           // requested scopes
-		Device              string   `json:"device"`           // device info  from client
+		PhoneNumber         string                  `json:"phone"` // email or phone should be filled
+		Email               string                  `json:"email"`
+		ChallengeType       model.AuthChallengeType `json:"challenge_type"`   // preferable challenge type: otp or magic link for now
+		ClientCodeChallenge string                  `json:"client_challenge"` // random verification code from user
+		Scopes              []string                `json:"scopes"`           // requested scopes
+		Device              string                  `json:"device"`           // device info  from client
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -54,9 +54,11 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 
 		idType := model.AuthIdentityTypePhone
 		idValue := d.PhoneNumber
+		transport := model.AuthTransportTypeSMS
 		if len(d.Email) > 0 {
 			idType = model.AuthIdentityTypeEmail
 			idValue = d.Email
+			transport = model.AuthTransportTypeEmail
 		}
 
 		// create uncompleted UserAuthChallenge to challenge controller to create a full challenge
@@ -69,7 +71,8 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 			UserCodeChallenge: d.ClientCodeChallenge,
 			Strategy: model.FirstFactorInternalStrategy{
 				Identity:  idType,
-				Challenge: model.AuthChallengeType(d.ChallengeType),
+				Challenge: d.ChallengeType,
+				Transport: transport,
 			},
 		}
 
