@@ -85,3 +85,7 @@ func (p *Printer) E(s LocalizedString, params ...any) error {
 func (p *Printer) EL(s error, params ...any) error {
 	return errors.New(p.S(p.defaultTag, LocalizedString(s.Error()), params...))
 }
+
+func (p *Printer) DefaultTag() language.Tag {
+	return p.defaultTag
+}

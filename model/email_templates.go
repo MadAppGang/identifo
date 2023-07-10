@@ -7,6 +7,8 @@ const (
 	EmailTemplateTypeResetPassword EmailTemplateType = "reset-password-email"
 	EmailTemplateTypeTFAWithCode   EmailTemplateType = "tfa-code-email"
 	EmailTemplateTypeVerifyEmail   EmailTemplateType = "verify-email"
+	EmailTemplateTypeOTPMagicLink  EmailTemplateType = "otp-magic-link"
+	EmailTemplateTypeOTPCode       EmailTemplateType = "otp-code"
 	// TODO: Implement welcome email
 	EmailTemplateTypeWelcome EmailTemplateType = "welcome-email"
 

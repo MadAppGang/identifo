@@ -98,6 +98,9 @@ error.username.empty: "username could not be empty"
 error.user.not_found: User not found.
 error.user.not_found.error: User not found with error; %v.
 error.request.challenge.unsupported.by.app: This login type is not supported by the app.
+error.otp.login.transport.not.supported: "Unsupported way to send OTP code: %s."
+error.otp.login.challenge.not.supported: "Unsupported OTP code type: %s."
+error.otp.login.strategy.not.supported: "Unsupported OTP code strategy: %s."
 
 # Federated login
 api.app.federated.provider.not_supported: Federated provider is not supported.
@@ -188,3 +191,7 @@ password.require.uppercase: "Require at least one uppercase characters."
 password.require.number: "Require at least one number."
 password.require.symbol: "Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?."
 
+
+# SMS
+sms.otp_magic_link: "Click here to login {{.URL}}."
+sms.otp_code: "Here is the OTP code {{.OTP}}, expire in {{.Expires}} minutes."

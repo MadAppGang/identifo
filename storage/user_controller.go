@@ -31,7 +31,6 @@ type UserStorageController struct {
 	ss     model.SMSService
 	uas    model.UserAuthStorage
 	LP     *l.Printer // localized string
-
 	// cache
 	ffs  []model.FirstFactorInternalStrategy
 	idts []model.AuthIdentityType // identity types in use

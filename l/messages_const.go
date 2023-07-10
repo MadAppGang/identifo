@@ -207,6 +207,12 @@ const (
 	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
 	// ErrorRequestChallengeUnsupportedByAPP -> This login type is not supported by the app.
 	ErrorRequestChallengeUnsupportedByAPP LocalizedString = "error.request.challenge.unsupported.by.app"
+	// ErrorOtpLoginTransportNotSupported -> Unsupported way to send OTP code: %s.
+	ErrorOtpLoginTransportNotSupported LocalizedString = "error.otp.login.transport.not.supported"
+	// ErrorOtpLoginChallengeNotSupported -> Unsupported OTP code type: %s.
+	ErrorOtpLoginChallengeNotSupported LocalizedString = "error.otp.login.challenge.not.supported"
+	// ErrorOtpLoginStrategyNotSupported -> Unsupported OTP code strategy: %s.
+	ErrorOtpLoginStrategyNotSupported LocalizedString = "error.otp.login.strategy.not.supported"
 
 	//===========================================================================
 	//  Federated login
@@ -383,4 +389,12 @@ const (
 	PasswordRequireNumber LocalizedString = "password.require.number"
 	// PasswordRequireSymbol -> Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?.
 	PasswordRequireSymbol LocalizedString = "password.require.symbol"
+
+	//===========================================================================
+	//  SMS
+	//===========================================================================
+	// SmsOtpMagicLink -> Click here to login {{.URL}}.
+	SmsOtpMagicLink LocalizedString = "sms.otp_magic_link"
+	// SmsOtpCode -> Here is the OTP code {{.OTP}}, expire in {{.Expires}} minutes.
+	SmsOtpCode LocalizedString = "sms.otp_code"
 )
