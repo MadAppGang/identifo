@@ -5,7 +5,6 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
@@ -57,17 +56,17 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		// Authorize user if the app requires authorization.
-		azi := authorization.AuthzInfo{
-			App:         app,
-			UserRole:    user.AccessRole,
-			ResourceURI: r.RequestURI,
-			Method:      r.Method,
-		}
-		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
-			return
-		}
+		// // Authorize user if the app requires authorization.
+		// azi := authorization.AuthzInfo{
+		// 	App:         app,
+		// 	UserRole:    user.AccessRole,
+		// 	ResourceURI: r.RequestURI,
+		// 	Method:      r.Method,
+		// }
+		// if err := ar.Authorizer.Authorize(azi); err != nil {
+		// 	ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
+		// 	return
+		// }
 
 		authResult, err := ar.loginFlow(app, user, ld.Scopes)
 		if err != nil {

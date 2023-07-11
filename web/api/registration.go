@@ -6,7 +6,6 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
@@ -82,17 +81,17 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		// Check if it makes sense to create new user.
-		azi := authorization.AuthzInfo{
-			App:         app,
-			UserRole:    app.NewUserDefaultRole,
-			ResourceURI: r.RequestURI,
-			Method:      r.Method,
-		}
-		if err := ar.Authorizer.Authorize(azi); err != nil {
-			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.APIAccessDenied)
-			return
-		}
+		// // Check if it makes sense to create new user.
+		// azi := authorization.AuthzInfo{
+		// 	App:         app,
+		// 	UserRole:    app.NewUserDefaultRole,
+		// 	ResourceURI: r.RequestURI,
+		// 	Method:      r.Method,
+		// }
+		// if err := ar.Authorizer.Authorize(azi); err != nil {
+		// 	ar.LocalizedError(w, locale, http.StatusUnauthorized, l.APIAccessDenied)
+		// 	return
+		// }
 
 		// Parse registration data.
 		rd := registrationData{}

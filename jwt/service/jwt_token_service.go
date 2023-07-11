@@ -11,7 +11,7 @@ import (
 	"fmt"
 	"strings"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v5"
 	ijwt "github.com/madappgang/identifo/v2/jwt"
 	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
 	"github.com/madappgang/identifo/v2/model"
@@ -37,11 +37,6 @@ var (
 	InviteTokenLifespan = int64(3600) // int64(1*60*60)
 	// RefreshTokenLifespan is a default expiration time for refresh tokens, one year.
 	RefreshTokenLifespan = int64(31536000) // int(365*24*60*60)
-)
-
-const (
-	// PayloadName is a JWT token payload "name".
-	PayloadName = "name"
 )
 
 // NewJWTokenService returns new JWT token service.
@@ -75,7 +70,7 @@ func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model
 
 // JWTokenService is a JWT token service.
 type JWTokenService struct {
-	privateKey             interface{} // *ecdsa.PrivateKey, or *rsa.PrivateKey
+	privateKey             any // *ecdsa.PrivateKey, or *rsa.PrivateKey
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
 	userStorage            model.UserStorage
@@ -84,12 +79,17 @@ type JWTokenService struct {
 	webCookieTokenLifespan int64
 
 	cachedAlgorithm string
-	cachedPublicKey interface{} // *ecdsa.PublicKey, or *rsa.PublicKey
+	cachedPublicKey any // *ecdsa.PublicKey, or *rsa.PublicKey
 }
 
 // Issuer returns token issuer name.
 func (ts *JWTokenService) Issuer() string {
 	return ts.issuer
+}
+
+// Issuer returns token issuer name.
+func (ts *JWTokenService) PrivateKey() any {
+	return ts.privateKey
 }
 
 func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, fields []string, payload map[string]any) (model.Token, error) {

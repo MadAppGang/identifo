@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/MicahParks/keyfunc"
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	. "github.com/onsi/gomega"

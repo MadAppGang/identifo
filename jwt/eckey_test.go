@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"testing"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v5"
 	jwti "github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/model"
 )

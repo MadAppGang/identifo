@@ -9,7 +9,7 @@ import (
 	"net/url"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v4"
+	"github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/config"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/api"
