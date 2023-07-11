@@ -119,7 +119,7 @@ func (c *UserStorageController) UserBySecondaryIDWithFields(ctx context.Context,
 // UserByFederatedID returns user profile by federated ID.
 func (c *UserStorageController) UserByFederatedID(ctx context.Context, idt model.UserFederatedType, idOther, id string) (model.User, error) {
 	// TODO: use scopes to identifies the fieldset to return
-	user, err := c.u.GetUserByFederatedID(ctx, idt, idOther, id)
+	user, err := c.u.UserByFederatedID(ctx, idt, idOther, id)
 	if err != nil {
 		return model.User{}, err
 	}

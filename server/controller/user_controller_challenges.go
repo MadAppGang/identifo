@@ -229,3 +229,70 @@ func randomOTP(length int) string {
 	}
 	return string(b)
 }
+
+// VerifyChallenge verifies challenge from user
+func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) error {
+}
+
+// Passwordless login or register user with challenge
+func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
+	if challenge.Strategy.Type() != model.AuthStrategyFirstFactorInternal {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+	app, err := c.as.AppByID(challenge.AppID)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	appAuthStrategies := app.AuthStrategies
+	compatibleStrategies := model.FilterCompatible(challenge.Strategy, appAuthStrategies)
+	// the app does not supports that type of challenge
+	if len(compatibleStrategies) == 0 {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorRequestChallengeUnsupportedByAPP}
+	}
+
+	// selecting the first strategy from the list.
+	// if there are more than one strategy we need to choose better one.
+	auth := compatibleStrategies[0]
+
+	// using the challenge he requested
+	// if no user found, just silently return with no error for security reason
+	u, err := c.UserByAuthStrategy(ctx, auth, userIDValue)
+	if err != nil {
+		return model.User{}, nil
+	}
+
+	// check if user has debug challenge and app allows to use it and it matches the code in request
+	shouldValidateOTP := true
+	if app.DebugOTPCodeAllowed {
+		ud, err := c.u.UserData(ctx, u.ID, model.UserDataFieldDebugOTPCode)
+		if err != nil {
+			return model.User{}, err
+		}
+		if len(ud.DebugOTPCode) > 0 && ud.DebugOTPCode == challenge.OTP {
+			shouldValidateOTP = false
+			// TODO: Add log entry about the login with debug challenge
+		}
+	}
+
+	// if user has not debug challenge, validate the challenge
+	if shouldValidateOTP {
+		ch, err := c.uas.GetLatestChallenge(ctx, challenge.Strategy, u.ID)
+		if err != nil {
+			return model.User{}, err
+		}
+		err = ch.Valid()
+		if err != nil {
+			// TODO: Login attempt to login with invalid code
+			return model.User{}, err
+		}
+		if ch.OTP != challenge.OTP {
+			// TODO: Login attempt to login with invalid code
+			return model.User{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
+		}
+		// add information about context, when the challenge been solved
+		ch.SolvedDeviceID = challenge.DeviceID
+		ch.SolvedUserAgent = challenge.UserAgent
+		c.uas.MarkChallengeAsSolved(ctx, ch)
+	}
+}

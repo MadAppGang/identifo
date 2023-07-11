@@ -215,6 +215,10 @@ const (
 	ErrorOtpLoginChallengeNotSupported LocalizedString = "error.otp.login.challenge.not.supported"
 	// ErrorOtpLoginStrategyNotSupported -> Unsupported OTP code strategy: %s.
 	ErrorOtpLoginStrategyNotSupported LocalizedString = "error.otp.login.strategy.not.supported"
+	// ErrorOtpAlreadyUsed -> The code is already used, enter the new one.
+	ErrorOtpAlreadyUsed LocalizedString = "error.otp.already.used"
+	// ErrorOtpIncorrect -> The code is not match, please check it and try again.
+	ErrorOtpIncorrect LocalizedString = "error.otp.incorrect"
 
 	//===========================================================================
 	//  Federated login

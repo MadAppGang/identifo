@@ -51,6 +51,7 @@ type AppData struct {
 	RegistrationForbidden        bool   `bson:"registration_forbidden" json:"registration_forbidden"`
 	AnonymousRegistrationAllowed bool   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
 	NewUserDefaultRole           string `bson:"new_user_default_role" json:"new_user_default_role"`
+	DebugOTPCodeAllowed          bool   `bson:"debug_otp_code_allowed" json:"debug_otp_code_allowed"`
 
 	// TODO: extract it from here
 	OIDCSettings OIDCSettings `json:"oidc_settings" bson:"oidc_settings"`

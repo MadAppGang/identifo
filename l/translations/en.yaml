@@ -102,6 +102,8 @@ error.login.type.not.supported: This login type is not supported.
 error.otp.login.transport.not.supported: "Unsupported way to send OTP code: %s."
 error.otp.login.challenge.not.supported: "Unsupported OTP code type: %s."
 error.otp.login.strategy.not.supported: "Unsupported OTP code strategy: %s."
+error.otp.already.used: The code is already used, enter the new one.
+error.otp.incorrect: The code is not match, please check it and try again.
 
 # Federated login
 api.app.federated.provider.not_supported: Federated provider is not supported.

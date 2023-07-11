@@ -35,7 +35,7 @@ func (ar *Router) PasswordlessLogin() http.HandlerFunc {
 			return
 		}
 
-		ar.server.Storages().UMC.ChangeBlockStatus
+		ar.server.Storages().UCC.ChangeBlockStatus
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		// um := model.User{}

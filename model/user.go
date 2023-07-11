@@ -103,6 +103,7 @@ const (
 	UserDataFieldAppsData         UserDataField = "apps_data"
 	UserDataFieldData             UserDataField = "data"
 	UserDataFieldAll              UserDataField = "all"
+	UserDataFieldDebugOTPCode     UserDataField = "debug_otp"
 )
 
 // ApplicationUserData is custom data that could be attached by application to the user,
@@ -158,6 +159,7 @@ func UserDataFromJSON(d []byte) (UserData, error) {
 }
 
 // FilterUserDataFields get User data only with fields requested
+// TODO: refactor it as model.User does, using slices copy fields function
 func FilterUserDataFields(source UserData, fields ...UserDataField) UserData {
 	result := UserData{UserID: source.UserID}
 	for _, f := range fields {
@@ -176,6 +178,8 @@ func FilterUserDataFields(source UserData, fields ...UserDataField) UserData {
 			result.Data = source.Data
 		case UserDataFieldAll:
 			result = source
+		case UserDataFieldDebugOTPCode:
+			result.DebugOTPCode = source.DebugOTPCode
 		default:
 		}
 	}

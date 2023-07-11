@@ -32,7 +32,7 @@ func (us *UserStorage) UserBySecondaryID(ctx context.Context, idt model.AuthIden
 	return model.User{}, l.ErrorUserNotFound
 }
 
-func (us *UserStorage) GetUserByFederatedID(ctx context.Context, idType model.UserFederatedType, userIdentityTypeOther, externalID string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(ctx context.Context, idType model.UserFederatedType, userIdentityTypeOther, externalID string) (model.User, error) {
 	return model.User{}, l.ErrorLoginTypeNotSupported
 }
 
