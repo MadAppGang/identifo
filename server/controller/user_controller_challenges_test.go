@@ -1,4 +1,4 @@
-package storage_test
+package controller_test
 
 import (
 	"context"
@@ -9,6 +9,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/server/controller"
 	"github.com/madappgang/identifo/v2/services/mail"
 	emock "github.com/madappgang/identifo/v2/services/mail/mock"
 	smock "github.com/madappgang/identifo/v2/services/sms/mock"
@@ -20,7 +21,7 @@ import (
 )
 
 func TestRequestSMSTestNoApp(t *testing.T) {
-	cc := storage.NewUserStorageController(
+	cc := controller.NewUserStorageController(
 		nil,           // u
 		nil,           // ums
 		nil,           // ua
@@ -62,7 +63,7 @@ func TestRequestSMSNoStrategyFound(t *testing.T) {
 		},
 	})
 
-	cc := storage.NewUserStorageController(
+	cc := controller.NewUserStorageController(
 		nil, // u
 		nil, // ums
 		nil, // ua
@@ -119,7 +120,7 @@ func TestRequestSMSSend(t *testing.T) {
 	// sms service
 	ss := &smock.SMSService{}
 
-	cc := storage.NewUserStorageController(
+	cc := controller.NewUserStorageController(
 		u,   // u
 		nil, // ums
 		nil, // ua
@@ -194,7 +195,7 @@ func TestRequestSMSSendUK(t *testing.T) {
 	// sms service
 	ss := &smock.SMSService{}
 
-	cc := storage.NewUserStorageController(
+	cc := controller.NewUserStorageController(
 		u,   // u
 		nil, // ums
 		nil, // ua
@@ -281,7 +282,7 @@ func TestRequestEmailSend(t *testing.T) {
 		"",
 	)
 
-	cc := storage.NewUserStorageController(
+	cc := controller.NewUserStorageController(
 		u,   // u
 		nil, // ums
 		nil, // ua

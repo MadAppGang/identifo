@@ -1,4 +1,4 @@
-package storage
+package controller
 
 // sliceContains checks if value is inside slice.
 func sliceContains[T comparable](slice []T, value T) bool {

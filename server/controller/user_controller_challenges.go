@@ -1,4 +1,4 @@
-package storage
+package controller
 
 import (
 	"bytes"
@@ -72,7 +72,10 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 		return zr, err
 	}
 
-	_ = c.sendChallengeToUser(ctx, cha, u)
+	err = c.sendChallengeToUser(ctx, cha, u)
+	if err != nil {
+		return zr, err
+	}
 	return ch, nil
 }
 
@@ -87,13 +90,6 @@ func (c *UserStorageController) sendChallengeToUser(ctx context.Context, challen
 	// - OTP -- generate random number
 	// using user
 
-<<<<<<< HEAD
-	// who is responsible to find sender, create message and send it?
-	// services should satisfy some protocol, like: message(SMS/EMAIL/PUSH/SOCKET) for specific type (OTP/MagicLink).
-	// this method should find service
-	// magic link itself we create here:
-	return nil
-=======
 	if challenge.Strategy.Type() == model.AuthStrategyFirstFactorInternal {
 		st, ok := challenge.Strategy.(model.FirstFactorInternalStrategy)
 		if ok {
@@ -122,6 +118,7 @@ func (c *UserStorageController) sendChallengeToUser(ctx context.Context, challen
 					URL:     ur.String(),
 					Host:    hostUrl.String(),
 					Expires: challenge.ExpiresMins,
+					User:    u,
 				}
 
 				if st.Transport == model.AuthTransportTypeEmail {
@@ -217,7 +214,6 @@ func (c *UserStorageController) localizedSMSForUser(smsType model.SMSMessageType
 	}
 
 	return bb.String(), nil
->>>>>>> 286e832f9a65d7b7e9ad667edb9ecef33aac6331
 }
 
 var table = [...]byte{'1', '2', '3', '4', '5', '6', '7', '8', '9', '0'}

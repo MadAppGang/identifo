@@ -37,6 +37,7 @@ var defaultEmailTemplateFSSettings = model.FileStorageSettings{
 	},
 }
 
+// TODO: Jack: A good place for a static generated DI?
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
 	var errs []error
@@ -69,13 +70,11 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
-	userController := storage.NewUserStorageController(user, settings)
 	l, err := l.NewPrinter(settings.General.Locale)
 	if err != nil {
 		log.Printf("Error on Create Localized printer for User Controller %v", err)
 		errs = append(errs, fmt.Errorf("error creating user controller: %v", err))
 	}
-	userController.LP = l
 
 	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage, settings.Storage.DefaultStorage))
 	if err != nil {
@@ -93,6 +92,31 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	if err != nil {
 		log.Printf("Error on Create New invite storage %v", err)
 		errs = append(errs, fmt.Errorf("error creating invite storage: %v", err))
+	}
+
+	// maybe not use email templates if type is None?
+	ets := settings.EmailTemplates
+	if ets.Type == model.FileStorageTypeNone || ets.Type == model.FileStorageTypeDefault {
+		ets = defaultEmailTemplateFSSettings
+	}
+	emailTemplateFS, err := storage.NewFS(ets)
+	if err != nil {
+		log.Printf("Error creating email template filesystem %v", err)
+		errs = append(errs, fmt.Errorf("error creating email template filesystem: %v", err))
+	}
+
+	emailServiceSettings := settings.Services.Email
+	// update templates every five minutes and look templates in a root folder of FS
+	email, err := mail.NewService(emailServiceSettings, emailTemplateFS, time.Minute*5, "")
+	if err != nil {
+		log.Printf("Error creating email service %v", err)
+		errs = append(errs, fmt.Errorf("error creating email service: %v", err))
+	}
+
+	sms, err := sms.NewService(settings.Services.SMS)
+	if err != nil {
+		log.Printf("Error creating SMS service %v", err)
+		errs = append(errs, fmt.Errorf("error creating SMS service: %v", err))
 	}
 
 	managementKeys, err := storage.NewManagementKeys(dbSettings(settings.Storage.ManagementKeysStorage, settings.Storage.DefaultStorage))
@@ -137,7 +161,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	sc := model.ServerStorageCollection{
 		App:           app,
 		User:          user,
-		UC:            userController,
+		UC:            nil,
 		Token:         token,
 		Blocklist:     tokenBlacklist,
 		Invite:        invite,
@@ -150,36 +174,25 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	// create 3rd party services
-	sms, err := sms.NewService(settings.Services.SMS)
-	if err != nil {
-		log.Printf("Error creating SMS service %v", err)
-		errs = append(errs, fmt.Errorf("error creating SMS service: %v", err))
-	}
-
-	// maybe not use email templates if type is None?
-	ets := settings.EmailTemplates
-	if ets.Type == model.FileStorageTypeNone || ets.Type == model.FileStorageTypeDefault {
-		ets = defaultEmailTemplateFSSettings
-	}
-	emailTemplateFS, err := storage.NewFS(ets)
-	if err != nil {
-		log.Printf("Error creating email template filesystem %v", err)
-		errs = append(errs, fmt.Errorf("error creating email template filesystem: %v", err))
-	}
-
-	emailServiceSettings := settings.Services.Email
-	// update templates every five minutes and look templates in a root folder of FS
-	email, err := mail.NewService(emailServiceSettings, emailTemplateFS, time.Minute*5, "")
-	if err != nil {
-		log.Printf("Error creating email service %v", err)
-		errs = append(errs, fmt.Errorf("error creating email service: %v", err))
-	}
-
 	tokenS, err := NewTokenService(settings.General, sc)
 	if err != nil {
 		log.Printf("Error creating token service %v", err)
 		errs = append(errs, fmt.Errorf("error creating token service: %v", err))
 	}
+
+	userController := storage.NewUserStorageController(
+		user,
+		user,
+		user,
+		app,
+		nil, // TODO: Auth storage to implement
+		tokenS,
+		email,
+		sms,
+		settings,
+	)
+	userController.LP = l
+	sc.UC = userController
 
 	sessionS := model.NewSessionManager(settings.SessionStorage.SessionDuration, session)
 
