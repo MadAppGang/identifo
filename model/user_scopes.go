@@ -14,8 +14,8 @@ const (
 	IDTokenScope           = "id"
 	TenantScope            = "tenant"
 	AccessTokenScopePrefix = "access:"
-	TenantScopePrefix      = "tenant:" // tenant:123 - request tenant data only for tenant 123
-	TenantScopeAll         = "all"     // "tenant:all" - return all scopes for all ten
+	TenantScopePrefix      = "tenant:"    // tenant:123 - request tenant data only for tenant 123
+	TenantScopeAll         = "tenant:all" // "tenant:all" - return all scopes for all ten
 )
 
 func FieldsetForScopes(scopes []string) []string {

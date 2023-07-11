@@ -92,10 +92,53 @@ func (ts *JWTokenService) Issuer() string {
 	return ts.issuer
 }
 
-// CreateToken creates token with specific types.
-func (ts *JWTokenService) NewToken(tokenType model.TokenType, userID string, payload []any) (model.Token, error) {
-	// TODO: implement general token creation for all token types
-	return &model.JWToken{}, nil
+func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, fields []string, payload map[string]any) (model.Token, error) {
+	payload := make(map[string]any)
+	jwt.StandardClaims
+	if model.SliceContains(app.TokenPayload, PayloadName) {
+		payload[PayloadName] = u.Username
+	}
+
+	tokenType := model.TokenTypeAccess
+	if len(tokenPayload) > 0 {
+		for k, v := range tokenPayload {
+			payload[k] = v
+		}
+	}
+
+	now := ijwt.TimeFunc().Unix()
+
+	lifespan := app.TokenLifespan
+	if lifespan == 0 {
+		lifespan = TokenLifespan
+	}
+
+	claims := model.Claims{
+		Scopes:  strings.Join(scopes, " "),
+		Payload: payload,
+		Type:    string(tokenType),
+		StandardClaims: jwt.StandardClaims{
+			ExpiresAt: (now + lifespan),
+			Issuer:    ts.issuer,
+			Subject:   u.ID,
+			Audience:  app.ID,
+			IssuedAt:  now,
+		},
+	}
+
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, errors.New("unable to creating signing method")
+	}
+
+	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
+	if token == nil {
+		return nil, ErrCreatingToken
+	}
+	return &model.JWToken{JWT: token, New: true}, nil
+}
+
+func (ts *JWTokenService) SignToken(token model.Token) (string, error) {
 }
 
 // Algorithm  returns signature algorithm.
@@ -147,15 +190,11 @@ func (ts *JWTokenService) PublicKey() interface{} {
 	return ts.cachedPublicKey
 }
 
-func (ts *JWTokenService) SetPrivateKey(key interface{}) {
+func (ts *JWTokenService) SetPrivateKey(key any) {
 	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!\n")
 	ts.privateKey = key
 	ts.cachedPublicKey = nil
 	ts.cachedAlgorithm = ""
-}
-
-func (ts *JWTokenService) PrivateKey() interface{} {
-	return ts.privateKey
 }
 
 // KeyID returns public key ID, using SHA-1 fingerprint.

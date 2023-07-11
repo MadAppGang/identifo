@@ -10,6 +10,7 @@ import (
 type UserStorage struct {
 	Storage
 	Users []model.User
+	UData map[string]model.UserData
 }
 
 func (us *UserStorage) UserByID(ctx context.Context, id string) (model.User, error) {
@@ -37,7 +38,12 @@ func (us *UserStorage) UserByFederatedID(ctx context.Context, idType model.UserF
 }
 
 func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...model.UserDataField) (model.UserData, error) {
-	return model.UserData{}, l.ErrorLoginTypeNotSupported
+	d, ok := us.UData[userID]
+	if !ok {
+		return model.UserData{}, l.ErrorUserNotFound
+	}
+
+	return d, nil
 }
 
 func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {

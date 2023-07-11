@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -50,7 +51,7 @@ type Token interface {
 // NewTokenWithClaims generates new JWT token with claims and keyID.
 func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
 	return &jwt.Token{
-		Header: map[string]interface{}{
+		Header: map[string]any{
 			"typ": "JWT",
 			"alg": method.Alg(),
 			"kid": kid,
@@ -187,6 +188,18 @@ type Claims struct {
 	Type    string                 `json:"type,omitempty"`
 	KeyID   string                 `json:"kid,omitempty"` // optional keyID
 	jwt.StandardClaims
+}
+
+func (c *Claims) SC() *jwt.StandardClaims {
+	return &c.StandardClaims
+}
+
+func (c *Claims) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		*jwt.StandardClaims
+	}{
+		StandardClaims: &c.StandardClaims,
+	})
 }
 
 // Full example of how to use JWT tokens:

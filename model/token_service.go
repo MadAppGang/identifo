@@ -24,10 +24,9 @@ type TokenService interface {
 
 	// keys management
 	// replace the old private key with a new one
-	SetPrivateKey(key interface{})
-	PrivateKey() interface{}
+	SetPrivateKey(key any)
 
 	// not using crypto.PublicKey here to avoid dependencies
-	PublicKey() interface{}
+	PublicKey() any
 	KeyID() string
 }

@@ -1,9 +1,10 @@
-package model_test
+package xmaps_test
 
 import (
 	"testing"
 
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -26,7 +27,7 @@ func TestCopyFields(t *testing.T) {
 	}
 	fields := []string{"ID", "Name", "Password"}
 
-	result := model.CopyFields(u, fields)
+	result := xmaps.CopyFields(u, fields)
 	assert.Empty(t, result.Phone)
 	assert.Empty(t, result.Address)
 	assert.Equal(t, u.ID, result.ID)
@@ -51,7 +52,7 @@ func TestCopyDstFields(t *testing.T) {
 	}
 
 	dst := testShortUser{}
-	err := model.CopyDstFields(u, &dst)
+	err := xmaps.CopyDstFields(u, &dst)
 	require.NoError(t, err)
 
 	assert.Empty(t, dst.Other)
@@ -88,23 +89,23 @@ func TestFilledValues(t *testing.T) {
 	expected := []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
 
 	// pointer to struct should works
-	result := model.Filled(&tu)
+	result := xmaps.Filled(&tu)
 	assert.EqualValues(t, result, expected)
 
 	// reference to struct should works
-	result = model.Filled(tu)
+	result = xmaps.Filled(tu)
 	assert.EqualValues(t, result, expected)
 
 	// let's clear the Name
 	tu.Name = nil
 	expected = []string{"ID", "Married", "Company.Name", "Company.People"}
-	result = model.Filled(tu)
+	result = xmaps.Filled(tu)
 	assert.EqualValues(t, result, expected)
 
 	// empty value should be treated as non nil
 	tu.Name = sp("")
 	expected = []string{"ID", "Name", "Married", "Company.Name", "Company.People"}
-	result = model.Filled(tu)
+	result = xmaps.Filled(tu)
 	assert.EqualValues(t, result, expected)
 }
 
@@ -133,7 +134,7 @@ func TestCopyOnlyFilledValues(t *testing.T) {
 	}
 
 	dst := model.User{}
-	err := model.CopyDstFields(tu, &dst)
+	err := xmaps.CopyDstFields(tu, &dst)
 
 	assert.NoError(t, err)
 	assert.Equal(t, *tu.ID, dst.ID)
@@ -151,7 +152,7 @@ func TestContainsFields(t *testing.T) {
 		},
 	}
 
-	contains := model.ContainsFields(tu, []string{"ID", "Name", "NonPointer", "Whatever", "Company.Name", "Company.People", "Company"})
+	contains := xmaps.ContainsFields(tu, []string{"ID", "Name", "NonPointer", "Whatever", "Company.Name", "Company.People", "Company"})
 	expected := []string{"ID", "Name", "NonPointer", "Company.Name", "Company.People"}
 	assert.Equal(t, contains, expected)
 }
