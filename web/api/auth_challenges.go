@@ -68,6 +68,7 @@ func (ar *Router) RequestChallenge() http.HandlerFunc {
 			DeviceID:          d.Device,
 			UserAgent:         agent,
 			CreatedAt:         time.Now(),
+			ScopesRequested:   d.Scopes,
 			UserCodeChallenge: d.ClientCodeChallenge,
 			Strategy: model.FirstFactorInternalStrategy{
 				Identity:  idType,

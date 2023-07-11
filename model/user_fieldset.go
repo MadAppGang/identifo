@@ -9,6 +9,12 @@ const (
 	UserFieldsetPassword          UserFieldset = "password"
 	UserFieldsetSecondaryIdentity UserFieldset = "secondary_identity"
 	UserFieldsetUpdatableByUser   UserFieldset = "updatable_by_user"
+	UserFieldsetScopeOIDC         UserFieldset = OIDCScope
+	UserFieldsetScopeEmail        UserFieldset = EmailScope
+	UserFieldsetScopePhone        UserFieldset = PhoneScope
+	UserFieldsetScopeProfile      UserFieldset = ProfileScope
+	UserFieldsetScopeAddress      UserFieldset = AddressScope
+
 	// TODO: Add fieldset cases for other cases.
 
 	UserFieldEmail    = "Email"
@@ -60,6 +66,34 @@ var UserFieldsetMap = map[UserFieldset][]string{
 	UserFieldsetSecondaryIdentity: {
 		"Username",
 		"PhoneNumber",
+	},
+	UserFieldsetScopeOIDC: {
+		"Profile",
+		"Picture",
+		"Website",
+		"Gender",
+		"Birthday",
+		"Timezone",
+		"Locale",
+	},
+	UserFieldsetScopeEmail: {
+		"Email",
+		"EmailVerificationDetails",
+	},
+	UserFieldsetScopePhone: {
+		"PhoneNumber",
+		"PhoneVerificationDetails",
+	},
+	UserFieldsetScopeProfile: {
+		"Username",
+		"GivenName",
+		"FamilyName",
+		"MiddleName",
+		"Nickname",
+		"PreferredUsername",
+	},
+	UserFieldsetScopeAddress: {
+		"Address",
 	},
 }
 

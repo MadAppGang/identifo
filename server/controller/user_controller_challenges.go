@@ -237,17 +237,17 @@ func randomOTP(length int) string {
 }
 
 // VerifyChallenge verifies challenge from user
-func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
+func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, model.AppData, error) {
 	app, err := c.as.AppByID(challenge.AppID)
 	if err != nil {
-		return model.User{}, err
+		return model.User{}, model.AppData{}, err
 	}
 
 	appAuthStrategies := app.AuthStrategies
 	compatibleStrategies := model.FilterCompatible(challenge.Strategy, appAuthStrategies)
 	// the app does not supports that type of challenge
 	if len(compatibleStrategies) == 0 {
-		return model.User{}, l.LocalizedError{ErrID: l.ErrorRequestChallengeUnsupportedByAPP}
+		return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorRequestChallengeUnsupportedByAPP}
 	}
 
 	// selecting the first strategy from the list.
@@ -257,16 +257,21 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 	// using the challenge he requested
 	// if no user found, just silently return with no error for security reason
 	u, err := c.UserByAuthStrategy(ctx, auth, userIDValue)
-	if err != nil {
-		return model.User{}, nil
+
+	// check if we can register passwordless users in the app, if so, let's send a code
+	if err != nil && errors.Is(err, l.ErrorUserNotFound) && !app.RegistrationForbidden && app.PasswordlessRegistrationAllowed {
+		u = ephemeralUserForStrategy(challenge.Strategy, userIDValue)
+	} else if err != nil {
+		return model.User{}, model.AppData{}, err
 	}
 
 	// check if user has debug challenge and app allows to use it and it matches the code in request
+	// ? does not works for new users, to register you need to use real code (or not?)
 	shouldValidateOTP := true
-	if app.DebugOTPCodeAllowed {
+	if app.DebugOTPCodeAllowed && !model.ID(u.ID).IsNewUserID() {
 		ud, err := c.u.UserData(ctx, u.ID, model.UserDataFieldDebugOTPCode)
 		if err != nil {
-			return model.User{}, err
+			return model.User{}, model.AppData{}, err
 		}
 		if len(ud.DebugOTPCode) > 0 && ud.DebugOTPCode == challenge.OTP {
 			shouldValidateOTP = false
@@ -278,30 +283,51 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 	if shouldValidateOTP {
 		ch, err := c.uas.GetLatestChallenge(ctx, challenge.Strategy, u.ID)
 		if err != nil {
-			return model.User{}, err
+			return model.User{}, model.AppData{}, err
 		}
 		err = ch.Valid()
 		if err != nil {
 			// TODO: Login attempt to login with invalid code
-			return model.User{}, err
+			return model.User{}, model.AppData{}, err
 		}
 		if ch.OTP != challenge.OTP {
 			// TODO: Login attempt to login with invalid code
-			return model.User{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
+			return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
 		}
 		// add information about context, when the challenge been solved
 		ch.SolvedDeviceID = challenge.DeviceID
 		ch.SolvedUserAgent = challenge.UserAgent
 		c.uas.MarkChallengeAsSolved(ctx, ch)
 	}
-	return u, nil
+	return u, app, nil
 }
 
 // Passwordless login or register user with challenge
 func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
+	// guard check
 	if challenge.Strategy.Type() != model.AuthStrategyFirstFactorInternal {
 		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
 	}
+
+	u, _, err := c.VerifyChallenge(ctx, challenge, userIDValue)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	// let's register the user, if it is new user
+	if model.ID(u.ID).IsNewUserID() {
+		var err error
+		u.ID = "" // clear ID, so database layer should generate new one
+		u, err = c.ums.AddUser(ctx, u)
+		if err != nil {
+			return model.User{}, err
+		}
+	}
+
+	// TODO: save successful login attempt to the database
+	// TODO: update active devices list
+
+	// c.loginFlow(ctx, app, u, challenge.ScopesRequested) // ?? requested scopers
 
 	// check if we have no user exists and the code is valid and app allows to register new passwordless users
 	// then we create one

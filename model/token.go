@@ -9,13 +9,18 @@ import (
 type TokenType string
 
 const (
-	TokenTypeInvite    TokenType = "invite"     // TokenTypeInvite is an invite token type value.
-	TokenTypeReset     TokenType = "reset"      // TokenTypeReset is an reset token type value.
-	TokenTypeWebCookie TokenType = "web-cookie" // TokenTypeWebCookie is a web-cookie token type value.
-	TokenTypeAccess    TokenType = "access"     // TokenTypeAccess is an access token type.
-	TokenTypeRefresh   TokenType = "refresh"    // TokenTypeRefresh is a refresh token type.
+	TokenTypeInvite     TokenType = "invite"     // TokenTypeInvite is an invite token type value.
+	TokenTypeReset      TokenType = "reset"      // TokenTypeReset is an reset token type value.
+	TokenTypeWebCookie  TokenType = "web-cookie" // TokenTypeWebCookie is a web-cookie token type value.
+	TokenTypeAccess     TokenType = "access"     // TokenTypeAccess is an access token type.
+	TokenTypeRefresh    TokenType = "refresh"    // TokenTypeRefresh is a refresh token type.
+	TokenTypeManagement TokenType = "management" // TokenTypeManagement is a management token type for admin panel."
+	TokenTypeID         TokenType = "id_token"   // id token type regarding oidc specification
+	TokenTypeSignin     TokenType = "signin"     // signin token issues for user to sign in, etc to exchange for auth tokens. For example from admin panel I can send a link to user to siging to email with magic link.
+	TokenTypeActor      TokenType = "actor"      // actor token is token impersonation. Admin could impersonated to be some of the users.
 
 	// TODO: Deprecate it?
+	// ! Deprecated: don't use it.
 	TokenTypeTFAPreauth TokenType = "2fa-preauth" // TokenTypeTFAPreauth is an 2fa preauth token type.
 	// TODO: Add other tokens, like admin, one, 2fa etc
 )

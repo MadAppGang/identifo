@@ -41,6 +41,7 @@ type UserAuthChallenge struct {
 	SolvedUserAgent   string       `json:"solved_user_agent"`
 	SolvedDeviceID    string       `json:"solved_device_id"`
 	ExpiresMins       int          `json:"expires_mins"`
+	ScopesRequested   []string     `json:"scopes_requested"`
 	OTP               string       `json:"value"` // OTP value, it the challenge is OTP code
 }
 

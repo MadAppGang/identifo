@@ -67,14 +67,10 @@ type VerificationDetails struct {
 
 // UserData model represents all collective information about the user
 type UserData struct {
-	UserID           string `json:"user_id,omitempty"`
-	TenantMembership *struct {
-		TenantID   string            `json:"tenant_id,omitempty"`
-		TenantName string            `json:"tenant_name,omitempty"`
-		Groups     map[string]string `json:"groups,omitempty"` // map of group names to ids
-	} `json:"tenant_membership,omitempty"`
-	AuthEnrollments []UserAuthEnrolment  `json:"auth_enrollments,omitempty"`
-	Identities      []UnitedUserIdentity `json:"identities,omitempty"`
+	UserID           string               `json:"user_id,omitempty"`
+	TenantMembership []TenantMembership   `json:"tenant_membership,omitempty"`
+	AuthEnrollments  []UserAuthEnrolment  `json:"auth_enrollments,omitempty"`
+	Identities       []UnitedUserIdentity `json:"identities,omitempty"`
 
 	// User devices
 	ActiveDevices []UserDevice `json:"active_devices,omitempty"`
@@ -83,6 +79,13 @@ type UserData struct {
 	AppsData     []ApplicationUserData `json:"apps_data,omitempty"`
 	Data         []AdditionalUserData  `json:"data,omitempty"`
 	DebugOTPCode string                `json:"debug_otp,omitempty"`
+}
+
+// UserAuthEnrolment is representation for user tenant membership
+type TenantMembership struct {
+	TenantID   string            `json:"tenant_id,omitempty"`
+	TenantName string            `json:"tenant_name,omitempty"`
+	Groups     map[string]string `json:"groups,omitempty"` // map of group names to ids
 }
 
 type UserBlockedDetails struct {
