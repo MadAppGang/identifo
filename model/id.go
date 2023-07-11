@@ -18,6 +18,12 @@ import (
 // https://pkg.go.dev/github.com/mongodb/mongo-go-driver/bson/objectid
 type ID string
 
+// NewUserID is a special ID for cases when we need to indicate the data belongs to a user who is not registered yet.
+// we are using valid ObjectID compatible value here.
+var (
+	NewUserID       = ID("64acc61bab36eb8395ce5846")
+	NewUserUsername = "ephemeral"
+)
 var (
 	processUnique   = processUniqueBytes()
 	objectIDCounter = readRandomUint32()
@@ -36,6 +42,10 @@ func NewID() ID {
 
 func (id ID) String() string {
 	return string(id)
+}
+
+func (id ID) IsNewUserID() bool {
+	return id == NewUserID
 }
 
 func processUniqueBytes() [5]byte {

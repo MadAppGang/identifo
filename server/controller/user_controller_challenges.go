@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/rand"
+	"errors"
 	"fmt"
 	"html/template"
 	"io"
@@ -43,11 +44,16 @@ func (c *UserStorageController) RequestChallenge(ctx context.Context, challenge 
 	// using the challenge he requested
 	// if no user found, just silently return with no error for security reason
 	u, err := c.UserByAuthStrategy(ctx, auth, userIDValue)
-	if err != nil {
+	// check if there is not user, and app allows to register user, let's create challenge for non-existent user
+
+	// check if we can register passwordless users in the app, if so, let's send a code
+	if err != nil && errors.Is(err, l.ErrorUserNotFound) && !app.RegistrationForbidden && app.PasswordlessRegistrationAllowed {
+		u = ephemeralUserForStrategy(challenge.Strategy, userIDValue)
+	} else if err != nil {
 		return zr, nil
 	}
-	// TODO: Add log entry about the challenge
 
+	// TODO: Add log entry about the challenge
 	cha := challenge
 	cha.UserID = u.ID
 	cha.Strategy = auth
@@ -231,14 +237,7 @@ func randomOTP(length int) string {
 }
 
 // VerifyChallenge verifies challenge from user
-func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) error {
-}
-
-// Passwordless login or register user with challenge
-func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
-	if challenge.Strategy.Type() != model.AuthStrategyFirstFactorInternal {
-		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
-	}
+func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
 	app, err := c.as.AppByID(challenge.AppID)
 	if err != nil {
 		return model.User{}, err
@@ -295,4 +294,16 @@ func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Con
 		ch.SolvedUserAgent = challenge.UserAgent
 		c.uas.MarkChallengeAsSolved(ctx, ch)
 	}
+	return u, nil
+}
+
+// Passwordless login or register user with challenge
+func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
+	if challenge.Strategy.Type() != model.AuthStrategyFirstFactorInternal {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+
+	// check if we have no user exists and the code is valid and app allows to register new passwordless users
+	// then we create one
+	return model.User{}, nil
 }

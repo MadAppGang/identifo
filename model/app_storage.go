@@ -48,10 +48,11 @@ type AppData struct {
 	CustomSMSMessages map[string]map[SMSMessageType]string `bson:"custom_sms_messages" json:"custom_sms_messages"`
 
 	// registration settings
-	RegistrationForbidden        bool   `bson:"registration_forbidden" json:"registration_forbidden"`
-	AnonymousRegistrationAllowed bool   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
-	NewUserDefaultRole           string `bson:"new_user_default_role" json:"new_user_default_role"`
-	DebugOTPCodeAllowed          bool   `bson:"debug_otp_code_allowed" json:"debug_otp_code_allowed"`
+	RegistrationForbidden           bool   `bson:"registration_forbidden" json:"registration_forbidden"`
+	PasswordlessRegistrationAllowed bool   `bson:"passwordless_registration_allowed" json:"passwordless_registration_allowed"`
+	AnonymousRegistrationAllowed    bool   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
+	NewUserDefaultRole              string `bson:"new_user_default_role" json:"new_user_default_role"`
+	DebugOTPCodeAllowed             bool   `bson:"debug_otp_code_allowed" json:"debug_otp_code_allowed"`
 
 	// TODO: extract it from here
 	OIDCSettings OIDCSettings `json:"oidc_settings" bson:"oidc_settings"`

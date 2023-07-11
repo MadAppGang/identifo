@@ -272,7 +272,7 @@ func TestRequestEmailSend(t *testing.T) {
 	etFS, _ := storage.NewFS(model.FileStorageSettings{
 		Type: model.FileStorageTypeLocal,
 		Local: model.FileStorageLocal{
-			Path: "../static/email_templates",
+			Path: "../../static/email_templates",
 		},
 	})
 	es, _ := mail.NewService(
@@ -320,4 +320,100 @@ func TestRequestEmailSend(t *testing.T) {
 	e, _ := emailTransport.Messages()[len(emailTransport.Messages())-1]["body"]
 	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
 	assert.Contains(t, e, fmt.Sprintf("Click <a href=\"http://localhost/web/otp_confirm?appId=a1&otp=%s\">here</a> to login.", ch.OTP))
+}
+
+// SMS is send even if the user is not registered
+func TestRequestSMSSendUnregisteredUser(t *testing.T) {
+	// app storage
+	as := mock.NewApp()
+	as.CreateApp(model.AppData{
+		ID:                              "a1",
+		Active:                          true,
+		RegistrationForbidden:           false,
+		PasswordlessRegistrationAllowed: true,
+		AuthStrategies: []model.AuthStrategy{
+			model.FirstFactorInternalStrategy{
+				Challenge: model.AuthChallengeTypeMagicLink,
+				Transport: model.AuthTransportTypeSMS,
+				Identity:  model.AuthIdentityTypePhone,
+			},
+		},
+	})
+
+	// auth storage
+	uas := &mock.UserAuthStorage{}
+
+	// user storage with no users
+	u := &mock.UserStorage{}
+
+	// sms service
+	ss := &smock.SMSService{}
+
+	cc := controller.NewUserStorageController(
+		u,   // u
+		nil, // ums
+		nil, // ua
+		as,  // as
+		uas, // uas
+		nil, // ts
+		nil, // es
+		ss,  // ss
+		model.ServerSettings{},
+	)
+	p, _ := l.NewPrinter(language.English.String())
+	cc.LP = p
+
+	// challenge
+	ch := model.UserAuthChallenge{
+		DeviceID:          "d1",
+		UserCodeChallenge: "ucc1234",
+		OTP:               "123",
+		AppID:             "a1",
+		Strategy: model.FirstFactorInternalStrategy{
+			Challenge: model.AuthChallengeTypeMagicLink,
+			Transport: model.AuthTransportTypeSMS,
+			Identity:  model.AuthIdentityTypePhone,
+		},
+	}
+
+	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
+	require.NoError(t, err)
+	e, _ := ss.Last()
+	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
+	// localized version should be here, as get user by strategy not implemented yet, we are getting english result here
+	assert.Equal(t, fmt.Sprintf("Click here to login http://localhost/web/otp_confirm?appId=a1&amp;otp=%s.", ch.OTP), e)
+
+	// a2 app does not allow to register, the code should not be send
+	oldCode := ch.OTP
+	oldChID := ch.ID
+	as.CreateApp(model.AppData{
+		ID:                              "a2",
+		Active:                          true,
+		RegistrationForbidden:           false,
+		PasswordlessRegistrationAllowed: false,
+		AuthStrategies: []model.AuthStrategy{
+			model.FirstFactorInternalStrategy{
+				Challenge: model.AuthChallengeTypeMagicLink,
+				Transport: model.AuthTransportTypeSMS,
+				Identity:  model.AuthIdentityTypePhone,
+			},
+		},
+	})
+	ch = model.UserAuthChallenge{
+		DeviceID:          "d2",
+		UserCodeChallenge: "ucc1235",
+		OTP:               "1236",
+		AppID:             "a2",
+		Strategy: model.FirstFactorInternalStrategy{
+			Challenge: model.AuthChallengeTypeMagicLink,
+			Transport: model.AuthTransportTypeSMS,
+			Identity:  model.AuthIdentityTypePhone,
+		},
+	}
+	_, err = cc.RequestChallenge(context.TODO(), ch, "+61450123456")
+	require.NoError(t, err)
+	assert.Len(t, ss.Messages, 1)
+	ch, _ = uas.GetLatestChallenge(context.TODO(), ch.Strategy, ch.UserID)
+	assert.Equal(t, oldCode, ch.OTP) // no new code
+	assert.Equal(t, oldChID, ch.ID)  // the latest challenge is storage is old one
 }
