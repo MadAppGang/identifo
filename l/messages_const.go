@@ -191,6 +191,8 @@ const (
 	ErrorValidationTokenInvalidSubject LocalizedString = "error.validation.token.invalid.subject"
 	// ErrorValidationTokenInvalidType -> JWT token is unexpected type.
 	ErrorValidationTokenInvalidType LocalizedString = "error.validation.token.invalid.type"
+	// ErrorValidationTokenInvalidAudience -> JWT token has unexpected audience.
+	ErrorValidationTokenInvalidAudience LocalizedString = "error.validation.token.invalid.audience"
 
 	//===========================================================================
 	//  App errors

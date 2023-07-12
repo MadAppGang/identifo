@@ -23,14 +23,13 @@ import (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(privateKey any, issuer string, stor model.TokenStorage, settings model.SecurityServerSettings) (model.TokenService, error) {
+func NewJWTokenService(privateKey any, issuer string, settings model.SecurityServerSettings) (model.TokenService, error) {
 	if privateKey == nil {
 		return nil, fmt.Errorf("private key is empty")
 	}
 
 	t := &JWTokenService{
 		iss:      issuer,
-		ts:       stor,
 		pk:       privateKey,
 		settings: settings,
 	}
@@ -41,7 +40,6 @@ func NewJWTokenService(privateKey any, issuer string, stor model.TokenStorage, s
 // JWTokenService is a JWT token service.
 type JWTokenService struct {
 	pk       any // *ecdsa.PrivateKey, or *rsa.PrivateKey
-	ts       model.TokenStorage
 	settings model.SecurityServerSettings
 	iss      string
 	aCache   string // algorithm cache
@@ -58,10 +56,13 @@ func (ts *JWTokenService) PrivateKey() any {
 	return ts.pk
 }
 
-func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud []string, fields []string, payload map[string]any) (model.Token, error) {
+func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud []string, fields []string, payload map[string]any) (model.JWToken, error) {
 	// we have to collect all payloads to one map
 	userPayload := xmaps.FieldsToMap(u)
 	userPayload = xmaps.FilterMap(userPayload, fields)
+	if payload == nil {
+		payload = map[string]any{}
+	}
 	maps.Copy(payload, userPayload)
 	lifespan := ts.settings.TokenLifetime(tokenType)
 	ia := jwt.NewNumericDate(j.TimeFunc())
@@ -81,22 +82,14 @@ func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud 
 
 	sm := ts.jwtMethod()
 	if sm == nil {
-		return nil, l.ErrorTokenMethodInvalid
+		return model.JWToken{}, l.ErrorTokenMethodInvalid
 	}
 
 	token := model.TokenWithClaims(sm, ts.KeyID(), claims)
-	return &model.JWToken{
-		Token: token,
-		New:   true,
-	}, nil
+	return token, nil
 }
 
-func (ts *JWTokenService) SignToken(t model.Token) (string, error) {
-	token, ok := t.(*model.JWToken)
-	if !ok {
-		return "", l.ErrorTokenInvalid
-	}
-
+func (ts *JWTokenService) SignToken(t model.JWToken) (string, error) {
 	if err := t.Validate(); err != nil {
 		return "", l.LocalizedError{
 			ErrID:   l.ErrorValidatingToken,
@@ -104,7 +97,7 @@ func (ts *JWTokenService) SignToken(t model.Token) (string, error) {
 		}
 	}
 
-	str, err := token.SignedString(ts.pk)
+	str, err := t.SignedString(ts.pk)
 	if err != nil {
 		return "", err
 	}
@@ -179,7 +172,7 @@ func (ts *JWTokenService) KeyID() string {
 }
 
 // Parse parses token data from the string representation.
-func (ts *JWTokenService) Parse(s string) (model.Token, error) {
+func (ts *JWTokenService) Parse(s string) (model.JWToken, error) {
 	tokenString := strings.TrimSpace(s)
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (any, error) {
 		// since we only use the one private key to sign the tokens,
@@ -188,25 +181,25 @@ func (ts *JWTokenService) Parse(s string) (model.Token, error) {
 		return ts.PublicKey(), nil
 	})
 	if err != nil {
-		return nil, err
+		return model.JWToken{}, err
 	}
 
-	return &model.JWToken{Token: *token}, nil
+	return model.JWToken{Token: *token}, nil
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType string) (model.Token, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType string) (model.JWToken, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
-		return nil, err
+		return model.JWToken{}, err
 	}
 
 	if err := v.Validate(token); err != nil {
-		return nil, err
+		return model.JWToken{}, err
 	}
 
 	if token.Type() != tokenType {
-		return nil, err
+		return model.JWToken{}, err
 	}
 
 	return token, nil

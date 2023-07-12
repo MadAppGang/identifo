@@ -20,6 +20,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 	// TODO: implement custom payload provider for app
 	resp := model.AuthResponse{}
 	ud := model.UserData{}
+	aud := []string{app.ID}
 
 	ap := AccessTokenScopes(scopes) // fields for access token
 	apf := model.FieldsetForScopes(scopes)
@@ -35,7 +36,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 		maps.Copy(data, ti)
 	}
 	// create access token
-	at, err := c.ts.NewToken(model.TokenTypeAccess, u, apf, data)
+	at, err := c.ts.NewToken(model.TokenTypeAccess, u, aud, apf, data)
 	if err != nil {
 		return resp, err
 	}
@@ -65,7 +66,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 		}
 
 		// create id token
-		idt, err := c.ts.NewToken(model.TokenTypeID, u, f, data)
+		idt, err := c.ts.NewToken(model.TokenTypeID, u, aud, f, data)
 		if err != nil {
 			return resp, err
 		}
@@ -78,7 +79,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 	// refresh token
 	var refresh string
 	if slices.Contains(scopes, model.OfflineScope) && app.Offline {
-		rt, err := c.ts.NewToken(model.TokenTypeRefresh, u, ap, nil)
+		rt, err := c.ts.NewToken(model.TokenTypeRefresh, u, aud, ap, nil)
 		if err != nil {
 			return resp, err
 		}
@@ -131,8 +132,8 @@ func TenantData(ud []model.TenantMembership, scopes []string) map[string]any {
 		tid := t.TenantID
 		res["tenant:"+t.TenantID] = t.TenantName
 		for k, v := range t.Groups {
-			// "tenant_id:group_id" : "role"
-			res[tid+":"+k] = v
+			// "role:tenant_id:group_id" : "role"
+			res["role:"+tid+":"+k] = v
 		}
 	}
 	return res

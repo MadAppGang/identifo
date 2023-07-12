@@ -351,7 +351,7 @@ func (s SecurityServerSettings) TokenLifetime(t TokenType) int {
 	case TokenTypeRefresh:
 		return s.RefreshTokenLifetime
 	case TokenTypeAccess:
-		return s.AccessTokenIdleLifetime
+		return s.AccessTokenLifetime
 	case TokenTypeInvite:
 		return s.InviteTokenLifetime
 	case TokenTypeReset:

@@ -2,10 +2,12 @@ package model
 
 import (
 	"encoding/json"
+	"strings"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/l"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 	"golang.org/x/exp/maps"
 )
 
@@ -23,37 +25,19 @@ const (
 	TokenTypeActor      TokenType = "actor"      // actor token is token impersonation. Admin could impersonated to be some of the users.
 )
 
-// StandardTokenClaims structured version of Claims Section, as referenced at
-// https://tools.ietf.org/html/rfc7519#section-4.1
-type StandardTokenClaims interface {
-	Audience() []string
-	ExpiresAt() time.Time
-	ID() string
-	IssuedAt() time.Time
-	Issuer() string
-	NotBefore() time.Time
-	Subject() string
-}
-
-// Token is an abstract application token.
-type Token interface {
-	StandardTokenClaims
-	Validate() error
-	UserID() string
-	Type() string
-	Payload() map[string]interface{}
-}
-
 // TokenWithClaims generates new JWT token with claims and keyID.
-func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) jwt.Token {
-	return jwt.Token{
-		Header: map[string]any{
-			"typ": "JWT",
-			"alg": method.Alg(),
-			"kid": kid,
+func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) JWToken {
+	return JWToken{
+		Token: jwt.Token{
+			Header: map[string]any{
+				"typ": "JWT",
+				"alg": method.Alg(),
+				"kid": kid,
+			},
+			Claims: claims,
+			Method: method,
 		},
-		Claims: claims,
-		Method: method,
+		New: true,
 	}
 }
 
@@ -80,7 +64,7 @@ func (t *JWToken) Validate() error {
 
 // UserID returns user ID.
 func (t *JWToken) UserID() string {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
@@ -98,25 +82,16 @@ func (t *JWToken) Payload() map[string]interface{} {
 
 // Type returns token type.
 func (t *JWToken) Type() string {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
 	return claims.Type
 }
 
-// Audience standard token claim
-func (t *JWToken) Audience() []string {
-	claims, ok := t.Claims.(Claims)
-	if !ok {
-		return nil
-	}
-	return claims.Audience
-}
-
 // ExpiresAt standard token claim
 func (t *JWToken) ExpiresAt() time.Time {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -128,20 +103,16 @@ func (t *JWToken) ExpiresAt() time.Time {
 
 // ID standard token claim
 func (t *JWToken) ID() string {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
 	return claims.ID
 }
 
-// func (t *JWToken) Claims() *Claims {
-// 	return t.JWT.Claims.(*Claims)
-// }
-
 // IssuedAt standard token claim
 func (t *JWToken) IssuedAt() time.Time {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -153,7 +124,7 @@ func (t *JWToken) IssuedAt() time.Time {
 
 // Issuer standard token claim
 func (t *JWToken) Issuer() string {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
@@ -162,7 +133,7 @@ func (t *JWToken) Issuer() string {
 
 // NotBefore standard token claim
 func (t *JWToken) NotBefore() time.Time {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -174,7 +145,7 @@ func (t *JWToken) NotBefore() time.Time {
 
 // Subject standard token claim
 func (t *JWToken) Subject() string {
-	claims, ok := t.Claims.(Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
@@ -190,8 +161,8 @@ type Claims struct {
 }
 
 // MarshalJSON marshal everything, flattering to the root level.
-func (c *Claims) MarshalJSON() ([]byte, error) {
-	m := maps.Clone(c.Payload)
+func (c Claims) MarshalJSON() ([]byte, error) {
+	m := xmaps.LowercaseKeys(c.Payload)
 	type proxy jwt.RegisteredClaims
 	var p proxy = proxy(c.RegisteredClaims)
 	b, err := json.Marshal(p)
@@ -210,7 +181,7 @@ func (c *Claims) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals JWT token from flat structure to it's original structure.
-func (c *Claims) UnmarshalJSON(data []byte) error {
+func (c Claims) UnmarshalJSON(data []byte) error {
 	var rc jwt.RegisteredClaims
 	if err := json.Unmarshal(data, &rc); err != nil {
 		return err
@@ -224,12 +195,17 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	exclude := map[string]bool{"iss": true, "sub": true, "aud": true, "exp": true, "nbf": true, "iat": true, "jti": true, "kid": true, "type": true}
 	c.Payload = map[string]any{}
 	for k, v := range pc {
-		if !exclude[k] {
-			c.Payload[k] = v
+		if !exclude[strings.ToLower(k)] {
+			c.Payload[strings.ToLower(k)] = v
 		}
 	}
-	c.KeyID = pc["kid"].(string)
-	c.Type = pc["type"].(string)
+	if pc["kid"] != nil {
+		c.KeyID = pc["kid"].(string)
+	}
+	if pc["type"] != nil {
+		c.Type = pc["type"].(string)
+	}
+
 	return nil
 }
 

@@ -90,6 +90,7 @@ error.validation.token.issued.in.future: "JWT token is invalid, issue date is in
 error.validation.token.invalid.issuer: "JWT token has unexpected issuer claim."
 error.validation.token.invalid.subject: "JWT token has unexpected subject claim."
 error.validation.token.invalid.type: "JWT token is unexpected type."
+error.validation.token.invalid.audience: "JWT token has unexpected audience."
 
 # App errors
 error.api.app.inactive: The app is inactive.

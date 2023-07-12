@@ -36,12 +36,12 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 		return model.ResetEmailData{}, err
 	}
 
-	resetToken, err := c.ts.NewToken(model.TokenTypeReset, user, nil, nil)
+	resetToken, err := c.ts.NewToken(model.TokenTypeReset, user, []string{appID}, nil, nil)
 	if err != nil {
 		return model.ResetEmailData{}, err
 	}
 
-	resetTokenString, err := c.ts.String(resetToken)
+	resetTokenString, err := c.ts.SignToken(resetToken)
 	if err != nil {
 		return model.ResetEmailData{}, err
 	}

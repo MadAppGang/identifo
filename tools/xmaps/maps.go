@@ -3,6 +3,7 @@ package xmaps
 import (
 	"fmt"
 	"reflect"
+	"strings"
 
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -73,6 +74,15 @@ func FilterMap[T comparable, K any](m map[T]K, filter []T) map[T]K {
 		if slices.Contains(filter, k) {
 			result[k] = v
 		}
+	}
+	return result
+}
+
+// LowercaseKeys returns a new map with all keys lowercased.
+func LowercaseKeys[K any](m map[string]K) map[string]K {
+	result := map[string]K{}
+	for k, v := range m {
+		result[strings.ToLower(k)] = v
 	}
 	return result
 }

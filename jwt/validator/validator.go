@@ -23,8 +23,8 @@ const (
 
 // Validator is an abstract token validator.
 type Validator interface {
-	Validate(model.Token) error
-	ValidateString(string) (model.Token, error)
+	Validate(model.JWToken) error
+	ValidateString(string) (model.JWToken, error)
 }
 
 // Config is a struct to set all the required params for Validator
@@ -33,7 +33,7 @@ type Config struct {
 	Issuer    []string
 	UserID    []string
 	TokenType []string
-	PublicKey interface{}
+	PublicKey any
 	// PubKeyEnvName environment variable for public key, could be empty if you want to use file instead.
 	PubKeyEnvName string
 	// PubKeyFileName file path with public key, could be empty if you want to use env variable.
@@ -115,77 +115,66 @@ type validator struct {
 }
 
 // Validate validates token.
-func (v *validator) Validate(t model.Token) error {
+func (v *validator) Validate(t model.JWToken) error {
 	var errs error
-	if t == nil {
-		return l.ErrorTokenInvalid
-	}
 	// We assume the signature and standard claims were validated on parse.
 	if err := t.Validate(); err != nil {
 		return err
 	}
 
-	// We have already validated time based claims "exp, iat, nbf".
-	// But, if any of the above claims are not in the token, it will still be considered a valid claim.
-	// That's why these two fields are required: "exp, iat".
-	token, ok := t.(*model.JWToken)
-	if !ok {
-		return l.ErrorTokenInvalid
-	}
-
 	// Ensure the signature algorithm attack is not passing through.
-	if token.Method.Alg() != SignatureAlgES && token.Method.Alg() != SignatureAlgRS {
-		errors.Join(errs, l.ErrorValidatingTokenMethod)
+	if t.Method.Alg() != SignatureAlgES && t.Method.Alg() != SignatureAlgRS {
+		errs = errors.Join(errs, l.ErrorValidatingTokenMethod)
 	}
 
-	claims, ok := token.Claims.(*model.Claims)
+	claims, ok := t.Claims.(model.Claims)
 	if !ok {
-		errors.Join(errs, l.ErrorValidationTokenClaims)
+		errs = errors.Join(errs, l.ErrorValidationTokenClaims)
 	}
 
 	now := jwt.TimeFunc()
-	if err := v.verifyExpiresAt(*claims, now, true); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyExpiresAt(claims, now, true); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
-	if err := v.verifyNotBefore(*claims, now, false); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyNotBefore(claims, now, false); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
-	if err := v.verifyIssuedAt(*claims, now, true); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyIssuedAt(claims, now, true); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
 	// Validate Audience
-	if err := v.verifyAudience(*claims, v.audience, v.strictAud); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyAudience(claims, v.audience, v.strictAud); err != nil {
+		errs = errors.Join(errs, err)
 	}
 	// Validate Issuers
-	if err := v.verifyIssuer(*claims, v.issuer, v.strictIss); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyIssuer(claims, v.issuer, v.strictIss); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
 	// Validate subject
-	if err := v.verifySubject(*claims, v.userID, v.strictUser); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifySubject(claims, v.userID, v.strictUser); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
 	// Validate token type
-	if err := v.verifyTokenType(*claims, v.tokenType, true); err != nil {
-		errors.Join(errs, err)
+	if err := v.verifyTokenType(claims, v.tokenType, true); err != nil {
+		errs = errors.Join(errs, err)
 	}
 
 	return errs
 }
 
 // ValidateString validates string representation of the token.
-func (v *validator) ValidateString(t string) (model.Token, error) {
+func (v *validator) ValidateString(t string) (model.JWToken, error) {
 	if v.publicKey == nil {
-		return nil, l.ErrorServiceTokenValidatorNoPublicKey
+		return model.JWToken{}, l.ErrorServiceTokenValidatorNoPublicKey
 	}
 	token, err := jwt.ParseTokenWithPublicKey(t, v.publicKey)
 	if err != nil {
-		return nil, err
+		return model.JWToken{}, err
 	}
 	return token, v.Validate(token)
 }
@@ -239,10 +228,15 @@ func (v *validator) verifyAudience(claims model.Claims, expected []string, requi
 		return errorIfRequired(required, "aud")
 	}
 
+	// anything expected
+	if len(expected) == 0 {
+		return nil
+	}
+
 	found := xslices.Intersect(expected, aud)
 	// nothing found
 	if len(found) == 0 {
-		return errorIfRequired(required, "aud")
+		return l.ErrorValidationTokenInvalidAudience
 	}
 
 	return nil
@@ -258,6 +252,11 @@ func (v *validator) verifyIssuer(claims model.Claims, expected []string, require
 		return errorIfRequired(required, "iss")
 	}
 
+	// nothing expected
+	if len(expected) == 0 {
+		return nil
+	}
+
 	return errorIfFalse(slices.Contains(expected, iss), l.ErrorValidationTokenInvalidIssuer)
 }
 
@@ -271,12 +270,22 @@ func (v *validator) verifySubject(claims model.Claims, expected []string, requir
 		return errorIfRequired(required, "sub")
 	}
 
+	// nothing expected
+	if len(expected) == 0 {
+		return nil
+	}
+
 	return errorIfFalse(slices.Contains(expected, sub), l.ErrorValidationTokenInvalidSubject)
 }
 
 func (v *validator) verifyTokenType(claims model.Claims, expected []string, required bool) error {
 	if len(claims.Type) == 0 {
 		return errorIfRequired(required, "sub")
+	}
+
+	// nothing expected
+	if len(expected) == 0 {
+		return nil
 	}
 
 	return errorIfFalse(slices.Contains(expected, claims.Type), l.ErrorValidationTokenInvalidType)

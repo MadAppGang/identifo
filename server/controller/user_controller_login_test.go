@@ -1,6 +1,7 @@
 package controller_test
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -29,30 +30,30 @@ func TestAddTenantData(t *testing.T) {
 	assert.Len(t, flattenData, 0)
 
 	flattenData = controller.TenantData(ud.TenantMembership, []string{"tenant:all"})
-	assert.Contains(t, flattenData, "tenant1:default")
-	assert.Contains(t, flattenData, "tenant1:group1")
-	assert.Contains(t, flattenData, "tenant2:default")
-	assert.Contains(t, flattenData, "tenant2:group33")
+	assert.Contains(t, flattenData, "role:tenant1:default")
+	assert.Contains(t, flattenData, "role:tenant1:group1")
+	assert.Contains(t, flattenData, "role:tenant2:default")
+	assert.Contains(t, flattenData, "role:tenant2:group33")
 	assert.Contains(t, flattenData, "tenant:tenant1")
 	assert.Contains(t, flattenData, "tenant:tenant2")
-	assert.Equal(t, flattenData["tenant1:default"], "admin")
-	assert.Equal(t, flattenData["tenant1:group1"], "user")
-	assert.Equal(t, flattenData["tenant2:default"], "guest")
-	assert.Equal(t, flattenData["tenant2:group33"], "admin")
+	assert.Equal(t, flattenData["role:tenant1:default"], "admin")
+	assert.Equal(t, flattenData["role:tenant1:group1"], "user")
+	assert.Equal(t, flattenData["role:tenant2:default"], "guest")
+	assert.Equal(t, flattenData["role:tenant2:group33"], "admin")
 	assert.Equal(t, flattenData["tenant:tenant1"], "I am a tenant 1")
 	assert.Equal(t, flattenData["tenant:tenant2"], "Apple corporation")
 	assert.Len(t, flattenData, 6)
 
 	scopes := []string{"tenant:tenant1", "tenant:tenant3"}
 	flattenData = controller.TenantData(ud.TenantMembership, scopes)
-	assert.Contains(t, flattenData, "tenant1:default")
-	assert.Contains(t, flattenData, "tenant1:group1")
-	assert.NotContains(t, flattenData, "tenant2:default")
-	assert.NotContains(t, flattenData, "tenant2:group33")
+	assert.Contains(t, flattenData, "role:tenant1:default")
+	assert.Contains(t, flattenData, "role:tenant1:group1")
+	assert.NotContains(t, flattenData, "role:tenant2:default")
+	assert.NotContains(t, flattenData, "role:tenant2:group33")
 	assert.Contains(t, flattenData, "tenant:tenant1")
 	assert.NotContains(t, flattenData, "tenant:tenant2")
-	assert.Equal(t, flattenData["tenant1:default"], "admin")
-	assert.Equal(t, flattenData["tenant1:group1"], "user")
+	assert.Equal(t, flattenData["role:tenant1:default"], "admin")
+	assert.Equal(t, flattenData["role:tenant1:group1"], "user")
 	assert.Equal(t, flattenData["tenant:tenant1"], "I am a tenant 1")
 	assert.Len(t, flattenData, 3)
 
@@ -109,4 +110,6 @@ func TestRequestJWT(t *testing.T) {
 		nil,
 		model.ServerSettings{},
 	)
+
+	fmt.Println(c)
 }
