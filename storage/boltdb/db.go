@@ -2,6 +2,7 @@ package boltdb
 
 import (
 	"errors"
+	"fmt"
 	"sync"
 	"time"
 
@@ -69,4 +70,13 @@ func CloseDB(db *bolt.DB) error {
 		// let's close it directly
 		return ErrorClosingNonExistentDatabase
 	}
+}
+
+func Ready(db *bolt.DB) error {
+	_, ok := poolCounter.Load(db)
+	if !ok {
+		return fmt.Errorf("database not exists")
+	}
+
+	return nil
 }
