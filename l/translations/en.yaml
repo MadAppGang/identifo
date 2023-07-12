@@ -78,6 +78,18 @@ error.otp.expired: OTP token expired, please get the new one and try again.
 error.token.invalid.error: "Invalid token. Validation error: %v."
 error.token.blocked: The token is blocked and not valid any more.
 error.token.method.invalid: "Invalid JWT signature method."
+error.token.invalid: "Invalid JWT token."
+error.validating.token: "JWT token is invalid: %s."
+error.validating.token.method: "Invalid JWT token signature method."
+error.validation.token.claims: "Invalid JWT token claims."
+error.validation.token.no.expire: "Invalid JWT token, empty expire claim."
+error.validation.token.missing.claim: "Invalid JWT token, missing %s claim."
+error.validation.token.expired:  "JWT token expired."
+error.validation.token.not.valid.yet: "JWT token is not valid yet regarding nbf claim."
+error.validation.token.issued.in.future: "JWT token is invalid, issue date is in the future."
+error.validation.token.invalid.issuer: "JWT token has unexpected issuer claim."
+error.validation.token.invalid.subject: "JWT token has unexpected subject claim."
+error.validation.token.invalid.type: "JWT token is unexpected type."
 
 # App errors
 error.api.app.inactive: The app is inactive.
@@ -155,6 +167,7 @@ error.service.sms.send.error: "Error sending SMS with code: %v."
 error.service.otp.send.error: "Error sending OTP code with error: %v."
 error.service.email.template.missing.subject: "Missing subject in email template for: %v."
 error.service.email.template.missing.body: "Missing body in email template for: %v."
+error.service.token.validator.no.public.key: "Missing public key."
 
 # NativeLogin Service
 error.native.login.config.errors: "NativeLogin service initialized with errors: %+v"
@@ -186,6 +199,7 @@ error.admin.panel.key.alg.unsupported: "unsupported algorithm: %v"
 error.admin.panel.generate.secret: "error create secret for app: %v"
 error.admin.panel.app.secret.length: "Incorrect app secret string length %d, expecting 24 to 48 symbols inclusively"
 error.admin.panel.app.secret.not.base64: "App secret should be base64 encoded"
+
 
 # Password
 password.length.policy: "Password length must be at least %d characters."

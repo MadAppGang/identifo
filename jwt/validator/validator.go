@@ -3,28 +3,13 @@ package validator
 import (
 	"errors"
 	"os"
+	"time"
 
 	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-)
-
-var (
-	// ErrTokenValidationNoExpiration is when the token does not have an expiration date.
-	ErrTokenValidationNoExpiration = errors.New("Token is invalid, no expire date")
-	// ErrTokenValidationExpired is when the token expiration date has passed
-	ErrTokenValidationExpired = errors.New("Token is invalid, token has expired")
-	// ErrTokenValidationNoIAT is when IAT verification fails.
-	ErrTokenValidationNoIAT = errors.New("Token is invalid, no issued at date")
-	// ErrTokenValidationInvalidIssuer is when the token has invalid issuer.
-	ErrTokenValidationInvalidIssuer = errors.New("Token is invalid, issuer is invalid")
-	// ErrTokenValidationInvalidAudience is when the token has invalid audience.
-	ErrTokenValidationInvalidAudience = errors.New("Token is invalid, audience is invalid")
-	// ErrTokenValidationInvalidSubject is when subject claim is invalid.
-	ErrTokenValidationInvalidSubject = errors.New("Token is invalid, subject is invalid")
-	// ErrorTokenValidationTokenTypeMismatch is when the token has invalid type.
-	ErrorTokenValidationTokenTypeMismatch = errors.New("Token is invalid, type is invalid")
-	// ErrorConfigurationMissingPublicKey is when public key is missing
-	ErrorConfigurationMissingPublicKey = errors.New("Missing public key to decode the token from string")
+	"github.com/madappgang/identifo/v2/tools/xslices"
+	"golang.org/x/exp/slices"
 )
 
 const (
@@ -49,11 +34,11 @@ type Config struct {
 	UserID    []string
 	TokenType []string
 	PublicKey interface{}
-	// PubKeyEnvName environment variable for public key, could be empty if you want to use file insted
+	// PubKeyEnvName environment variable for public key, could be empty if you want to use file instead.
 	PubKeyEnvName string
 	// PubKeyFileName file path with public key, could be empty if you want to use env variable.
 	PubKeyFileName string
-	// PubKeyURL URL for well-known JWKS
+	// PubKeyURL URL for well-known JWKS.
 	PubKeyURL string
 	// should we always check audience for the token. If yes and audience is empty the validation will fail.
 	IsAudienceRequired bool
@@ -122,6 +107,7 @@ type validator struct {
 	issuer     []string
 	userID     []string
 	tokenType  []string
+	subject    []string
 	publicKey  interface{}
 	strictIss  bool
 	strictAud  bool
@@ -130,10 +116,11 @@ type validator struct {
 
 // Validate validates token.
 func (v *validator) Validate(t model.Token) error {
+	var errs error
 	if t == nil {
-		return model.ErrEmptyToken
+		return l.ErrorTokenInvalid
 	}
-	// We assume the signature and standart claims were validated on parse.
+	// We assume the signature and standard claims were validated on parse.
 	if err := t.Validate(); err != nil {
 		return err
 	}
@@ -143,98 +130,177 @@ func (v *validator) Validate(t model.Token) error {
 	// That's why these two fields are required: "exp, iat".
 	token, ok := t.(*model.JWToken)
 	if !ok {
-		return model.ErrTokenInvalid
+		return l.ErrorTokenInvalid
 	}
 
 	// Ensure the signature algorithm attack is not passing through.
 	if token.Method.Alg() != SignatureAlgES && token.Method.Alg() != SignatureAlgRS {
-		return model.ErrTokenInvalid
+		errors.Join(errs, l.ErrorValidatingTokenMethod)
 	}
 
 	claims, ok := token.Claims.(*model.Claims)
 	if !ok {
-		return model.ErrTokenInvalid
+		errors.Join(errs, l.ErrorValidationTokenClaims)
 	}
 
-	if claims.ExpiresAt == 0 {
-		return ErrTokenValidationNoExpiration
+	now := jwt.TimeFunc()
+	if err := v.verifyExpiresAt(*claims, now, true); err != nil {
+		errors.Join(errs, err)
 	}
 
-	now := jwt.TimeFunc().Unix()
-	if !claims.VerifyExpiresAt(now, true) {
-		return ErrTokenValidationExpired
+	if err := v.verifyNotBefore(*claims, now, false); err != nil {
+		errors.Join(errs, err)
 	}
 
-	if !claims.VerifyIssuedAt(now, true) {
-		return ErrTokenValidationNoIAT
-	}
-
-	// Validate Issuers
-	if len(v.issuer) > 0 {
-		valid := false
-		for _, i := range v.issuer {
-			if claims.VerifyIssuer(i, v.strictIss) {
-				valid = true // at least one issues is valid, token is valid
-				break
-			}
-		}
-		if !valid {
-			return ErrTokenValidationInvalidIssuer
-		}
+	if err := v.verifyIssuedAt(*claims, now, true); err != nil {
+		errors.Join(errs, err)
 	}
 
 	// Validate Audience
-	if len(v.audience) > 0 {
-		valid := false
-		for _, i := range v.audience {
-			if claims.VerifyAudience(i, v.strictAud) {
-				valid = true // at least one audience is valid, token is valid
-				break
-			}
-		}
-		if !valid {
-			return ErrTokenValidationInvalidAudience
-		}
+	if err := v.verifyAudience(*claims, v.audience, v.strictAud); err != nil {
+		errors.Join(errs, err)
+	}
+	// Validate Issuers
+	if err := v.verifyIssuer(*claims, v.issuer, v.strictIss); err != nil {
+		errors.Join(errs, err)
 	}
 
-	// Validate Users
-	if len(v.userID) > 0 {
-		valid := false
-		for _, i := range v.userID {
-			if (len(i) > 0) && (claims.Subject == i) {
-				valid = true
-			}
-		}
-		if !valid {
-			return ErrTokenValidationInvalidSubject
-		}
+	// Validate subject
+	if err := v.verifySubject(*claims, v.userID, v.strictUser); err != nil {
+		errors.Join(errs, err)
 	}
 
 	// Validate token type
-	if len(v.tokenType) > 0 {
-		valid := false
-		for _, i := range v.tokenType {
-			if token.Type() == i {
-				valid = true
-				break
-			}
-		}
-		if !valid {
-			return ErrorTokenValidationTokenTypeMismatch
-		}
+	if err := v.verifyTokenType(*claims, v.tokenType, true); err != nil {
+		errors.Join(errs, err)
 	}
 
-	return nil
+	return errs
 }
 
 // ValidateString validates string representation of the token.
 func (v *validator) ValidateString(t string) (model.Token, error) {
 	if v.publicKey == nil {
-		return nil, ErrorConfigurationMissingPublicKey
+		return nil, l.ErrorServiceTokenValidatorNoPublicKey
 	}
 	token, err := jwt.ParseTokenWithPublicKey(t, v.publicKey)
 	if err != nil {
 		return nil, err
 	}
 	return token, v.Validate(token)
+}
+
+func (v *validator) verifyExpiresAt(claims model.Claims, cmp time.Time, required bool) error {
+	exp, err := claims.GetExpirationTime()
+	if err != nil {
+		return err
+	}
+
+	if exp == nil {
+		return errorIfRequired(required, "exp")
+	}
+
+	return errorIfFalse(cmp.Before((exp.Time)), l.ErrorValidationTokenExpired)
+}
+
+func (v *validator) verifyNotBefore(claims model.Claims, cmp time.Time, required bool) error {
+	nbf, err := claims.GetNotBefore()
+	if err != nil {
+		return err
+	}
+
+	if nbf == nil {
+		return errorIfRequired(required, "nbf")
+	}
+
+	return errorIfFalse(!cmp.Before((nbf.Time)), l.ErrorValidationTokenNotValidYet)
+}
+
+func (v *validator) verifyIssuedAt(claims model.Claims, cmp time.Time, required bool) error {
+	iat, err := claims.GetIssuedAt()
+	if err != nil {
+		return err
+	}
+
+	if iat == nil {
+		return errorIfRequired(required, "iat")
+	}
+
+	return errorIfFalse(!cmp.Before((iat.Time)), l.ErrorValidationTokenIssuedInFuture)
+}
+
+func (v *validator) verifyAudience(claims model.Claims, expected []string, required bool) error {
+	aud, err := claims.GetAudience()
+	if err != nil {
+		return err
+	}
+
+	if len(aud) == 0 {
+		return errorIfRequired(required, "aud")
+	}
+
+	found := xslices.Intersect(expected, aud)
+	// nothing found
+	if len(found) == 0 {
+		return errorIfRequired(required, "aud")
+	}
+
+	return nil
+}
+
+func (v *validator) verifyIssuer(claims model.Claims, expected []string, required bool) error {
+	iss, err := claims.GetIssuer()
+	if err != nil {
+		return err
+	}
+
+	if len(iss) == 0 {
+		return errorIfRequired(required, "iss")
+	}
+
+	return errorIfFalse(slices.Contains(expected, iss), l.ErrorValidationTokenInvalidIssuer)
+}
+
+func (v *validator) verifySubject(claims model.Claims, expected []string, required bool) error {
+	sub, err := claims.GetSubject()
+	if err != nil {
+		return err
+	}
+
+	if len(sub) == 0 {
+		return errorIfRequired(required, "sub")
+	}
+
+	return errorIfFalse(slices.Contains(expected, sub), l.ErrorValidationTokenInvalidSubject)
+}
+
+func (v *validator) verifyTokenType(claims model.Claims, expected []string, required bool) error {
+	if len(claims.Type) == 0 {
+		return errorIfRequired(required, "sub")
+	}
+
+	return errorIfFalse(slices.Contains(expected, claims.Type), l.ErrorValidationTokenInvalidType)
+}
+
+// errorIfRequired returns an ErrorValidationTokenMissingClaim error if required is
+// true. Otherwise, nil is returned.
+func errorIfRequired(required bool, claim string) error {
+	if required {
+		return l.LocalizedError{
+			ErrID:   l.ErrorValidationTokenMissingClaim,
+			Details: []any{claim},
+		}
+	} else {
+		return nil
+	}
+}
+
+// errorIfFalse returns the error specified in err, if the value is true.
+// Otherwise, nil is returned.
+func errorIfFalse(value bool, err error) error {
+	if value {
+		return nil
+	} else {
+		return err
+	}
 }

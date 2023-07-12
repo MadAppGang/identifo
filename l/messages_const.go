@@ -165,8 +165,32 @@ const (
 	ErrorTokenInvalidError LocalizedString = "error.token.invalid.error"
 	// ErrorTokenBlocked -> The token is blocked and not valid any more.
 	ErrorTokenBlocked LocalizedString = "error.token.blocked"
-	// ErrorTokenMethodInvalid -> Invalid JWT signature method: %v.
+	// ErrorTokenMethodInvalid -> Invalid JWT signature method.
 	ErrorTokenMethodInvalid LocalizedString = "error.token.method.invalid"
+	// ErrorTokenInvalid -> Invalid JWT token.
+	ErrorTokenInvalid LocalizedString = "error.token.invalid"
+	// ErrorValidatingToken -> JWT token is invalid: %s.
+	ErrorValidatingToken LocalizedString = "error.validating.token"
+	// ErrorValidatingTokenMethod -> Invalid JWT token signature method.
+	ErrorValidatingTokenMethod LocalizedString = "error.validating.token.method"
+	// ErrorValidationTokenClaims -> Invalid JWT token claims.
+	ErrorValidationTokenClaims LocalizedString = "error.validation.token.claims"
+	// ErrorValidationTokenNoExpire -> Invalid JWT token, empty expire claim.
+	ErrorValidationTokenNoExpire LocalizedString = "error.validation.token.no.expire"
+	// ErrorValidationTokenMissingClaim -> Invalid JWT token, missing %s claim.
+	ErrorValidationTokenMissingClaim LocalizedString = "error.validation.token.missing.claim"
+	// ErrorValidationTokenExpired -> JWT token expired.
+	ErrorValidationTokenExpired LocalizedString = "error.validation.token.expired"
+	// ErrorValidationTokenNotValidYet -> JWT token is not valid yet regarding nbf claim.
+	ErrorValidationTokenNotValidYet LocalizedString = "error.validation.token.not.valid.yet"
+	// ErrorValidationTokenIssuedInFuture -> JWT token is invalid, issue date is in the future.
+	ErrorValidationTokenIssuedInFuture LocalizedString = "error.validation.token.issued.in.future"
+	// ErrorValidationTokenInvalidIssuer -> JWT token has unexpected issuer claim.
+	ErrorValidationTokenInvalidIssuer LocalizedString = "error.validation.token.invalid.issuer"
+	// ErrorValidationTokenInvalidSubject -> JWT token has unexpected subject claim.
+	ErrorValidationTokenInvalidSubject LocalizedString = "error.validation.token.invalid.subject"
+	// ErrorValidationTokenInvalidType -> JWT token is unexpected type.
+	ErrorValidationTokenInvalidType LocalizedString = "error.validation.token.invalid.type"
 
 	//===========================================================================
 	//  App errors
@@ -319,6 +343,8 @@ const (
 	ErrorServiceEmailTemplateMissingSubject LocalizedString = "error.service.email.template.missing.subject"
 	// ErrorServiceEmailTemplateMissingBody -> Missing body in email template for: %v.
 	ErrorServiceEmailTemplateMissingBody LocalizedString = "error.service.email.template.missing.body"
+	// ErrorServiceTokenValidatorNoPublicKey -> Missing public key.
+	ErrorServiceTokenValidatorNoPublicKey LocalizedString = "error.service.token.validator.no.public.key"
 
 	//===========================================================================
 	//  NativeLogin Service

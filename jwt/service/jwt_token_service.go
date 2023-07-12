@@ -91,7 +91,24 @@ func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud 
 	}, nil
 }
 
-func (ts *JWTokenService) SignToken(token model.Token) (string, error) {
+func (ts *JWTokenService) SignToken(t model.Token) (string, error) {
+	token, ok := t.(*model.JWToken)
+	if !ok {
+		return "", l.ErrorTokenInvalid
+	}
+
+	if err := t.Validate(); err != nil {
+		return "", l.LocalizedError{
+			ErrID:   l.ErrorValidatingToken,
+			Details: []any{err},
+		}
+	}
+
+	str, err := token.SignedString(ts.pk)
+	if err != nil {
+		return "", err
+	}
+	return str, nil
 }
 
 // Algorithm  returns signature algorithm.
@@ -193,25 +210,4 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, token
 	}
 
 	return token, nil
-}
-
-// String returns string representation of a token.
-func (ts *JWTokenService) String(t model.Token) (string, error) {
-	token, ok := t.(*model.JWToken)
-	if !ok {
-		return "", model.ErrTokenInvalid
-	}
-
-	if err := t.Validate(); err != nil {
-		return "", err
-	}
-	if !token.New && !token.Valid {
-		return "", model.ErrTokenInvalid
-	}
-
-	str, err := token.SignedString(ts.pk)
-	if err != nil {
-		return "", err
-	}
-	return str, nil
 }

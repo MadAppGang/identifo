@@ -5,6 +5,7 @@ import (
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/madappgang/identifo/v2/l"
 	"golang.org/x/exp/maps"
 )
 
@@ -40,7 +41,6 @@ type Token interface {
 	Validate() error
 	UserID() string
 	Type() string
-	Scopes() string
 	Payload() map[string]interface{}
 }
 
@@ -65,9 +65,16 @@ type JWToken struct {
 
 // Validate validates token data. Returns nil if all data is valid.
 func (t *JWToken) Validate() error {
-	if !t.New {
-		return t.Validate()
+	// pass jwt lib token validation as it has not been parsed, it was constructed.
+	if t.New {
+		return nil
 	}
+
+	// the token is invalid by jwt validator while parsing
+	if !t.Token.Valid {
+		return l.ErrorTokenInvalid
+	}
+
 	return nil
 }
 
@@ -197,6 +204,8 @@ func (c *Claims) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	maps.Copy(m, rcm)
+	m["type"] = c.Type
+	m["kid"] = c.KeyID
 	return json.Marshal(&m)
 }
 
@@ -212,14 +221,15 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	if err := json.Unmarshal(data, &pc); err != nil {
 		return err
 	}
-	exclude := map[string]bool{"iss": true, "sub": true, "aud": true, "exp": true, "nbf": true, "iat": true, "jti": true}
+	exclude := map[string]bool{"iss": true, "sub": true, "aud": true, "exp": true, "nbf": true, "iat": true, "jti": true, "kid": true, "type": true}
 	c.Payload = map[string]any{}
 	for k, v := range pc {
 		if !exclude[k] {
 			c.Payload[k] = v
 		}
 	}
-
+	c.KeyID = pc["kid"].(string)
+	c.Type = pc["type"].(string)
 	return nil
 }
 

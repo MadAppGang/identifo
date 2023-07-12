@@ -2,17 +2,7 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
-)
-
-var (
-	// ErrWrongSignatureAlgorithm is for unsupported signature algorithm.
-	ErrWrongSignatureAlgorithm = errors.New("Unsupported signature algorithm")
-	// ErrEmptyToken is when token is empty.
-	ErrEmptyToken = errors.New("Token is empty")
-	// ErrTokenInvalid is when token is invalid.
-	ErrTokenInvalid = errors.New("Token is invalid")
 )
 
 // StrToTokenSignAlg maps string token service algorithm names to values.

@@ -87,11 +87,11 @@ func TestTokenToString(t *testing.T) {
 
 	t1, _ := token.(*model.JWToken)
 	t2, _ := token2.(*model.JWToken)
-	claims1 := t1.Claims()
-	claims2 := t1.Claims()
+	claims1 := t1.Claims
+	claims2 := t1.Claims
 
-	if !reflect.DeepEqual(t1.JWT.Header, t2.JWT.Header) {
-		t.Errorf("Headers = %+v, want %+v", t1.JWT.Header, t2.JWT.Header)
+	if !reflect.DeepEqual(t1.Header, t2.Header) {
+		t.Errorf("Headers = %+v, want %+v", t1.Header, t2.Header)
 	}
 	if !reflect.DeepEqual(claims1, claims2) {
 		t.Errorf("Claims = %+v, want %+v", claims1, claims2)
@@ -109,21 +109,15 @@ func TestNewToken(t *testing.T) {
 	}, "password", "admin", false)
 	scopes := []string{"scope1", "scope2"}
 	app := model.AppData{
-		ID:           "123456",
-		Secret:       "1",
-		Active:       true,
-		Name:         "testName",
-		Description:  "testDescriprion",
-		Scopes:       scopes,
-		Offline:      true,
-		Type:         model.Web,
-		RedirectURLs: []string{},
-		// TokenLifespan:                0,
-		// InviteTokenLifespan:          0,
-		// RefreshTokenLifespan:         0,
-		// TokenPayload:                 tokenPayload,
-		// TFAStatus:                    model.TFAStatusDisabled,
-		// DebugTFACode:                 "",
+		ID:                           "123456",
+		Secret:                       "1",
+		Active:                       true,
+		Name:                         "testName",
+		Description:                  "testDescriprion",
+		Scopes:                       scopes,
+		Offline:                      true,
+		Type:                         model.Web,
+		RedirectURLs:                 []string{},
 		RegistrationForbidden:        false,
 		AnonymousRegistrationAllowed: true,
 		NewUserDefaultRole:           "",
