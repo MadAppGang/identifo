@@ -17,5 +17,6 @@ type TokenService interface {
 
 	// not using crypto.PublicKey here to avoid dependencies
 	PublicKey() any
+	PrivateKey() any // use it with care !!!!!
 	KeyID() string
 }

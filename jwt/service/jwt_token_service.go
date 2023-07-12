@@ -134,7 +134,7 @@ func (ts *JWTokenService) jwtMethod() jwt.SigningMethod {
 }
 
 // PublicKey returns public key.
-func (ts *JWTokenService) PublicKey() interface{} {
+func (ts *JWTokenService) PublicKey() any {
 	if ts.pkCache != nil {
 		return ts.pkCache
 	}

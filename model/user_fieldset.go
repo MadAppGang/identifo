@@ -14,6 +14,7 @@ const (
 	UserFieldsetScopePhone        UserFieldset = PhoneScope
 	UserFieldsetScopeProfile      UserFieldset = ProfileScope
 	UserFieldsetScopeAddress      UserFieldset = AddressScope
+	UserFieldsetInviteToken       UserFieldset = "invite_token"
 
 	// TODO: Add fieldset cases for other cases.
 
@@ -94,6 +95,9 @@ var UserFieldsetMap = map[UserFieldset][]string{
 	},
 	UserFieldsetScopeAddress: {
 		"Address",
+	},
+	UserFieldsetInviteToken: {
+		"Email",
 	},
 }
 

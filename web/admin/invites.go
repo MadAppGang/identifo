@@ -69,7 +69,16 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			return
 		}
 
-		inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, "identifo", d.Data)
+		u := model.User{
+			ID:    model.NewUserID.String(),
+			Email: d.Email,
+		}
+		aud := []string{}
+		if len(d.AppID) > 0 {
+			aud = append(aud, d.AppID)
+		}
+		fields := model.UserFieldsetMap[model.UserFieldsetInviteToken]
+		inviteToken, err := ar.server.Services().Token.NewToken(model.TokenTypeInvite, u, aud, fields, d.Data)
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestBodyEmailInvalid, err)
 			return
