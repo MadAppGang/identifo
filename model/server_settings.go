@@ -39,7 +39,6 @@ type GeneralServerSettings struct {
 	Host              string             `yaml:"host" json:"host"`
 	Port              string             `yaml:"port" json:"port"`
 	Issuer            string             `yaml:"issuer" json:"issuer"`
-	SupportedScopes   []string           `yaml:"supported_scopes" json:"supported_scopes"`
 	ImmutableIDFields []AuthIdentityType `yaml:"immutable_id_fields" json:"immutable_id_fields"`
 	UniqueIDFields    []AuthIdentityType `yaml:"unique_id_fields" json:"unique_id_fields"`
 }
@@ -330,8 +329,46 @@ type AdminPanelSettings struct {
 }
 
 type SecurityServerSettings struct {
-	PasswordHash   PasswordHashParams `json:"password_hash" yaml:"passwordHash"`
-	PasswordPolicy PasswordPolicy     `json:"password_policy" yaml:"passwordPolicy"`
+	PasswordHash            PasswordHashParams `json:"password_hash" yaml:"passwordHash"`
+	PasswordPolicy          PasswordPolicy     `json:"password_policy" yaml:"passwordPolicy"`
+	RefreshTokenRotation    bool               `json:"refresh_token_rotation" yaml:"refreshTokenRotation"`
+	RefreshTokenLifetime    int                `json:"refresh_token_lifetime" yaml:"refreshTokenLifetime"`
+	AccessTokenLifetime     int                `json:"access_token_lifetime" yaml:"accessTokenLifetime"`
+	AccessTokenIdleLifetime int                `json:"access_token_idle_lifetime" yaml:"accessTokenIdleLifetime"`
+	InviteTokenLifetime     int                `json:"invite_token_lifetime" yaml:"inviteTokenLifetime"`
+	ResetTokenLifetime      int                `json:"reset_token_lifetime" yaml:"resetTokenLifetime"`
+	ManagementTokenLifetime int                `json:"management_token_lifetime" yaml:"managementTokenLifetime"`
+	IDTokenLifetime         int                `json:"id_token_lifetime" yaml:"idTokenLifetime"`
+	SigninTokenLifetime     int                `json:"signin_token_lifetime" yaml:"signinTokenLifetime"`
+	WebCookieTokenLifetime  int                `json:"web_cookie_token_lifetime" yaml:"webCookieTokenLifetime"`
+	ActorTokenLifetime      int                `json:"actor_token_lifetime" yaml:"actorTokenLifetime"`
+}
+
+const DefaultTokenLifetime = 60 * 60 // 1 hour
+
+func (s SecurityServerSettings) TokenLifetime(t TokenType) int {
+	switch t {
+	case TokenTypeRefresh:
+		return s.RefreshTokenLifetime
+	case TokenTypeAccess:
+		return s.AccessTokenIdleLifetime
+	case TokenTypeInvite:
+		return s.InviteTokenLifetime
+	case TokenTypeReset:
+		return s.ResetTokenLifetime
+	case TokenTypeManagement:
+		return s.ManagementTokenLifetime
+	case TokenTypeID:
+		return s.IDTokenLifetime
+	case TokenTypeSignin:
+		return s.SigninTokenLifetime
+	case TokenTypeWebCookie:
+		return s.WebCookieTokenLifetime
+	case TokenTypeActor:
+		return s.ActorTokenLifetime
+	default:
+		return DefaultTokenLifetime
+	}
 }
 
 func ConfigStorageSettingsFromString(config string) (FileStorageSettings, error) {

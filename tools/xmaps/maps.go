@@ -5,6 +5,7 @@ import (
 	"reflect"
 
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // FieldsToMap converts any struct to map[string]any.
@@ -63,4 +64,15 @@ func fieldsToMapNested(prefix string, src any) map[string]any {
 		}
 	}
 	return f
+}
+
+// FilterMap returns new map only containing keys from the filter slice.
+func FilterMap[T comparable, K any](m map[T]K, filter []T) map[T]K {
+	result := map[T]K{}
+	for k, v := range m {
+		if slices.Contains(filter, k) {
+			result[k] = v
+		}
+	}
+	return result
 }

@@ -57,3 +57,9 @@ func TestFieldsToMapWithArray(t *testing.T) {
 	assert.Equal(t, nil, m["Address.Apt"])
 	assert.Equal(t, "Other street", m["Other[1].Street"])
 }
+
+func TestFilterMap(t *testing.T) {
+	m := map[string]string{"a": "value_1", "b": "value_2", "c": "value_3"}
+	assert.Len(t, xmaps.FilterMap(m, []string{"a"}), 1)
+	assert.Equal(t, "value_1", xmaps.FilterMap(m, []string{"a"})["a"])
+}

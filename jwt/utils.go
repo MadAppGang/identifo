@@ -36,7 +36,7 @@ func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.Token, erro
 		return nil, err
 	}
 
-	return &model.JWToken{JWT: parsedToken}, nil
+	return &model.JWToken{Token: *parsedToken}, nil
 }
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).

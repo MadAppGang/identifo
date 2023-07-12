@@ -165,6 +165,8 @@ const (
 	ErrorTokenInvalidError LocalizedString = "error.token.invalid.error"
 	// ErrorTokenBlocked -> The token is blocked and not valid any more.
 	ErrorTokenBlocked LocalizedString = "error.token.blocked"
+	// ErrorTokenMethodInvalid -> Invalid JWT signature method: %v.
+	ErrorTokenMethodInvalid LocalizedString = "error.token.method.invalid"
 
 	//===========================================================================
 	//  App errors

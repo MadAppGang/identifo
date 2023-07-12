@@ -9,6 +9,7 @@ import (
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
+	"github.com/madappgang/identifo/v2/server/controller"
 	"github.com/madappgang/identifo/v2/services/mail"
 	"github.com/madappgang/identifo/v2/services/sms"
 	"github.com/madappgang/identifo/v2/storage"
@@ -180,7 +181,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating token service: %v", err))
 	}
 
-	userController := storage.NewUserStorageController(
+	userController := controller.NewUserStorageController(
 		user,
 		user,
 		user,

@@ -17,5 +17,5 @@ func ParseTokenString(str string) (model.Token, error) {
 		return nil, err
 	}
 
-	return &model.JWToken{JWT: token}, nil
+	return &model.JWToken{Token: *token}, nil
 }

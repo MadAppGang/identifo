@@ -97,7 +97,6 @@ func TestRequestJWT(t *testing.T) {
 			},
 		},
 	}
-	
 
 	c := controller.NewUserStorageController(
 		&u,

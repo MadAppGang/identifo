@@ -8,6 +8,8 @@ import (
 	"github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xslices"
+	"golang.org/x/exp/slices"
 )
 
 var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
@@ -145,7 +147,7 @@ func (c *UserStorageController) DeleteUser(ctx context.Context, userID string) e
 func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User, fields []string) (model.User, error) {
 	// are we trying to change user identity field???
 	// then extra care required
-	fidToChange := intersect(fields, append(model.UserFieldsetSecondaryIdentity.Fields(), model.UserFieldEmail))
+	fidToChange := xslices.Intersect(fields, append(model.UserFieldsetSecondaryIdentity.Fields(), model.UserFieldEmail))
 	if len(fidToChange) > 0 {
 		// 2.1
 		idsInUse, err := c.allIdentityTypesInUse()
@@ -155,16 +157,16 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		// 2.2
 		uniqueIDFields := authTypeToField(idsInUse)
 		// 2.4
-		uniqueIDFields = concatUnique(uniqueIDFields, c.uidfs)
+		uniqueIDFields = xslices.ConcatUnique(uniqueIDFields, c.uidfs)
 
 		// let's check email
-		if sliceContains(fields, model.UserFieldEmail) {
+		if slices.Contains(fields, model.UserFieldEmail) {
 			// validate email first
 			if user.Email != "" && !model.EmailRegexp.MatchString(user.Email) {
 				return user, l.LocalizedError{ErrID: l.ErrorAPIRequestBodyEmailInvalid}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldEmail) {
+			if slices.Contains(uniqueIDFields, model.UserFieldEmail) {
 				// if it unique it should not be empty
 				if len(user.Email) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorEmailEmpty}
@@ -183,13 +185,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		}
 
 		// let's check phone number
-		if sliceContains(fields, model.UserFieldPhone) {
+		if slices.Contains(fields, model.UserFieldPhone) {
 			// validate phone first
 			if user.PhoneNumber != "" && !model.PhoneRegexp.MatchString(user.PhoneNumber) {
 				return user, l.LocalizedError{ErrID: l.ErrorInvalidPhone}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldPhone) {
+			if slices.Contains(uniqueIDFields, model.UserFieldPhone) {
 				// if it unique it should not be empty
 				if len(user.PhoneNumber) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorPhoneEmpty}
@@ -208,13 +210,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		}
 
 		// let's check username number
-		if sliceContains(fields, model.UserFieldUsername) {
+		if slices.Contains(fields, model.UserFieldUsername) {
 			// validate phone first
 			if user.Username != "" && !model.UsernameRegexp.MatchString(user.Username) {
 				return user, l.LocalizedError{ErrID: l.ErrorInvalidPhone}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldPhone) {
+			if slices.Contains(uniqueIDFields, model.UserFieldPhone) {
 				// if it unique it should not be empty
 				if len(user.Nickname) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorUsernameEmpty}
@@ -242,13 +244,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 	}
 
 	// 5.
-	if sliceContains(fidToChange, model.UserFieldEmail) {
+	if slices.Contains(fidToChange, model.UserFieldEmail) {
 		err = c.SendEmailConfirmation(ctx, u.ID)
 		if err != nil {
 			// TODO: log error, but no return error as it we have already updated the user
 		}
 	}
-	if sliceContains(fidToChange, model.UserFieldPhone) {
+	if slices.Contains(fidToChange, model.UserFieldPhone) {
 		err = c.SendPhoneConfirmation(ctx, u.ID)
 		if err != nil {
 			// TODO: log error, but no return error as it we have already updated the user
@@ -279,7 +281,7 @@ func (c *UserStorageController) allIdentityTypesInUse() ([]model.AuthIdentityTyp
 		c.idts = []model.AuthIdentityType{}
 		for _, s := range ffs {
 			// only unique local strategies, skipping federated ones
-			if !sliceContains(c.idts, s.Identity) {
+			if !slices.Contains(c.idts, s.Identity) {
 				c.idts = append(c.idts, s.Identity)
 			}
 		}

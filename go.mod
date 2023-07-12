@@ -6,7 +6,7 @@ replace github.com/madappgang/identifo/sig => ./sig
 
 require (
 	github.com/MadAppGang/httplog v1.3.0
-	github.com/MicahParks/keyfunc v1.9.0
+	github.com/MicahParks/keyfunc/v2 v2.1.0
 	github.com/aws/aws-sdk-go v1.44.121
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/coreos/go-oidc/v3 v3.5.0

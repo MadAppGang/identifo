@@ -147,11 +147,11 @@ func (v *validator) Validate(t model.Token) error {
 	}
 
 	// Ensure the signature algorithm attack is not passing through.
-	if token.JWT.Method.Alg() != SignatureAlgES && token.JWT.Method.Alg() != SignatureAlgRS {
+	if token.Method.Alg() != SignatureAlgES && token.Method.Alg() != SignatureAlgRS {
 		return model.ErrTokenInvalid
 	}
 
-	claims, ok := token.JWT.Claims.(*model.Claims)
+	claims, ok := token.Claims.(*model.Claims)
 	if !ok {
 		return model.ErrTokenInvalid
 	}

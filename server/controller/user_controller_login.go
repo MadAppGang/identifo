@@ -6,6 +6,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/model"
 	"golang.org/x/exp/maps"
+	"golang.org/x/exp/slices"
 )
 
 // tenant related information flattered, as:
@@ -45,7 +46,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 
 	// id token
 	var id string
-	if sliceContains(scopes, model.IDTokenScope) {
+	if slices.Contains(scopes, model.IDTokenScope) {
 		// get fields for id token
 		f := model.FieldsetForScopes(scopes)
 		data := map[string]any{}
@@ -76,7 +77,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 
 	// refresh token
 	var refresh string
-	if sliceContains(scopes, model.OfflineScope) && app.Offline {
+	if slices.Contains(scopes, model.OfflineScope) && app.Offline {
 		rt, err := c.ts.NewToken(model.TokenTypeRefresh, u, ap, nil)
 		if err != nil {
 			return resp, err
@@ -124,7 +125,7 @@ func TenantData(ud []model.TenantMembership, scopes []string) map[string]any {
 	}
 	for _, t := range ud {
 		// skip the scopes we don't need to have
-		if !getAll && !sliceContains(filter, t.TenantID) {
+		if !getAll && !slices.Contains(filter, t.TenantID) {
 			continue
 		}
 		tid := t.TenantID

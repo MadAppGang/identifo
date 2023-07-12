@@ -9,6 +9,21 @@ var DefaultServerSettings = ServerSettings{
 		Port:   "8081",
 		Issuer: "Identifo",
 	},
+	SecuritySettings: SecurityServerSettings{
+		PasswordHash:            DefaultPasswordHashParams,
+		PasswordPolicy:          DefaultPasswordPolicy,
+		RefreshTokenRotation:    true,
+		RefreshTokenLifetime:    60 * 24 * 30, // 30 days in minutes for refresh token
+		AccessTokenLifetime:     30,           // 30 minutes for access token
+		AccessTokenIdleLifetime: 0,            // infinite idle lifetime
+		InviteTokenLifetime:     60 * 24,      // invite token is valid for 1 day
+		ResetTokenLifetime:      30,           // reset token is valid for 30 mins
+		ManagementTokenLifetime: 60,           // 60 minutes for management token
+		IDTokenLifetime:         5,            // 5 mins as id tokens should not live for a long time
+		SigninTokenLifetime:     60 * 24,      // signin token is valid for 1 day
+		WebCookieTokenLifetime:  30,           // 30 minutes for access token
+		ActorTokenLifetime:      30,           // 30 minutes for actor token, usually the same as access token
+	},
 	Storage: StorageSettings{
 		DefaultStorage: DatabaseSettings{
 			Type: DBTypeBoltDB,

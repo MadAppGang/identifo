@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/MicahParks/keyfunc"
+	"github.com/MicahParks/keyfunc/v2"
 	"github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
@@ -175,7 +175,7 @@ func TestLoginTokenClaims(t *testing.T) {
 	assert.Equal(t, "ES256", tt.Method.Alg())
 	assert.True(t, tt.Valid)
 
-	token := model.JWToken{JWT: tt}
+	token := model.JWToken{Token: *tt}
 	assert.False(t, token.New)
 	assert.Equal(t, 1, len(token.Payload()))
 	assert.Equal(t, "59fd884d8f6b180001f5b4e2", token.Audience())

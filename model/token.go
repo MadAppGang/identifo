@@ -44,9 +44,9 @@ type Token interface {
 	Payload() map[string]interface{}
 }
 
-// NewTokenWithClaims generates new JWT token with claims and keyID.
-func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
-	return &jwt.Token{
+// TokenWithClaims generates new JWT token with claims and keyID.
+func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) jwt.Token {
+	return jwt.Token{
 		Header: map[string]any{
 			"typ": "JWT",
 			"alg": method.Alg(),
@@ -174,19 +174,9 @@ func (t *JWToken) Subject() string {
 	return claims.Subject
 }
 
-// Scopes standard token claim
-func (t *JWToken) Scopes() string {
-	claims, ok := t.Claims.(Claims)
-	if !ok {
-		return ""
-	}
-	return claims.Scopes
-}
-
 // Claims is an extended claims structure.
 type Claims struct {
 	Payload map[string]any `json:"payload,omitempty"`
-	Scopes  string         `json:"scopes,omitempty"`
 	Type    string         `json:"type,omitempty"`
 	KeyID   string         `json:"kid,omitempty"` // optional keyID
 	jwt.RegisteredClaims

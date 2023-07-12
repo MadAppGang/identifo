@@ -7,6 +7,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 )
 
 // just compile-time check interface compliance.
@@ -95,7 +96,7 @@ func (c *UserStorageController) UserByIDWithFields(ctx context.Context, userID s
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, fields.Fields())
+	result := xmaps.CopyFields(user, fields.Fields())
 	return result, nil
 }
 
@@ -112,7 +113,7 @@ func (c *UserStorageController) UserBySecondaryIDWithFields(ctx context.Context,
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, fields.Fields())
+	result := xmaps.CopyFields(user, fields.Fields())
 	return result, nil
 }
 
@@ -124,7 +125,7 @@ func (c *UserStorageController) UserByFederatedID(ctx context.Context, idt model
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, model.UserFieldsetBasic.Fields())
+	result := xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 	return result, nil
 }
 
@@ -137,7 +138,7 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 
 	// strip user fields
 	for i, user := range users {
-		users[i] = model.CopyFields(user, model.UserFieldsetBasic.Fields())
+		users[i] = xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 	}
 	return users, total, nil
 }
