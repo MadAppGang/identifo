@@ -13,7 +13,7 @@ import (
 // "112233:admin" : "user", where 112233 - tenant ID, admin - a group, user - role in a group
 // and tenant name added as well:
 // "tenant:112233": "tenant corporation"
-func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppData, u model.User, scopes []string) (model.AuthResponse, error) {
+func (c *UserStorageController) GetJWTTokens(ctx context.Context, app model.AppData, u model.User, scopes []string) (model.AuthResponse, error) {
 	// check if we are
 	var err error
 
@@ -23,7 +23,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 	aud := []string{app.ID}
 
 	ap := AccessTokenScopes(scopes) // fields for access token
-	apf := model.FieldsetForScopes(scopes)
+	apf := model.FieldsetForScopes(ap)
 	data := map[string]any{}
 
 	// access token needs tenant data in it
@@ -32,7 +32,7 @@ func (c *UserStorageController) getJWTTokens(ctx context.Context, app model.AppD
 		if err != nil {
 			return resp, err
 		}
-		ti := TenantData(ud.TenantMembership, scopes)
+		ti := TenantData(ud.TenantMembership, ap)
 		maps.Copy(data, ti)
 	}
 	// create access token

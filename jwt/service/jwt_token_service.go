@@ -69,7 +69,7 @@ func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud 
 	exp := ia.Add(time.Minute * time.Duration(lifespan))
 
 	claims := model.Claims{
-		Payload: payload,
+		Payload: maps.Clone(payload),
 		Type:    string(tokenType),
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(exp),

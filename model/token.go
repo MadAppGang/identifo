@@ -47,6 +47,11 @@ type JWToken struct {
 	New bool
 }
 
+func (t *JWToken) FullClaims() Claims {
+	claims, _ := t.Claims.(*Claims)
+	return *claims
+}
+
 // Validate validates token data. Returns nil if all data is valid.
 func (t *JWToken) Validate() error {
 	// pass jwt lib token validation as it has not been parsed, it was constructed.
@@ -181,7 +186,7 @@ func (c Claims) MarshalJSON() ([]byte, error) {
 }
 
 // UnmarshalJSON unmarshals JWT token from flat structure to it's original structure.
-func (c Claims) UnmarshalJSON(data []byte) error {
+func (c *Claims) UnmarshalJSON(data []byte) error {
 	var rc jwt.RegisteredClaims
 	if err := json.Unmarshal(data, &rc); err != nil {
 		return err

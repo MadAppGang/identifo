@@ -43,7 +43,7 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resetTokenString, err := ar.server.Services().Token.String(resetToken)
+	resetTokenString, err := ar.server.Services().Token.SignToken(resetToken)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 		return

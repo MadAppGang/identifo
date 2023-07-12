@@ -75,7 +75,7 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			return
 		}
 
-		inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
+		inviteTokenString, err := ar.server.Services().Token.SignToken(inviteToken)
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return

@@ -6,6 +6,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 )
 
 const (
@@ -86,14 +87,14 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		}
 
 		um := model.User{}
-		model.CopyDstFields(rd, um)
+		xmaps.CopyDstFields(rd, um)
 		user, err := ar.server.Storages().UMC.CreateUserWithPassword(r.Context(), um, rd.Password)
 		if err != nil { // this error is already localized.
 			ar.Error(w, err)
 			return
 		}
 
-		user = model.CopyFields(user, model.UserFieldsetBasic.Fields())
+		user = xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }
@@ -132,16 +133,16 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			}
 		}
 
-		fields := model.Filled(u)
-		fields = model.ContainsFields(u, fields)
+		fields := xmaps.Filled(u)
+		fields = xmaps.ContainsFields(u, fields)
 		user := model.User{}
-		model.CopyDstFields(u, &user)
+		xmaps.CopyDstFields(u, &user)
 		user, err := ar.server.Storages().UMC.UpdateUser(r.Context(), user, fields)
 		if err != nil {
 			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
-		user = model.CopyFields(user, model.UserFieldsetBasic.Fields())
+		user = xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 		ar.ServeJSON(w, locale, http.StatusOK, user)
 	}
 }

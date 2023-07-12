@@ -39,7 +39,7 @@ func (ar *Router) getInviteToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inviteTokenString, err := ar.server.Services().Token.String(inviteToken)
+	inviteTokenString, err := ar.server.Services().Token.SignToken(inviteToken)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 		return
