@@ -97,3 +97,31 @@ func TestNewToken(t *testing.T) {
 	_, err = tokenService.Parse(tokenString)
 	require.NoError(t, err)
 }
+
+func TestNewResetToken(t *testing.T) {
+	tokenService := createTokenService(t)
+
+	user := model.User{
+		ID:       "12345566",
+		Username: "username",
+		Email:    "username@gmailc.om",
+	}
+	token, err := tokenService.NewToken(model.TokenTypeReset, user, nil, nil, nil)
+	assert.NoError(t, err)
+
+	ts, err := tokenService.SignToken(token)
+	assert.NoError(t, err)
+
+	pt, err := tokenService.Parse(ts)
+	require.NoError(t, err)
+	assert.Equal(t, model.TokenTypeReset, pt.Type())
+
+	// check we have empty audience
+	aud, err := pt.Claims.GetAudience()
+	assert.NoError(t, err)
+	assert.Empty(t, aud)
+
+	// check we have empty email and username
+	assert.NotContains(t, pt.Payload(), "email")
+	assert.NotContains(t, pt.Payload(), "username")
+}

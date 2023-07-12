@@ -37,7 +37,8 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
+	// reset token has no auditory, fields from user or any other payload
+	resetToken, err := ar.server.Services().Token.NewToken(model.TokenTypeReset, user, nil, nil, nil)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
 		return

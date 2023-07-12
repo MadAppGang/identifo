@@ -188,7 +188,7 @@ func (ts *JWTokenService) Parse(s string) (model.JWToken, error) {
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType string) (model.JWToken, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType model.TokenType) (model.JWToken, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
 		return model.JWToken{}, err

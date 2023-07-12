@@ -77,7 +77,7 @@ func (t *JWToken) UserID() string {
 }
 
 // Payload returns token payload.
-func (t *JWToken) Payload() map[string]interface{} {
+func (t *JWToken) Payload() map[string]any {
 	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return nil
@@ -86,12 +86,12 @@ func (t *JWToken) Payload() map[string]interface{} {
 }
 
 // Type returns token type.
-func (t *JWToken) Type() string {
+func (t *JWToken) Type() TokenType {
 	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
-	return claims.Type
+	return TokenType(claims.Type)
 }
 
 // ExpiresAt standard token claim

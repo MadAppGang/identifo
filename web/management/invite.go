@@ -6,7 +6,17 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"golang.org/x/exp/maps"
 )
+
+// InviteRequest is a request for invite.
+type InvitationTokenRequest struct {
+	Email       string         `json:"email"`
+	AppID       string         `json:"app_id"`
+	Roles       map[string]any `json:"roles"`
+	CallbackURL string         `json:"callback"`
+	Data        map[string]any `json:"data"`
+}
 
 func (ar *Router) getInviteToken(w http.ResponseWriter, r *http.Request) {
 	locale := r.Header.Get("Accept-Language")
@@ -33,7 +43,20 @@ func (ar *Router) getInviteToken(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	inviteToken, err := ar.server.Services().Token.NewInviteToken(d.Email, d.Role, d.ApplicationID, d.Data)
+	u := model.User{
+		ID:    model.NewUserID.String(), // token sub is new user ID
+		Email: d.Email,
+	}
+	aud := []string{}
+	if len(d.AppID) > 0 {
+		aud = append(aud, d.AppID)
+	}
+	fields := model.UserFieldsetMap[model.UserFieldsetInviteToken]
+	maps.Copy(d.Data, d.Roles)
+	if len(d.CallbackURL) > 0 {
+		d.Data["callback"] = d.CallbackURL
+	}
+	inviteToken, err := ar.server.Services().Token.NewToken(model.TokenTypeInvite, u, aud, fields, d.Data)
 	if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 		return
