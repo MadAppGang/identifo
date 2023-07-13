@@ -193,6 +193,10 @@ const (
 	ErrorValidationTokenInvalidType LocalizedString = "error.validation.token.invalid.type"
 	// ErrorValidationTokenInvalidAudience -> JWT token has unexpected audience.
 	ErrorValidationTokenInvalidAudience LocalizedString = "error.validation.token.invalid.audience"
+	// ErrorInvalidInviteToken -> Invalid invite token.
+	ErrorInvalidInviteToken LocalizedString = "error.invalid.invite.token"
+	// ErrorInvalidInviteTokenBadInvitee -> Unable to get inviter for invite token %v.
+	ErrorInvalidInviteTokenBadInvitee LocalizedString = "error.invalid.invite.token.bad.invitee"
 
 	//===========================================================================
 	//  App errors

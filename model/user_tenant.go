@@ -31,3 +31,20 @@ const (
 	GroupAdmin     = "admin"
 	GroupModerator = "moderator"
 )
+
+// some default roles
+const (
+	RoleOwner = "owner"
+	RoleAdmin = "admin"
+	RoleUser  = "user"
+	RoleGuest = "guest"
+)
+
+// TenantMembership is representation for user tenant membership
+// tenant have a list of groups and
+// and user can have multiply roles in group
+type TenantMembership struct {
+	TenantID   string              `json:"tenant_id,omitempty"`
+	TenantName string              `json:"tenant_name,omitempty"`
+	Groups     map[string][]string `json:"groups,omitempty"`
+}

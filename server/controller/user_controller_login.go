@@ -112,7 +112,7 @@ func AccessTokenScopes(scopes []string) []string {
 	return result
 }
 
-func TenantData(ud []model.TenantMembership, scopes []string) map[string]any {
+func TenantData(ud map[string]model.TenantMembership, scopes []string) map[string]any {
 	res := map[string]any{}
 	filter := []string{}
 	getAll := false
@@ -130,10 +130,10 @@ func TenantData(ud []model.TenantMembership, scopes []string) map[string]any {
 			continue
 		}
 		tid := t.TenantID
-		res["tenant:"+t.TenantID] = t.TenantName
+		res[model.TenantScopePrefix+t.TenantID] = t.TenantName
 		for k, v := range t.Groups {
-			// "role:tenant_id:group_id" : "role"
-			res["role:"+tid+":"+k] = v
+			// "role:tenant_id:group_id" : ["role", "role2"]
+			res[model.RoleScopePrefix+tid+":"+k] = v
 		}
 	}
 	return res

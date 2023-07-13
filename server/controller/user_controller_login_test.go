@@ -28,10 +28,10 @@ func TestAddTenantData(t *testing.T) {
 	assert.Contains(t, flattenData, "role:tenant2:group33")
 	assert.Contains(t, flattenData, "tenant:tenant1")
 	assert.Contains(t, flattenData, "tenant:tenant2")
-	assert.Equal(t, flattenData["role:tenant1:default"], "admin")
-	assert.Equal(t, flattenData["role:tenant1:group1"], "user")
-	assert.Equal(t, flattenData["role:tenant2:default"], "guest")
-	assert.Equal(t, flattenData["role:tenant2:group33"], "admin")
+	assert.Equal(t, flattenData["role:tenant1:default"], []string{"admin"})
+	assert.Equal(t, flattenData["role:tenant1:group1"], []string{"user"})
+	assert.Equal(t, flattenData["role:tenant2:default"], []string{"guest"})
+	assert.Equal(t, flattenData["role:tenant2:group33"], []string{"admin"})
 	assert.Equal(t, flattenData["tenant:tenant1"], "I am a tenant 1")
 	assert.Equal(t, flattenData["tenant:tenant2"], "Apple corporation")
 	assert.Len(t, flattenData, 6)
@@ -44,8 +44,8 @@ func TestAddTenantData(t *testing.T) {
 	assert.NotContains(t, flattenData, "role:tenant2:group33")
 	assert.Contains(t, flattenData, "tenant:tenant1")
 	assert.NotContains(t, flattenData, "tenant:tenant2")
-	assert.Equal(t, flattenData["role:tenant1:default"], "admin")
-	assert.Equal(t, flattenData["role:tenant1:group1"], "user")
+	assert.Equal(t, flattenData["role:tenant1:default"], []string{"admin"})
+	assert.Equal(t, flattenData["role:tenant1:group1"], []string{"user"})
 	assert.Equal(t, flattenData["tenant:tenant1"], "I am a tenant 1")
 	assert.Len(t, flattenData, 3)
 
@@ -151,8 +151,8 @@ func TestRequestJWT(t *testing.T) {
 	assert.Equal(t, "I am a tenant 1", access.FullClaims().Payload["tenant:tenant1"])
 	// we have information only for tenant1, nothing about tenant2
 	assert.Contains(t, access.FullClaims().Payload, "tenant:tenant2")
-	assert.Equal(t, tm[1].TenantName, access.FullClaims().Payload["tenant:tenant2"])
-	assert.Equal(t, "guest", access.FullClaims().Payload["role:tenant2:default"])
+	assert.Equal(t, tm["tenant2"].TenantName, access.FullClaims().Payload["tenant:tenant2"])
+	assert.Equal(t, []any{"guest"}, access.FullClaims().Payload["role:tenant2:default"])
 }
 
 const (
@@ -160,16 +160,16 @@ const (
 	testIssuer = "aooth.madappgang.com"
 )
 
-var tm = []model.TenantMembership{
-	{
+var tm = map[string]model.TenantMembership{
+	"tenants1": {
 		TenantID:   "tenant1",
 		TenantName: "I am a tenant 1",
-		Groups:     map[string]string{"default": "admin", "group1": "user"},
+		Groups:     map[string][]string{"default": {"admin"}, "group1": {"user"}},
 	},
-	{
+	"tenant2": {
 		TenantID:   "tenant2",
 		TenantName: "Apple corporation",
-		Groups:     map[string]string{"default": "guest", "group33": "admin"},
+		Groups:     map[string][]string{"default": {"guest"}, "group33": {"admin"}},
 	},
 }
 

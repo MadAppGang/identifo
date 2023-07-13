@@ -31,11 +31,12 @@ type UserMutationController interface {
 	SendPhoneConfirmation(ctx context.Context, userID string) error
 	SendPasswordResetEmail(ctx context.Context, userID, appID string) (ResetEmailData, error)
 
+	AddUserToTenantWithInvitationToken(ctx context.Context, u User, t *JWToken) (UserData, error)
+
 	InvalidateCache()
 }
 
 type ChallengeController interface {
 	RequestChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (UserAuthChallenge, error)
 	VerifyChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (User, AppData, UserAuthChallenge, error)
-	LoginOrRegisterUserWithChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (User, error)
 }

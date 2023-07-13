@@ -16,11 +16,12 @@ const (
 	AccessTokenScopePrefix = "access:"
 	TenantScopePrefix      = "tenant:"    // tenant:123 - request tenant data only for tenant 123
 	TenantScopeAll         = "tenant:all" // "tenant:all" - return all scopes for all ten
+	RoleScopePrefix        = "role:"
 )
 
 // OIDCSupportedScopes is a list of scopes Aooth promote with OIDC as supported
 // https://openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
-var OIDCSupportedScopes = []string{OfflineScope, OIDCScope, EmailScope, PhoneScope, ProfileScope, AddressScope, CustomScopePrefix, IDTokenScope, TenantScope, TenantScopePrefix, TenantScopeAll, AccessTokenScopePrefix}
+var OIDCSupportedScopes = []string{OfflineScope, OIDCScope, EmailScope, PhoneScope, ProfileScope, AddressScope, CustomScopePrefix, IDTokenScope, TenantScope, TenantScopePrefix, TenantScopeAll, AccessTokenScopePrefix, RoleScopePrefix}
 
 func FieldsetForScopes(scopes []string) []string {
 	fieldset := []string{}

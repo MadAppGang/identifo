@@ -342,6 +342,9 @@ type SecurityServerSettings struct {
 	SigninTokenLifetime     int                `json:"signin_token_lifetime" yaml:"signinTokenLifetime"`
 	WebCookieTokenLifetime  int                `json:"web_cookie_token_lifetime" yaml:"webCookieTokenLifetime"`
 	ActorTokenLifetime      int                `json:"actor_token_lifetime" yaml:"actorTokenLifetime"`
+
+	// TODO: replace with OPA: https://www.openpolicyagent.org/
+	TenantMembershipManagementRole []string `json:"managementRoles" yaml:"managementRoles"`
 }
 
 const DefaultTokenLifetime = 60 * 60 // 1 hour

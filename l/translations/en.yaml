@@ -91,6 +91,9 @@ error.validation.token.invalid.issuer: "JWT token has unexpected issuer claim."
 error.validation.token.invalid.subject: "JWT token has unexpected subject claim."
 error.validation.token.invalid.type: "JWT token is unexpected type."
 error.validation.token.invalid.audience: "JWT token has unexpected audience."
+error.invalid.invite.token: "Invalid invite token."
+error.invalid.invite.token.bad.invitee: "Unable to get inviter for invite token %v."
+
 
 # App errors
 error.api.app.inactive: The app is inactive.

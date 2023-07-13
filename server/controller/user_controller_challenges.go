@@ -310,35 +310,3 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 
 	return u, app, ch, nil
 }
-
-// Passwordless login or register user with challenge
-func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, error) {
-	// guard check
-	if challenge.Strategy.Type() != model.AuthStrategyFirstFactorInternal {
-		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
-	}
-
-	u, _, _, err := c.VerifyChallenge(ctx, challenge, userIDValue)
-	if err != nil {
-		return model.User{}, err
-	}
-
-	// let's register the user, if it is new user
-	if model.ID(u.ID).IsNewUserID() {
-		var err error
-		u.ID = "" // clear ID, so database layer should generate new one
-		u, err = c.ums.AddUser(ctx, u)
-		if err != nil {
-			return model.User{}, err
-		}
-	}
-
-	// TODO: save successful login attempt to the database
-	// TODO: update active devices list
-
-	// c.loginFlow(ctx, app, u, challenge.ScopesRequested) // ?? requested scopers
-
-	// check if we have no user exists and the code is valid and app allows to register new passwordless users
-	// then we create one
-	return model.User{}, nil
-}

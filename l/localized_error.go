@@ -10,6 +10,14 @@ type LocalizedError struct {
 	Details []any
 }
 
+// NewError creates localized error with details with no locale.
+func NewError(errID LocalizedString, details ...any) LocalizedError {
+	return LocalizedError{
+		ErrID:   errID,
+		Details: details,
+	}
+}
+
 // Error returns raw error message. We are missing locale to print the localized version.
 func (e LocalizedError) Error() string {
 	return fmt.Sprintf("localized error: %v. Details: %v.", e.ErrID, e.Details)
