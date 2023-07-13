@@ -18,6 +18,20 @@ var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, 
 // Data mutation
 // ====================================
 
+// CreateUser creates user without any checks
+func (c *UserStorageController) CreateUser(ctx context.Context, u model.User) (model.User, error) {
+	// TODO: Call pre-create callbacks
+
+	nu, err := c.ums.AddUser(ctx, u)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	// TODO: Call post-create callbacks
+
+	return nu, nil
+}
+
 // CreateUserWithPassword validates password policy, creates password hash and creates new user
 // it also responsible to call pre-create and post-create callbacks
 func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u model.User, password string) (model.User, error) {
@@ -40,17 +54,7 @@ func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u mo
 		return model.User{}, err
 	}
 	u.PasswordHash = hash
-
-	// TODO: Call pre-create callbacks
-
-	nu, err := c.ums.AddUser(ctx, u)
-	if err != nil {
-		return model.User{}, err
-	}
-
-	// TODO: Call post-create callbacks
-
-	return nu, nil
+	return c.CreateUser(ctx, u)
 }
 
 func (c *UserStorageController) UpdateUserPassword(ctx context.Context, userID, password string) error {

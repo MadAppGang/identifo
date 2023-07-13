@@ -237,17 +237,17 @@ func randomOTP(length int) string {
 }
 
 // VerifyChallenge verifies challenge from user
-func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, model.AppData, error) {
+func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge model.UserAuthChallenge, userIDValue string) (model.User, model.AppData, model.UserAuthChallenge, error) {
 	app, err := c.as.AppByID(challenge.AppID)
 	if err != nil {
-		return model.User{}, model.AppData{}, err
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, err
 	}
 
 	appAuthStrategies := app.AuthStrategies
 	compatibleStrategies := model.FilterCompatible(challenge.Strategy, appAuthStrategies)
 	// the app does not supports that type of challenge
 	if len(compatibleStrategies) == 0 {
-		return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorRequestChallengeUnsupportedByAPP}
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, l.LocalizedError{ErrID: l.ErrorRequestChallengeUnsupportedByAPP}
 	}
 
 	// selecting the first strategy from the list.
@@ -262,7 +262,7 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 	if err != nil && errors.Is(err, l.ErrorUserNotFound) && !app.RegistrationForbidden && app.PasswordlessRegistrationAllowed {
 		u = ephemeralUserForStrategy(challenge.Strategy, userIDValue)
 	} else if err != nil {
-		return model.User{}, model.AppData{}, err
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, err
 	}
 
 	// check if user has debug challenge and app allows to use it and it matches the code in request
@@ -277,7 +277,7 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 			// let's compare the debug code for existent user with the code he send
 			ud, err := c.u.UserData(ctx, u.ID, model.UserDataFieldDebugOTPCode)
 			if err != nil {
-				return model.User{}, model.AppData{}, err
+				return model.User{}, model.AppData{}, model.UserAuthChallenge{}, err
 			}
 			if len(ud.DebugOTPCode) > 0 && ud.DebugOTPCode == challenge.OTP {
 				// if user send the debug code, we can skip code validation mark challenge as solved
@@ -289,18 +289,18 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 
 	ch, err := c.uas.GetLatestChallenge(ctx, challenge.Strategy, u.ID)
 	if err != nil {
-		return model.User{}, model.AppData{}, err
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, err
 	}
 	err = ch.Valid()
 	if err != nil {
 		// TODO: Login attempt to login with invalid code
-		return model.User{}, model.AppData{}, err
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, err
 	}
 
 	// the code is wrong and we are not using debug code
 	if ch.OTP != challenge.OTP && shouldValidateOTP {
 		// TODO: Login attempt to login with invalid code
-		return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
+		return model.User{}, model.AppData{}, model.UserAuthChallenge{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
 	}
 	// add information about context, when the challenge been solved
 	ch.SolvedDeviceID = challenge.DeviceID
@@ -308,7 +308,7 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 	ch.SolvedWithDebugCode = !shouldValidateOTP
 	c.uas.MarkChallengeAsSolved(ctx, ch)
 
-	return u, app, nil
+	return u, app, ch, nil
 }
 
 // Passwordless login or register user with challenge

@@ -89,8 +89,8 @@ func (ar *Router) CreateUser() http.HandlerFunc {
 		um := model.User{}
 		xmaps.CopyDstFields(rd, um)
 		user, err := ar.server.Storages().UMC.CreateUserWithPassword(r.Context(), um, rd.Password)
-		if err != nil { // this error is already localized.
-			ar.Error(w, err)
+		if err != nil {
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 			return
 		}
 

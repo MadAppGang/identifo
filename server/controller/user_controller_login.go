@@ -9,9 +9,6 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-
-
-
 // tenant related information flattered, as:
 // "112233:admin" : "user", where 112233 - tenant ID, admin - a group, user - role in a group
 // and tenant name added as well:
