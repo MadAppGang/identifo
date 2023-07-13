@@ -24,10 +24,15 @@ var (
 	NewUserID       = ID("64acc61bab36eb8395ce5846")
 	NewUserUsername = "ephemeral"
 )
+
 var (
 	processUnique   = processUniqueBytes()
 	objectIDCounter = readRandomUint32()
 )
+
+func IsNewUserID(id string) bool {
+	return id == NewUserID.String()
+}
 
 func NewID() ID {
 	var b [12]byte

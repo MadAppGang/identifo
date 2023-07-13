@@ -266,39 +266,48 @@ func (c *UserStorageController) VerifyChallenge(ctx context.Context, challenge m
 	}
 
 	// check if user has debug challenge and app allows to use it and it matches the code in request
-	// ? does not works for new users, to register you need to use real code (or not?)
 	shouldValidateOTP := true
-	if app.DebugOTPCodeAllowed && !model.ID(u.ID).IsNewUserID() {
-		ud, err := c.u.UserData(ctx, u.ID, model.UserDataFieldDebugOTPCode)
-		if err != nil {
-			return model.User{}, model.AppData{}, err
-		}
-		if len(ud.DebugOTPCode) > 0 && ud.DebugOTPCode == challenge.OTP {
-			shouldValidateOTP = false
+	if app.DebugOTPCodeAllowed {
+		// we have new user and app has debug challenge enabled for new users
+		if len(app.DebugOTPCodeForRegistration) > 0 && u.ID == model.NewUserID.String() {
+			// if user send the new user debug code, we can skip code validation mark challenge as solved
+			shouldValidateOTP = app.DebugOTPCodeForRegistration != challenge.OTP
 			// TODO: Add log entry about the login with debug challenge
+		} else {
+			// let's compare the debug code for existent user with the code he send
+			ud, err := c.u.UserData(ctx, u.ID, model.UserDataFieldDebugOTPCode)
+			if err != nil {
+				return model.User{}, model.AppData{}, err
+			}
+			if len(ud.DebugOTPCode) > 0 && ud.DebugOTPCode == challenge.OTP {
+				// if user send the debug code, we can skip code validation mark challenge as solved
+				shouldValidateOTP = false
+				// TODO: Add log entry about the login with debug challenge
+			}
 		}
 	}
 
-	// if user has not debug challenge, validate the challenge
-	if shouldValidateOTP {
-		ch, err := c.uas.GetLatestChallenge(ctx, challenge.Strategy, u.ID)
-		if err != nil {
-			return model.User{}, model.AppData{}, err
-		}
-		err = ch.Valid()
-		if err != nil {
-			// TODO: Login attempt to login with invalid code
-			return model.User{}, model.AppData{}, err
-		}
-		if ch.OTP != challenge.OTP {
-			// TODO: Login attempt to login with invalid code
-			return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
-		}
-		// add information about context, when the challenge been solved
-		ch.SolvedDeviceID = challenge.DeviceID
-		ch.SolvedUserAgent = challenge.UserAgent
-		c.uas.MarkChallengeAsSolved(ctx, ch)
+	ch, err := c.uas.GetLatestChallenge(ctx, challenge.Strategy, u.ID)
+	if err != nil {
+		return model.User{}, model.AppData{}, err
 	}
+	err = ch.Valid()
+	if err != nil {
+		// TODO: Login attempt to login with invalid code
+		return model.User{}, model.AppData{}, err
+	}
+
+	// the code is wrong and we are not using debug code
+	if ch.OTP != challenge.OTP && shouldValidateOTP {
+		// TODO: Login attempt to login with invalid code
+		return model.User{}, model.AppData{}, l.LocalizedError{ErrID: l.ErrorOtpIncorrect}
+	}
+	// add information about context, when the challenge been solved
+	ch.SolvedDeviceID = challenge.DeviceID
+	ch.SolvedUserAgent = challenge.UserAgent
+	ch.SolvedWithDebugCode = !shouldValidateOTP
+	c.uas.MarkChallengeAsSolved(ctx, ch)
+
 	return u, app, nil
 }
 

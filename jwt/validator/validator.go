@@ -23,8 +23,8 @@ const (
 
 // Validator is an abstract token validator.
 type Validator interface {
-	Validate(model.JWToken) error
-	ValidateString(string) (model.JWToken, error)
+	Validate(*model.JWToken) error
+	ValidateString(string) (*model.JWToken, error)
 }
 
 // Config is a struct to set all the required params for Validator
@@ -115,7 +115,7 @@ type validator struct {
 }
 
 // Validate validates token.
-func (v *validator) Validate(t model.JWToken) error {
+func (v *validator) Validate(t *model.JWToken) error {
 	var errs error
 	// We assume the signature and standard claims were validated on parse.
 	if err := t.Validate(); err != nil {
@@ -168,13 +168,13 @@ func (v *validator) Validate(t model.JWToken) error {
 }
 
 // ValidateString validates string representation of the token.
-func (v *validator) ValidateString(t string) (model.JWToken, error) {
+func (v *validator) ValidateString(t string) (*model.JWToken, error) {
 	if v.publicKey == nil {
-		return model.JWToken{}, l.ErrorServiceTokenValidatorNoPublicKey
+		return nil, l.ErrorServiceTokenValidatorNoPublicKey
 	}
 	token, err := jwt.ParseTokenWithPublicKey(t, v.publicKey)
 	if err != nil {
-		return model.JWToken{}, err
+		return nil, err
 	}
 	return token, v.Validate(token)
 }

@@ -56,7 +56,7 @@ func (ts *JWTokenService) PrivateKey() any {
 	return ts.pk
 }
 
-func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud []string, fields []string, payload map[string]any) (model.JWToken, error) {
+func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud []string, fields []string, payload map[string]any) (*model.JWToken, error) {
 	// we have to collect all payloads to one map
 	userPayload := xmaps.FieldsToMap(u)
 	userPayload = xmaps.FilterMap(userPayload, fields)
@@ -82,14 +82,17 @@ func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud 
 
 	sm := ts.jwtMethod()
 	if sm == nil {
-		return model.JWToken{}, l.ErrorTokenMethodInvalid
+		return nil, l.ErrorTokenMethodInvalid
 	}
 
 	token := model.TokenWithClaims(sm, ts.KeyID(), claims)
 	return token, nil
 }
 
-func (ts *JWTokenService) SignToken(t model.JWToken) (string, error) {
+func (ts *JWTokenService) SignToken(t *model.JWToken) (string, error) {
+	if t == nil {
+		return "", l.ErrorTokenInvalid
+	}
 	if err := t.Validate(); err != nil {
 		return "", l.LocalizedError{
 			ErrID:   l.ErrorValidatingToken,
@@ -172,7 +175,7 @@ func (ts *JWTokenService) KeyID() string {
 }
 
 // Parse parses token data from the string representation.
-func (ts *JWTokenService) Parse(s string) (model.JWToken, error) {
+func (ts *JWTokenService) Parse(s string) (*model.JWToken, error) {
 	tokenString := strings.TrimSpace(s)
 	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (any, error) {
 		// since we only use the one private key to sign the tokens,
@@ -181,25 +184,25 @@ func (ts *JWTokenService) Parse(s string) (model.JWToken, error) {
 		return ts.PublicKey(), nil
 	})
 	if err != nil {
-		return model.JWToken{}, err
+		return nil, err
 	}
 
-	return model.JWToken{Token: *token}, nil
+	return &model.JWToken{Token: *token}, nil
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType model.TokenType) (model.JWToken, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType model.TokenType) (*model.JWToken, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
-		return model.JWToken{}, err
+		return nil, err
 	}
 
 	if err := v.Validate(token); err != nil {
-		return model.JWToken{}, err
+		return nil, err
 	}
 
 	if token.Type() != tokenType {
-		return model.JWToken{}, err
+		return nil, err
 	}
 
 	return token, nil

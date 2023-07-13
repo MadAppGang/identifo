@@ -36,5 +36,3 @@ type ChallengeController interface {
 	VerifyChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) error
 	LoginOrRegisterUserWithChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (User, error)
 }
-
-

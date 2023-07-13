@@ -24,7 +24,7 @@ func ExtractTokenFromBearerHeader(token string) []byte {
 }
 
 // ParseTokenWithPublicKey parses token with provided public key.
-func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.JWToken, error) {
+func ParseTokenWithPublicKey(t string, publicKey interface{}) (*model.JWToken, error) {
 	tokenString := strings.TrimSpace(t)
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -33,10 +33,10 @@ func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.JWToken, er
 		return publicKey, nil
 	})
 	if err != nil {
-		return model.JWToken{}, err
+		return nil, err
 	}
 
-	return model.JWToken{Token: *parsedToken}, nil
+	return &model.JWToken{Token: *parsedToken}, nil
 }
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).

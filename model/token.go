@@ -26,8 +26,8 @@ const (
 )
 
 // TokenWithClaims generates new JWT token with claims and keyID.
-func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) JWToken {
-	return JWToken{
+func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *JWToken {
+	return &JWToken{
 		Token: jwt.Token{
 			Header: map[string]any{
 				"typ": "JWT",

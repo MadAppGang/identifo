@@ -15,6 +15,7 @@ func (ar *Router) RequestPasswordlessLoginCode() http.HandlerFunc {
 }
 
 // PasswordlessLogin - handles login with code or magic link on email or SMS code.
+// verify challenge
 // If user exists - create new session and return token.
 // If user exists and has debug OTP code and app allows debug OTP code and the code provided matched that code - login or register.
 // If user does not exist and app allows register passwordless users - register and then login (create session and return token).
@@ -35,9 +36,12 @@ func (ar *Router) PasswordlessLogin() http.HandlerFunc {
 			return
 		}
 
-		ar.server.Storages().UCC.ChangeBlockStatus
+		// let's check if the challenge has been solved
+		
+		ar.server.Storages().UCC.VerifyChallenge(r.Context(), challenge)
 
-		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
+		// ar.server.Storages().UCC.ChangeBlockStatus
+		// ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		// um := model.User{}
 		// model.CopyDstFields(rd, um)
 		// user, err := ar.server.Storages().UMC.CreateUserWithPassword(r.Context(), um, rd.Password)
