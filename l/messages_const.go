@@ -229,6 +229,8 @@ const (
 	ErrorPhoneEmpty LocalizedString = "error.phone.empty"
 	// ErrorUsernameEmpty -> username could not be empty
 	ErrorUsernameEmpty LocalizedString = "error.username.empty"
+	// ErrorLoginDataEmpty -> Your login data is empty.
+	ErrorLoginDataEmpty LocalizedString = "error.login.data.empty"
 	// ErrorUserNotFound -> User not found.
 	ErrorUserNotFound LocalizedString = "error.user.not_found"
 	// ErrorUserNotFoundError -> User not found with error; %v.

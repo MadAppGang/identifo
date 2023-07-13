@@ -1,9 +1,8 @@
 package api
 
 import (
-	"fmt"
+	"errors"
 	"net/http"
-	"net/url"
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
@@ -11,148 +10,75 @@ import (
 )
 
 // RequestResetPassword requests password reset
+// now we support reset password only with JWT reset token send to email
+// if user does not have email - we could not reset the password
+// we need to find user by secondary ID (phone, username, email)
+// if user does not exist - we just silently return ok
+// if user exists - we send reset password email
+// if there is not email for user - we return error, as it's configuration error
 func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	type resetRequest struct {
-		login
-		TFACode      string `json:"tfa_code,omitempty"`
+		Phone        string `json:"phone"`
+		Email        string `json:"email"`
+		Username     string `json:"username"`
 		ResetPageURL string `json:"reset_page_url,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		// agent := r.Header.Get("User-Agent")
+		app := middleware.AppFromContext(r.Context())
 
 		d := resetRequest{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
 
-		if err := d.login.validate(); err != nil {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+		idType := model.AuthIdentityTypeNone
+		idValue := ""
+		if len(d.Email) > 0 {
+			idType = model.AuthIdentityTypeEmail
+			idValue = d.Email
+		} else if len(d.Phone) > 0 {
+			idType = model.AuthIdentityTypePhone
+			idValue = d.Phone
+		} else if len(d.Username) > 0 {
+			idType = model.AuthIdentityTypeUsername
+			idValue = d.Username
+		}
+
+		// nothing filled
+		if idType == model.AuthIdentityTypeNone {
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorLoginDataEmpty)
 			return
 		}
 
-		if err := ar.checkSupportedWays(d.login); err != nil {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
+		respok := map[string]string{"result": "ok"}
+		user, err := ar.server.Storages().UC.UserBySecondaryID(r.Context(), idType, idValue)
+		if err != nil && !errors.Is(err, l.ErrorUserNotFound) {
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
+			return
+		} else if !errors.Is(err, l.ErrorUserNotFound) {
+			// if not user - just report ok for security reasons
+			ar.ServeJSON(w, locale, http.StatusOK, respok)
 			return
 		}
 
-		user, err := ar.server.Storages().User.UserByEmail(d.Email)
-		if err == l.ErrorUserNotFound {
-			// return ok, but there is no user
-			ar.Logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
-			result := map[string]string{"result": "ok"}
-			ar.ServeJSON(w, locale, http.StatusOK, result)
-			return
-		} else if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)
-			return
-		}
-
-		app := middleware.AppFromContext(r.Context())
-		if len(app.ID) == 0 {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
-			return
-		}
-
-		_, enabled2FA, _ := ar.check2FA(app.TFAStatus, ar.tfaType, user)
-
-		if enabled2FA && ar.tfaType != model.TFATypeEmail {
-			if d.TFACode != "" {
-				otpVerified, err := ar.verifyOTPCode(user, d.TFACode)
-				if err != nil {
-					ar.Error(w, locale, http.StatusForbidden, l.Error2FAVerifyFailError, err)
-					return
-				}
-
-				dontNeedVerification := app.DebugTFACode != "" && d.TFACode == app.DebugTFACode
-
-				if !(otpVerified || dontNeedVerification) {
-					ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPILoginCodeInvalid)
-					return
-				}
-			} else {
-				if err := ar.sendOTPCode(app, user); err != nil {
-					ar.Error(w, locale, http.StatusInternalServerError, l.ErrorServiceOtpSendError, err)
-					return
-				}
-				result := map[string]string{"result": "tfa-required"}
-				ar.ServeJSON(w, locale, http.StatusOK, result)
-				return
-			}
-		}
-
-		resetToken, err := ar.server.Services().Token.NewResetToken(user.ID)
+		// we have user
+		_, err = ar.server.Storages().UMC.SendPasswordResetEmail(r.Context(), user.ID, app.ID)
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
+			// TODO: generate proper localized error with details
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 			return
 		}
 
-		resetTokenString, err := ar.server.Services().Token.String(resetToken)
-		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateResetTokenError, err)
-			return
-		}
-
-		query := fmt.Sprintf("appId=%s&token=%s", app.ID, resetTokenString)
-		u := &url.URL{
-			Scheme:   ar.Host.Scheme,
-			Host:     ar.Host.Host,
-			RawQuery: query,
-		}
-
-		resetPath := model.DefaultLoginWebAppSettings.ResetPasswordURL
-
-		// if app requested reset password custom page, use it.
-		if len(d.ResetPageURL) > 0 {
-			resetPath = d.ResetPageURL
-		} else if app.LoginAppSettings != nil && len(app.LoginAppSettings.ResetPasswordURL) > 0 {
-			// rewrite path for app, if app has specific web app login settings
-			resetPath = app.LoginAppSettings.ResetPasswordURL
-		}
-
-		resetPathURL, err := url.Parse(resetPath)
-		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPPResetUrlError, resetPath, app.ID, err)
-			return
-		}
-
-		// app settings could rewrite host or just path, if path is absolute - it rewrites host as well
-		if resetPathURL.IsAbs() {
-			u.Scheme = resetPathURL.Scheme
-			u.Host = resetPathURL.Host
-		}
-
-		u.Path = resetPathURL.Path
-
-		uu := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
-
-		resetEmailData := ResetEmailData{
-			User:  user,
-			Token: resetTokenString,
-			URL:   u.String(),
-			Host:  uu.String(),
-		}
-
-		if err = ar.server.Services().Email.SendTemplateEmail(
-			model.EmailTemplateTypeResetPassword,
-			app.GetCustomEmailTemplatePath(),
-			"Reset Password",
-			d.Email,
-			model.EmailData{
-				User: user,
-				Data: resetEmailData,
-			},
-		); err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorServiceEmailSendError, err)
-			return
-		}
-
-		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, locale, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, respok)
 	}
 }
 
 // ResetPassword handles password reset form submission (POST request).
+// this method exchanges reset JWT token to access JWT token
+// getting the new password and saving it in the database.
 func (ar *Router) ResetPassword() http.HandlerFunc {
 	type newPassword struct {
 		Password string `json:"password,omitempty"`

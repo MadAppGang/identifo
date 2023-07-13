@@ -181,6 +181,7 @@ const (
 	AuthIdentityTypePhone     AuthIdentityType = "phone"
 	AuthIdentityTypeUsername  AuthIdentityType = "username"
 	AuthIdentityTypeAnonymous AuthIdentityType = "anonymous"
+	AuthIdentityTypeNone      AuthIdentityType = "none"
 
 	// AuthChallengeType - the challenge type we are using to auth the sure.
 	AuthChallengeTypePassword      AuthChallengeType = "password"

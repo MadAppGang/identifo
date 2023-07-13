@@ -109,6 +109,7 @@ error.invalid.phone: "invalid phone number"
 error.email.empty: "email could not be empty"
 error.phone.empty: "phone could not be empty"
 error.username.empty: "username could not be empty"
+error.login.data.empty: "Your login data is empty."
 error.user.not_found: User not found.
 error.user.not_found.error: User not found with error; %v.
 error.request.challenge.unsupported.by.app: This login type is not supported by the app.
