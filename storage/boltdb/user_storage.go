@@ -147,7 +147,7 @@ func (us *UserStorage) UserByID(ctx context.Context, id string) (model.User, err
 	return res, nil
 }
 
-func (us *UserStorage) GetUserByFederatedID(ctx context.Context, idType model.UserFederatedType, userIdentityTypeOther, externalID string) (model.User, error) {
+func (us *UserStorage) UserByFederatedID(ctx context.Context, idType model.UserFederatedType, userIdentityTypeOther, externalID string) (model.User, error) {
 	var res model.User
 	sid := string(idType) + ":" + userIdentityTypeOther + ":" + externalID
 
