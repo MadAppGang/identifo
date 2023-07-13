@@ -84,8 +84,9 @@ func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
 	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
 
 	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods(http.MethodPost)
-	auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods(http.MethodPost)
-	auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods(http.MethodPost)
+	// TODO: Implement passwordless login instead of this one
+	// auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods(http.MethodPost)
+	// auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods(http.MethodPost)
 	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods(http.MethodPost)
 	auth.Path("/request_reset_password").HandlerFunc(ar.RequestResetPassword()).Methods(http.MethodPost)
 	auth.Path("/reset_password").Handler(

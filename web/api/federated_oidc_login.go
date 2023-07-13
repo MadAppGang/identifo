@@ -12,7 +12,6 @@ import (
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"golang.org/x/oauth2"
 )
@@ -202,17 +201,17 @@ func (ar *Router) OIDCLoginComplete(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Authorize user if the app requires authorization.
-	azi := authorization.AuthzInfo{
-		App:         app,
-		UserRole:    user.AccessRole,
-		ResourceURI: r.RequestURI,
-		Method:      r.Method,
-	}
-	if err := ar.Authorizer.Authorize(azi); err != nil {
-		ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
-		return
-	}
+	// // Authorize user if the app requires authorization.
+	// azi := authorization.AuthzInfo{
+	// 	App:         app,
+	// 	UserRole:    user.AccessRole,
+	// 	ResourceURI: r.RequestURI,
+	// 	Method:      r.Method,
+	// }
+	// if err := ar.Authorizer.Authorize(azi); err != nil {
+	// 	ar.Error(w, locale, http.StatusForbidden, l.ErrorFederatedAccessDeniedError, err)
+	// 	return
+	// }
 
 	// requestedScopes will contain OIDC scopes and custom requested scopes
 	requestedScopes := fsess.Scopes

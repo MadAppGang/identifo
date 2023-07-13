@@ -165,6 +165,34 @@ const (
 	ErrorTokenInvalidError LocalizedString = "error.token.invalid.error"
 	// ErrorTokenBlocked -> The token is blocked and not valid any more.
 	ErrorTokenBlocked LocalizedString = "error.token.blocked"
+	// ErrorTokenMethodInvalid -> Invalid JWT signature method.
+	ErrorTokenMethodInvalid LocalizedString = "error.token.method.invalid"
+	// ErrorTokenInvalid -> Invalid JWT token.
+	ErrorTokenInvalid LocalizedString = "error.token.invalid"
+	// ErrorValidatingToken -> JWT token is invalid: %s.
+	ErrorValidatingToken LocalizedString = "error.validating.token"
+	// ErrorValidatingTokenMethod -> Invalid JWT token signature method.
+	ErrorValidatingTokenMethod LocalizedString = "error.validating.token.method"
+	// ErrorValidationTokenClaims -> Invalid JWT token claims.
+	ErrorValidationTokenClaims LocalizedString = "error.validation.token.claims"
+	// ErrorValidationTokenNoExpire -> Invalid JWT token, empty expire claim.
+	ErrorValidationTokenNoExpire LocalizedString = "error.validation.token.no.expire"
+	// ErrorValidationTokenMissingClaim -> Invalid JWT token, missing %s claim.
+	ErrorValidationTokenMissingClaim LocalizedString = "error.validation.token.missing.claim"
+	// ErrorValidationTokenExpired -> JWT token expired.
+	ErrorValidationTokenExpired LocalizedString = "error.validation.token.expired"
+	// ErrorValidationTokenNotValidYet -> JWT token is not valid yet regarding nbf claim.
+	ErrorValidationTokenNotValidYet LocalizedString = "error.validation.token.not.valid.yet"
+	// ErrorValidationTokenIssuedInFuture -> JWT token is invalid, issue date is in the future.
+	ErrorValidationTokenIssuedInFuture LocalizedString = "error.validation.token.issued.in.future"
+	// ErrorValidationTokenInvalidIssuer -> JWT token has unexpected issuer claim.
+	ErrorValidationTokenInvalidIssuer LocalizedString = "error.validation.token.invalid.issuer"
+	// ErrorValidationTokenInvalidSubject -> JWT token has unexpected subject claim.
+	ErrorValidationTokenInvalidSubject LocalizedString = "error.validation.token.invalid.subject"
+	// ErrorValidationTokenInvalidType -> JWT token is unexpected type.
+	ErrorValidationTokenInvalidType LocalizedString = "error.validation.token.invalid.type"
+	// ErrorValidationTokenInvalidAudience -> JWT token has unexpected audience.
+	ErrorValidationTokenInvalidAudience LocalizedString = "error.validation.token.invalid.audience"
 
 	//===========================================================================
 	//  App errors
@@ -201,12 +229,26 @@ const (
 	ErrorPhoneEmpty LocalizedString = "error.phone.empty"
 	// ErrorUsernameEmpty -> username could not be empty
 	ErrorUsernameEmpty LocalizedString = "error.username.empty"
+	// ErrorLoginDataEmpty -> Your login data is empty.
+	ErrorLoginDataEmpty LocalizedString = "error.login.data.empty"
 	// ErrorUserNotFound -> User not found.
 	ErrorUserNotFound LocalizedString = "error.user.not_found"
 	// ErrorUserNotFoundError -> User not found with error; %v.
 	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
 	// ErrorRequestChallengeUnsupportedByAPP -> This login type is not supported by the app.
 	ErrorRequestChallengeUnsupportedByAPP LocalizedString = "error.request.challenge.unsupported.by.app"
+	// ErrorLoginTypeNotSupported -> This login type is not supported.
+	ErrorLoginTypeNotSupported LocalizedString = "error.login.type.not.supported"
+	// ErrorOtpLoginTransportNotSupported -> Unsupported way to send OTP code: %s.
+	ErrorOtpLoginTransportNotSupported LocalizedString = "error.otp.login.transport.not.supported"
+	// ErrorOtpLoginChallengeNotSupported -> Unsupported OTP code type: %s.
+	ErrorOtpLoginChallengeNotSupported LocalizedString = "error.otp.login.challenge.not.supported"
+	// ErrorOtpLoginStrategyNotSupported -> Unsupported OTP code strategy: %s.
+	ErrorOtpLoginStrategyNotSupported LocalizedString = "error.otp.login.strategy.not.supported"
+	// ErrorOtpAlreadyUsed -> The code is already used, enter the new one.
+	ErrorOtpAlreadyUsed LocalizedString = "error.otp.already.used"
+	// ErrorOtpIncorrect -> The code is not match, please check it and try again.
+	ErrorOtpIncorrect LocalizedString = "error.otp.incorrect"
 
 	//===========================================================================
 	//  Federated login
@@ -305,6 +347,8 @@ const (
 	ErrorServiceEmailTemplateMissingSubject LocalizedString = "error.service.email.template.missing.subject"
 	// ErrorServiceEmailTemplateMissingBody -> Missing body in email template for: %v.
 	ErrorServiceEmailTemplateMissingBody LocalizedString = "error.service.email.template.missing.body"
+	// ErrorServiceTokenValidatorNoPublicKey -> Missing public key.
+	ErrorServiceTokenValidatorNoPublicKey LocalizedString = "error.service.token.validator.no.public.key"
 
 	//===========================================================================
 	//  NativeLogin Service
@@ -383,4 +427,12 @@ const (
 	PasswordRequireNumber LocalizedString = "password.require.number"
 	// PasswordRequireSymbol -> Require at least special character: !$%%^&*()_+{}:@[];'#<>?,./|\\-=?.
 	PasswordRequireSymbol LocalizedString = "password.require.symbol"
+
+	//===========================================================================
+	//  SMS
+	//===========================================================================
+	// SmsOtpMagicLink -> Click here to login {{.URL}}.
+	SmsOtpMagicLink LocalizedString = "sms.otp_magic_link"
+	// SmsOtpCode -> Here is the OTP code {{.OTP}}, expire in {{.Expires}} minutes.
+	SmsOtpCode LocalizedString = "sms.otp_code"
 )

@@ -25,7 +25,7 @@ type UserStorage interface {
 	// Get user with key parameters for a user.
 	UserByID(ctx context.Context, id string) (User, error)
 	UserBySecondaryID(ctx context.Context, idt AuthIdentityType, id string) (User, error)
-	GetUserByFederatedID(ctx context.Context, idType UserFederatedType, userIdentityTypeOther, externalID string) (User, error)
+	UserByFederatedID(ctx context.Context, idType UserFederatedType, userIdentityTypeOther, externalID string) (User, error)
 
 	// Get user data, we can filter the fields we need to handle from data, as it is a large structure.
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)

@@ -23,3 +23,11 @@ type ResetEmailData struct {
 	URL   string
 	Host  string
 }
+
+type OPTConfirmationData struct {
+	OTP     string
+	URL     string
+	Host    string
+	Expires int // expire time in minutes
+	User    User
+}

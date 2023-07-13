@@ -3,6 +3,7 @@ package model
 import (
 	_ "embed"
 	"encoding/json"
+	"time"
 )
 
 // TODO: Jack add all missing strategies to json file
@@ -17,61 +18,160 @@ func Strategies() []AuthStrategy {
 }
 
 // AuthStrategy - a auth strategy to auth the user
-type AuthStrategy struct {
-	ID           string                `json:"id,omitempty"`
-	Name         string                `json:"name,omitempty"`
-	Type         AuthStrategyType      `json:"type,omitempty"`
-	FirstFactor  *FirstFactorStrategy  `json:"first_factor,omitempty"`
-	SecondFactor *SecondFactorStrategy `json:"second_factor,omitempty"`
-	Score        int                   `json:"score,omitempty"` // the security score of the strategy, from 1 to 10.
+type AuthStrategy interface {
+	Info() AuthStrategyInfo
+	Type() AuthStrategyType
+	Compatible(other AuthStrategy) bool
+}
+
+type AuthStrategyInfo struct {
+	ID    string `json:"id,omitempty"`
+	Name  string `json:"name,omitempty"`
+	Score int    `json:"score,omitempty"` // the security score of the strategy, from 1 to 10.
+	// Type  AuthStrategyType `json:"type,omitempty"`
+}
+
+// FirstFactorInternalStrategy represents first factor internal strategy, like email, phone, etc
+type FirstFactorInternalStrategy struct {
+	AuthStrategyInfo
+	Identity  AuthIdentityType  `json:"identity,omitempty"`
+	Challenge AuthChallengeType `json:"challenge,omitempty"`
+	Transport AuthTransportType `json:"transport,omitempty"`
+}
+
+type FirstFactorFIMStrategy struct {
+	AuthStrategyInfo
+	FIMType UserFederatedType `json:"fim_type,omitempty"`
+	// TODO: add fields for OIDC and plugin strategy
+}
+
+type FirstFactorEnterpriseStrategy struct {
+	AuthStrategyInfo
+	// TODO: implement support for enterprise strategy
+}
+
+type SecondFactorStrategy struct {
+	AuthStrategyInfo
+	Challenge   AuthChallengeType       `json:"challenge,omitempty"`
+	Transport   AuthTransportType       `json:"transport,omitempty"`
+	EnrolPolicy SecondFactorEnrolPolicy `json:"enrol_policy,omitempty"`
+	Policy      SecondFactorPolicy      `json:"policy,omitempty"`
+}
+
+type AnonymousStrategy struct {
+	AuthStrategyInfo
+}
+
+// FirstFactorInternalStrategy implementation of AuthStrategy interface
+func (s FirstFactorInternalStrategy) Info() AuthStrategyInfo {
+	return s.AuthStrategyInfo
+}
+
+func (s FirstFactorInternalStrategy) Type() AuthStrategyType {
+	return AuthStrategyFirstFactorInternal
+}
+
+func (s FirstFactorInternalStrategy) Compatible(other AuthStrategy) bool {
+	if other.Type() == AuthStrategyFirstFactorInternal {
+		ol, ok := other.(FirstFactorInternalStrategy)
+		if !ok {
+			return false
+		}
+		if (len(s.Identity) == 0 || s.Identity == ol.Identity) &&
+			(len(s.Challenge) == 0 || s.Challenge == ol.Challenge) &&
+			(len(s.Transport) == 0 || s.Transport == ol.Transport) {
+			return true
+		}
+	}
+	return false
+}
+
+// FirstFactorFIMStrategy implementation of AuthStrategy interface
+func (s FirstFactorFIMStrategy) Info() AuthStrategyInfo {
+	return s.AuthStrategyInfo
+}
+
+func (s FirstFactorFIMStrategy) Type() AuthStrategyType {
+	return AuthStrategyFirstFactorFIM
+}
+
+func (s FirstFactorFIMStrategy) Compatible(other AuthStrategy) bool {
+	if other.Type() == AuthStrategyFirstFactorFIM {
+		ol, ok := other.(FirstFactorFIMStrategy)
+		if !ok {
+			return false
+		}
+		return s.FIMType == ol.FIMType
+	}
+	return false
+}
+
+// FirstFactorFIMStrategy implementation of AuthStrategy interface
+func (s FirstFactorEnterpriseStrategy) Info() AuthStrategyInfo {
+	return s.AuthStrategyInfo
+}
+
+func (s FirstFactorEnterpriseStrategy) Type() AuthStrategyType {
+	return AuthStrategyFirstFactorEnterprise
+}
+
+func (s FirstFactorEnterpriseStrategy) Compatible(other AuthStrategy) bool {
+	return false
+}
+
+// SecondFactorStrategy implementation of AuthStrategy interface
+func (s SecondFactorStrategy) Info() AuthStrategyInfo {
+	return s.AuthStrategyInfo
+}
+
+func (s SecondFactorStrategy) Type() AuthStrategyType {
+	return AuthStrategySecondFactor
+}
+
+func (s SecondFactorStrategy) Compatible(other AuthStrategy) bool {
+	if other.Type() == AuthStrategySecondFactor {
+		ol, ok := other.(SecondFactorStrategy)
+		if !ok {
+			return false
+		}
+		if (len(s.Challenge) == 0 || s.Challenge == ol.Challenge) &&
+			(len(s.Transport) == 0 || s.Transport == ol.Transport) {
+			return true
+		}
+	}
+	return false
+}
+
+// AnonymousStrategy implementation of AuthStrategy interface
+func (s AnonymousStrategy) Info() AuthStrategyInfo {
+	return s.AuthStrategyInfo
+}
+
+func (s AnonymousStrategy) Type() AuthStrategyType {
+	return AuthStrategyAnonymous
+}
+
+func (s AnonymousStrategy) Compatible(other AuthStrategy) bool {
+	return false
 }
 
 // AuthStrategyType  show which type of auth this strategy represents
 type AuthStrategyType string
 
 const (
-	AuthStrategyFirstFactor  AuthStrategyType = "first_factor"
-	AuthStrategySecondFactor AuthStrategyType = "second_factor"
-	AuthStrategyNone         AuthStrategyType = "none"
-	AuthStrategyAnonymous    AuthStrategyType = "anonymous"
+	AuthStrategyFirstFactorInternal   AuthStrategyType = "first_factor_internal"
+	AuthStrategyFirstFactorFIM        AuthStrategyType = "first_factor_fim"
+	AuthStrategyFirstFactorEnterprise AuthStrategyType = "first_factor_enterprise"
+	AuthStrategySecondFactor          AuthStrategyType = "second_factor"
+	AuthStrategyNone                  AuthStrategyType = "none"
+	AuthStrategyAnonymous             AuthStrategyType = "anonymous"
 )
-
-// FirstFactorType - the type of first factor authentication. Now local is supported only.
-type FirstFactorType string
-
-const (
-	FirstFactorTypeLocal      FirstFactorType = "local"
-	FirstFactorTypeFIM        FirstFactorType = "fim" // FIM if federated identity, also called as social login
-	FirstFactorTypeEnterprise FirstFactorType = "enterprise"
-)
-
-// FirstFactorStrategy - the strategy for the first factor authentication.
-type FirstFactorStrategy struct {
-	Type  FirstFactorType `json:"type,omitempty"`
-	Local *LocalStrategy  `json:"local,omitempty"` // User Identity is managed directly by Identifo
-	FIM   *FIMStrategy    `json:"fim,omitempty"`   // FIM if federated identity, also called as social login
-	// TODO:
-	// SSO: SAML // user identity managed by someone else, delegated
-}
-
-// LocalStrategy - local first factor strategy, the user can authenticate with local account.
-type LocalStrategy struct {
-	Identity  AuthIdentityType  `json:"identity,omitempty"`
-	Challenge AuthChallengeType `json:"challenge,omitempty"`
-	Transport AuthTransportType `json:"transport,omitempty"`
-}
-
-type FIMStrategy struct {
-	Type FIMStrategyType `json:"type,omitempty"`
-	// TODO: add fields for OIDC and plugin strategy
-}
 
 // types for Identity, Challenge and Transport
 type (
 	AuthIdentityType  string
 	AuthChallengeType string
 	AuthTransportType string
-	FIMStrategyType   string
 )
 
 const (
@@ -81,6 +181,7 @@ const (
 	AuthIdentityTypePhone     AuthIdentityType = "phone"
 	AuthIdentityTypeUsername  AuthIdentityType = "username"
 	AuthIdentityTypeAnonymous AuthIdentityType = "anonymous"
+	AuthIdentityTypeNone      AuthIdentityType = "none"
 
 	// AuthChallengeType - the challenge type we are using to auth the sure.
 	AuthChallengeTypePassword      AuthChallengeType = "password"
@@ -92,27 +193,13 @@ const (
 	AuthChallengeTypeWebauthn      AuthChallengeType = "webauthn"
 
 	// AuthTransportType - the transport we are using to deliver the authentication challenge.
-	AuthTransportTypeEmail  AuthTransportType = "email"
-	AuthTransportTypeSMS    AuthTransportType = "sms"
-	AuthTransportTypePush   AuthTransportType = "push"
-	AuthTransportTypeNone   AuthTransportType = "none"
-	AuthTransportTypeSocket AuthTransportType = "socket"
-
-	// FIMStrategyType - the FIM (Federated Identity Management) provider strategy name.
-	FIMStrategyTypeNone     FIMStrategyType = "none"
-	FIMStrategyTypeOIDC     FIMStrategyType = "oidc"
-	FIMStrategyTypeApple    FIMStrategyType = "apple"
-	FIMStrategyTypeFirebase FIMStrategyType = "firebase"
-	FIMStrategyTypeGoogle   FIMStrategyType = "google"
+	AuthTransportTypeEmail         AuthTransportType = "email"
+	AuthTransportTypeSMS           AuthTransportType = "sms"
+	AuthTransportTypePush          AuthTransportType = "push"
+	AuthTransportTypeNone          AuthTransportType = "none"
+	AuthTransportTypeSocket        AuthTransportType = "socket"
+	AuthTransportTypeAuthenticator AuthTransportType = "authenticator"
 )
-
-// SecondFactorStrategy - the strategy for the second factor authentication.
-type SecondFactorStrategy struct {
-	Challenge   AuthChallengeType       `json:"challenge,omitempty"`
-	Transport   AuthTransportType       `json:"transport,omitempty"`
-	EnrolPolicy SecondFactorEnrolPolicy `json:"enrol_policy,omitempty"`
-	Policy      SecondFactorPolicy      `json:"policy,omitempty"`
-}
 
 // SecondFactorEnrolPolicy - the policy for the second factor enrolment, the way is user can enrol second factor.
 type SecondFactorEnrolPolicy string
@@ -160,7 +247,7 @@ func (a AuthIdentityType) Field() string {
 }
 
 // FilterCompatible returns all compatible strategies from stats slice.
-func (s AuthStrategy) FilterCompatible(strats []AuthStrategy) []AuthStrategy {
+func FilterCompatible(s AuthStrategy, strats []AuthStrategy) []AuthStrategy {
 	res := []AuthStrategy{}
 	for _, strat := range strats {
 		if s.Compatible(strat) {
@@ -170,91 +257,23 @@ func (s AuthStrategy) FilterCompatible(strats []AuthStrategy) []AuthStrategy {
 	return res
 }
 
-// Compatible return true if other strategy is compatible with s.
-func (s AuthStrategy) Compatible(other AuthStrategy) bool {
-	// should be the same strategy type
-	if s.Type == other.Type {
-		// if the strategy is not none or anonymous, it is compatible, no other values to check.
-		if s.Type == AuthStrategyNone || s.Type == AuthStrategyAnonymous {
-			return true
-		}
-		// let's check the first factor
-		if s.Type == AuthStrategyFirstFactor {
-			// no other requirements, we are looking for the first factor strategy only
-			if s.FirstFactor == nil {
-				return true
+// ExpireChallengeDuration returns a duration for the challenge to expire for this specific strategy type.
+// If this type does not support challenge expiration, it returns 0.
+func ExpireChallengeDuration(s AuthStrategy) time.Duration {
+	switch s.Type() {
+	case AuthStrategyFirstFactorInternal:
+		f, ok := s.(FirstFactorInternalStrategy)
+		if ok {
+			if f.Transport == AuthTransportTypeAuthenticator {
+				return time.Minute * 1
 			}
-			// the strategy from the list is incomplete, it has not first factor strategy data
-			if other.FirstFactor == nil {
-				return false
+			if f.Challenge == AuthChallengeTypeOTP {
+				return time.Minute * 5
 			}
-			return s.FirstFactor.Compatible(*other.FirstFactor)
-		}
-		if s.Type == AuthStrategySecondFactor {
-			if s.SecondFactor == nil {
-				return true
+			if f.Challenge == AuthChallengeTypeMagicLink {
+				return time.Minute * 30
 			}
-			if other.SecondFactor == nil {
-				return false
-			}
-			return s.SecondFactor.Compatible(*other.SecondFactor)
 		}
 	}
-	return false
+	return time.Hour * 24 * 7 * 4 * 12 * 10 // something around ten years, never expire
 }
-
-// Compatible returns true other strategy is compatible with s
-func (s FirstFactorStrategy) Compatible(other FirstFactorStrategy) bool {
-	if s.Type == other.Type {
-		// check local strategy
-		if s.Type == FirstFactorTypeLocal {
-			// we are happy for any local strategy
-			if s.Local == nil {
-				return true
-			}
-			// s has requirements, but other strategy has no local strategy data
-			if other.Local == nil {
-				return false
-			}
-			return s.Local.Compatible(*other.Local)
-		}
-		if s.Type == FirstFactorTypeFIM {
-			// we are happy for any federated identity management(FIM) strategy
-			if s.FIM == nil {
-				return true
-			}
-			if other.FIM == nil {
-				return false
-			}
-			return s.FIM.Compatible(*other.FIM)
-		}
-	}
-	return false
-}
-
-// Compatible returns true other strategy is compatible with s
-func (s LocalStrategy) Compatible(other LocalStrategy) bool {
-	if (len(s.Identity) == 0 || s.Identity == other.Identity) &&
-		(len(s.Challenge) == 0 || s.Challenge == other.Challenge) &&
-		(len(s.Transport) == 0 || s.Transport == other.Transport) {
-		return true
-	}
-	return false
-}
-
-// Compatible returns true other strategy is compatible with s
-func (s FIMStrategy) Compatible(other FIMStrategy) bool {
-	return s.Type == other.Type || len(s.Type) == 0
-}
-
-// Compatible returns true other strategy is compatible with s
-func (s SecondFactorStrategy) Compatible(other SecondFactorStrategy) bool {
-	if (len(s.Challenge) == 0 || s.Challenge == other.Challenge) &&
-		(len(s.Transport) == 0 || s.Transport == other.Transport) {
-		return true
-	}
-	return false
-}
-
-
-func (a AuthStrategy)LoginType

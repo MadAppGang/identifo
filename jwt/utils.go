@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -24,7 +24,7 @@ func ExtractTokenFromBearerHeader(token string) []byte {
 }
 
 // ParseTokenWithPublicKey parses token with provided public key.
-func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.Token, error) {
+func ParseTokenWithPublicKey(t string, publicKey interface{}) (*model.JWToken, error) {
 	tokenString := strings.TrimSpace(t)
 
 	parsedToken, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
@@ -36,7 +36,7 @@ func ParseTokenWithPublicKey(t string, publicKey interface{}) (model.Token, erro
 		return nil, err
 	}
 
-	return &model.JWToken{JWT: parsedToken}, nil
+	return &model.JWToken{Token: *parsedToken}, nil
 }
 
 // TimeFunc provides the current time when parsing token to validate "exp" claim (expiration time).

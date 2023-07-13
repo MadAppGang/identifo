@@ -6,10 +6,13 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 )
 
 // UpdateUser allows to change user login and password.
 func (ar *Router) UpdateUser() http.HandlerFunc {
+	// this is large update thing
+	// we need to dedicate empty field and absence of field in update request
 	type updateUserRequestData struct {
 		ID string `json:"id"`
 
@@ -51,113 +54,18 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		d.ID = userID
 
 		u := model.User{}
-		err := model.CopyDstFields(d, &u)
+		err := xmaps.CopyDstFields(d, &u)
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
 
-		fields := model.Filled(d)
+		fields := xmaps.Filled(d)
 		u, err = ar.server.Storages().UMC.UpdateUser(r.Context(), u, fields)
 		if err != nil {
 			ar.Error(w, l.ErrorWithLocale(err, locale))
 			return
 		}
-
-		// if err := d.validate(user); err != nil {
-		// 	ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
-		// 	return
-		// }
-		// // Check that new username is not taken.
-		// if d.updateUsername {
-		// 	if _, err := ar.server.Storages().UC.UserByID(d.NewUsername); err == nil {
-		// 		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIUsernameTaken)
-		// 		return
-		// 	}
-		// }
-
-		// // Check that email is not taken.
-		// if d.updateEmail {
-		// 	if _, err := ar.server.Storages().User.UserByEmail(d.NewEmail); err == nil {
-		// 		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIEmailTaken)
-		// 		return
-		// 	}
-		// }
-
-		// // Check that phone is not taken.
-		// if d.updatePhone {
-		// 	if _, err := ar.server.Storages().User.UserByPhone(d.NewPhone); err == nil {
-		// 		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIPhoneTaken)
-		// 		return
-		// 	}
-		// }
-
-		// // Update password.
-		// if d.updatePassword {
-		// 	// Check old password.
-		// 	if err := ar.server.Storages().User.CheckPassword(user.ID, d.OldPassword); err != nil {
-		// 		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyOldpasswordInvalid)
-		// 		return
-		// 	}
-
-		// 	// Save new password.
-		// 	err = ar.server.Storages().User.ResetPassword(user.ID, d.NewPassword)
-		// 	if err != nil {
-		// 		ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
-		// 		return
-		// 	}
-
-		// 	// Refetch user with new password hash.
-		// 	if user, err = ar.server.Storages().User.UserByUsername(user.Username); err != nil {
-		// 		ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorStorageFindUserEmailPhoneUsernameError, err)
-		// 		return
-		// 	}
-		// }
-
-		// // Change username if user specified new one.
-		// if d.updateUsername {
-		// 	user.Username = d.NewUsername
-		// 	user = user.Deanonimized()
-		// }
-
-		// if d.updateEmail {
-		// 	user.Email = d.NewEmail
-		// }
-
-		// if d.updatePhone {
-		// 	user.Phone = d.NewPhone
-		// }
-
-		// if d.updateUsername || d.updateEmail || d.updatePhone {
-		// 	if _, err = ar.server.Storages().User.UpdateUser(userID, user); err != nil {
-		// 		ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageUpdateUserError, userID, err)
-		// 		return
-		// 	}
-		// }
-
-		// // Prepare response.
-		// updatedFields := []string{}
-		// if d.updateUsername {
-		// 	updatedFields = append(updatedFields, "username")
-		// }
-		// if d.updateEmail {
-		// 	updatedFields = append(updatedFields, "email")
-		// }
-		// if d.updatePhone {
-		// 	updatedFields = append(updatedFields, "phone")
-		// }
-		// if d.updatePassword {
-		// 	updatedFields = append(updatedFields, "password")
-		// }
-
-		// msg := "Nothing changed."
-		// if len(updatedFields) > 0 {
-		// 	updatedFields[0] = strings.Title(updatedFields[0])
-		// 	msg = strings.Join(updatedFields, ", ") + " changed. "
-		// }
-		// response := updateResponse{
-		// 	Message: msg,
-		// }
 
 		ar.ServeJSON(w, locale, http.StatusOK, u)
 	}

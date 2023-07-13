@@ -5,7 +5,6 @@ import (
 	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
 	"github.com/markbates/goth/providers/apple"
 	"github.com/markbates/goth/providers/facebook"
 	"github.com/markbates/goth/providers/google"
@@ -19,9 +18,10 @@ var FederatedProviders = map[string]FederatedProvider{
 		return google.New(params["ClientId"], params["Secret"], redirectURL, scopes...), nil
 	}, Params: []string{"ClientId", "Secret"}},
 	"apple": {Name: "Apple", New: func(params map[string]string, redirectURL string, scopes ...string) (*apple.Provider, error) {
-		jwt.TimeFunc = func() time.Time {
-			return time.Now().Add(time.Second * 10)
-		}
+		// TODO: investigate why this one exists
+		// jwt.TimeFunc = func() time.Time {
+		// 	return time.Now().Add(time.Second * 10)
+		// }
 
 		secret, err := apple.MakeSecret(apple.SecretParams{
 			PKCS8PrivateKey: params["PKCS8PrivateKey"],

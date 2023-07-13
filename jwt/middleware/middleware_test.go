@@ -97,22 +97,22 @@ func TestTokenFromContext(t *testing.T) {
 	tests := []struct {
 		name string
 		ctx  context.Context
-		want model.Token
+		want model.JWToken
 	}{
 		{
 			name: "no token",
 			ctx:  context.Background(),
-			want: nil,
+			want: model.JWToken{},
 		},
 		{
 			name: "nil token",
 			ctx:  context.WithValue(context.Background(), model.TokenContextKey, nil),
-			want: nil,
+			want: model.JWToken{},
 		},
 		{
 			name: "token exists",
-			ctx:  context.WithValue(context.Background(), model.TokenContextKey, model.Token(&model.JWToken{})),
-			want: &model.JWToken{},
+			ctx:  context.WithValue(context.Background(), model.TokenContextKey, model.JWToken{}),
+			want: model.JWToken{},
 		},
 	}
 	for _, tt := range tests {

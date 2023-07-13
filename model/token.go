@@ -1,80 +1,75 @@
 package model
 
 import (
+	"encoding/json"
+	"strings"
 	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
+	jwt "github.com/golang-jwt/jwt/v5"
+	"github.com/madappgang/identifo/v2/l"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
+	"golang.org/x/exp/maps"
 )
 
 type TokenType string
 
 const (
-	TokenTypeInvite    TokenType = "invite"     // TokenTypeInvite is an invite token type value.
-	TokenTypeReset     TokenType = "reset"      // TokenTypeReset is an reset token type value.
-	TokenTypeWebCookie TokenType = "web-cookie" // TokenTypeWebCookie is a web-cookie token type value.
-	TokenTypeAccess    TokenType = "access"     // TokenTypeAccess is an access token type.
-	TokenTypeRefresh   TokenType = "refresh"    // TokenTypeRefresh is a refresh token type.
-
-	// TODO: Deprecate it?
-	TokenTypeTFAPreauth TokenType = "2fa-preauth" // TokenTypeTFAPreauth is an 2fa preauth token type.
-	// TODO: Add other tokens, like admin, one, 2fa etc
+	TokenTypeInvite     TokenType = "invite"     // TokenTypeInvite is an invite token type value.
+	TokenTypeReset      TokenType = "reset"      // TokenTypeReset is an reset token type value.
+	TokenTypeWebCookie  TokenType = "web-cookie" // TokenTypeWebCookie is a web-cookie token type value.
+	TokenTypeAccess     TokenType = "access"     // TokenTypeAccess is an access token type.
+	TokenTypeRefresh    TokenType = "refresh"    // TokenTypeRefresh is a refresh token type.
+	TokenTypeManagement TokenType = "management" // TokenTypeManagement is a management token type for admin panel."
+	TokenTypeID         TokenType = "id_token"   // id token type regarding oidc specification
+	TokenTypeSignin     TokenType = "signin"     // signin token issues for user to sign in, etc to exchange for auth tokens. For example from admin panel I can send a link to user to siging to email with magic link.
+	TokenTypeActor      TokenType = "actor"      // actor token is token impersonation. Admin could impersonated to be some of the users.
 )
 
-// StandardTokenClaims structured version of Claims Section, as referenced at
-// https://tools.ietf.org/html/rfc7519#section-4.1
-type StandardTokenClaims interface {
-	Audience() string
-	ExpiresAt() time.Time
-	ID() string
-	IssuedAt() time.Time
-	Issuer() string
-	NotBefore() time.Time
-	Subject() string
-}
-
-// Token is an abstract application token.
-type Token interface {
-	StandardTokenClaims
-	Validate() error
-	UserID() string
-	Type() string
-	Scopes() string
-	Payload() map[string]interface{}
-}
-
-// NewTokenWithClaims generates new JWT token with claims and keyID.
-func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
-	return &jwt.Token{
-		Header: map[string]interface{}{
-			"typ": "JWT",
-			"alg": method.Alg(),
-			"kid": kid,
+// TokenWithClaims generates new JWT token with claims and keyID.
+func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *JWToken {
+	return &JWToken{
+		Token: jwt.Token{
+			Header: map[string]any{
+				"typ": "JWT",
+				"alg": method.Alg(),
+				"kid": kid,
+			},
+			Claims: claims,
+			Method: method,
 		},
-		Claims: claims,
-		Method: method,
+		New: true,
 	}
 }
 
 // JWToken represents JWT token.
 type JWToken struct {
-	JWT *jwt.Token
+	jwt.Token
 	New bool
+}
+
+func (t *JWToken) FullClaims() Claims {
+	claims, _ := t.Claims.(*Claims)
+	return *claims
 }
 
 // Validate validates token data. Returns nil if all data is valid.
 func (t *JWToken) Validate() error {
-	if t.JWT == nil {
-		return ErrEmptyToken
+	// pass jwt lib token validation as it has not been parsed, it was constructed.
+	if t.New {
+		return nil
 	}
-	if !t.New && !t.JWT.Valid {
-		return ErrTokenInvalid
+
+	// the token is invalid by jwt validator while parsing
+	if !t.Token.Valid {
+		return l.ErrorTokenInvalid
 	}
+
 	return nil
 }
 
 // UserID returns user ID.
 func (t *JWToken) UserID() string {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
@@ -82,66 +77,59 @@ func (t *JWToken) UserID() string {
 }
 
 // Payload returns token payload.
-func (t *JWToken) Payload() map[string]interface{} {
-	claims, ok := t.JWT.Claims.(*Claims)
+func (t *JWToken) Payload() map[string]any {
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
-		return make(map[string]interface{})
+		return nil
 	}
 	return claims.Payload
 }
 
 // Type returns token type.
-func (t *JWToken) Type() string {
-	claims, ok := t.JWT.Claims.(*Claims)
+func (t *JWToken) Type() TokenType {
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
-	return claims.Type
-}
-
-// Audience standard token claim
-func (t *JWToken) Audience() string {
-	claims, ok := t.JWT.Claims.(*Claims)
-	if !ok {
-		return ""
-	}
-	return claims.Audience
+	return TokenType(claims.Type)
 }
 
 // ExpiresAt standard token claim
 func (t *JWToken) ExpiresAt() time.Time {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
-	return time.Unix(claims.ExpiresAt, 0)
+	if claims.ExpiresAt == nil {
+		return time.Time{}
+	}
+	return (*claims.ExpiresAt).Time
 }
 
 // ID standard token claim
 func (t *JWToken) ID() string {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
-	return claims.Id
-}
-
-func (t *JWToken) Claims() *Claims {
-	return t.JWT.Claims.(*Claims)
+	return claims.ID
 }
 
 // IssuedAt standard token claim
 func (t *JWToken) IssuedAt() time.Time {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
-	return time.Unix(claims.IssuedAt, 0)
+	if claims.IssuedAt == nil {
+		return time.Time{}
+	}
+	return (*claims.IssuedAt).Time
 }
 
 // Issuer standard token claim
 func (t *JWToken) Issuer() string {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
@@ -150,38 +138,80 @@ func (t *JWToken) Issuer() string {
 
 // NotBefore standard token claim
 func (t *JWToken) NotBefore() time.Time {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return time.Time{}
 	}
-	return time.Unix(claims.NotBefore, 0)
+	if claims.NotBefore == nil {
+		return time.Time{}
+	}
+	return (*claims.NotBefore).Time
 }
 
 // Subject standard token claim
 func (t *JWToken) Subject() string {
-	claims, ok := t.JWT.Claims.(*Claims)
+	claims, ok := t.Claims.(*Claims)
 	if !ok {
 		return ""
 	}
 	return claims.Subject
 }
 
-// Scopes standard token claim
-func (t *JWToken) Scopes() string {
-	claims, ok := t.JWT.Claims.(*Claims)
-	if !ok {
-		return ""
-	}
-	return claims.Scopes
-}
-
 // Claims is an extended claims structure.
 type Claims struct {
-	Payload map[string]interface{} `json:"payload,omitempty"`
-	Scopes  string                 `json:"scopes,omitempty"`
-	Type    string                 `json:"type,omitempty"`
-	KeyID   string                 `json:"kid,omitempty"` // optional keyID
-	jwt.StandardClaims
+	Payload map[string]any `json:"payload,omitempty"`
+	Type    string         `json:"type,omitempty"`
+	KeyID   string         `json:"kid,omitempty"` // optional keyID
+	jwt.RegisteredClaims
+}
+
+// MarshalJSON marshal everything, flattering to the root level.
+func (c Claims) MarshalJSON() ([]byte, error) {
+	m := xmaps.LowercaseKeys(c.Payload)
+	type proxy jwt.RegisteredClaims
+	var p proxy = proxy(c.RegisteredClaims)
+	b, err := json.Marshal(p)
+	if err != nil {
+		return nil, err
+	}
+	var rcm map[string]any
+	err = json.Unmarshal(b, &rcm)
+	if err != nil {
+		return nil, err
+	}
+	maps.Copy(m, rcm)
+	m["type"] = c.Type
+	m["kid"] = c.KeyID
+	return json.Marshal(&m)
+}
+
+// UnmarshalJSON unmarshals JWT token from flat structure to it's original structure.
+func (c *Claims) UnmarshalJSON(data []byte) error {
+	var rc jwt.RegisteredClaims
+	if err := json.Unmarshal(data, &rc); err != nil {
+		return err
+	}
+	c.RegisteredClaims = rc
+
+	var pc map[string]any
+	if err := json.Unmarshal(data, &pc); err != nil {
+		return err
+	}
+	exclude := map[string]bool{"iss": true, "sub": true, "aud": true, "exp": true, "nbf": true, "iat": true, "jti": true, "kid": true, "type": true}
+	c.Payload = map[string]any{}
+	for k, v := range pc {
+		if !exclude[strings.ToLower(k)] {
+			c.Payload[strings.ToLower(k)] = v
+		}
+	}
+	if pc["kid"] != nil {
+		c.KeyID = pc["kid"].(string)
+	}
+	if pc["type"] != nil {
+		c.Type = pc["type"].(string)
+	}
+
+	return nil
 }
 
 // Full example of how to use JWT tokens:

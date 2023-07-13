@@ -6,6 +6,8 @@ import (
 	"encoding/base64"
 	"math/big"
 	"net/http"
+
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // OIDCConfiguration describes OIDC configuration.
@@ -54,11 +56,12 @@ func (ar *Router) OIDCConfiguration() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
+		// https: // openid.net/specs/openid-connect-discovery-1_0.html#ProviderMetadata
 		if ar.oidcConfiguration == nil {
 			ar.oidcConfiguration = &OIDCConfiguration{
 				Issuer:                 ar.server.Services().Token.Issuer(),
 				JwksURI:                ar.server.Services().Token.Issuer() + "/.well-known/jwks.json",
-				ScopesSupported:        ar.server.Settings().General.SupportedScopes,
+				ScopesSupported:        model.OIDCSupportedScopes,
 				SupportedIDSigningAlgs: []string{ar.server.Services().Token.Algorithm()},
 			}
 		}

@@ -1,4 +1,4 @@
-package storage
+package controller
 
 import (
 	"context"
@@ -36,12 +36,12 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 		return model.ResetEmailData{}, err
 	}
 
-	resetToken, err := c.ts.NewResetToken(user.ID)
+	resetToken, err := c.ts.NewToken(model.TokenTypeReset, user, []string{appID}, nil, nil)
 	if err != nil {
 		return model.ResetEmailData{}, err
 	}
 
-	resetTokenString, err := c.ts.String(resetToken)
+	resetTokenString, err := c.ts.SignToken(resetToken)
 	if err != nil {
 		return model.ResetEmailData{}, err
 	}
@@ -55,7 +55,7 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 	path := model.DefaultLoginWebAppSettings.ResetPasswordURL
 
 	if app.LoginAppSettings != nil && app.LoginAppSettings.ResetPasswordURL != "" {
-		ah, err := url.ParseRequestURI("http://localhost")
+		ah, err := url.ParseRequestURI(app.LoginAppSettings.ResetPasswordURL)
 		if err == nil {
 			// if custom url is valid, use it
 			host = ah

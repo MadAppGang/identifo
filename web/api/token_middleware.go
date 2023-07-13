@@ -3,7 +3,6 @@ package api
 import (
 	"context"
 	"net/http"
-	"strings"
 
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/jwt"
@@ -38,9 +37,9 @@ func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.Middlewa
 			tokenString := string(tokenBytes)
 
 			v := jwtValidator.NewValidator(
-				[]string{app.ID, "identifo"},
+				[]string{app.ID},
 				[]string{ar.server.Services().Token.Issuer()},
-				[]string{},
+				nil,
 				[]string{string(tokenType)},
 			)
 			token, err := ar.server.Services().Token.Parse(tokenString)
@@ -58,14 +57,6 @@ func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.Middlewa
 				return
 			}
 
-			if len(scopes) > 0 {
-				ts := strings.Split(token.Scopes(), " ")
-				if len(model.SliceIntersect(ts, scopes)) == 0 {
-					ar.LocalizedError(rw, locale, http.StatusUnauthorized, l.ErrorAPPLoginNoScope)
-					return
-				}
-			}
-
 			ctx := context.WithValue(r.Context(), model.TokenContextKey, token)
 			ctx = context.WithValue(ctx, model.TokenRawContextKey, tokenBytes)
 			r = r.WithContext(ctx)
@@ -75,6 +66,6 @@ func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.Middlewa
 }
 
 // tokenFromContext returns token from request context.
-func tokenFromContext(ctx context.Context) model.Token {
-	return ctx.Value(model.TokenContextKey).(model.Token)
+func tokenFromContext(ctx context.Context) *model.JWToken {
+	return ctx.Value(model.TokenContextKey).(*model.JWToken)
 }

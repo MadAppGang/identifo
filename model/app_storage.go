@@ -40,11 +40,20 @@ type AppData struct {
 	LoginAppSettings     *LoginWebAppSettings `bson:"login_app_settings" json:"login_app_settings"` // Rewrite login app settings for custom login, reset password and other settings
 	CustomEmailTemplates bool                 `bson:"custom_email_templates" json:"custom_email_templates"`
 	AuthStrategies       []AuthStrategy       `bson:"auth_strategies" json:"auth_strategies"`
+	// map of map of custom sms message templates
+	// root map is language map, the key is a language.Tag.String()
+	// one special key is "default", which is language agnostic fall-back.
+	// the second map is SMS message templates with a key of SMSMessageType.
+	// to get message for OTPCode for english: CustomMessages["en"][SMSTypeOTPCode]
+	CustomSMSMessages map[string]map[SMSMessageType]string `bson:"custom_sms_messages" json:"custom_sms_messages"`
 
 	// registration settings
-	RegistrationForbidden        bool   `bson:"registration_forbidden" json:"registration_forbidden"`
-	AnonymousRegistrationAllowed bool   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
-	NewUserDefaultRole           string `bson:"new_user_default_role" json:"new_user_default_role"`
+	RegistrationForbidden           bool   `bson:"registration_forbidden" json:"registration_forbidden"`
+	PasswordlessRegistrationAllowed bool   `bson:"passwordless_registration_allowed" json:"passwordless_registration_allowed"`
+	AnonymousRegistrationAllowed    bool   `bson:"anonymous_registration_allowed" json:"anonymous_registration_allowed"`
+	NewUserDefaultRole              string `bson:"new_user_default_role" json:"new_user_default_role"`
+	DebugOTPCodeAllowed             bool   `bson:"debug_otp_code_allowed" json:"debug_otp_code_allowed"`
+	DebugOTPCodeForRegistration     string `bson:"debug_otp_code_for_registration" json:"debug_otp_code_for_registration"`
 
 	// TODO: extract it from here
 	OIDCSettings OIDCSettings `json:"oidc_settings" bson:"oidc_settings"`

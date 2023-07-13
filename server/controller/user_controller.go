@@ -1,4 +1,4 @@
-package storage
+package controller
 
 import (
 	"context"
@@ -7,11 +7,12 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 )
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
@@ -29,10 +30,10 @@ type UserStorageController struct {
 	ts     model.TokenService
 	es     model.EmailService
 	ss     model.SMSService
+	uas    model.UserAuthStorage
 	LP     *l.Printer // localized string
-
 	// cache
-	ffs  []model.FirstFactorStrategy
+	ffs  []model.FirstFactorInternalStrategy
 	idts []model.AuthIdentityType // identity types in use
 }
 
@@ -43,6 +44,7 @@ func NewUserStorageController(
 	ums model.UserMutableStorage,
 	ua model.UserAdminStorage,
 	as model.AppStorage,
+	uas model.UserAuthStorage,
 	ts model.TokenService,
 	es model.EmailService,
 	ss model.SMSService,
@@ -65,6 +67,7 @@ func NewUserStorageController(
 		ua:     ua,
 		ums:    ums,
 		as:     as,
+		uas:    uas,
 		ts:     ts,
 		es:     es,
 		ss:     ss,
@@ -93,7 +96,7 @@ func (c *UserStorageController) UserByIDWithFields(ctx context.Context, userID s
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, fields.Fields())
+	result := xmaps.CopyFields(user, fields.Fields())
 	return result, nil
 }
 
@@ -110,19 +113,19 @@ func (c *UserStorageController) UserBySecondaryIDWithFields(ctx context.Context,
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, fields.Fields())
+	result := xmaps.CopyFields(user, fields.Fields())
 	return result, nil
 }
 
 // UserByFederatedID returns user profile by federated ID.
 func (c *UserStorageController) UserByFederatedID(ctx context.Context, idt model.UserFederatedType, idOther, id string) (model.User, error) {
 	// TODO: use scopes to identifies the fieldset to return
-	user, err := c.u.GetUserByFederatedID(ctx, idt, idOther, id)
+	user, err := c.u.UserByFederatedID(ctx, idt, idOther, id)
 	if err != nil {
 		return model.User{}, err
 	}
 	// strip user fields
-	result := model.CopyFields(user, model.UserFieldsetBasic.Fields())
+	result := xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 	return result, nil
 }
 
@@ -135,12 +138,49 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 
 	// strip user fields
 	for i, user := range users {
-		users[i] = model.CopyFields(user, model.UserFieldsetBasic.Fields())
+		users[i] = xmaps.CopyFields(user, model.UserFieldsetBasic.Fields())
 	}
 	return users, total, nil
 }
 
 // UserByAuthStrategy extract the authentication id and tries to find the user with this ID.
-func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy) (model.User, error) {
-	
+func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy, userIDValue string) (model.User, error) {
+	//we need to check each strategy type
+	//if it's local:
+	//- get identity type id - userbyid
+	//- other? user userbysecoindaryID
+	//- anonymous - get user by id
+	//- fim - find federated identity
+	//- second factor - has no identity
+
+	if auth.Type() == model.AuthStrategyAnonymous {
+		return c.UserByID(ctx, userIDValue)
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorInternal {
+		a, ok := auth.(model.FirstFactorInternalStrategy)
+		if !ok {
+			return model.User{}, l.LocalizedError{ErrID: l.ErrorUserNotFound}
+		}
+		if a.Identity == model.AuthIdentityTypeID {
+			return c.UserByID(ctx, userIDValue)
+		} else {
+			return c.UserBySecondaryID(ctx, a.Identity, userIDValue)
+		}
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorFIM {
+		a, ok := auth.(model.FirstFactorFIMStrategy)
+		if !ok {
+			return model.User{}, l.LocalizedError{ErrID: l.ErrorUserNotFound}
+		}
+		return c.UserByFederatedID(ctx, model.UserFederatedType(a.FIMType), "", userIDValue)
+	}
+	if auth.Type() == model.AuthStrategyFirstFactorEnterprise {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+
+	if auth.Type() == model.AuthStrategySecondFactor {
+		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
+	}
+
+	return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
 }

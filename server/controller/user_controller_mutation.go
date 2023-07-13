@@ -1,4 +1,4 @@
-package storage
+package controller
 
 import (
 	"context"
@@ -8,13 +8,29 @@ import (
 	"github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xslices"
+	"golang.org/x/exp/slices"
 )
 
-var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // ====================================
 // Data mutation
 // ====================================
+
+// CreateUser creates user without any checks
+func (c *UserStorageController) CreateUser(ctx context.Context, u model.User) (model.User, error) {
+	// TODO: Call pre-create callbacks
+
+	nu, err := c.ums.AddUser(ctx, u)
+	if err != nil {
+		return model.User{}, err
+	}
+
+	// TODO: Call post-create callbacks
+
+	return nu, nil
+}
 
 // CreateUserWithPassword validates password policy, creates password hash and creates new user
 // it also responsible to call pre-create and post-create callbacks
@@ -38,17 +54,7 @@ func (c *UserStorageController) CreateUserWithPassword(ctx context.Context, u mo
 		return model.User{}, err
 	}
 	u.PasswordHash = hash
-
-	// TODO: Call pre-create callbacks
-
-	nu, err := c.ums.AddUser(ctx, u)
-	if err != nil {
-		return model.User{}, err
-	}
-
-	// TODO: Call post-create callbacks
-
-	return nu, nil
+	return c.CreateUser(ctx, u)
 }
 
 func (c *UserStorageController) UpdateUserPassword(ctx context.Context, userID, password string) error {
@@ -145,7 +151,7 @@ func (c *UserStorageController) DeleteUser(ctx context.Context, userID string) e
 func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User, fields []string) (model.User, error) {
 	// are we trying to change user identity field???
 	// then extra care required
-	fidToChange := intersect(fields, append(model.UserFieldsetSecondaryIdentity.Fields(), model.UserFieldEmail))
+	fidToChange := xslices.Intersect(fields, append(model.UserFieldsetSecondaryIdentity.Fields(), model.UserFieldEmail))
 	if len(fidToChange) > 0 {
 		// 2.1
 		idsInUse, err := c.allIdentityTypesInUse()
@@ -155,16 +161,16 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		// 2.2
 		uniqueIDFields := authTypeToField(idsInUse)
 		// 2.4
-		uniqueIDFields = concatUnique(uniqueIDFields, c.uidfs)
+		uniqueIDFields = xslices.ConcatUnique(uniqueIDFields, c.uidfs)
 
 		// let's check email
-		if sliceContains(fields, model.UserFieldEmail) {
+		if slices.Contains(fields, model.UserFieldEmail) {
 			// validate email first
 			if user.Email != "" && !model.EmailRegexp.MatchString(user.Email) {
 				return user, l.LocalizedError{ErrID: l.ErrorAPIRequestBodyEmailInvalid}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldEmail) {
+			if slices.Contains(uniqueIDFields, model.UserFieldEmail) {
 				// if it unique it should not be empty
 				if len(user.Email) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorEmailEmpty}
@@ -183,13 +189,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		}
 
 		// let's check phone number
-		if sliceContains(fields, model.UserFieldPhone) {
+		if slices.Contains(fields, model.UserFieldPhone) {
 			// validate phone first
 			if user.PhoneNumber != "" && !model.PhoneRegexp.MatchString(user.PhoneNumber) {
 				return user, l.LocalizedError{ErrID: l.ErrorInvalidPhone}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldPhone) {
+			if slices.Contains(uniqueIDFields, model.UserFieldPhone) {
 				// if it unique it should not be empty
 				if len(user.PhoneNumber) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorPhoneEmpty}
@@ -208,13 +214,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 		}
 
 		// let's check username number
-		if sliceContains(fields, model.UserFieldUsername) {
+		if slices.Contains(fields, model.UserFieldUsername) {
 			// validate phone first
 			if user.Username != "" && !model.UsernameRegexp.MatchString(user.Username) {
 				return user, l.LocalizedError{ErrID: l.ErrorInvalidPhone}
 			}
 			// is it should be unique
-			if sliceContains(uniqueIDFields, model.UserFieldPhone) {
+			if slices.Contains(uniqueIDFields, model.UserFieldPhone) {
 				// if it unique it should not be empty
 				if len(user.Nickname) == 0 {
 					return user, l.LocalizedError{ErrID: l.ErrorUsernameEmpty}
@@ -242,13 +248,13 @@ func (c *UserStorageController) UpdateUser(ctx context.Context, user model.User,
 	}
 
 	// 5.
-	if sliceContains(fidToChange, model.UserFieldEmail) {
+	if slices.Contains(fidToChange, model.UserFieldEmail) {
 		err = c.SendEmailConfirmation(ctx, u.ID)
 		if err != nil {
 			// TODO: log error, but no return error as it we have already updated the user
 		}
 	}
-	if sliceContains(fidToChange, model.UserFieldPhone) {
+	if slices.Contains(fidToChange, model.UserFieldPhone) {
 		err = c.SendPhoneConfirmation(ctx, u.ID)
 		if err != nil {
 			// TODO: log error, but no return error as it we have already updated the user
@@ -279,8 +285,8 @@ func (c *UserStorageController) allIdentityTypesInUse() ([]model.AuthIdentityTyp
 		c.idts = []model.AuthIdentityType{}
 		for _, s := range ffs {
 			// only unique local strategies, skipping federated ones
-			if s.Type == model.FirstFactorTypeLocal && s.Local != nil && !sliceContains(c.idts, s.Local.Identity) {
-				c.idts = append(c.idts, s.Local.Identity)
+			if !slices.Contains(c.idts, s.Identity) {
+				c.idts = append(c.idts, s.Identity)
 			}
 		}
 	}
@@ -288,7 +294,7 @@ func (c *UserStorageController) allIdentityTypesInUse() ([]model.AuthIdentityTyp
 }
 
 // allActiveFirstFactorStrategies return all first factor strategies
-func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstFactorStrategy, error) {
+func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstFactorInternalStrategy, error) {
 	if c.ffs == nil {
 		// get strategies first
 		apps, err := c.as.FetchApps("")
@@ -296,11 +302,12 @@ func (c *UserStorageController) allActiveFirstFactorStrategies() ([]model.FirstF
 			return nil, err
 		}
 		// fill the cache
-		c.ffs = []model.FirstFactorStrategy{}
+		c.ffs = []model.FirstFactorInternalStrategy{}
 		for _, a := range apps {
 			for _, s := range a.AuthStrategies {
-				if s.Type == model.AuthStrategyFirstFactor && s.FirstFactor != nil {
-					c.ffs = append(c.ffs, *s.FirstFactor)
+				f, ok := s.(model.FirstFactorInternalStrategy)
+				if ok {
+					c.ffs = append(c.ffs, f)
 				}
 			}
 		}
@@ -320,17 +327,3 @@ func authTypeToField(a []model.AuthIdentityType) []string {
 	}
 	return res
 }
-
-// // authTypeForField converts string to auth type
-// func authTypeForField(f string) model.AuthIdentityType {
-// 	switch f {
-// 	case model.UserFieldEmail:
-// 		return model.AuthIdentityTypeEmail
-// 	case model.UserFieldUsername:
-// 		return model.AuthIdentityTypeUsername
-// 	case model.UserFieldPhone:
-// 		return model.AuthIdentityTypePhone
-// 	}
-
-// 	return model.AuthIdentityTypeAnonymous
-// }

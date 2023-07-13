@@ -1,73 +1,37 @@
 package service
 
 import (
-	"context"
 	"crypto/ecdsa"
 	"crypto/rsa"
 	"crypto/sha1"
 	"crypto/x509"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"strings"
+	"time"
 
-	jwt "github.com/golang-jwt/jwt/v4"
-	ijwt "github.com/madappgang/identifo/v2/jwt"
-	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
+	jwt "github.com/golang-jwt/jwt/v5"
+	j "github.com/madappgang/identifo/v2/jwt"
+	jv "github.com/madappgang/identifo/v2/jwt/validator"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-)
-
-var (
-	// ErrCreatingToken is a token creation error.
-	ErrCreatingToken = errors.New("Error creating token")
-	// ErrSavingToken is a token saving error.
-	ErrSavingToken = errors.New("Error saving token")
-	// ErrInvalidApp is when the application is not eligible to obtain the token
-	ErrInvalidApp = errors.New("Application is not eligible to obtain the token")
-	// ErrInvalidOfflineScope is when the requested scope does not have an offline value.
-	ErrInvalidOfflineScope = errors.New("Requested scope don't have offline value")
-	// ErrInvalidUser is when the user cannot obtain the new token.
-	ErrInvalidUser = errors.New("The user cannot obtain the new token")
-	// ErrUserIsBlocked the user is blocked.
-	ErrUserIsBlocked = errors.New("The user is blocked")
-
-	// TokenLifespan is a token expiration time, one week.
-	TokenLifespan = int64(604800) // int64(1*7*24*60*60)
-	// InviteTokenLifespan is an invite token expiration time, one hour.
-	InviteTokenLifespan = int64(3600) // int64(1*60*60)
-	// RefreshTokenLifespan is a default expiration time for refresh tokens, one year.
-	RefreshTokenLifespan = int64(31536000) // int(365*24*60*60)
-)
-
-const (
-	// PayloadName is a JWT token payload "name".
-	PayloadName = "name"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
+	"golang.org/x/exp/maps"
 )
 
 // NewJWTokenService returns new JWT token service.
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
+func NewJWTokenService(privateKey any, issuer string, settings model.SecurityServerSettings) (model.TokenService, error) {
 	if privateKey == nil {
 		return nil, fmt.Errorf("private key is empty")
 	}
 
 	t := &JWTokenService{
-		issuer:                 issuer,
-		tokenStorage:           tokenStorage,
-		appStorage:             appStorage,
-		userStorage:            userStorage,
-		resetTokenLifespan:     int64(2 * 60 * 60),      // 2 hours is a default expiration time for refresh tokens.
-		webCookieTokenLifespan: int64(2 * 24 * 60 * 60), // 2 days is a default default expiration time for access tokens.
-		privateKey:             privateKey,
-	}
-
-	// Apply options.
-	for _, option := range options {
-		if err := option(t); err != nil {
-			return nil, err
-		}
+		iss:      issuer,
+		pk:       privateKey,
+		settings: settings,
 	}
 
 	return t, nil
@@ -75,41 +39,86 @@ func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model
 
 // JWTokenService is a JWT token service.
 type JWTokenService struct {
-	privateKey             interface{} // *ecdsa.PrivateKey, or *rsa.PrivateKey
-	tokenStorage           model.TokenStorage
-	appStorage             model.AppStorage
-	userStorage            model.UserStorage
-	issuer                 string
-	resetTokenLifespan     int64
-	webCookieTokenLifespan int64
-
-	cachedAlgorithm string
-	cachedPublicKey interface{} // *ecdsa.PublicKey, or *rsa.PublicKey
+	pk       any // *ecdsa.PrivateKey, or *rsa.PrivateKey
+	settings model.SecurityServerSettings
+	iss      string
+	aCache   string // algorithm cache
+	pkCache  any    // *ecdsa.PublicKey, or *rsa.PublicKey
 }
 
 // Issuer returns token issuer name.
 func (ts *JWTokenService) Issuer() string {
-	return ts.issuer
+	return ts.iss
 }
 
-// CreateToken creates token with specific types.
-func (ts *JWTokenService) NewToken(tokenType model.TokenType, userID string, payload []any) (model.Token, error) {
-	// TODO: implement general token creation for all token types
-	return &model.JWToken{}, nil
+// Issuer returns token issuer name.
+func (ts *JWTokenService) PrivateKey() any {
+	return ts.pk
+}
+
+func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud []string, fields []string, payload map[string]any) (*model.JWToken, error) {
+	// we have to collect all payloads to one map
+	userPayload := xmaps.FieldsToMap(u)
+	userPayload = xmaps.FilterMap(userPayload, fields)
+	if payload == nil {
+		payload = map[string]any{}
+	}
+	maps.Copy(payload, userPayload)
+	lifespan := ts.settings.TokenLifetime(tokenType)
+	ia := jwt.NewNumericDate(j.TimeFunc())
+	exp := ia.Add(time.Minute * time.Duration(lifespan))
+
+	claims := model.Claims{
+		Payload: maps.Clone(payload),
+		Type:    string(tokenType),
+		RegisteredClaims: jwt.RegisteredClaims{
+			ExpiresAt: jwt.NewNumericDate(exp),
+			Issuer:    ts.iss,
+			Subject:   u.ID,
+			Audience:  aud,
+			IssuedAt:  ia,
+		},
+	}
+
+	sm := ts.jwtMethod()
+	if sm == nil {
+		return nil, l.ErrorTokenMethodInvalid
+	}
+
+	token := model.TokenWithClaims(sm, ts.KeyID(), claims)
+	return token, nil
+}
+
+func (ts *JWTokenService) SignToken(t *model.JWToken) (string, error) {
+	if t == nil {
+		return "", l.ErrorTokenInvalid
+	}
+	if err := t.Validate(); err != nil {
+		return "", l.LocalizedError{
+			ErrID:   l.ErrorValidatingToken,
+			Details: []any{err},
+		}
+	}
+
+	str, err := t.SignedString(ts.pk)
+	if err != nil {
+		return "", err
+	}
+	return str, nil
 }
 
 // Algorithm  returns signature algorithm.
 func (ts *JWTokenService) Algorithm() string {
-	if len(ts.cachedAlgorithm) > 0 {
-		return ts.cachedAlgorithm
+	if len(ts.aCache) > 0 {
+		return ts.aCache
 	}
 
-	switch ts.privateKey.(type) {
+	switch ts.pk.(type) {
 	case *rsa.PrivateKey:
-		ts.cachedAlgorithm = "RS256"
+		ts.aCache = "RS256"
 		return "RS256"
 	case *ecdsa.PrivateKey:
-		ts.cachedAlgorithm = "ES256"
+		ts.aCache = "ES256"
 		return "ES256"
 	default:
 		return ""
@@ -128,34 +137,29 @@ func (ts *JWTokenService) jwtMethod() jwt.SigningMethod {
 }
 
 // PublicKey returns public key.
-func (ts *JWTokenService) PublicKey() interface{} {
-	if ts.cachedPublicKey != nil {
-		return ts.cachedPublicKey
+func (ts *JWTokenService) PublicKey() any {
+	if ts.pkCache != nil {
+		return ts.pkCache
 	}
 
-	switch t := ts.privateKey.(type) {
+	switch ts.pk.(type) {
 	case *rsa.PrivateKey:
-		pk := ts.privateKey.(*rsa.PrivateKey)
-		ts.cachedPublicKey = pk.Public()
+		pk := ts.pk.(*rsa.PrivateKey)
+		ts.pkCache = pk.Public()
 	case *ecdsa.PrivateKey:
-		pk := ts.privateKey.(*ecdsa.PrivateKey)
-		ts.cachedPublicKey = pk.Public()
+		pk := ts.pk.(*ecdsa.PrivateKey)
+		ts.pkCache = pk.Public()
 	default:
-		fmt.Printf("unable to get public key from private key of type: %v", t)
 		return nil
 	}
-	return ts.cachedPublicKey
+	return ts.pkCache
 }
 
-func (ts *JWTokenService) SetPrivateKey(key interface{}) {
-	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!\n")
-	ts.privateKey = key
-	ts.cachedPublicKey = nil
-	ts.cachedAlgorithm = ""
-}
-
-func (ts *JWTokenService) PrivateKey() interface{} {
-	return ts.privateKey
+func (ts *JWTokenService) SetPrivateKey(key any) {
+	// Log event
+	ts.pk = key
+	ts.pkCache = nil
+	ts.aCache = ""
 }
 
 // KeyID returns public key ID, using SHA-1 fingerprint.
@@ -170,29 +174,24 @@ func (ts *JWTokenService) KeyID() string {
 	return ""
 }
 
-// WebCookieTokenLifespan return auth token lifespan
-func (ts *JWTokenService) WebCookieTokenLifespan() int64 {
-	return ts.webCookieTokenLifespan
-}
-
 // Parse parses token data from the string representation.
-func (ts *JWTokenService) Parse(s string) (model.Token, error) {
+func (ts *JWTokenService) Parse(s string) (*model.JWToken, error) {
 	tokenString := strings.TrimSpace(s)
-
-	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(tokenString, &model.Claims{}, func(token *jwt.Token) (any, error) {
 		// since we only use the one private key to sign the tokens,
 		// we also only use its public counterpart to verify them.
+		// TODO: add multi-key supports
 		return ts.PublicKey(), nil
 	})
 	if err != nil {
 		return nil, err
 	}
 
-	return &model.JWToken{JWT: token}, nil
+	return &model.JWToken{Token: *token}, nil
 }
 
 // ValidateTokenString parses token and validates it.
-func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Validator, tokenType string) (model.Token, error) {
+func (ts *JWTokenService) ValidateTokenString(tstr string, v jv.Validator, tokenType model.TokenType) (*model.JWToken, error) {
 	token, err := ts.Parse(tstr)
 	if err != nil {
 		return nil, err
@@ -207,306 +206,4 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 	}
 
 	return token, nil
-}
-
-// NewAccessToken creates new access token for user.
-func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (model.Token, error) {
-	if !app.Active {
-		return nil, ErrInvalidApp
-	}
-
-	if u.Blocked {
-		return nil, ErrInvalidUser
-	}
-
-	payload := make(map[string]interface{})
-	if model.SliceContains(app.TokenPayload, PayloadName) {
-		payload[PayloadName] = u.Username
-	}
-
-	tokenType := model.TokenTypeAccess
-	if requireTFA {
-		scopes = []string{string(model.TokenTypeTFAPreauth)}
-	}
-	if len(tokenPayload) > 0 {
-		for k, v := range tokenPayload {
-			payload[k] = v
-		}
-	}
-
-	now := ijwt.TimeFunc().Unix()
-
-	lifespan := app.TokenLifespan
-	if lifespan == 0 {
-		lifespan = TokenLifespan
-	}
-
-	claims := model.Claims{
-		Scopes:  strings.Join(scopes, " "),
-		Payload: payload,
-		Type:    string(tokenType),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: (now + lifespan),
-			Issuer:    ts.issuer,
-			Subject:   u.ID,
-			Audience:  app.ID,
-			IssuedAt:  now,
-		},
-	}
-
-	sm := ts.jwtMethod()
-	if sm == nil {
-		return nil, errors.New("unable to creating signing method")
-	}
-
-	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-	return &model.JWToken{JWT: token, New: true}, nil
-}
-
-// NewRefreshToken creates new refresh token.
-func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (model.Token, error) {
-	if !app.Active || !app.Offline {
-		return nil, ErrInvalidApp
-	}
-	// no offline request
-	if !model.SliceContains(scopes, model.OfflineScope) {
-		return nil, ErrInvalidOfflineScope
-	}
-
-	if u.Blocked {
-		return nil, ErrUserIsBlocked
-	}
-
-	payload := make(map[string]interface{})
-	if model.SliceContains(app.TokenPayload, PayloadName) {
-		payload[PayloadName] = u.Username
-	}
-	now := ijwt.TimeFunc().Unix()
-
-	lifespan := app.RefreshTokenLifespan
-	if lifespan == 0 {
-		lifespan = RefreshTokenLifespan
-	}
-
-	claims := model.Claims{
-		Scopes:  strings.Join(scopes, " "),
-		Payload: payload,
-		Type:    string(model.TokenTypeRefresh),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: (now + lifespan),
-			Issuer:    ts.issuer,
-			Subject:   u.ID,
-			Audience:  app.ID,
-			IssuedAt:  now,
-		},
-	}
-
-	sm := ts.jwtMethod()
-	if sm == nil {
-		return nil, errors.New("unable to creating signing method")
-	}
-
-	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-
-	t := &model.JWToken{JWT: token, New: true}
-	tokenString, err := ts.String(t)
-	if err != nil {
-		return nil, ErrSavingToken
-	}
-
-	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
-		return nil, ErrSavingToken
-	}
-	return t, nil
-}
-
-// RefreshAccessToken issues new access token for provided refresh token.
-func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token) (model.Token, error) {
-	rt, ok := refreshToken.(*model.JWToken)
-	if !ok || rt == nil {
-		return nil, model.ErrTokenInvalid
-	}
-
-	if err := rt.Validate(); err != nil {
-		return nil, err
-	}
-
-	claims, ok := rt.JWT.Claims.(*model.Claims)
-	if !ok || claims == nil {
-		return nil, model.ErrTokenInvalid
-	}
-
-	app, err := ts.appStorage.AppByID(claims.Audience)
-	if err != nil || !app.Offline {
-		return nil, ErrInvalidApp
-	}
-
-	user, err := ts.userStorage.UserByID(context.TODO(), claims.Subject)
-	if err != nil || user.Blocked {
-		return nil, ErrInvalidUser
-	}
-
-	token, err := ts.NewAccessToken(user, strings.Split(claims.Scopes, " "), app, false, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	tokenString, err := ts.String(token)
-	if err != nil {
-		return nil, ErrSavingToken
-	}
-
-	if err := ts.tokenStorage.SaveToken(tokenString); err != nil {
-		return nil, ErrSavingToken
-	}
-	return token, nil
-}
-
-// NewInviteToken creates new invite token.
-func (ts *JWTokenService) NewInviteToken(email, role, audience string, data map[string]interface{}) (model.Token, error) {
-	// add payload data here
-	if len(email) > 0 {
-		if data == nil {
-			data = make(map[string]interface{})
-		}
-		data["email"] = email
-	}
-	if len(role) > 0 {
-		if data == nil {
-			data = make(map[string]interface{})
-		}
-		data["role"] = role
-	}
-
-	now := ijwt.TimeFunc().Unix()
-
-	lifespan := InviteTokenLifespan
-
-	claims := &model.Claims{
-		Payload: data,
-		Type:    string(model.TokenTypeInvite),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: now + lifespan,
-			Issuer:    ts.issuer,
-			// Subject:   u.ID(), //we are suppressing user ID, because there is not user crated yet.
-			Audience: audience,
-			IssuedAt: now,
-		},
-	}
-
-	sm := ts.jwtMethod()
-	if sm == nil {
-		return nil, errors.New("unable to creating signing method")
-	}
-
-	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-	return &model.JWToken{JWT: token, New: true}, nil
-}
-
-// NewResetToken creates new token for password resetting.
-func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
-	now := ijwt.TimeFunc().Unix()
-
-	lifespan := ts.resetTokenLifespan
-
-	claims := model.Claims{
-		Type: string(model.TokenTypeReset),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: (now + lifespan),
-			Issuer:    ts.issuer,
-			Subject:   userID,
-			Audience:  "identifo",
-			IssuedAt:  now,
-		},
-	}
-
-	sm := ts.jwtMethod()
-	if sm == nil {
-		return nil, errors.New("unable to creating signing method")
-	}
-
-	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-
-	return &model.JWToken{JWT: token, New: true}, nil
-}
-
-// NewWebCookieToken creates new web cookie token.
-func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
-	if u.Blocked {
-		return nil, ErrUserIsBlocked
-	}
-	now := ijwt.TimeFunc().Unix()
-	lifespan := ts.resetTokenLifespan
-
-	claims := model.Claims{
-		Type: string(model.TokenTypeWebCookie),
-		StandardClaims: jwt.StandardClaims{
-			ExpiresAt: (now + lifespan),
-			Issuer:    ts.issuer,
-			Subject:   u.ID,
-			Audience:  "identifo",
-			IssuedAt:  now,
-		},
-	}
-
-	sm := ts.jwtMethod()
-	if sm == nil {
-		return nil, errors.New("unable to creating signing method")
-	}
-
-	token := model.NewTokenWithClaims(sm, ts.KeyID(), claims)
-	if token == nil {
-		return nil, ErrCreatingToken
-	}
-
-	return &model.JWToken{JWT: token, New: true}, nil
-}
-
-// String returns string representation of a token.
-func (ts *JWTokenService) String(t model.Token) (string, error) {
-	token, ok := t.(*model.JWToken)
-	if !ok {
-		return "", model.ErrTokenInvalid
-	}
-
-	if err := t.Validate(); err != nil {
-		return "", err
-	}
-	if !token.New && !token.JWT.Valid {
-		return "", model.ErrTokenInvalid
-	}
-
-	str, err := token.JWT.SignedString(ts.privateKey)
-	if err != nil {
-		return "", err
-	}
-	return str, nil
-}
-
-// ResetTokenLifespan sets custom lifespan in seconds for the reset token
-func ResetTokenLifespan(lifespan int64) func(*JWTokenService) error {
-	return func(ts *JWTokenService) error {
-		ts.resetTokenLifespan = lifespan
-		return nil
-	}
-}
-
-// WebCookieTokenLifespan sets custom lifespan in seconds for the web cookie token
-func WebCookieTokenLifespan(lifespan int64) func(*JWTokenService) error {
-	return func(ts *JWTokenService) error {
-		ts.webCookieTokenLifespan = lifespan
-		return nil
-	}
 }

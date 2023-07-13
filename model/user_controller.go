@@ -13,11 +13,14 @@ type UserController interface {
 
 	// Admin actions for users
 	GetUsers(ctx context.Context, filter string, skip, limit int) ([]User, int, error)
+	GetJWTTokens(ctx context.Context, app AppData, u User, scopes []string) (AuthResponse, error)
+
 	InvalidateCache()
 }
 
 // UserMutationController is a business logic around user mutation storage.
 type UserMutationController interface {
+	CreateUser(ctx context.Context, u User) (User, error)
 	CreateUserWithPassword(ctx context.Context, u User, password string) (User, error)
 	UpdateUserPassword(ctx context.Context, userID, password string) error
 	ChangeBlockStatus(ctx context.Context, userID, reason, whoName, whoID string, blocked bool) error
@@ -32,5 +35,7 @@ type UserMutationController interface {
 }
 
 type ChallengeController interface {
-	RequestChallenge(ctx context.Context, challenge UserAuthChallenge) (UserAuthChallenge, error)
+	RequestChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (UserAuthChallenge, error)
+	VerifyChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (User, AppData, UserAuthChallenge, error)
+	LoginOrRegisterUserWithChallenge(ctx context.Context, challenge UserAuthChallenge, userIDValue string) (User, error)
 }
