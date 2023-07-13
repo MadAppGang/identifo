@@ -180,7 +180,7 @@ func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...mo
 	var res model.UserData
 
 	err := us.db.View(func(tx *bolt.Tx) error {
-		ub := tx.Bucket([]byte(UserBucket))
+		ub := tx.Bucket([]byte(UserDataBucket))
 
 		u := ub.Get([]byte(userID))
 		if u == nil {
