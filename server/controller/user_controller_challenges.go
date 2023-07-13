@@ -318,7 +318,7 @@ func (c *UserStorageController) LoginOrRegisterUserWithChallenge(ctx context.Con
 		return model.User{}, l.LocalizedError{ErrID: l.ErrorLoginTypeNotSupported}
 	}
 
-	u, _, err := c.VerifyChallenge(ctx, challenge, userIDValue)
+	u, _, _, err := c.VerifyChallenge(ctx, challenge, userIDValue)
 	if err != nil {
 		return model.User{}, err
 	}

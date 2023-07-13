@@ -81,7 +81,8 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 // getting the new password and saving it in the database.
 func (ar *Router) ResetPassword() http.HandlerFunc {
 	type newPassword struct {
-		Password string `json:"password,omitempty"`
+		Password string   `json:"password,omitempty"`
+		Scopes   []string `json:"scopes,omitempty"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -91,37 +92,38 @@ func (ar *Router) ResetPassword() http.HandlerFunc {
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
-		if err := model.StrongPswd(d.Password); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestPasswordWeak, err)
+
+		token := tokenFromContext(r.Context())
+		if token == nil {
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIContextNoToken)
 			return
 		}
 
-		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
-		if !ok {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIContextNoToken)
+		// Validate just in case, middleware should do it for us.
+		if token.Type() != model.TokenTypeReset {
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestTokenInvalid)
 			return
 		}
 
-		// Get userID from token and update user with this ID.
-		userID, err := ar.getTokenSubject(string(accessTokenBytes))
+		// Let's update the password.
+		err := ar.server.Storages().UMC.UpdateUserPassword(r.Context(), "", d.Password)
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		user, err := ar.server.Storages().User.UserByID(userID)
+		app := middleware.AppFromContext(r.Context())
+		u, err := ar.server.Storages().UC.UserByID(r.Context(), token.UserID())
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
 
-		// Save new password.
-		if err := ar.server.Storages().User.ResetPassword(user.ID, d.Password); err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageResetPasswordUserError, user.ID, err)
+		loginResponse, err := ar.server.Storages().UC.GetJWTTokens(r.Context(), app, u, d.Scopes)
+		if err != nil {
+			ar.HTTPError(w, err, http.StatusInternalServerError)
 			return
 		}
-
-		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, locale, http.StatusOK, result)
+		ar.ServeJSON(w, locale, http.StatusOK, loginResponse)
 	}
 }
