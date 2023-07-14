@@ -39,6 +39,8 @@ type UserMutationController interface {
 	AddUserToTenantWithInvitationToken(ctx context.Context, u User, t *JWToken) (UserData, error)
 	CreateInvitation(ctx context.Context, invitee *JWToken, tenant, group, role, email string, app *AppData) (Invite, *url.URL, error)
 
+	InvalidateTokens(ctx context.Context, refresh, access *JWToken, reason string) error
+
 	InvalidateCache()
 }
 

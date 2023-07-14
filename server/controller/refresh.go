@@ -35,28 +35,8 @@ func (c *UserStorageController) RefreshJWTToken(ctx context.Context, refresh_tok
 	}
 
 	// let's parse access token:
-	at, err := jwt.ParseTokenString(access)
-	if err == nil {
-		tse := model.TokenStorageEntity{
-			ID:        at.ID(),
-			RawToken:  access,
-			TokenType: model.TokenTypeAccess,
-			AddedAt:   time.Now(),
-			AddedBy:   model.TokenStorageAddedByUser,
-			Comments:  "Refresh token API call",
-		}
-		c.toks.SaveToken(ctx, tse)
-	}
-	tse := model.TokenStorageEntity{
-		ID:        refresh_token.ID(),
-		RawToken:  refresh_token.Raw,
-		TokenType: model.TokenTypeRefresh,
-		AddedAt:   time.Now(),
-		AddedBy:   model.TokenStorageAddedByUser,
-		Comments:  "Refresh token API call",
-	}
-
-	err = c.toks.SaveToken(ctx, tse)
+	at, _ := jwt.ParseTokenString(access)
+	err = c.InvalidateTokens(ctx, refresh_token, at, "Refresh token API call")
 	if err != nil {
 		return model.AuthResponse{}, err
 	}
@@ -66,4 +46,32 @@ func (c *UserStorageController) RefreshJWTToken(ctx context.Context, refresh_tok
 		return model.AuthResponse{}, err
 	}
 	return response, nil
+}
+
+func (c *UserStorageController) InvalidateTokens(ctx context.Context, refresh, access *model.JWToken, reason string) error {
+	var err error
+	if access != nil {
+		tse := model.TokenStorageEntity{
+			ID:        access.ID(),
+			RawToken:  access.Raw,
+			TokenType: access.Type(),
+			AddedAt:   time.Now(),
+			AddedBy:   model.TokenStorageAddedByUser,
+			Comments:  reason,
+		}
+		err = c.toks.SaveToken(ctx, tse)
+	}
+
+	if refresh != nil {
+		tse := model.TokenStorageEntity{
+			ID:        refresh.ID(),
+			RawToken:  refresh.Raw,
+			TokenType: refresh.Type(),
+			AddedAt:   time.Now(),
+			AddedBy:   model.TokenStorageAddedByUser,
+			Comments:  reason,
+		}
+		err = errors.Join(c.toks.SaveToken(ctx, tse), err)
+	}
+	return err
 }

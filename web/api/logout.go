@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"fmt"
 	"net/http"
 
 	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/model"
 )
 
 // Logout logs user out and deactivates their tokens.
@@ -23,63 +23,17 @@ func (ar *Router) Logout() http.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 
 		access := tokenFromContext(r.Context())
+		var refresh *model.JWToken
 
 		if r.Body != http.NoBody {
 			ld := logoutData{}
 			json.NewDecoder(r.Body).Decode(&ld)
 			if ld.RefreshToken != "" {
-				refresh, err := jwt.ParseTokenString(ld.RefreshToken)
-				if err == nil && refresh != nil {
-				}
+				refresh, _ = jwt.ParseTokenString(ld.RefreshToken)
 			}
 		}
-
-		ar.server.Storages().Token.SaveToken(r.Context())
-
+		ar.server.Storages().UMC.InvalidateTokens(r.Context(), refresh, access, "user logout api request")
 		// TODO: Detach device from user
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
-}
-
-func (ar *Router) getTokenSubject(tokenString string) (string, error) {
-	claims := jwt.MapClaims{}
-
-	if _, err := jwt.ParseWithClaims(tokenString, claims, nil); err == nil {
-		return "", fmt.Errorf("Cannot parse token: %s", err)
-	}
-
-	sub, ok := claims["sub"].(string)
-	if !ok {
-		return "", fmt.Errorf("Cannot obtain token subject")
-	}
-
-	return sub, nil
-}
-
-func (ar *Router) revokeRefreshToken(refreshTokenString, accessTokenString string) error {
-	if len(refreshTokenString) == 0 {
-		return nil
-	}
-
-	atSub, err := ar.getTokenSubject(accessTokenString)
-	if err != nil {
-		return err
-	}
-	rtSub, err := ar.getTokenSubject(refreshTokenString)
-	if err != nil {
-		return err
-	}
-
-	if atSub != rtSub {
-		return fmt.Errorf("%s tried to revoke refresh token that belong to %s", atSub, rtSub)
-	}
-
-	if err := ar.server.Storages().Token.DeleteToken(refreshTokenString); err != nil {
-		return fmt.Errorf("Cannot delete refresh token: %s", err)
-	}
-
-	if err := ar.server.Storages().Blocklist.Add(refreshTokenString); err != nil {
-		return fmt.Errorf("Cannot blacklist refresh token: %s", err)
-	}
-	return nil
 }
