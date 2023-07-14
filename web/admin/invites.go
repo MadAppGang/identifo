@@ -56,7 +56,13 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 		Group       string         `json:"group"`
 		Role        string         `json:"role"`
 		CallbackURL string         `json:"callback"`
+		SendToEmail bool           `json:"send_to_email"`
 		Data        map[string]any `json:"data"`
+	}
+
+	type responseData struct {
+		Invitation model.Invite `json:"invitation"`
+		Link       string       `json:"link"`
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -67,47 +73,25 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			return
 		}
 
-		token := tokenFromContext(r.Context())
-
-		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestBodyEmailInvalid)
-			return
-		}
-
-		u := model.User{
-			ID:    model.NewUserID.String(),
-			Email: d.Email,
-		}
-		aud := []string{}
-		if len(d.AppID) > 0 {
-			aud = append(aud, d.AppID)
-		}
-		fields := model.UserFieldsetMap[model.UserFieldsetInviteToken]
-		inviteToken, err := ar.server.Services().Token.NewToken(model.TokenTypeInvite, u, aud, fields, d.Data)
+		invitation, link, err := ar.server.Storages().UMC.CreateInvitation(r.Context(), nil, d.Tenant, d.Group, d.Role, d.Email, nil)
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestBodyEmailInvalid, err)
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
 			return
 		}
 
-		inviteTokenString, err := ar.server.Services().Token.SignToken(inviteToken)
-		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
-			return
+		if d.SendToEmail {
+			err = ar.server.Storages().UMC.SendInvitationEmail(r.Context(), invitation, link, nil)
+			if err != nil {
+				ar.LocalizedError(w, locale, http.StatusInternalServerError, l.LocalizedString(err.Error()))
+				return
+			}
+		}
+		linkStr := ""
+		if link != nil {
+			linkStr = link.String()
 		}
 
-		err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, d.AppID, "", inviteToken.ExpiresAt())
-		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteSaveError, err)
-			return
-		}
-
-		invite, err := ar.server.Storages().Invite.GetByEmail(d.Email)
-		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
-			return
-		}
-
-		ar.ServeJSON(w, locale, http.StatusOK, invite)
+		ar.ServeJSON(w, locale, http.StatusOK, responseData{Invitation: invitation, Link: linkStr})
 	}
 }
 

@@ -41,11 +41,6 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 		return model.ResetEmailData{}, err
 	}
 
-	resetTokenString, err := c.ts.SignToken(resetToken)
-	if err != nil {
-		return model.ResetEmailData{}, err
-	}
-
 	app, err := c.as.AppByID(appID)
 	if err != nil {
 		return model.ResetEmailData{}, err
@@ -63,7 +58,7 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 		}
 	}
 
-	query := fmt.Sprintf("appId=%s&token=%s", appID, resetTokenString)
+	query := fmt.Sprintf("appId=%s&token=%s", appID, resetToken.Raw)
 
 	u := &url.URL{
 		Scheme:   host.Scheme,
@@ -75,7 +70,7 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 	hostUrl := &url.URL{Scheme: u.Scheme, Host: u.Host, Path: u.Path}
 
 	red := model.ResetEmailData{
-		Token: resetTokenString,
+		Token: resetToken.Raw,
 		URL:   u.String(),
 		Host:  hostUrl.String(),
 	}
@@ -96,4 +91,53 @@ func (c *UserStorageController) SendPasswordResetEmail(ctx context.Context, user
 	}
 
 	return red, nil
+}
+
+func (c *UserStorageController) SendInvitationEmail(ctx context.Context, inv model.Invite, u *url.URL, app *model.AppData) error {
+	subfolder := "" // custom app email templates
+	if app != nil {
+		if app.CustomEmailTemplates {
+			subfolder = app.ID
+		}
+	}
+	hostUrl := u
+	u.RawQuery = ""
+
+	data := model.InvitationEmailData{
+		Invitation: inv,
+		URL:        u.String(),
+		Host:       hostUrl.String(),
+	}
+
+	err := c.es.SendUserEmail(
+		model.EmailTemplateTypeInvite,
+		subfolder,
+		model.User{}, // we have no user here, we have only invite
+		data,
+	)
+	return err
+}
+
+func (c *UserStorageController) invitationLink(inv model.Invite, app *model.AppData) (*url.URL, error) {
+	host := c.h
+	path := model.DefaultLoginWebAppSettings.RegisterURL
+	query := url.Values{}
+	query.Add("token", inv.Token)
+
+	if app != nil {
+		// add appID in query
+		query.Add("appId", app.ID)
+
+		// if app has custom URL for RegisterURL - user it.
+		if app.LoginAppSettings != nil && app.LoginAppSettings.RegisterURL != "" {
+			ah, err := url.ParseRequestURI(app.LoginAppSettings.RegisterURL)
+			if err == nil {
+				// if custom url is valid, use it
+				host = ah
+				path = ah.Path
+			}
+		}
+	}
+
+	return &url.URL{Scheme: host.Scheme, Host: host.Host, Path: path, RawQuery: query.Encode()}, nil
 }

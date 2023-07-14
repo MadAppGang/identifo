@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"net/url"
 )
 
 // UserController is a business logic around user storage.
@@ -31,9 +32,10 @@ type UserMutationController interface {
 	SendEmailConfirmation(ctx context.Context, userID string) error
 	SendPhoneConfirmation(ctx context.Context, userID string) error
 	SendPasswordResetEmail(ctx context.Context, userID, appID string) (ResetEmailData, error)
+	SendInvitationEmail(ctx context.Context, inv Invite, u *url.URL, app *AppData) error
 
 	AddUserToTenantWithInvitationToken(ctx context.Context, u User, t *JWToken) (UserData, error)
-	CreateInvitation(ctx context.Context, invitee *JWToken, tenant, group, role, email string) (Invite, error)
+	CreateInvitation(ctx context.Context, invitee *JWToken, tenant, group, role, email string, app *AppData) (Invite, *url.URL, error)
 
 	InvalidateCache()
 }

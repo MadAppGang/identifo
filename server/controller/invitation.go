@@ -2,6 +2,7 @@ package controller
 
 import (
 	"context"
+	"net/url"
 	"time"
 
 	"github.com/madappgang/identifo/v2/l"
@@ -10,11 +11,11 @@ import (
 
 // CreateInvitation creates invitation for the user.
 // if t - inviter token is empty, it means we are creating from admin panel or management api
-func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.JWToken, tenant, group, role, email string) (model.Invite, error) {
+func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.JWToken, tenant, group, role, email string, app *model.AppData) (model.Invite, *url.URL, error) {
 	zi := model.Invite{} // empty value
 
 	if email != "" && !model.EmailRegexp.MatchString(email) {
-		return zi, l.ErrorAPIRequestBodyEmailInvalid
+		return zi, nil, l.ErrorAPIRequestBodyEmailInvalid
 	}
 	uu := model.User{Email: email}
 
@@ -31,17 +32,17 @@ func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.J
 	if t != nil {
 		inviterUD, err := c.u.UserData(ctx, t.Subject(), model.UserDataFieldTenantMembership)
 		if err != nil {
-			return zi, l.NewError(l.ErrorInvalidInviteTokenBadInvitee, err)
+			return zi, nil, l.NewError(l.ErrorInvalidInviteTokenBadInvitee, err)
 		}
 
 		invitedTo := c.filterInviteeCouldInvite(inviterUD.TenantMembership, invitedTo)
 		if len(invitedTo) == 0 {
-			return zi, l.ErrorInvalidInviteTokenBadInvitee
+			return zi, nil, l.ErrorInvalidInviteTokenBadInvitee
 		}
 
 		inviter, err := c.u.UserByID(ctx, inviterUD.UserID)
 		if err != nil {
-			return zi, err
+			return zi, nil, err
 		}
 		uu.ID = inviter.ID
 		uu.GivenName = inviter.GivenName
@@ -50,7 +51,7 @@ func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.J
 		uu.ID = model.RootUserID.String()
 		tenant, err := c.u.TenantByID(ctx, tenant)
 		if err != nil {
-			return zi, err
+			return zi, nil, err
 		}
 		tenantName = tenant.Name
 	}
@@ -62,7 +63,7 @@ func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.J
 	tenantData := TenantData(invitedTo, []string{model.TenantScopeAll})
 	invToken, err := c.ts.NewToken(model.TokenTypeInvite, uu, t.FullClaims().Audience, fields, tenantData)
 	if err != nil {
-		return zi, err
+		return zi, nil, err
 	}
 
 	invitation := model.Invite{
@@ -82,7 +83,12 @@ func (c *UserStorageController) CreateInvitation(ctx context.Context, t *model.J
 
 	err = c.is.Save(ctx, invitation)
 	if err != nil {
-		return zi, err
+		return zi, nil, err
 	}
-	return invitation, nil
+
+	link, err := c.invitationLink(invitation, app)
+	if err != nil {
+		return zi, nil, err
+	}
+	return invitation, link, nil
 }
