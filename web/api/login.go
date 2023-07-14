@@ -10,8 +10,18 @@ import (
 
 // LoginWithPassword logs user in with email and password.
 func (ar *Router) LoginWithPassword() http.HandlerFunc {
+	type loginData struct {
+		Email    string   `json:"email"`
+		Phone    string   `json:"phone"`
+		Username string   `json:"username"`
+		Password string   `json:"password"`
+		Device   string   `json:"device"`
+		Scopes   []string `json:"scopes"`
+		OS       string   `json:"os"`
+	}
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		agent := r.Header.Get("User-Agent")
 
 		ld := loginData{}
 		if ar.MustParseJSON(w, r, &ld) != nil {
@@ -55,18 +65,6 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
-
-		// // Authorize user if the app requires authorization.
-		// azi := authorization.AuthzInfo{
-		// 	App:         app,
-		// 	UserRole:    user.AccessRole,
-		// 	ResourceURI: r.RequestURI,
-		// 	Method:      r.Method,
-		// }
-		// if err := ar.Authorizer.Authorize(azi); err != nil {
-		// 	ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
-		// 	return
-		// }
 
 		authResult, err := ar.loginFlow(app, user, ld.Scopes)
 		if err != nil {

@@ -1,13 +1,15 @@
 package model
 
-//ContextKey enumerates all context keys
+// ContextKey enumerates all context keys
 type ContextKey int
 
 const (
-	//AppDataContextKey context key to keep requested app data
+	// AppDataContextKey context key to keep requested app data
 	AppDataContextKey ContextKey = iota + 1
-	//TokenContextKey bearer token context key
+	// TokenContextKey bearer token context key
 	TokenContextKey
-	//TokenRawContextKey bearer token context key in raw format
+	// TokenRawContextKey bearer token context key in raw format
 	TokenRawContextKey
+	// IPContextKey is a real IP we have extracted from request
+	IPContextKey
 )
