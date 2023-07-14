@@ -3,6 +3,7 @@ package model_test
 import (
 	"encoding/json"
 	"testing"
+	"time"
 
 	jwt "github.com/golang-jwt/jwt/v5"
 	"github.com/madappgang/identifo/v2/model"
@@ -67,6 +68,31 @@ func TestClaimsUnmarshalJSON(t *testing.T) {
 	assert.Equal(t, cl.Payload["role:tenant1:group2"], []string{"guest"})
 }
 
-// func TestTokenClaimMethod(t *testing.T) {
-// 	token = v
-// }
+func TestTokenClaimMethod(t *testing.T) {
+	exp := time.Now().Truncate(time.Second)
+	cl := model.Claims{
+		Payload: map[string]any{
+			"key1": "value1",
+			"key2": "value2",
+		},
+		RegisteredClaims: jwt.RegisteredClaims{
+			Issuer:    "issuer",
+			Subject:   "subject",
+			ExpiresAt: jwt.NewNumericDate(exp),
+			ID:        "12345",
+			IssuedAt:  jwt.NewNumericDate(exp),
+			NotBefore: jwt.NewNumericDate(exp),
+		},
+		Type: model.TokenTypeID.String(),
+	}
+	token := model.TokenWithClaims(jwt.SigningMethodES256, "12345", cl)
+	assert.Equal(t, "subject", token.UserID())
+	assert.Equal(t, cl.Payload, token.Payload())
+	assert.Equal(t, model.TokenTypeID, token.Type())
+	assert.Equal(t, exp, token.ExpiresAt())
+	assert.Equal(t, "12345", token.ID())
+	assert.Equal(t, exp, token.IssuedAt())
+	assert.Equal(t, "issuer", token.Issuer())
+	assert.Equal(t, exp, token.NotBefore())
+	assert.Equal(t, "subject", token.Subject())
+}

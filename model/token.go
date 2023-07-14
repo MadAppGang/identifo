@@ -73,7 +73,7 @@ func (t *JWToken) Validate() error {
 
 // UserID returns user ID.
 func (t *JWToken) UserID() string {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return ""
 	}
@@ -82,7 +82,7 @@ func (t *JWToken) UserID() string {
 
 // Payload returns token payload.
 func (t *JWToken) Payload() map[string]any {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return nil
 	}
@@ -100,7 +100,7 @@ func (t *JWToken) Type() TokenType {
 
 // ExpiresAt standard token claim
 func (t *JWToken) ExpiresAt() time.Time {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -112,7 +112,7 @@ func (t *JWToken) ExpiresAt() time.Time {
 
 // ID standard token claim
 func (t *JWToken) ID() string {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return ""
 	}
@@ -121,7 +121,7 @@ func (t *JWToken) ID() string {
 
 // IssuedAt standard token claim
 func (t *JWToken) IssuedAt() time.Time {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -133,7 +133,7 @@ func (t *JWToken) IssuedAt() time.Time {
 
 // Issuer standard token claim
 func (t *JWToken) Issuer() string {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return ""
 	}
@@ -142,7 +142,7 @@ func (t *JWToken) Issuer() string {
 
 // NotBefore standard token claim
 func (t *JWToken) NotBefore() time.Time {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return time.Time{}
 	}
@@ -154,11 +154,7 @@ func (t *JWToken) NotBefore() time.Time {
 
 // Subject standard token claim
 func (t *JWToken) Subject() string {
-	claims, ok := t.Claims.(*Claims)
-	if !ok {
-		return ""
-	}
-	return claims.Subject
+	return t.UserID()
 }
 
 // Claims is an extended claims structure.
