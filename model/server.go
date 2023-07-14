@@ -28,8 +28,7 @@ type ServerStorageCollection struct {
 	UC            UserController
 	UMC           UserMutationController
 	UCC           ChallengeController
-	Token         TokenStorage
-	Blocklist     TokenBlacklist
+	Token         TokenStorage // token blocklist storage
 	Invite        InviteStorage
 	Config        ConfigurationStorage
 	Session       SessionStorage

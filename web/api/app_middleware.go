@@ -2,7 +2,6 @@ package api
 
 import (
 	"context"
-	"fmt"
 	"net/http"
 	"strings"
 
@@ -35,8 +34,7 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 
 		app, err := ar.server.Storages().App.ActiveAppByID(appID)
 		if err != nil {
-			err = fmt.Errorf("Error getting App by ID: %s", err)
-			ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorStorageAPPFindByIDError, appID, err)
+			ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorStorageAPPFindByIDError, appID)
 			return
 		}
 		ctx := context.WithValue(r.Context(), model.AppDataContextKey, app)

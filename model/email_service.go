@@ -31,3 +31,9 @@ type OPTConfirmationData struct {
 	Expires int // expire time in minutes
 	User    User
 }
+
+type InvitationEmailData struct {
+	Invitation Invite
+	URL        string
+	Host       string
+}

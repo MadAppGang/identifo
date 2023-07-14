@@ -14,7 +14,7 @@ func (ar *Router) GetAppSettings() http.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPPNoAPPInContext)
 			return
 		}
 

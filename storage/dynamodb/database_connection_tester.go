@@ -1,6 +1,7 @@
 package dynamodb
 
 import (
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -18,7 +19,7 @@ func NewConnectionTester(settings model.DynamoDatabaseSettings) model.Connection
 
 func (ct *ConnectionTester) Connect() error {
 	if len(ct.settings.Endpoint) == 0 || len(ct.settings.Region) == 0 {
-		return ErrorEmptyEndpointRegion
+		return l.ErrorAPIDataError
 	}
 
 	// create database

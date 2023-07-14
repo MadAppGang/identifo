@@ -9,8 +9,9 @@ import (
 
 type UserStorage struct {
 	Storage
-	Users []model.User
-	UData map[string]model.UserData
+	Users   []model.User
+	UData   map[string]model.UserData
+	Tenants []model.Tenant
 }
 
 func (us *UserStorage) UserByID(ctx context.Context, id string) (model.User, error) {
@@ -48,4 +49,13 @@ func (us *UserStorage) UserData(ctx context.Context, userID string, fields ...mo
 
 func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 	return nil
+}
+
+func (us *UserStorage) TenantByID(ctx context.Context, id string) (model.Tenant, error) {
+	for _, u := range us.Tenants {
+		if u.ID == id {
+			return u, nil
+		}
+	}
+	return model.Tenant{}, l.NewError(l.ErrorNotFound, "tenant")
 }

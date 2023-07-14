@@ -6,15 +6,16 @@ import (
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 const tokensTableName = "RefreshTokens"
 
 // NewTokenStorage creates new DynamoDB token storage.
-func NewTokenStorage(settings model.DynamoDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.DynamoDatabaseSettings) (*TokenStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
-		return nil, ErrorEmptyEndpointRegion
+		return nil, l.ErrorAPIDataError
 	}
 
 	// create database
@@ -71,7 +72,7 @@ func (ts *TokenStorage) ensureTable() error {
 // SaveToken saves token in the database.
 func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
-		return model.ErrorWrongDataFormat
+		return l.ErrorAPIDataError
 	}
 	if ts.HasToken(token) {
 		return nil
@@ -80,7 +81,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	t, err := dynamodbattribute.MarshalMap(Token{Token: token})
 	if err != nil {
 		log.Println(err)
-		return ErrorInternalError
+		return l.ErrorAPIDataError
 	}
 
 	input := &dynamodb.PutItemInput{
@@ -90,7 +91,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 
 	if _, err = ts.db.C.PutItem(input); err != nil {
 		log.Println("Error while putting token to db:", err)
-		return ErrorInternalError
+		return l.ErrorAPIDataError
 	}
 	return nil
 }
@@ -123,7 +124,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 // DeleteToken removes token from the storage.
 func (ts *TokenStorage) DeleteToken(token string) error {
 	if !ts.HasToken(token) {
-		return model.ErrorNotFound
+		return l.NewError(l.ErrorNotFound, "token")
 	}
 	if _, err := ts.db.C.DeleteItem(&dynamodb.DeleteItemInput{
 		TableName: aws.String(tokensTableName),
@@ -134,7 +135,7 @@ func (ts *TokenStorage) DeleteToken(token string) error {
 		},
 	}); err != nil {
 		log.Println("Error while deleting token from db:", err)
-		return ErrorInternalError
+		return l.ErrorAPIDataError
 	}
 	return nil
 }

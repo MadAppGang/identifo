@@ -3,9 +3,12 @@ package mem
 import (
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
+
+var inviteNotFoundError = l.NewError(l.ErrorNotFound, "invite")
 
 // InviteStorage is an in-memory invite storage.
 // Please do not use it in production, it has no disk swap or persistent cache support.
@@ -14,7 +17,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates an in-memory invite storage.
-func NewInviteStorage() (model.InviteStorage, error) {
+func NewInviteStorage() (*InviteStorage, error) {
 	return &InviteStorage{storage: make(map[string]model.Invite)}, nil
 }
 
@@ -41,14 +44,14 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 			return invite, nil
 		}
 	}
-	return model.Invite{}, model.ErrorNotFound
+	return model.Invite{}, inviteNotFoundError
 }
 
 // GetByID returns invite by its ID.
 func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 	invite, ok := is.storage[id]
 	if !ok {
-		return model.Invite{}, model.ErrorNotFound
+		return model.Invite{}, inviteNotFoundError
 	}
 	return invite, nil
 }
@@ -92,7 +95,7 @@ func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 func (is *InviteStorage) ArchiveByID(id string) error {
 	invite, ok := is.storage[id]
 	if !ok {
-		return model.ErrorNotFound
+		return inviteNotFoundError
 	}
 
 	invite.Archived = true

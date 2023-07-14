@@ -2,6 +2,7 @@ package model
 
 import (
 	"context"
+	"net/url"
 )
 
 // UserController is a business logic around user storage.
@@ -14,6 +15,9 @@ type UserController interface {
 	// Admin actions for users
 	GetUsers(ctx context.Context, filter string, skip, limit int) ([]User, int, error)
 	GetJWTTokens(ctx context.Context, app AppData, u User, scopes []string) (AuthResponse, error)
+	RefreshJWTToken(ctx context.Context, refresh_token *JWToken, access string, app AppData, scopes []string) (AuthResponse, error)
+
+	VerifyPassword(ctx context.Context, u User, password string) error
 
 	InvalidateCache()
 }
@@ -30,8 +34,10 @@ type UserMutationController interface {
 	SendEmailConfirmation(ctx context.Context, userID string) error
 	SendPhoneConfirmation(ctx context.Context, userID string) error
 	SendPasswordResetEmail(ctx context.Context, userID, appID string) (ResetEmailData, error)
+	SendInvitationEmail(ctx context.Context, inv Invite, u *url.URL, app *AppData) error
 
 	AddUserToTenantWithInvitationToken(ctx context.Context, u User, t *JWToken) (UserData, error)
+	CreateInvitation(ctx context.Context, invitee *JWToken, tenant, group, role, email string, app *AppData) (Invite, *url.URL, error)
 
 	InvalidateCache()
 }

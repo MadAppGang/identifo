@@ -6,6 +6,7 @@ import (
 	"log"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 	bolt "go.etcd.io/bbolt"
@@ -53,7 +54,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 		ab := tx.Bucket([]byte(AppBucket))
 		app := ab.Get([]byte(id))
 		if app == nil {
-			return model.ErrorNotFound
+			return l.NewError(l.ErrorNotFound, "app")
 		}
 
 		var err error

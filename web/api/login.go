@@ -5,6 +5,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/tools/xmaps"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
@@ -12,69 +13,37 @@ import (
 func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		// agent := r.Header.Get("User-Agent")
+		// ip := middleware.IPFromContext(r.Context())
 
-		ld := loginData{}
+		ld := model.LoginRequest{}
 		if ar.MustParseJSON(w, r, &ld) != nil {
 			return
 		}
 
-		if err := ld.validate(); err != nil {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
-			return
-		}
+		strategy, id := ld.Strategy()
+		uc := ar.server.Storages().UC
 
-		if err := ar.checkSupportedWays(ld.login); err != nil {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
-			return
-		}
-
-		var err error
-		user := model.User{}
-
-		if len(ld.Email) > 0 {
-			user, err = ar.server.Storages().User.UserByEmail(ld.Email)
-		} else if len(ld.Phone) > 0 {
-			user, err = ar.server.Storages().User.UserByPhone(ld.Phone)
-		} else if len(ld.Username) > 0 {
-			user, err = ar.server.Storages().User.UserByUsername(ld.Username)
-		}
-
+		user, err := uc.UserBySecondaryID(r.Context(), strategy.Identity, id)
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
+			ar.HTTPError(w, l.ErrorWithLocale(err, locale), http.StatusUnauthorized)
 			return
 		}
 
-		if err = ar.server.Storages().User.CheckPassword(user.ID, ld.Password); err != nil {
-			// return this error to hide the existence of the user.
-			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPIRequestIncorrectLoginOrPassword)
+		err = uc.VerifyPassword(r.Context(), user, ld.Password)
+		if err != nil {
+			ar.HTTPError(w, l.ErrorWithLocale(err, locale), http.StatusUnauthorized)
 			return
 		}
 
 		app := middleware.AppFromContext(r.Context())
-		if len(app.ID) == 0 {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
-			return
-		}
-
-		// // Authorize user if the app requires authorization.
-		// azi := authorization.AuthzInfo{
-		// 	App:         app,
-		// 	UserRole:    user.AccessRole,
-		// 	ResourceURI: r.RequestURI,
-		// 	Method:      r.Method,
-		// }
-		// if err := ar.Authorizer.Authorize(azi); err != nil {
-		// 	ar.LocalizedError(w, locale, http.StatusForbidden, l.APIAccessDenied)
-		// 	return
-		// }
-
-		authResult, err := ar.loginFlow(app, user, ld.Scopes)
+		response, err := ar.server.Storages().UC.GetJWTTokens(r.Context(), app, user, ld.Scopes)
 		if err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
+			ar.LocalizedError(w, locale, http.StatusUnauthorized, l.ErrorAPILoginError, err)
 			return
 		}
 
-		ar.ServeJSON(w, locale, http.StatusOK, authResult)
+		ar.ServeJSON(w, locale, http.StatusOK, response)
 	}
 }
 
@@ -88,17 +57,23 @@ func (ar *Router) IsLoggedIn() http.HandlerFunc {
 	}
 }
 
-// GetUser return current user info with sanitized tfa
+// GetUser return current user info with sanitized data
 func (ar *Router) GetUser() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
+		scopes := r.URL.Query()["scopes"]
+
+		// add basic profile information to scope
+		scopes = append(scopes, model.ProfileScope)
+		fields := model.FieldsetForScopes(scopes)
 
 		userID := tokenFromContext(r.Context()).UserID()
 		user, err := ar.server.Storages().User.UserByID(r.Context(), userID)
 		if err != nil {
-			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
+			ar.HTTPError(w, l.ErrorWithLocale(err, locale), http.StatusUnauthorized)
 			return
 		}
-		ar.ServeJSON(w, locale, http.StatusOK, user.SanitizedTFA())
+		u := xmaps.CopyFields(user, fields)
+		ar.ServeJSON(w, locale, http.StatusOK, u)
 	}
 }

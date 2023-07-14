@@ -2,6 +2,12 @@
 test: I am test string
 key with spaces: key with spaces passed test
 
+# root main errors
+error.not.found: "% not found!"
+error.user.not_found: User not found.
+error.user.not_found.error: User not found with error; %v.
+error.not.implemented: "Not implemented yet."
+
 # server settings messages
 error.server.update.settings.no.change: "no settings has been changed, skipping the update"
 error.server.update.settings.validation.error: "settings validation failed with error: %v"
@@ -93,14 +99,15 @@ error.validation.token.invalid.type: "JWT token is unexpected type."
 error.validation.token.invalid.audience: "JWT token has unexpected audience."
 error.invalid.invite.token: "Invalid invite token."
 error.invalid.invite.token.bad.invitee: "Unable to get inviter for invite token %v."
+error.token.is.for.other.app: "This token is not issued to works with this app."
 
 
 # App errors
-error.api.app.inactive: The app is inactive.
-error.api.app.registration_forbidden: Registration in this app is forbidden.
-error.api.request.authorizer.internal.init: Error creating authz service.
-error.api.app.unable_to_token_payload_for_app.error: "Error getting token payload for the app %s with error: %v."
-error.api.app.no_app_in_context: Missing app data in context.
+error.app.inactive: The app is inactive.
+error.app.registration_forbidden: Registration in this app is forbidden.
+error.request.authorizer.internal.init: Error creating authz service.
+error.app.unable_to_token_payload_for_app.error: "Error getting token payload for the app %s with error: %v."
+error.app.no_app_in_context: Missing app data in context.
 error.app.register_url.error: "Invalid register URL (%s) for app (%s): %v."
 error.app.login.no_scope: "User has no required scopes by this app."
 error.app.reset_url.error: "Invalid reset password URL (%s) for app (%s): %v."
@@ -113,8 +120,6 @@ error.email.empty: "email could not be empty"
 error.phone.empty: "phone could not be empty"
 error.username.empty: "username could not be empty"
 error.login.data.empty: "Your login data is empty."
-error.user.not_found: User not found.
-error.user.not_found.error: User not found with error; %v.
 error.request.challenge.unsupported.by.app: This login type is not supported by the app.
 error.login.type.not.supported: This login type is not supported.
 error.otp.login.transport.not.supported: "Unsupported way to send OTP code: %s."

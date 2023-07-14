@@ -5,6 +5,7 @@ import (
 	"errors"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -21,7 +22,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a MongoDB invite storage.
-func NewInviteStorage(settings model.MongoDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.MongoDatabaseSettings) (*InviteStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
@@ -39,7 +40,7 @@ func NewInviteStorage(settings model.MongoDatabaseSettings) (model.InviteStorage
 // Save creates and saves new invite to a database.
 func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string, expiresAt time.Time) error {
 	if len(inviteToken) == 0 {
-		return model.ErrorWrongDataFormat
+		return l.ErrorAPIDataError
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), is.timeout)
@@ -55,10 +56,6 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 		CreatedBy: createdBy,
 		CreatedAt: time.Now(),
 		ExpiresAt: expiresAt,
-	}
-
-	if err := i.Validate(); err != nil {
-		return err
 	}
 
 	_, err := is.coll.InsertOne(ctx, i)
@@ -79,7 +76,7 @@ func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	var invite model.Invite
 	if err := is.coll.FindOne(ctx, filter).Decode(&invite); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.Invite{}, model.ErrorNotFound
+			return model.Invite{}, l.NewError(l.ErrorNotFound, "invite")
 		}
 		return model.Invite{}, err
 	}
@@ -96,7 +93,7 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 	var invite model.Invite
 	if err := is.coll.FindOne(ctx, filter).Decode(&invite); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.Invite{}, model.ErrorNotFound
+			return model.Invite{}, l.NewError(l.ErrorNotFound, "invite")
 		}
 		return model.Invite{}, err
 	}

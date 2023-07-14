@@ -1,4 +1,4 @@
-package mem
+package mock
 
 import (
 	"context"
@@ -10,8 +10,8 @@ import (
 var tokenNotFoundError = l.NewError(l.ErrorNotFound, "token")
 
 // NewTokenStorage creates an in-memory token storage.
-func NewTokenStorage() (model.TokenStorage, error) {
-	return &TokenStorage{storage: make(map[string]model.TokenStorageEntity)}, nil
+func NewTokenStorage() model.TokenStorage {
+	return &TokenStorage{storage: make(map[string]model.TokenStorageEntity)}
 }
 
 // TokenStorage is an in-memory token storage.

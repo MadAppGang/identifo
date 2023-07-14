@@ -6,7 +6,7 @@ import (
 	"github.com/madappgang/identifo/v2/model"
 )
 
-// AppFromContext returns app data from request conntext.
+// AppFromContext returns app data from request context.
 func AppFromContext(ctx context.Context) model.AppData {
 	value := ctx.Value(model.AppDataContextKey)
 

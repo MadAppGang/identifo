@@ -22,6 +22,7 @@ type ID string
 // we are using valid ObjectID compatible value here.
 var (
 	NewUserID       = ID("64acc61bab36eb8395ce5846")
+	RootUserID      = ID("64acc61bab36eb8395ce5847")
 	NewUserUsername = "ephemeral"
 )
 
@@ -32,6 +33,10 @@ var (
 
 func IsNewUserID(id string) bool {
 	return id == NewUserID.String()
+}
+
+func IsRootUserID(id string) bool {
+	return id == RootUserID.String()
 }
 
 func NewID() ID {

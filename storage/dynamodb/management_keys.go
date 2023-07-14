@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -17,7 +18,7 @@ const (
 // NewManagementKeysStorage creates and provisions new management keys storage instance.
 func NewManagementKeysStorage(settings model.DynamoDatabaseSettings) (model.ManagementKeysStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
-		return nil, ErrorEmptyEndpointRegion
+		return nil, l.ErrorAPIDataError
 	}
 
 	// create database

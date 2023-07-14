@@ -33,7 +33,7 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPPNoAPPInContext)
 			return
 		}
 

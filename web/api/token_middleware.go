@@ -2,6 +2,7 @@ package api
 
 import (
 	"context"
+	"errors"
 	"net/http"
 
 	"github.com/gorilla/mux"
@@ -25,7 +26,7 @@ func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.Middlewa
 
 			app := middleware.AppFromContext(r.Context())
 			if len(app.ID) == 0 {
-				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPPNoAPPInContext)
 				return
 			}
 
@@ -52,7 +53,11 @@ func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.Middlewa
 				return
 			}
 
-			if blacklisted := ar.server.Storages().Blocklist.IsBlacklisted(tokenString); blacklisted {
+			_, err = ar.server.Storages().Token.TokenByID(r.Context(), token.ID())
+			if err != nil && !errors.Is(err, l.ErrorNotFound) {
+				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
+				return
+			} else if err == nil {
 				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorTokenBlocked)
 				return
 			}

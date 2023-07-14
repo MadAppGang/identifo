@@ -42,6 +42,8 @@ func (c *UserStorageController) AddUserToTenantWithInvitationToken(ctx context.C
 		if err != nil {
 			return model.UserData{}, err
 		}
+	} else {
+		return model.UserData{}, l.ErrorInvalidInviteTokenBadInvitee
 	}
 
 	return md, nil

@@ -86,6 +86,11 @@ func (ts *JWTokenService) NewToken(tokenType model.TokenType, u model.User, aud 
 	}
 
 	token := model.TokenWithClaims(sm, ts.KeyID(), claims)
+	raw, err := ts.SignToken(token)
+	if err != nil {
+		return nil, err
+	}
+	token.Raw = raw
 	return token, nil
 }
 

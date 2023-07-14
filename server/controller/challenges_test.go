@@ -26,6 +26,8 @@ func TestRequestSMSTestNoApp(t *testing.T) {
 		nil,           // ums
 		nil,           // ua
 		mock.NewApp(), // as
+		nil,           // toks
+		nil,           // is
 		nil,           // uas
 		nil,           // ts
 		nil,           // es
@@ -46,7 +48,7 @@ func TestRequestSMSTestNoApp(t *testing.T) {
 	}
 	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.Error(t, err)
-	require.True(t, errors.Is(err, mock.ErrNotFound))
+	require.True(t, errors.Is(err, l.ErrorNotFound))
 }
 
 // challenge is asking for otp code with sms, but app only does magic link with sms
@@ -68,6 +70,8 @@ func TestRequestSMSNoStrategyFound(t *testing.T) {
 		nil, // ums
 		nil, // ua
 		as,  // as
+		nil, // toks
+		nil, // is
 		nil, // uas
 		nil, // ts
 		nil, // es
@@ -125,13 +129,14 @@ func TestRequestSMSSend(t *testing.T) {
 		nil, // ums
 		nil, // ua
 		as,  // as
+		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es
 		ss,  // ss
 		model.ServerSettings{},
 	)
-
 	p, _ := l.NewPrinter(language.English.String())
 	cc.LP = p
 
@@ -200,6 +205,8 @@ func TestRequestSMSSendUK(t *testing.T) {
 		nil, // ums
 		nil, // ua
 		as,  // as
+		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es
@@ -287,13 +294,14 @@ func TestRequestEmailSend(t *testing.T) {
 		nil, // ums
 		nil, // ua
 		as,  // as
+		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		es,  // es
 		nil, // ss
 		model.ServerSettings{},
 	)
-
 	p, _ := l.NewPrinter(language.English.String())
 	cc.LP = p
 
@@ -354,6 +362,8 @@ func TestRequestSMSSendUnregisteredUser(t *testing.T) {
 		nil, // ums
 		nil, // ua
 		as,  // as
+		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es

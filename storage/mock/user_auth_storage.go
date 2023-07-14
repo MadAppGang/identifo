@@ -2,11 +2,13 @@ package mock
 
 import (
 	"context"
-	"errors"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
+
+var challengeNotFoundError = l.NewError(l.ErrorNotFound, "challenge")
 
 type UserAuthStorage struct {
 	Storage
@@ -14,7 +16,7 @@ type UserAuthStorage struct {
 }
 
 func (u *UserAuthStorage) ImportJSON(data []byte, clearOldData bool) error {
-	return nil
+	return l.ErrorNotImplemented
 }
 
 func (u *UserAuthStorage) AddChallenge(ctx context.Context, challenge model.UserAuthChallenge) (model.UserAuthChallenge, error) {
@@ -39,5 +41,5 @@ func (u *UserAuthStorage) MarkChallengeAsSolved(ctx context.Context, challenge m
 			return nil
 		}
 	}
-	return errors.New("not found")
+	return challengeNotFoundError
 }
