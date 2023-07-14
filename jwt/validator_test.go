@@ -15,7 +15,6 @@ import (
 
 const (
 	keyPath = "./test_artifacts/private.pem"
-
 	testIssuer         = "aooth.madappgang.com"
 	tokenStringExample = "eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJpYXQiOjE1MTYyMzkwMjIsInN1YiI6IjEyMzQ1Njc4OTAifQ.AAlGn8m8YG3emPa8CIS6TS-ndqaZCGUydnhU8FznyZ1McYQKkLlcqDW2c04q9ZxKDZHeiSyNIDOKA-EP0GVthQ"
 )

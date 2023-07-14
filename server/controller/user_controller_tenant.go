@@ -68,7 +68,7 @@ func getInvitationFromClaim(claims map[string]any) map[string]model.TenantMember
 			vss := []string{}
 			for _, v := range vs {
 				vv, ok := v.(string)
-				if ok && slices.Contains(vss, vv) {
+				if ok && !slices.Contains(vss, vv) {
 					vss = append(vss, vv)
 				}
 			}
