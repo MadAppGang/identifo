@@ -30,7 +30,7 @@ func TestRefreshJWTToken(t *testing.T) {
 	app := model.AppData{ID: "app1", Offline: true}
 	tokenService := createTokenService(t)
 	tokenStorage := mock.NewTokenStorage()
-	c := controller.NewUserStorageController(&u, nil, nil, nil, tokenStorage, nil, tokenService, nil, nil, model.ServerSettings{})
+	c := controller.NewUserStorageController(&u, nil, nil, nil, tokenStorage, nil, nil, tokenService, nil, nil, model.ServerSettings{})
 
 	token, err := tokenService.NewToken(model.TokenTypeAccess, user, []string{"app1"}, []string{"Email"}, nil)
 	require.NoError(t, err)

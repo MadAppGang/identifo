@@ -1,6 +1,7 @@
 package server
 
 import (
+	"context"
 	"fmt"
 	"net/http"
 
@@ -105,11 +106,20 @@ func (s *Server) Close() {
 		}
 	}
 
+	ctx := context.TODO()
+	maybeCloseCtx := func(c interface {
+		Close(ctx context.Context) error
+	},
+	) {
+		if c != nil {
+			c.Close(ctx)
+		}
+	}
+
 	maybeClose(s.storages.App)
-	// TODO: Implement close for user storages
-	// maybeClose(s.storages.User)
+	maybeCloseCtx(s.storages.User)
 	maybeClose(s.storages.Token)
-	maybeClose(s.storages.Invite)
+	maybeCloseCtx(s.storages.Invite)
 	maybeClose(s.storages.Session)
 }
 

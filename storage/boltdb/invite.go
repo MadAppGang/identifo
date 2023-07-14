@@ -23,7 +23,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a BoltDB invites storage.
-func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.BoltDBDatabaseSettings) (*InviteStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -63,10 +63,6 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 			CreatedBy: createdBy,
 			CreatedAt: time.Now(),
 			ExpiresAt: expiresAt,
-		}
-
-		if err := invite.Validate(); err != nil {
-			return err
 		}
 
 		data, err := json.Marshal(invite)

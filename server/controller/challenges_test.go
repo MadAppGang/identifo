@@ -27,6 +27,7 @@ func TestRequestSMSTestNoApp(t *testing.T) {
 		nil,           // ua
 		mock.NewApp(), // as
 		nil,           // toks
+		nil,           // is
 		nil,           // uas
 		nil,           // ts
 		nil,           // es
@@ -70,6 +71,7 @@ func TestRequestSMSNoStrategyFound(t *testing.T) {
 		nil, // ua
 		as,  // as
 		nil, // toks
+		nil, // is
 		nil, // uas
 		nil, // ts
 		nil, // es
@@ -128,6 +130,7 @@ func TestRequestSMSSend(t *testing.T) {
 		nil, // ua
 		as,  // as
 		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es
@@ -203,6 +206,7 @@ func TestRequestSMSSendUK(t *testing.T) {
 		nil, // ua
 		as,  // as
 		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es
@@ -291,6 +295,7 @@ func TestRequestEmailSend(t *testing.T) {
 		nil, // ua
 		as,  // as
 		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		es,  // es
@@ -358,6 +363,7 @@ func TestRequestSMSSendUnregisteredUser(t *testing.T) {
 		nil, // ua
 		as,  // as
 		nil, // toks
+		nil, // is
 		uas, // uas
 		nil, // ts
 		nil, // es

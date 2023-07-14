@@ -33,6 +33,7 @@ type UserMutationController interface {
 	SendPasswordResetEmail(ctx context.Context, userID, appID string) (ResetEmailData, error)
 
 	AddUserToTenantWithInvitationToken(ctx context.Context, u User, t *JWToken) (UserData, error)
+	CreateInvitation(ctx context.Context, invitee *JWToken, tenant, group, role, email string) (Invite, error)
 
 	InvalidateCache()
 }

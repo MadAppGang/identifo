@@ -12,7 +12,7 @@ import (
 
 // just compile-time check interface compliance.
 // please don't use it in runtime.
-var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _uc model.UserController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // UserStorageController performs common user operations using a set of storages.
 // For example when user logins, we find the user, match the password, and log the login attempt and save it to log storage.
@@ -28,6 +28,7 @@ type UserStorageController struct {
 	ua     model.UserAdminStorage
 	as     model.AppStorage
 	toks   model.TokenStorage
+	is     model.InviteStorage
 	ts     model.TokenService
 	es     model.EmailService
 	ss     model.SMSService
@@ -46,6 +47,7 @@ func NewUserStorageController(
 	ua model.UserAdminStorage,
 	as model.AppStorage,
 	toks model.TokenStorage,
+	is model.InviteStorage,
 	uas model.UserAuthStorage,
 	ts model.TokenService,
 	es model.EmailService,
@@ -69,6 +71,7 @@ func NewUserStorageController(
 		ua:     ua,
 		ums:    ums,
 		toks:   toks,
+		is:     is,
 		as:     as,
 		uas:    uas,
 		ts:     ts,

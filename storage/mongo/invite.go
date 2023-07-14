@@ -22,7 +22,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a MongoDB invite storage.
-func NewInviteStorage(settings model.MongoDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.MongoDatabaseSettings) (*InviteStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
@@ -56,10 +56,6 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 		CreatedBy: createdBy,
 		CreatedAt: time.Now(),
 		ExpiresAt: expiresAt,
-	}
-
-	if err := i.Validate(); err != nil {
-		return err
 	}
 
 	_, err := is.coll.InsertOne(ctx, i)

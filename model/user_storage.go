@@ -26,6 +26,9 @@ type UserStorage interface {
 
 	// Get user data, we can filter the fields we need to handle from data, as it is a large structure.
 	UserData(ctx context.Context, userID string, fields ...UserDataField) (UserData, error)
+
+	// Tenants
+	TenantByID(ctx context.Context, id string) (Tenant, error)
 }
 
 type UserMutableStorage interface {

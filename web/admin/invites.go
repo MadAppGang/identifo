@@ -31,7 +31,7 @@ func (ar *Router) FetchInvites() http.HandlerFunc {
 			return
 		}
 
-		invites, total, err := ar.server.Storages().Invite.GetAll(withValid, skip, limit)
+		invites, total, err := ar.server.Storages().Invite.GetAll(r.Context(), withValid, skip, limit)
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 			return
@@ -50,20 +50,25 @@ func (ar *Router) FetchInvites() http.HandlerFunc {
 }
 
 func (ar *Router) AddInvite() http.HandlerFunc {
+	type requestData struct {
+		Email       string         `json:"email"`
+		Tenant      string         `json:"tenant"`
+		Group       string         `json:"group"`
+		Role        string         `json:"role"`
+		CallbackURL string         `json:"callback"`
+		Data        map[string]any `json:"data"`
+	}
+
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
-		d := struct {
-			AppID string                 `json:"app_id"`
-			Email string                 `json:"email"`
-			Role  string                 `json:"access_role"`
-			Data  map[string]interface{} `json:"data"`
-		}{}
-
-		if err := ar.mustParseJSON(w, r, &d); err != nil {
-			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIJsonParseError, err)
+		d := requestData{}
+		if ar.mustParseJSON(w, r, &d) != nil {
 			return
 		}
+
+		token := tokenFromContext(r.Context())
+
 		if d.Email != "" && !model.EmailRegexp.MatchString(d.Email) {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestBodyEmailInvalid)
 			return
@@ -89,6 +94,7 @@ func (ar *Router) AddInvite() http.HandlerFunc {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorTokenInviteCreateError, err)
 			return
 		}
+
 		err = ar.server.Storages().Invite.Save(d.Email, inviteTokenString, d.Role, d.AppID, "", inviteToken.ExpiresAt())
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteSaveError, err)
@@ -112,7 +118,7 @@ func (ar *Router) GetInviteByID() http.HandlerFunc {
 
 		id := mux.Vars(r)["id"]
 
-		invite, err := ar.server.Storages().Invite.GetByID(id)
+		invite, err := ar.server.Storages().Invite.GetByID(r.Context(), id)
 		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindIDError, err)
 			return
@@ -128,11 +134,17 @@ func (ar *Router) ArchiveInviteByID() http.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 		id := mux.Vars(r)["id"]
 
-		if err := ar.server.Storages().Invite.ArchiveByID(id); err != nil {
+		inv, err := ar.server.Storages().Invite.GetByID(r.Context(), id)
+		if err != nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
 			return
 		}
-
+		inv.Archived = true
+		err = ar.server.Storages().Invite.Update(r.Context(), inv)
+		if err != nil {
+			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageRequestError, err)
+			return
+		}
 		ar.ServeJSON(w, locale, http.StatusOK, nil)
 	}
 }

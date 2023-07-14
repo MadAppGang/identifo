@@ -29,7 +29,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates new DynamoDB invite storage.
-func NewInviteStorage(settings model.DynamoDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(settings model.DynamoDatabaseSettings) (*InviteStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, l.ErrorAPIDataError
 	}

@@ -17,7 +17,7 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates an in-memory invite storage.
-func NewInviteStorage() (model.InviteStorage, error) {
+func NewInviteStorage() (*InviteStorage, error) {
 	return &InviteStorage{storage: make(map[string]model.Invite)}, nil
 }
 
