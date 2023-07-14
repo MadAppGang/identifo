@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -44,7 +45,7 @@ func NewSessionStorage(settings model.DynamoDatabaseSettings) (model.SessionStor
 func (dss *DynamoDBSessionStorage) GetSession(id string) (model.Session, error) {
 	var session model.Session
 	if len(id) == 0 {
-		return session, model.ErrSessionNotFound
+		return session, l.NewError(l.ErrorNotFound, "session")
 	}
 
 	getItemInput := &dynamodb.GetItemInput{
@@ -61,7 +62,7 @@ func (dss *DynamoDBSessionStorage) GetSession(id string) (model.Session, error) 
 		return session, err
 	}
 	if result.Item == nil {
-		return session, model.ErrSessionNotFound
+		return session, l.NewError(l.ErrorNotFound, "session")
 	}
 
 	if err = dynamodbattribute.UnmarshalMap(result.Item, &session); err != nil {
@@ -207,6 +208,6 @@ func awsErrorNotFound(err error) bool {
 	}
 	return false
 }
-func (is *DynamoDBSessionStorage) Close() {
 
+func (is *DynamoDBSessionStorage) Close() {
 }

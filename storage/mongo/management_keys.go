@@ -7,6 +7,7 @@ import (
 	"log"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -43,7 +44,7 @@ func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.M
 	var key model.ManagementKey
 	if err := ms.coll.FindOne(ctx, filter).Decode(&key); err != nil {
 		if errors.Is(err, mongo.ErrNoDocuments) {
-			return model.ManagementKey{}, model.ErrorNotFound
+			return model.ManagementKey{}, l.NewError(l.ErrorNotFound, "key")
 		}
 		return model.ManagementKey{}, err
 	}

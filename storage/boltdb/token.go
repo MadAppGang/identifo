@@ -14,7 +14,7 @@ const (
 )
 
 // NewTokenStorage creates a BoltDB token storage.
-func NewTokenStorage(settings model.BoltDBDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.BoltDBDatabaseSettings) (*TokenStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}

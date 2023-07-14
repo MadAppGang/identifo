@@ -4,6 +4,7 @@ import (
 	"context"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -13,7 +14,7 @@ import (
 const tokensCollectionName = "RefreshTokens"
 
 // NewTokenStorage creates a MongoDB token storage.
-func NewTokenStorage(settings model.MongoDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(settings model.MongoDatabaseSettings) (*TokenStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
@@ -37,7 +38,7 @@ type TokenStorage struct {
 // SaveToken saves token in the database.
 func (ts *TokenStorage) SaveToken(token string) error {
 	if len(token) == 0 {
-		return model.ErrorWrongDataFormat
+		return l.ErrorAPIDataError
 	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), ts.timeout)
