@@ -56,6 +56,11 @@ func TestFilterInviteeCouldInvite(t *testing.T) {
 }
 
 func TestAddUserWithInvitationToken(t *testing.T) {
+	user := model.User{
+		ID:        "user1",
+		GivenName: "Mr Inviter",
+		Email:     "aooth@madappgang.com",
+	}
 	u := mock.UserStorage{
 		UData: map[string]model.UserData{
 			"user1": {
@@ -63,11 +68,7 @@ func TestAddUserWithInvitationToken(t *testing.T) {
 				TenantMembership: inviterMembership,
 			},
 		},
-	}
-	user := model.User{
-		ID:        "user1",
-		GivenName: "Mr Inviter",
-		Email:     "aooth@madappgang.com",
+		Users: []model.User{user},
 	}
 	newUser := model.User{
 		ID:        "New User",
@@ -82,6 +83,18 @@ func TestAddUserWithInvitationToken(t *testing.T) {
 	uu, err := c.AddUserToTenantWithInvitationToken(context.TODO(), newUser, token)
 	require.NoError(t, err)
 	assert.NotEmpty(t, uu.TenantMembership)
+
+	// now  let's grab the user membership  and check he is now part of requested tenant groups
+	nud, err := u.UserData(context.TODO(), newUser.ID)
+	assert.NoError(t, err)
+	assert.NotEmpty(t, nud.TenantMembership)
+	assert.Len(t, nud.TenantMembership, 1)                   // requester and invite intersects only for tenant 1
+	assert.Len(t, nud.TenantMembership["tenant1"].Groups, 1) // requester could not invite to group2 of tenant1, as he is guest there
+	assert.ElementsMatch(
+		t,
+		nud.TenantMembership["tenant1"].Groups["group1"],
+		[]string{model.RoleAdmin, model.RoleGuest},
+	)
 }
 
 var claims = map[string]any{

@@ -52,8 +52,8 @@ type JWToken struct {
 }
 
 func (t *JWToken) FullClaims() Claims {
-	claims, _ := t.Claims.(*Claims)
-	return *claims
+	claims, _ := t.Claims.(Claims)
+	return claims
 }
 
 // Validate validates token data. Returns nil if all data is valid.

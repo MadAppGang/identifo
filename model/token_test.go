@@ -95,4 +95,5 @@ func TestTokenClaimMethod(t *testing.T) {
 	assert.Equal(t, "issuer", token.Issuer())
 	assert.Equal(t, exp, token.NotBefore())
 	assert.Equal(t, "subject", token.Subject())
+	assert.Equal(t, cl, token.FullClaims())
 }
