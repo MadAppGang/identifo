@@ -153,8 +153,8 @@ func (c *UserStorageController) GetUsers(ctx context.Context, filter string, ski
 func (c *UserStorageController) UserByAuthStrategy(ctx context.Context, auth model.AuthStrategy, userIDValue string) (model.User, error) {
 	//we need to check each strategy type
 	//if it's local:
-	//- get identity type id - userbyid
-	//- other? user userbysecoindaryID
+	//- get identity type id - userByID
+	//- other? user userBySecondaryID
 	//- anonymous - get user by id
 	//- fim - find federated identity
 	//- second factor - has no identity

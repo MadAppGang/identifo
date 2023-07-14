@@ -1,18 +1,20 @@
 package api
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 
-	jwt "github.com/golang-jwt/jwt/v5"
-	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/jwt"
 )
 
 // Logout logs user out and deactivates their tokens.
+// add access token and refresh token to block list
+// we need to detach device from user
 func (ar *Router) Logout() http.HandlerFunc {
 	type logoutData struct {
 		RefreshToken string `json:"refresh_token,omitempty"`
-		DeviceToken  string `json:"device_token,omitempty"`
+		DeviceToken  string `json:"device,omitempty"`
 	}
 
 	result := map[string]string{"result": "ok"}
@@ -20,42 +22,21 @@ func (ar *Router) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
-		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
-		if !ok {
-			ar.Logger.Println("Cannot fetch access token bytes from context")
-			ar.ServeJSON(w, locale, http.StatusNoContent, nil)
-			return
-		}
-		accessTokenString := string(accessTokenBytes)
+		access := tokenFromContext(r.Context())
 
-		// Blacklist current access token.
-		if err := ar.server.Storages().Blocklist.Add(accessTokenString); err != nil {
-			ar.Logger.Printf("Cannot blacklist access token: %s\n", err)
-		}
-
-		if r.Body == http.NoBody {
-			ar.ServeJSON(w, locale, http.StatusOK, result)
-			return
-		}
-
-		d := logoutData{}
-		if ar.MustParseJSON(w, r, &d) != nil {
-			return
-		}
-
-		// Revoke refresh token, if present.
-		if err := ar.revokeRefreshToken(d.RefreshToken, accessTokenString); err != nil {
-			ar.Logger.Printf("Cannot revoke refresh token: %s\n", err)
-		}
-
-		// Detach device token, if present.
-		if len(d.DeviceToken) > 0 {
-			// TODO: check for ownership when device tokens are supported.
-			if err := ar.server.Storages().User.DetachDeviceToken(d.DeviceToken); err != nil {
-				ar.Logger.Println("Cannot detach device token")
+		if r.Body != http.NoBody {
+			ld := logoutData{}
+			json.NewDecoder(r.Body).Decode(&ld)
+			if ld.RefreshToken != "" {
+				refresh, err := jwt.ParseTokenString(ld.RefreshToken)
+				if err == nil && refresh != nil {
+				}
 			}
 		}
 
+		ar.server.Storages().Token.SaveToken(r.Context())
+
+		// TODO: Detach device from user
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }

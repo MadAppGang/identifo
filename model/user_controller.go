@@ -17,6 +17,8 @@ type UserController interface {
 	GetJWTTokens(ctx context.Context, app AppData, u User, scopes []string) (AuthResponse, error)
 	RefreshJWTToken(ctx context.Context, refresh_token *JWToken, access string, app AppData, scopes []string) (AuthResponse, error)
 
+	VerifyPassword(ctx context.Context, u User, password string) error
+
 	InvalidateCache()
 }
 

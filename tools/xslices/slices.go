@@ -47,3 +47,36 @@ func ConcatUnique[T comparable](sl1, sl2 []T) []T {
 	res := append(sl1, sl2...)
 	return Unique(res)
 }
+
+// func SliceIntersect(a, b []string) []string {
+// 	res := make([]string, 0)
+
+// 	for _, e := range a {
+// 		if SliceContains(b, e) {
+// 			res = append(res, e)
+// 		}
+// 	}
+
+// 	return res
+// }
+
+// func SliceContains(s []string, e string) bool {
+// 	for _, a := range s {
+// 		if strings.TrimSpace(strings.ToLower(a)) == strings.TrimSpace(strings.ToLower(e)) {
+// 			return true
+// 		}
+// 	}
+// 	return false
+// }
+
+// func SliceExcluding(a []string, exclude string) []string {
+// 	res := make([]string, 0)
+
+// 	for _, e := range a {
+// 		if e != exclude {
+// 			res = append(res, e)
+// 		}
+// 	}
+
+// 	return res
+// }

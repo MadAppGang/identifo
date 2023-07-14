@@ -74,3 +74,14 @@ func IP(errorPath string, appStorage model.AppStorage, logger *log.Logger) negro
 		next.ServeHTTP(w, r)
 	}
 }
+
+// IPFromContext returns IP from request context.
+func IPFromContext(ctx context.Context) string {
+	value := ctx.Value(model.IPContextKey)
+
+	if value == nil {
+		return ""
+	}
+
+	return value.(string)
+}

@@ -4,6 +4,8 @@ import (
 	"context"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/jwt"
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"golang.org/x/exp/maps"
 	"golang.org/x/exp/slices"
@@ -146,4 +148,15 @@ func needTenantInfo(scopes []string) bool {
 		}
 	}
 	return false
+}
+
+func (c *UserStorageController) VerifyPassword(ctx context.Context, u model.User, password string) error {
+	bool, err := jwt.PasswordMatch(password, u.PasswordHash, []byte(c.s.PasswordHash.Pepper))
+	if err != nil {
+		return err
+	}
+	if !bool {
+		return l.ErrorAPIRequestIncorrectLoginOrPassword
+	}
+	return nil
 }
