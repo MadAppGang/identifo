@@ -2,7 +2,9 @@ package controller
 
 import (
 	"context"
+	"time"
 
+	"github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
@@ -23,10 +25,36 @@ func (c *UserStorageController) RefreshJWTToken(ctx context.Context, refresh_tok
 		return model.AuthResponse{}, err
 	}
 
-	respose, err := c.GetJWTTokens(ctx, app, u, scopes)
+	// let's parse access token:
+	at, err := jwt.ParseTokenString(access)
+	if err == nil {
+		tse := model.TokenStorageEntity{
+			ID:        at.ID(),
+			RawToken:  access,
+			TokenType: model.TokenTypeAccess,
+			AddedAt:   time.Now(),
+			AddedBy:   model.TokenStorageAddedByUser,
+			Comments:  "Refresh token API call",
+		}
+		c.toks.SaveToken(ctx, tse)
+	}
+	tse := model.TokenStorageEntity{
+		ID:        refresh_token.ID(),
+		RawToken:  refresh_token.Raw,
+		TokenType: model.TokenTypeRefresh,
+		AddedAt:   time.Now(),
+		AddedBy:   model.TokenStorageAddedByUser,
+		Comments:  "Refresh token API call",
+	}
+
+	err = c.toks.SaveToken(ctx, tse)
 	if err != nil {
 		return model.AuthResponse{}, err
 	}
 
-	c.
+	response, err := c.GetJWTTokens(ctx, app, u, scopes)
+	if err != nil {
+		return model.AuthResponse{}, err
+	}
+	return response, nil
 }

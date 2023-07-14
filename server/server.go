@@ -109,7 +109,6 @@ func (s *Server) Close() {
 	// TODO: Implement close for user storages
 	// maybeClose(s.storages.User)
 	maybeClose(s.storages.Token)
-	maybeClose(s.storages.Blocklist)
 	maybeClose(s.storages.Invite)
 	maybeClose(s.storages.Session)
 }

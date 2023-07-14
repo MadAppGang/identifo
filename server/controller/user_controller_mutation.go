@@ -12,7 +12,7 @@ import (
 	"golang.org/x/exp/slices"
 )
 
-var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
+var _umc model.UserMutationController = NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, nil, model.ServerSettings{})
 
 // ====================================
 // Data mutation

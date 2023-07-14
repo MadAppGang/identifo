@@ -27,12 +27,12 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		if len(app.ID) == 0 {
-			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorAPPNoAPPInContext)
 			return
 		}
 
 		if app.RegistrationForbidden {
-			ar.LocalizedError(w, locale, http.StatusForbidden, l.ErrorAPIAPPRegistrationForbidden)
+			ar.LocalizedError(w, locale, http.StatusForbidden, l.ErrorAPPRegistrationForbidden)
 			return
 		}
 
