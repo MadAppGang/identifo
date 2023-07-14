@@ -25,6 +25,10 @@ const (
 	TokenTypeActor      TokenType = "actor"      // actor token is token impersonation. Admin could impersonated to be some of the users.
 )
 
+func (t TokenType) String() string {
+	return string(t)
+}
+
 // TokenWithClaims generates new JWT token with claims and keyID.
 func TokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *JWToken {
 	return &JWToken{
@@ -87,7 +91,7 @@ func (t *JWToken) Payload() map[string]any {
 
 // Type returns token type.
 func (t *JWToken) Type() TokenType {
-	claims, ok := t.Claims.(*Claims)
+	claims, ok := t.Claims.(Claims)
 	if !ok {
 		return ""
 	}
@@ -180,8 +184,12 @@ func (c Claims) MarshalJSON() ([]byte, error) {
 		return nil, err
 	}
 	maps.Copy(m, rcm)
-	m["type"] = c.Type
-	m["kid"] = c.KeyID
+	if len(c.Type) > 0 {
+		m["type"] = c.Type
+	}
+	if len(c.KeyID) > 0 {
+		m["kid"] = c.KeyID
+	}
 	return json.Marshal(&m)
 }
 
@@ -200,8 +208,14 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	exclude := map[string]bool{"iss": true, "sub": true, "aud": true, "exp": true, "nbf": true, "iat": true, "jti": true, "kid": true, "type": true}
 	c.Payload = map[string]any{}
 	for k, v := range pc {
-		if !exclude[strings.ToLower(k)] {
-			c.Payload[strings.ToLower(k)] = v
+		lk := strings.ToLower(k)
+		if !exclude[lk] {
+			// try to convert slice of any to slice of strings for roles
+			if strings.HasPrefix(lk, RoleScopePrefix) {
+				c.Payload[lk] = toSliceString(v)
+			} else {
+				c.Payload[lk] = v
+			}
 		}
 	}
 	if pc["kid"] != nil {
@@ -212,6 +226,23 @@ func (c *Claims) UnmarshalJSON(data []byte) error {
 	}
 
 	return nil
+}
+
+// if it fail on any conversion - return the original value
+func toSliceString(s any) any {
+	sl, ok := s.([]any)
+	if !ok {
+		return s
+	}
+	r := []string{}
+	for _, v := range sl {
+		vs, ok := v.(string)
+		if !ok {
+			return s
+		}
+		r = append(r, vs)
+	}
+	return r
 }
 
 // Full example of how to use JWT tokens:
