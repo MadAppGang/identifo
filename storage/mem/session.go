@@ -4,8 +4,11 @@ import (
 	"sync"
 	"time"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 )
+
+var sessionNotFoundError = l.NewError(l.ErrorNotFound, "session")
 
 type memoryStorage struct {
 	sync.Mutex
@@ -22,7 +25,7 @@ func NewSessionStorage() model.SessionStorage {
 func (m *memoryStorage) GetSession(id string) (model.Session, error) {
 	session, ok := m.sessions[id]
 	if !ok {
-		return model.Session{}, model.ErrorNotFound
+		return model.Session{}, sessionNotFoundError
 	}
 
 	return session, nil
@@ -50,7 +53,7 @@ func (m *memoryStorage) ProlongSession(id string, newDuration model.SessionDurat
 
 	session, ok := m.sessions[id]
 	if !ok {
-		return model.ErrorNotFound
+		return sessionNotFoundError
 	}
 
 	session.ExpirationTime = time.Now().Add(newDuration.Duration).Unix()
@@ -61,5 +64,4 @@ func (m *memoryStorage) ProlongSession(id string, newDuration model.SessionDurat
 
 // Close closes underlying database.
 func (m *memoryStorage) Close() {
-
 }

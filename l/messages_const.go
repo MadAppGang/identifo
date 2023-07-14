@@ -19,6 +19,16 @@ const (
 	KeyWithSpaces LocalizedString = "key with spaces"
 
 	//===========================================================================
+	//  root main errors
+	//===========================================================================
+	// ErrorNotFound -> % not found!
+	ErrorNotFound LocalizedString = "error.not.found"
+	// ErrorUserNotFound -> User not found.
+	ErrorUserNotFound LocalizedString = "error.user.not_found"
+	// ErrorUserNotFoundError -> User not found with error; %v.
+	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
+
+	//===========================================================================
 	//  server settings messages
 	//===========================================================================
 	// ErrorServerUpdateSettingsNoChange -> no settings has been changed, skipping the update
@@ -197,20 +207,22 @@ const (
 	ErrorInvalidInviteToken LocalizedString = "error.invalid.invite.token"
 	// ErrorInvalidInviteTokenBadInvitee -> Unable to get inviter for invite token %v.
 	ErrorInvalidInviteTokenBadInvitee LocalizedString = "error.invalid.invite.token.bad.invitee"
+	// ErrorTokenIsForOtherAPP -> This token is not issued to works with this app.
+	ErrorTokenIsForOtherAPP LocalizedString = "error.token.is.for.other.app"
 
 	//===========================================================================
 	//  App errors
 	//===========================================================================
-	// ErrorAPIAPPInactive -> The app is inactive.
-	ErrorAPIAPPInactive LocalizedString = "error.api.app.inactive"
-	// ErrorAPIAPPRegistrationForbidden -> Registration in this app is forbidden.
-	ErrorAPIAPPRegistrationForbidden LocalizedString = "error.api.app.registration_forbidden"
-	// ErrorAPIRequestAuthorizerInternalInit -> Error creating authz service.
-	ErrorAPIRequestAuthorizerInternalInit LocalizedString = "error.api.request.authorizer.internal.init"
-	// ErrorAPIAPPUnableToTokenPayloadForAPPError -> Error getting token payload for the app %s with error: %v.
-	ErrorAPIAPPUnableToTokenPayloadForAPPError LocalizedString = "error.api.app.unable_to_token_payload_for_app.error"
-	// ErrorAPIAPPNoAPPInContext -> Missing app data in context.
-	ErrorAPIAPPNoAPPInContext LocalizedString = "error.api.app.no_app_in_context"
+	// ErrorAPPInactive -> The app is inactive.
+	ErrorAPPInactive LocalizedString = "error.app.inactive"
+	// ErrorAPPRegistrationForbidden -> Registration in this app is forbidden.
+	ErrorAPPRegistrationForbidden LocalizedString = "error.app.registration_forbidden"
+	// ErrorRequestAuthorizerInternalInit -> Error creating authz service.
+	ErrorRequestAuthorizerInternalInit LocalizedString = "error.request.authorizer.internal.init"
+	// ErrorAPPUnableToTokenPayloadForAPPError -> Error getting token payload for the app %s with error: %v.
+	ErrorAPPUnableToTokenPayloadForAPPError LocalizedString = "error.app.unable_to_token_payload_for_app.error"
+	// ErrorAPPNoAPPInContext -> Missing app data in context.
+	ErrorAPPNoAPPInContext LocalizedString = "error.app.no_app_in_context"
 	// ErrorAPPRegisterUrlError -> Invalid register URL (%s) for app (%s): %v.
 	ErrorAPPRegisterUrlError LocalizedString = "error.app.register_url.error"
 	// ErrorAPPLoginNoScope -> User has no required scopes by this app.
@@ -235,10 +247,6 @@ const (
 	ErrorUsernameEmpty LocalizedString = "error.username.empty"
 	// ErrorLoginDataEmpty -> Your login data is empty.
 	ErrorLoginDataEmpty LocalizedString = "error.login.data.empty"
-	// ErrorUserNotFound -> User not found.
-	ErrorUserNotFound LocalizedString = "error.user.not_found"
-	// ErrorUserNotFoundError -> User not found with error; %v.
-	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
 	// ErrorRequestChallengeUnsupportedByAPP -> This login type is not supported by the app.
 	ErrorRequestChallengeUnsupportedByAPP LocalizedString = "error.request.challenge.unsupported.by.app"
 	// ErrorLoginTypeNotSupported -> This login type is not supported.

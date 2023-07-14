@@ -2,12 +2,8 @@ package model
 
 import (
 	"encoding/json"
-	"errors"
 	"time"
 )
-
-// ErrSessionNotFound is when session not found.
-var ErrSessionNotFound = errors.New("Session not found. ")
 
 // Session is a session.
 type Session struct {

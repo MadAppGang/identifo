@@ -46,7 +46,7 @@ func TestRequestSMSTestNoApp(t *testing.T) {
 	}
 	_, err := cc.RequestChallenge(context.TODO(), ch, "+61450123456")
 	require.Error(t, err)
-	require.True(t, errors.Is(err, mock.ErrNotFound))
+	require.True(t, errors.Is(err, l.ErrorNotFound))
 }
 
 // challenge is asking for otp code with sms, but app only does magic link with sms

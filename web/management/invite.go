@@ -33,7 +33,7 @@ func (ar *Router) getInviteToken(w http.ResponseWriter, r *http.Request) {
 	}
 
 	_, err := ar.server.Storages().Invite.GetByEmail(d.Email)
-	if err != nil && !errors.Is(err, model.ErrorNotFound) {
+	if err != nil && !errors.Is(err, l.ErrorNotFound) {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
 		return
 	}

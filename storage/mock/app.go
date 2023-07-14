@@ -5,12 +5,12 @@ import (
 	"errors"
 	"io"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"golang.org/x/exp/maps"
 )
 
 var (
-	ErrNotFound       = errors.New("not found")
 	ErrNotImplemented = errors.New("not implemented")
 
 	_a model.AppStorage = &App{}
@@ -35,7 +35,7 @@ func (a *App) AppByID(id string) (model.AppData, error) {
 			return app, nil
 		}
 	}
-	return model.AppData{}, ErrNotFound
+	return model.AppData{}, l.NewError(l.ErrorNotFound, "app")
 }
 
 func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
@@ -44,7 +44,7 @@ func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
 		return model.AppData{}, err
 	}
 	if !app.Active {
-		return model.AppData{}, ErrNotFound
+		return model.AppData{}, l.NewError(l.ErrorNotFound, "app")
 	}
 	return app, nil
 }

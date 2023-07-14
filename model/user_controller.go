@@ -14,6 +14,7 @@ type UserController interface {
 	// Admin actions for users
 	GetUsers(ctx context.Context, filter string, skip, limit int) ([]User, int, error)
 	GetJWTTokens(ctx context.Context, app AppData, u User, scopes []string) (AuthResponse, error)
+	RefreshJWTToken(ctx context.Context, refresh_token *JWToken, access string, app AppData, scopes []string) (AuthResponse, error)
 
 	InvalidateCache()
 }

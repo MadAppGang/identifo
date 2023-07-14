@@ -5,9 +5,6 @@ import (
 	"regexp"
 )
 
-// ErrUserNotFound is when user not found.
-// var ErrUserNotFound = errors.New("user not found")
-
 var (
 	// EmailRegexp is a regexp which all valid emails must match.
 	EmailRegexp = regexp.MustCompile(`^[a-zA-Z0-9_.+-]+@[a-zA-Z0-9-]+\.[a-zA-Z0-9-.]+$`)

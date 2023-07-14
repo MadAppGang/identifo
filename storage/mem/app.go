@@ -2,12 +2,14 @@ package mem
 
 import (
 	"encoding/json"
-	"log"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
+
+var appNotFoundError = l.NewError(l.ErrorNotFound, "app")
 
 // NewAppStorage creates new in-memory AppStorage implementation.
 func NewAppStorage() (model.AppStorage, error) {
@@ -23,7 +25,7 @@ type AppStorage struct {
 func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 	a, ok := as.storage[id]
 	if !ok {
-		return model.AppData{}, ErrorNotFound
+		return model.AppData{}, appNotFoundError
 	}
 	return a, nil
 }
@@ -31,7 +33,7 @@ func (as *AppStorage) AppByID(id string) (model.AppData, error) {
 // ActiveAppByID returns app by id only if it's active.
 func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	if appID == "" {
-		return model.AppData{}, ErrorEmptyAppID
+		return model.AppData{}, appNotFoundError
 	}
 
 	app, err := as.AppByID(appID)
@@ -40,7 +42,7 @@ func (as *AppStorage) ActiveAppByID(appID string) (model.AppData, error) {
 	}
 
 	if !app.Active {
-		return model.AppData{}, ErrorInactiveApp
+		return model.AppData{}, l.ErrorAPPInactive
 	}
 
 	return app, nil
@@ -102,7 +104,6 @@ func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
 
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println("error while unmarshal app data: ", err)
 		return err
 	}
 	for _, a := range apd {
