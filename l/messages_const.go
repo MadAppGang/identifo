@@ -27,6 +27,8 @@ const (
 	ErrorUserNotFound LocalizedString = "error.user.not_found"
 	// ErrorUserNotFoundError -> User not found with error; %v.
 	ErrorUserNotFoundError LocalizedString = "error.user.not_found.error"
+	// ErrorNotImplemented -> Not implemented yet.
+	ErrorNotImplemented LocalizedString = "error.not.implemented"
 
 	//===========================================================================
 	//  server settings messages

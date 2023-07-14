@@ -54,7 +54,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 		}
 
 		_, err = ar.server.Storages().Invite.GetByEmail(d.Email)
-		if err != nil && !errors.Is(err, model.ErrorNotFound) {
+		if err != nil && !errors.Is(err, l.ErrorNotFound) {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorStorageInviteFindEmailError, err)
 			return
 		}

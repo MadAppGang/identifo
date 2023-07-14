@@ -25,7 +25,7 @@ func (ar *Router) GetApp() http.HandlerFunc {
 		app, err := ar.server.Storages().App.AppByID(appID)
 		if err != nil {
 			status := http.StatusInternalServerError
-			if errors.Is(err, l.ErrorUserNotFound) {
+			if errors.Is(err, l.ErrorNotFound) {
 				status = http.StatusNotFound
 			}
 			ar.HTTPError(w, err, status)

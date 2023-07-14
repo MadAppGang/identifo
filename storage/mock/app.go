@@ -2,7 +2,6 @@ package mock
 
 import (
 	"crypto/rand"
-	"errors"
 	"io"
 
 	"github.com/madappgang/identifo/v2/l"
@@ -11,7 +10,7 @@ import (
 )
 
 var (
-	ErrNotImplemented = errors.New("not implemented")
+	appNotFoundError = l.NewError(l.ErrorNotFound, "app")
 
 	_a model.AppStorage = &App{}
 )
@@ -35,7 +34,7 @@ func (a *App) AppByID(id string) (model.AppData, error) {
 			return app, nil
 		}
 	}
-	return model.AppData{}, l.NewError(l.ErrorNotFound, "app")
+	return model.AppData{}, appNotFoundError
 }
 
 func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
@@ -44,7 +43,7 @@ func (a *App) ActiveAppByID(appID string) (model.AppData, error) {
 		return model.AppData{}, err
 	}
 	if !app.Active {
-		return model.AppData{}, l.NewError(l.ErrorNotFound, "app")
+		return model.AppData{}, appNotFoundError
 	}
 	return app, nil
 }
@@ -83,7 +82,7 @@ func (a *App) DeleteApp(id string) error {
 
 func (a *App) ImportJSON(data []byte, cleanOldData bool) error {
 	// TODO: implement
-	return ErrNotImplemented
+	return l.ErrorNotImplemented
 }
 
 func (a *App) TestDatabaseConnection() error {

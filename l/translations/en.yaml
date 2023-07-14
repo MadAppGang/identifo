@@ -6,6 +6,7 @@ key with spaces: key with spaces passed test
 error.not.found: "% not found!"
 error.user.not_found: User not found.
 error.user.not_found.error: User not found with error; %v.
+error.not.implemented: "Not implemented yet."
 
 # server settings messages
 error.server.update.settings.no.change: "no settings has been changed, skipping the update"
