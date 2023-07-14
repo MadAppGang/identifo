@@ -43,7 +43,7 @@ func TestGetInvitationFromClaim(t *testing.T) {
 func TestFilterInviteeCouldInvite(t *testing.T) {
 	invitedTo := getInvitationFromClaim(claims)
 
-	c := NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, model.DefaultServerSettings)
+	c := NewUserStorageController(nil, nil, nil, nil, nil, nil, nil, nil, nil, nil, model.DefaultServerSettings)
 	r := c.filterInviteeCouldInvite(inviterMembership, invitedTo)
 	require.NotNil(t, r)
 	require.NotEmpty(t, r)
@@ -77,7 +77,7 @@ func TestAddUserWithInvitationToken(t *testing.T) {
 	ts := createTokenService(t)
 	token, err := ts.NewToken(model.TokenTypeInvite, user, nil, nil, claims)
 	require.NoError(t, err)
-	c := NewUserStorageController(&u, &u, nil, nil, nil, nil, nil, nil, model.DefaultServerSettings)
+	c := NewUserStorageController(&u, &u, nil, nil, nil, nil, nil, nil, nil, nil, model.DefaultServerSettings)
 
 	c.AddUserToTenantWithInvitationToken(context.TODO(), newUser, token)
 }
