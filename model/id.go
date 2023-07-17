@@ -31,10 +31,12 @@ var (
 	objectIDCounter = readRandomUint32()
 )
 
+// IsNewUserID predefined ID for any new user, should not belong to real user.
 func IsNewUserID(id string) bool {
 	return id == NewUserID.String()
 }
 
+// IsRootUserID predefined ID for root user, the user who sues admin panel. User with no identity but with full superpower.
 func IsRootUserID(id string) bool {
 	return id == RootUserID.String()
 }

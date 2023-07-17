@@ -32,6 +32,7 @@ func (ar *Router) initRoutes() {
 
 	// auth router for non authenticated users
 	r.Route("/auth", func(r chi.Router) {
+		r.Use(ar.app())
 		r.Use(ar.HMACSignature)
 		r.Route("/passwordless", func(r chi.Router) {
 			r.Post("/start", ar.RequestChallenge())
@@ -53,12 +54,14 @@ func (ar *Router) initRoutes() {
 
 	// routes for apps
 	r.Route("/app", func(r chi.Router) {
+		r.Use(ar.app())
 		r.Use(ar.HMACSignature)
 		r.Get("/settings", ar.GetAppSettings())
 	})
 
 	// authenticated user routes
 	r.Route("/user", func(r chi.Router) {
+		r.Use(ar.app())
 		r.Use(ar.token(model.TokenTypeAccess))
 		r.Get("/profile", ar.GetUser())
 		r.Get("/profile/{id}", ar.GetUser())
@@ -84,4 +87,8 @@ func (ar *Router) initRoutes() {
 
 func (ar *Router) token(t model.TokenType) func(next http.Handler) http.Handler {
 	return wm.Token(t, ar.server.Services().Token, ar.server.Storages().Token, ar.LocalizedRouter)
+}
+
+func (ar *Router) app() func(next http.Handler) http.Handler {
+	return wm.App(ar.server.Storages().App, &ar.LocalizedRouter)
 }

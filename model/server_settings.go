@@ -20,7 +20,6 @@ var s3ServerFlagRegexp = regexp.MustCompile(`^s3://(?P<region>[a-zA-Z0-9\-]{5,})
 type ServerSettings struct {
 	General          GeneralServerSettings  `yaml:"general" json:"general"`
 	SecuritySettings SecurityServerSettings `yaml:"security" json:"security"`
-	AdminAccount     AdminAccountSettings   `yaml:"adminAccount" json:"admin_account"`
 	Storage          StorageSettings        `yaml:"storage" json:"storage"`
 	Services         ServicesSettings       `yaml:"services" json:"external_services"`
 	Login            LoginSettings          `yaml:"login" json:"login"`
@@ -40,12 +39,6 @@ type GeneralServerSettings struct {
 	Issuer            string             `yaml:"issuer" json:"issuer"`
 	ImmutableIDFields []AuthIdentityType `yaml:"immutable_id_fields" json:"immutable_id_fields"`
 	UniqueIDFields    []AuthIdentityType `yaml:"unique_id_fields" json:"unique_id_fields"`
-}
-
-// AdminAccountSettings are names of environment variables that store admin credentials.
-type AdminAccountSettings struct {
-	LoginEnvName    string `yaml:"loginEnvName" json:"login_env_name"`
-	PasswordEnvName string `yaml:"passwordEnvName" json:"password_env_name"`
 }
 
 // StorageSettings holds together storage settings for different services.

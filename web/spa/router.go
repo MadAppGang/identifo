@@ -6,15 +6,15 @@ import (
 	"net/http"
 	"os"
 
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/middleware"
-	"github.com/urfave/negroni"
+	mw "github.com/madappgang/identifo/v2/web/middleware"
 )
 
-func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.Logger) (model.Router, error) {
+func NewRouter(setting SPASettings, logger *log.Logger) (model.Router, error) {
 	ar := Router{
-		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()).With(middlewares...),
-		FS:         setting.FileSystem,
+		FS: setting.FileSystem,
 	}
 
 	// Setup logger to stdout.
@@ -22,19 +22,32 @@ func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.L
 		ar.Logger = log.New(os.Stdout, fmt.Sprintf("[ %s ]: ", setting.Name), log.Ldate|log.Ltime|log.Lshortfile)
 	}
 
-	ar.Middleware.UseHandler(NewSPAHandlerFunc(setting))
+	// ar.Middleware.UseHandler(NewSPAHandlerFunc(setting))
+
+	r := chi.NewRouter()
+	r.Use(middleware.StripSlashes)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	if setting.NewCacheDisabled {
+		r.Use(mw.NewCacheDisable)
+	}
+	r.NotFound(NewSPAHandlerFunc(setting))
+	ar.mux = r
+
 	return &ar, nil
 }
 
 // login app router
 type Router struct {
-	Logger     *log.Logger
-	Middleware *negroni.Negroni
-	FS         http.FileSystem
+	Logger *log.Logger
+	mux    *chi.Mux
+	FS     http.FileSystem
 }
 
 // ServeHTTP implements identifo.Router interface.
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Reroute to our internal implementation.
-	ar.Middleware.ServeHTTP(w, r)
+	ar.mux.ServeHTTP(w, r)
 }

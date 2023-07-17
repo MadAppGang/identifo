@@ -13,10 +13,11 @@ import (
 const DefaultIndexFilename = "index.html"
 
 type SPASettings struct {
-	Name       string
-	Root       string
-	FileSystem http.FileSystem
-	Index      string
+	Name             string
+	Root             string
+	FileSystem       http.FileSystem
+	Index            string
+	NewCacheDisabled bool
 }
 
 type SPAHandlerError struct {

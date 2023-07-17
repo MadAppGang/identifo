@@ -11,9 +11,7 @@ import (
 	"github.com/madappgang/identifo/v2/web/admin"
 	"github.com/madappgang/identifo/v2/web/api"
 	"github.com/madappgang/identifo/v2/web/management"
-	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/madappgang/identifo/v2/web/spa"
-	"github.com/urfave/negroni"
 )
 
 const (
@@ -78,11 +76,12 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	} else {
 		// Web login app setup
 		loginAppSettings := spa.SPASettings{
-			Name:       "LOGIN_APP",
-			Root:       "/",
-			FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
+			Name:             "LOGIN_APP",
+			Root:             "/",
+			FileSystem:       http.FS(settings.Server.Storages().LoginAppFS),
+			NewCacheDisabled: true,
 		}
-		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, []negroni.Handler{middleware.NewCacheDisable()}, settings.Logger)
+		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, settings.Logger)
 		if err != nil {
 			return nil, err
 		}
@@ -114,11 +113,12 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 
 		// init admin panel web app
 		adminPanelAppSettings := spa.SPASettings{
-			Name:       "ADMIN_PANEL",
-			Root:       "/",
-			FileSystem: http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			Name:             "ADMIN_PANEL",
+			Root:             "/",
+			FileSystem:       http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			NewCacheDisabled: false,
 		}
-		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
+		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, settings.Logger)
 		if err != nil {
 			return nil, err
 		}

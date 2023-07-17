@@ -391,20 +391,8 @@ const (
 	ErrorAdminPanelNoSkipLimit LocalizedString = "error.admin.panel.no.skip.limit"
 	// ErrorAdminPanelGetUsers -> Error getting users list: %s.
 	ErrorAdminPanelGetUsers LocalizedString = "error.admin.panel.get.users"
-	// ErrorAdminPanelNotAuthorized -> You are not authorized to access admin panel.
-	ErrorAdminPanelNotAuthorized LocalizedString = "error.admin.panel.not.authorized"
-	// ErrorAdminPanelMissingSession -> Session lost or expired, logged out.
-	ErrorAdminPanelMissingSession LocalizedString = "error.admin.panel.missing.session"
-	// ErrorAdminPanelMissingCookie -> error getting cookie: %v.
-	ErrorAdminPanelMissingCookie LocalizedString = "error.admin.panel.missing.cookie"
-	// ErrorAdminPanelInvalidCookie -> invalid cookie: %v.
-	ErrorAdminPanelInvalidCookie LocalizedString = "error.admin.panel.invalid.cookie"
-	// ErrorAdminPanelAdminCredentialsError -> error getting admin credentials: %v
-	ErrorAdminPanelAdminCredentialsError LocalizedString = "error.admin.panel.admin.credentials.error"
 	// ErrorAdminPanelAdminCredentialsMismatch -> login and password are wrong, admin credentials set via env variables for identifo
 	ErrorAdminPanelAdminCredentialsMismatch LocalizedString = "error.admin.panel.admin.credentials.mismatch"
-	// ErrorAdminPanelCreateSession -> unable to create session with error: %v
-	ErrorAdminPanelCreateSession LocalizedString = "error.admin.panel.create.session"
 	// ErrorAdminPanelAdminCredentialsNotSet -> env variables for admin login and password not set
 	ErrorAdminPanelAdminCredentialsNotSet LocalizedString = "error.admin.panel.admin.credentials.not.set"
 	// ErrorAdminPanelPrivateKeyEncoding -> error encoding private key: %v
