@@ -1,4 +1,4 @@
-package api
+package middleware
 
 import (
 	"context"
@@ -9,7 +9,7 @@ import (
 	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/middleware"
+	"github.com/madappgang/identifo/v2/web/router"
 )
 
 const (
@@ -18,12 +18,12 @@ const (
 )
 
 // Token middleware extracts token and validates it.
-func (ar *Router) Token(tokenType model.TokenType) func(next http.Handler) http.Handler {
+func Token(tokenType model.TokenType, ts model.TokenService, tstor model.TokenStorage, ar router.LocalizedRouter) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			locale := r.Header.Get("Accept-Language")
 
-			app := middleware.AppFromContext(r.Context())
+			app := AppFromContext(r.Context())
 			if len(app.ID) == 0 {
 				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPPNoAPPInContext)
 				return
@@ -38,11 +38,11 @@ func (ar *Router) Token(tokenType model.TokenType) func(next http.Handler) http.
 
 			v := jwtValidator.NewValidator(
 				[]string{app.ID},
-				[]string{ar.server.Services().Token.Issuer()},
+				[]string{ts.Issuer()},
 				nil,
 				[]string{string(tokenType)},
 			)
-			token, err := ar.server.Services().Token.Parse(tokenString)
+			token, err := ts.Parse(tokenString)
 			if err != nil {
 				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
 				return
@@ -52,7 +52,7 @@ func (ar *Router) Token(tokenType model.TokenType) func(next http.Handler) http.
 				return
 			}
 
-			_, err = ar.server.Storages().Token.TokenByID(r.Context(), token.ID())
+			_, err = tstor.TokenByID(r.Context(), token.ID())
 			if err != nil && !errors.Is(err, l.ErrorNotFound) {
 				ar.LocalizedError(rw, locale, http.StatusBadRequest, l.ErrorAPITokenParseError, err)
 				return
@@ -69,7 +69,7 @@ func (ar *Router) Token(tokenType model.TokenType) func(next http.Handler) http.
 	}
 }
 
-// tokenFromContext returns token from request context.
-func tokenFromContext(ctx context.Context) *model.JWToken {
+// TokenFromContext returns token from request context.
+func TokenFromContext(ctx context.Context) *model.JWToken {
 	return ctx.Value(model.TokenContextKey).(*model.JWToken)
 }

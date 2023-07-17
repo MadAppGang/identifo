@@ -3,11 +3,11 @@ package admin
 import (
 	"net/http"
 
-	"github.com/go-chi/chi/middleware"
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
-	"github.com/gorilla/mux"
-	"github.com/urfave/negroni"
+	"github.com/madappgang/identifo/v2/model"
+	wm "github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // Setup all routes.
@@ -20,128 +20,52 @@ func (ar *Router) initRoutes() {
 	r.Use(middleware.Recoverer)
 	r.Use(cors.Handler(ar.cors))
 
-	r.Route("/user", func(r chi.Router) {
-		r.Get("/info", ar.UserInfo())
-	})
-
 	r.Route("/auth", func(r chi.Router) {
-		r.Get("/info", ar.UserInfo())
+		r.Post("/login", ar.Login())
+		r.With(ar.token()).Post("/logout", ar.Logout())
 	})
 
 	r.Route("/apps", func(r chi.Router) {
-		r.Get("/info", ar.UserInfo())
+		r.Use(ar.token())
+		r.Get("/", ar.FetchApps())
+		r.Post("/", ar.CreateApp())
+		r.Get("/{id:[a-zA-Z0-9]+}", ar.GetApp())
+		r.Put("/{id:[a-zA-Z0-9]+}", ar.UpdateApp())
+		r.Delete("/{id:[a-zA-Z0-9]+}", ar.DeleteApp())
 	})
 
 	r.Route("/users", func(r chi.Router) {
-		r.Get("/info", ar.UserInfo())
+		r.Use(ar.token())
+		r.Get("/", ar.FetchUsers())
+		r.Post("/", ar.CreateUser())
+		r.Get("/{id:[a-zA-Z0-9]+}", ar.GetUser())
+		r.Put("/{id:[a-zA-Z0-9]+}", ar.UpdateUser())
+		r.Delete("/{id:[a-zA-Z0-9]+}", ar.DeleteUser())
+		r.Post("/{id:[a-zA-Z0-9]+}/reset", ar.GenerateNewResetTokenUser())
 	})
 
-	r.Route("/config", func(r chi.Router) {
-		r.Get("/info", ar.UserInfo())
+	r.Route("/settings", func(r chi.Router) {
+		r.Use(ar.token())
+		r.Get("/", ar.FetchSettings())
+		r.Put("/", ar.UpdateSettings())
+		r.Post("/test", ar.TestConnection())
+		r.Post("/new_secret", ar.GenerateNewSecret())
+		// r.Get("/fim", ar.FIM())
+
+		r.Post("keys", ar.UploadJWTKeys())
+		r.Get("keys", ar.GetJWTKeys())
 	})
 
-	ar.router.Path("/me").Handler(negroni.New(
-		negroni.WrapFunc(ar.IsLoggedIn()),
-	)).Methods("GET")
+	r.Route("/invites", func(r chi.Router) {
+		r.Use(ar.token())
+		r.Get("/", ar.FetchInvites())
+		r.Post("/", ar.AddInvite())
+		r.Get("/{id:[a-zA-Z0-9]+}", ar.GetInviteByID())
+		r.Delete("/{id:[a-zA-Z0-9]+}", ar.ArchiveInviteByID())
+	})
+	ar.router = r
+}
 
-	ar.router.Path("/login").Handler(negroni.New(
-		negroni.WrapFunc(ar.Login()),
-	)).Methods("POST")
-
-	ar.router.Path("/logout").Handler(negroni.New(
-		negroni.WrapFunc(ar.Logout()),
-	)).Methods("POST")
-
-	ar.router.Path("/apps").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.FetchApps()),
-	)).Methods("GET")
-	ar.router.Path("/federated-providers").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.FederatedProvidersList()),
-	)).Methods("GET")
-	ar.router.Path("/apps").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.CreateApp()),
-	)).Methods("POST")
-
-	apps := mux.NewRouter().PathPrefix("/apps").Subrouter()
-	ar.router.PathPrefix("/apps").Handler(negroni.New(
-		ar.Session(),
-		negroni.Wrap(apps),
-	))
-	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetApp()).Methods("GET")
-	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateApp()).Methods("PUT")
-	apps.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteApp()).Methods("DELETE")
-	apps.Path("/").HandlerFunc(ar.DeleteAllApps()).Methods("DELETE")
-
-	ar.router.Path("/users").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.FetchUsers()),
-	)).Methods("GET")
-	ar.router.Path("/users").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.CreateUser()),
-	)).Methods("POST")
-
-	users := mux.NewRouter().PathPrefix("/users").Subrouter()
-	ar.router.PathPrefix("/users").Handler(negroni.New(
-		ar.Session(),
-		negroni.Wrap(users),
-	))
-	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetUser()).Methods("GET")
-	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.UpdateUser()).Methods("PUT")
-	users.Path("/{id:[a-zA-Z0-9]+}").HandlerFunc(ar.DeleteUser()).Methods("DELETE")
-	users.Path("/generate_new_reset_token").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.GenerateNewResetTokenUser()),
-	)).Methods("POST")
-
-	ar.router.Path("/settings").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.FetchSettings()),
-	)).Methods("GET")
-
-	ar.router.Path("/settings").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.UpdateSettings()),
-	)).Methods("PUT")
-
-	ar.router.Path("/test_connection").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.TestConnection()),
-	)).Methods("POST")
-
-	ar.router.Path("/generate_new_secret").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.GenerateNewSecret()),
-	)).Methods("POST")
-
-	ar.router.Path("/invites").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.FetchInvites()),
-	)).Methods("GET")
-
-	ar.router.Path("/invites").Handler(negroni.New(
-		ar.Session(),
-		negroni.WrapFunc(ar.AddInvite()),
-	)).Methods("POST")
-
-	invites := mux.NewRouter().PathPrefix("/invites").Subrouter()
-	ar.router.PathPrefix("/invites").Handler(negroni.New(
-		ar.Session(),
-		negroni.Wrap(invites),
-	))
-
-	invites.Path("{id:[a-zA-Z0-9]+}").HandlerFunc(ar.GetInviteByID()).Methods(http.MethodGet)
-	invites.Path("{id:[a-zA-Z0-9]+}").HandlerFunc(ar.ArchiveInviteByID()).Methods(http.MethodDelete)
-
-	static := mux.NewRouter().PathPrefix("/static").Subrouter()
-	ar.router.PathPrefix("/static").Handler(negroni.New(
-		ar.Session(),
-		negroni.Wrap(static),
-	))
-
-	static.Path("/uploads/keys").HandlerFunc(ar.UploadJWTKeys()).Methods("POST")
-	static.Path("/keys").HandlerFunc(ar.GetJWTKeys()).Methods("GET")
+func (ar *Router) token() func(next http.Handler) http.Handler {
+	return wm.Token(model.TokenTypeManagement, ar.server.Services().Token, ar.server.Storages().Token, ar.LocalizedRouter)
 }

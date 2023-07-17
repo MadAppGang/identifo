@@ -1,12 +1,14 @@
 package api
 
 import (
+	"net/http"
+
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
 
 	"github.com/madappgang/identifo/v2/model"
-	// wm "github.com/madappgang/identifo/v2/web/middleware"
+	wm "github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // setup all routes
@@ -40,13 +42,13 @@ func (ar *Router) initRoutes() {
 		r.Route("/password", func(r chi.Router) {
 			r.Post("/reset", ar.RequestResetPassword())
 			// the only route here for authenticated user, but he have to use reset bearer token, not access
-			r.With(ar.Token(model.TokenTypeReset)).Post("/change", ar.ChangePassword())
+			r.With(ar.token(model.TokenTypeReset)).Post("/change", ar.ChangePassword())
 		})
 		r.Route("/federated", func(r chi.Router) {
 			// r.Handle("/start", ar.FederatedStart())
 			// r.Handle("/complete", ar.FederatedComplete())
 		})
-		r.With(ar.Token(model.TokenTypeRefresh)).Post("/token", ar.RefreshTokens())
+		r.With(ar.token(model.TokenTypeRefresh))
 	})
 
 	// routes for apps
@@ -57,7 +59,7 @@ func (ar *Router) initRoutes() {
 
 	// authenticated user routes
 	r.Route("/user", func(r chi.Router) {
-		r.Use(ar.Token(model.TokenTypeAccess))
+		r.Use(ar.token(model.TokenTypeAccess))
 		r.Get("/profile", ar.GetUser())
 		r.Get("/profile/{id}", ar.GetUser())
 		r.Put("/profile", ar.UpdateUser())
@@ -78,4 +80,8 @@ func (ar *Router) initRoutes() {
 		r.Get("/jwks.json", ar.OIDCJwks())
 	})
 	ar.router = r
+}
+
+func (ar *Router) token(t model.TokenType) func(next http.Handler) http.Handler {
+	return wm.Token(t, ar.server.Services().Token, ar.server.Storages().Token, ar.LocalizedRouter)
 }

@@ -33,7 +33,7 @@ func (ar *Router) RequestInviteLink() http.HandlerFunc {
 			return
 		}
 
-		token := tokenFromContext(r.Context())
+		token := middleware.TokenFromContext(r.Context())
 		app := middleware.AppFromContext(r.Context())
 
 		invitation, link, err := ar.server.Storages().UMC.CreateInvitation(r.Context(), token, d.Tenant, d.Group, d.Role, d.Email, &app)

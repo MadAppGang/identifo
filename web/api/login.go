@@ -67,7 +67,7 @@ func (ar *Router) GetUser() http.HandlerFunc {
 		scopes = append(scopes, model.ProfileScope)
 		fields := model.FieldsetForScopes(scopes)
 
-		userID := tokenFromContext(r.Context()).UserID()
+		userID := middleware.TokenFromContext(r.Context()).UserID()
 		user, err := ar.server.Storages().User.UserByID(r.Context(), userID)
 		if err != nil {
 			ar.HTTPError(w, l.ErrorWithLocale(err, locale), http.StatusUnauthorized)

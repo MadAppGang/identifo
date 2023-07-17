@@ -93,7 +93,7 @@ func (ar *Router) ChangePassword() http.HandlerFunc {
 			return
 		}
 
-		token := tokenFromContext(r.Context())
+		token := middleware.TokenFromContext(r.Context())
 		if token == nil {
 			ar.LocalizedError(w, locale, http.StatusInternalServerError, l.ErrorAPIContextNoToken)
 			return

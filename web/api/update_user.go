@@ -4,6 +4,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/madappgang/identifo/v2/jwt/middleware"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/tools/xmaps"
@@ -50,7 +51,7 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 		// clean password field if filled, there is separate method for password update
 		d.Password = nil
 
-		userID := tokenFromContext(r.Context()).UserID()
+		userID := middleware.TokenFromContext(r.Context()).UserID()
 		// only user himself could update his data. We force userID field to requester one.
 		// if Admin needs update someones data - use management data for that.
 		// or maybe we can handle that by roles in the future?

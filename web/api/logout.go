@@ -6,6 +6,7 @@ import (
 
 	"github.com/madappgang/identifo/v2/jwt"
 	"github.com/madappgang/identifo/v2/model"
+	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // Logout logs user out and deactivates their tokens.
@@ -22,7 +23,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		locale := r.Header.Get("Accept-Language")
 
-		access := tokenFromContext(r.Context())
+		access := middleware.TokenFromContext(r.Context())
 		var refresh *model.JWToken
 
 		if r.Body != http.NoBody {

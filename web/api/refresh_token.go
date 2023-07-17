@@ -29,7 +29,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 		app := middleware.AppFromContext(r.Context())
 		// should not be empty, the middleware should have validated it
-		token := tokenFromContext(r.Context())
+		token := middleware.TokenFromContext(r.Context())
 		result, err := ar.server.Storages().UC.RefreshJWTToken(r.Context(), token, rd.Access, app, rd.Scopes)
 		if err != nil {
 			ar.HTTPError(w, err, http.StatusInternalServerError)

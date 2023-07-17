@@ -15,7 +15,7 @@ func (ar *Router) AppToken() negroni.HandlerFunc {
 		locale := r.Header.Get("Accept-Language")
 
 		// Get refresh token from context.
-		token := tokenFromContext(r.Context())
+		token := middleware.TokenFromContext(r.Context())
 		if token == nil {
 			ar.LocalizedError(w, locale, http.StatusBadRequest, l.ErrorTokenRefreshEmpty)
 			return
