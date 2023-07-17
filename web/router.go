@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/go-chi/cors"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mem"
 	"github.com/madappgang/identifo/v2/web/admin"
@@ -12,7 +13,6 @@ import (
 	"github.com/madappgang/identifo/v2/web/management"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/madappgang/identifo/v2/web/spa"
-	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -30,7 +30,7 @@ type RouterSetting struct {
 	ServeAdminPanel  bool
 	LoggerSettings   model.LoggerSettings
 	AppOriginChecker model.OriginChecker
-	APICors          *cors.Cors
+	APICors          cors.Options
 	RestartChan      chan<- bool
 	Locale           string
 }
@@ -41,17 +41,16 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	var err error
 
 	// API router setup
-	apiCorsSettings := model.DefaultCors
+	cors := model.DefaultCors
 	if settings.AppOriginChecker != nil {
-		apiCorsSettings.AllowOriginRequestFunc = settings.AppOriginChecker.CheckOrigin
+		cors.AllowOriginFunc = settings.AppOriginChecker.CheckOrigin
 	}
-	apiCors := cors.New(apiCorsSettings)
 
 	apiSettings := api.RouterSettings{
 		Server:         settings.Server,
 		Logger:         settings.Logger,
 		LoggerSettings: settings.LoggerSettings,
-		Cors:           apiCors,
+		Cors:           cors,
 		Locale:         settings.Locale,
 	}
 

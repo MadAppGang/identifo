@@ -27,9 +27,7 @@ func (ss *ServerSettings) Validate(rewriteDefaults bool) []error {
 	if err := ss.Storage.Validate(); len(err) > 0 {
 		result = append(result, err...)
 	}
-	if err := ss.SessionStorage.Validate(); len(err) > 0 {
-		result = append(result, err...)
-	}
+
 	if err := ss.LoginWebApp.Validate(); len(err) > 0 {
 		result = append(result, err...)
 	}
@@ -137,39 +135,6 @@ func (dbs *DatabaseSettings) Validate() error {
 		return fmt.Errorf("unsupported database type %s", dbs.Type)
 	}
 	return nil
-}
-
-// Validate validates admin session storage settings.
-func (sss *SessionStorageSettings) Validate() []error {
-	subject := "SessionStorageSettings"
-	result := []error{}
-
-	if len(sss.Type) == 0 {
-		result = append(result, fmt.Errorf("Empty session storage type"))
-	}
-	if sss.SessionDuration.Duration == 0 {
-		result = append(result, fmt.Errorf("%s. Session duration is 0 seconds", subject))
-	}
-
-	switch sss.Type {
-	case SessionStorageMem:
-		break
-	case SessionStorageRedis:
-		if _, err := url.ParseRequestURI(sss.Redis.Address); err != nil {
-			result = append(result, fmt.Errorf("%s. Invalid address. %s", subject, err))
-		}
-	case SessionStorageDynamoDB:
-		if len(sss.Dynamo.Region) == 0 {
-			result = append(result, fmt.Errorf("%s. Empty AWS region", subject))
-		}
-		if len(sss.Dynamo.Endpoint) == 0 {
-			result = append(result, fmt.Errorf("%s. Empty AWS Dynamo endpoint", subject))
-		}
-
-	default:
-		result = append(result, fmt.Errorf("%s. Unknown type", subject))
-	}
-	return result
 }
 
 // Validate validates login web app settings

@@ -31,7 +31,6 @@ type ServerStorageCollection struct {
 	Token         TokenStorage // token blocklist storage
 	Invite        InviteStorage
 	Config        ConfigurationStorage
-	Session       SessionStorage
 	Key           KeyStorage
 	ManagementKey ManagementKeysStorage
 	LoginAppFS    fs.FS
@@ -42,6 +41,5 @@ type ServerServices struct {
 	SMS       SMSService
 	Email     EmailService
 	Token     TokenService
-	Session   SessionService
 	Challenge ChallengeController
 }

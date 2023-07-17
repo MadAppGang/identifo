@@ -22,7 +22,6 @@ type ServerSettings struct {
 	SecuritySettings SecurityServerSettings `yaml:"security" json:"security"`
 	AdminAccount     AdminAccountSettings   `yaml:"adminAccount" json:"admin_account"`
 	Storage          StorageSettings        `yaml:"storage" json:"storage"`
-	SessionStorage   SessionStorageSettings `yaml:"sessionStorage" json:"session_storage"`
 	Services         ServicesSettings       `yaml:"services" json:"external_services"`
 	Login            LoginSettings          `yaml:"login" json:"login"`
 	KeyStorage       FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
@@ -170,26 +169,6 @@ func (fs FileStorageSettings) Dir() string {
 	return filepath.Dir(path)
 }
 
-// SessionStorageSettings holds together session storage settings.
-type SessionStorageSettings struct {
-	Type            SessionStorageType     `yaml:"type" json:"type"`
-	SessionDuration SessionDuration        `yaml:"sessionDuration" json:"session_duration"`
-	Redis           RedisDatabaseSettings  `yaml:"redis" json:"redis"`
-	Dynamo          DynamoDatabaseSettings `yaml:"dynamo" json:"dynamo"`
-}
-
-// SessionStorageType - where to store admin sessions.
-type SessionStorageType string
-
-const (
-	// SessionStorageMem means to store sessions in memory.
-	SessionStorageMem = "memory"
-	// SessionStorageRedis means to store sessions in Redis.
-	SessionStorageRedis = "redis"
-	// SessionStorageDynamoDB means to store sessions in DynamoDB.
-	SessionStorageDynamoDB = "dynamo"
-)
-
 // RedisDatabaseSettings redis storage settings
 type RedisDatabaseSettings struct {
 	// host:port address.
@@ -204,8 +183,6 @@ type RedisDatabaseSettings struct {
 	// Prefix for redis keys
 	Prefix string `yaml:"prefix" json:"prefix"`
 }
-
-type DynamoDBSessionStorageSettings struct{}
 
 // ServicesSettings are settings for external services.
 type ServicesSettings struct {

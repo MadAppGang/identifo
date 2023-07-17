@@ -83,12 +83,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating token storage: %v", err))
 	}
 
-	tokenBlacklist, err := storage.NewTokenBlacklistStorage(dbSettings(settings.Storage.TokenBlacklist, settings.Storage.DefaultStorage))
-	if err != nil {
-		log.Printf("Error on Create New blacklist storage %v", err)
-		errs = append(errs, fmt.Errorf("error creating blacklist storage: %v", err))
-	}
-
 	invite, err := storage.NewInviteStorage(dbSettings(settings.Storage.InviteStorage, settings.Storage.DefaultStorage))
 	if err != nil {
 		log.Printf("Error on Create New invite storage %v", err)
@@ -126,12 +120,6 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		errs = append(errs, fmt.Errorf("error creating management keys storage: %v", err))
 	}
 
-	session, err := storage.NewSessionStorage(settings.SessionStorage)
-	if err != nil {
-		log.Printf("Error on Create New session storage %v", err)
-		errs = append(errs, fmt.Errorf("error creating session storage: %v", err))
-	}
-
 	key, err := storage.NewKeyStorage(settings.KeyStorage)
 	if err != nil {
 		log.Printf("Error on Create New key storage %v", err)
@@ -164,9 +152,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		User:          user,
 		UC:            nil,
 		Token:         token,
-		Blocklist:     tokenBlacklist,
 		Invite:        invite,
-		Session:       session,
 		Config:        config,
 		Key:           key,
 		ManagementKey: managementKeys,
@@ -175,7 +161,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	// create 3rd party services
-	tokenS, err := NewTokenService(settings.General, sc)
+	tokenS, err := NewTokenService(settings, sc)
 	if err != nil {
 		log.Printf("Error creating token service %v", err)
 		errs = append(errs, fmt.Errorf("error creating token service: %v", err))
@@ -186,7 +172,9 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 		user,
 		user,
 		app,
-		nil, // TODO: Auth storage to implement
+		nil, // TODO: toks: token storage
+		nil, // TODO: is: invite storage
+		nil, // TODO: UserAuth storage to implement
 		tokenS,
 		email,
 		sms,
@@ -195,13 +183,10 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	userController.LP = l
 	sc.UC = userController
 
-	sessionS := model.NewSessionManager(settings.SessionStorage.SessionDuration, session)
-
 	srvs := model.ServerServices{
-		SMS:     sms,
-		Email:   email,
-		Token:   tokenS,
-		Session: sessionS,
+		SMS:   sms,
+		Email: email,
+		Token: tokenS,
 	}
 
 	server, err := server.NewServer(sc, srvs, errs, restartChan)
@@ -212,7 +197,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	return server, nil
 }
 
-func NewTokenService(settings model.GeneralServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
+func NewTokenService(settings model.ServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
 	key, err := storages.Key.LoadPrivateKey()
 	if err != nil {
 		return nil, err
@@ -220,10 +205,8 @@ func NewTokenService(settings model.GeneralServerSettings, storages model.Server
 
 	tokenService, err := jwt.NewJWTokenService(
 		key,
-		settings.Issuer,
-		storages.Token,
-		storages.App,
-		storages.User,
+		settings.General.Issuer,
+		settings.SecuritySettings,
 	)
 	return tokenService, err
 }

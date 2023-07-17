@@ -47,16 +47,16 @@ func TestSecondFactorStrategyCompatible(t *testing.T) {
 }
 
 func TestFIMStrategyCompatible(t *testing.T) {
-	s1 := model.FirstFactorFIMStrategy{FIMType: model.UserIdentityTypeApple}
-	s2 := model.FirstFactorFIMStrategy{FIMType: model.UserIdentityTypeApple}
+	s1 := model.FirstFactorFIMStrategy{FIMType: model.UserFIMApple}
+	s2 := model.FirstFactorFIMStrategy{FIMType: model.UserFIMApple}
 
 	assert.True(t, s1.Compatible(s2))
 
 	s1.FIMType = ""
 	assert.False(t, s1.Compatible(s2))
 
-	s1 = model.FirstFactorFIMStrategy{FIMType: model.UserIdentityTypeApple}
-	s2.FIMType = model.UserIdentityTypeOIDC
+	s1 = model.FirstFactorFIMStrategy{FIMType: model.UserFIMApple}
+	s2.FIMType = model.UserFIMOIDC
 	assert.False(t, s1.Compatible(s2))
 
 	s2.FIMType = ""
@@ -111,7 +111,7 @@ func TestFilterCompatible(t *testing.T) {
 	a1 := model.AnonymousStrategy{}
 	a2 := model.FirstFactorEnterpriseStrategy{}
 	a3 := model.FirstFactorFIMStrategy{
-		FIMType: model.UserIdentityTypeApple,
+		FIMType: model.UserFIMApple,
 	}
 	a4 := model.FirstFactorInternalStrategy{
 		Identity:  model.AuthIdentityTypePhone,

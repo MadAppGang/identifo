@@ -9,18 +9,17 @@ import (
 )
 
 type ServerSettingsAPI struct {
-	General        *model.GeneralServerSettings  `json:"general,omitempty"`
-	AdminAccount   *model.AdminAccountSettings   `json:"admin_account,omitempty"`
-	Storage        *StorageSettingsAPI           `json:"storage,omitempty"`
-	SessionStorage *model.SessionStorageSettings `json:"session_storage,omitempty"`
-	Services       *model.ServicesSettings       `json:"external_services,omitempty"`
-	Login          *model.LoginSettings          `json:"login,omitempty"`
-	KeyStorage     *model.FileStorageSettings    `json:"keyStorage,omitempty"`
-	Config         *model.FileStorageSettings    `json:"config,omitempty"`
-	Logger         *model.LoggerSettings         `json:"logger,omitempty"`
-	AdminPanel     *model.AdminPanelSettings     `json:"admin_panel"`
-	LoginWebApp    *model.FileStorageSettings    `json:"login_web_app"`
-	EmailTemplates *model.FileStorageSettings    `json:"email_templates"`
+	General        *model.GeneralServerSettings `json:"general,omitempty"`
+	AdminAccount   *model.AdminAccountSettings  `json:"admin_account,omitempty"`
+	Storage        *StorageSettingsAPI          `json:"storage,omitempty"`
+	Services       *model.ServicesSettings      `json:"external_services,omitempty"`
+	Login          *model.LoginSettings         `json:"login,omitempty"`
+	KeyStorage     *model.FileStorageSettings   `json:"keyStorage,omitempty"`
+	Config         *model.FileStorageSettings   `json:"config,omitempty"`
+	Logger         *model.LoggerSettings        `json:"logger,omitempty"`
+	AdminPanel     *model.AdminPanelSettings    `json:"admin_panel"`
+	LoginWebApp    *model.FileStorageSettings   `json:"login_web_app"`
+	EmailTemplates *model.FileStorageSettings   `json:"email_templates"`
 }
 
 type StorageSettingsAPI struct {
@@ -120,11 +119,6 @@ func mergeSettings(settings model.ServerSettings, updatedSettings ServerSettings
 			settings.Storage.InviteStorage = *updatedSettings.Storage.InviteStorage
 			changed = true
 		}
-	}
-
-	if updatedSettings.SessionStorage != nil {
-		settings.SessionStorage = *updatedSettings.SessionStorage
-		changed = true
 	}
 
 	if updatedSettings.LoginWebApp != nil {

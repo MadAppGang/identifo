@@ -5,19 +5,19 @@ import (
 	"net/http"
 	"os"
 
-	"github.com/gorilla/mux"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/madappgang/identifo/v2/l"
 	"github.com/madappgang/identifo/v2/model"
 	r "github.com/madappgang/identifo/v2/web/router"
-	"github.com/rs/cors"
 )
 
 // Router is a router that handles all API requests.
 type Router struct {
 	r.LocalizedRouter
 	server            model.Server
-	cors              *cors.Cors
-	router            *mux.Router
+	cors              cors.Options
+	router            *chi.Mux
 	oidcConfiguration *OIDCConfiguration
 	jwk               *JWK
 	LoggerSettings    model.LoggerSettings
@@ -27,7 +27,7 @@ type RouterSettings struct {
 	Server         model.Server
 	Logger         *log.Logger
 	LoggerSettings model.LoggerSettings
-	Cors           *cors.Cors
+	Cors           cors.Options
 	Locale         string
 }
 
@@ -40,7 +40,6 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	ar := Router{
 		server:         settings.Server,
-		router:         mux.NewRouter(),
 		LoggerSettings: settings.LoggerSettings,
 		cors:           settings.Cors,
 	}

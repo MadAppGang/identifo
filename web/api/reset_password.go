@@ -76,10 +76,10 @@ func (ar *Router) RequestResetPassword() http.HandlerFunc {
 	}
 }
 
-// ResetPassword handles password reset form submission (POST request).
+// ChangePassword handles password reset form submission (POST request).
 // this method exchanges reset JWT token to access JWT token
 // getting the new password and saving it in the database.
-func (ar *Router) ResetPassword() http.HandlerFunc {
+func (ar *Router) ChangePassword() http.HandlerFunc {
 	type newPassword struct {
 		Password string   `json:"password,omitempty"`
 		Scopes   []string `json:"scopes,omitempty"`

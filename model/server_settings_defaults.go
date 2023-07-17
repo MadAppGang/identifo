@@ -1,7 +1,5 @@
 package model
 
-import "time"
-
 // Default Server Settings settings
 var DefaultServerSettings = ServerSettings{
 	General: GeneralServerSettings{
@@ -39,10 +37,6 @@ var DefaultServerSettings = ServerSettings{
 		VerificationCodeStorage: DatabaseSettings{Type: DBTypeDefault},
 		InviteStorage:           DatabaseSettings{Type: DBTypeDefault},
 		ManagementKeysStorage:   DatabaseSettings{Type: DBTypeDefault},
-	},
-	SessionStorage: SessionStorageSettings{
-		Type:            SessionStorageMem,
-		SessionDuration: SessionDuration{Duration: time.Second * 300},
 	},
 	KeyStorage: FileStorageSettings{
 		Type: FileStorageTypeLocal,

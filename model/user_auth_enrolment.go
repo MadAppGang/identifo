@@ -2,6 +2,7 @@ package model
 
 import "time"
 
+// ADD this one to register call
 // UserAuthEnrolment user enrollment to one of auth strategies.
 type UserAuthEnrolment struct {
 	ID                string        `json:"id,omitempty"`

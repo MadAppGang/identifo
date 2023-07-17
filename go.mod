@@ -9,10 +9,9 @@ require (
 	github.com/MicahParks/keyfunc/v2 v2.1.0
 	github.com/aws/aws-sdk-go v1.44.121
 	github.com/caarlos0/env v3.5.0+incompatible
-	github.com/coreos/go-oidc/v3 v3.5.0
 	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/cors v1.2.1
 	github.com/go-playground/validator v9.31.0+incompatible
-	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v5 v5.0.0
 	github.com/google/uuid v1.1.2
 	github.com/gorilla/mux v1.8.0
@@ -25,7 +24,6 @@ require (
 	github.com/markbates/goth v1.74.1
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/onsi/gomega v1.22.1
-	github.com/rs/cors v1.8.2
 	github.com/rs/xid v1.4.0
 	github.com/spf13/afero v1.9.2
 	github.com/stretchr/testify v1.8.2
@@ -35,7 +33,6 @@ require (
 	go.mongodb.org/mongo-driver v1.10.3
 	golang.org/x/crypto v0.1.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
-	golang.org/x/oauth2 v0.4.0
 	golang.org/x/text v0.6.0
 	google.golang.org/grpc v1.52.0-dev
 	google.golang.org/protobuf v1.28.1
@@ -45,20 +42,15 @@ require (
 )
 
 require (
-	cloud.google.com/go/compute v1.9.0 // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
-	github.com/decred/dcrd/dcrec/secp256k1/v4 v4.0.0-20210816181553-5444fa50b93d // indirect
 	github.com/facebookgo/ensure v0.0.0-20200202191622-63f1cf65ac4c // indirect
 	github.com/facebookgo/stack v0.0.0-20160209184415-751773369052 // indirect
 	github.com/facebookgo/subset v0.0.0-20200203212716-c811ad88dec4 // indirect
 	github.com/fatih/color v1.13.0 // indirect
-	github.com/go-jose/go-jose/v3 v3.0.0 // indirect
 	github.com/go-playground/locales v0.14.0 // indirect
 	github.com/go-playground/universal-translator v0.18.0 // indirect
 	github.com/gobuffalo/envy v1.10.2 // indirect
-	github.com/goccy/go-json v0.9.6 // indirect
-	github.com/golang-jwt/jwt/v4 v4.4.2 // indirect
 	github.com/golang/mock v1.6.0 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
@@ -69,12 +61,6 @@ require (
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
-	github.com/lestrrat-go/backoff/v2 v2.0.8 // indirect
-	github.com/lestrrat-go/blackmagic v1.0.0 // indirect
-	github.com/lestrrat-go/httpcc v1.0.0 // indirect
-	github.com/lestrrat-go/iter v1.0.1 // indirect
-	github.com/lestrrat-go/jwx v1.2.21 // indirect
-	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
 	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
@@ -93,6 +79,7 @@ require (
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/net v0.5.0 // indirect
+	golang.org/x/oauth2 v0.4.0 // indirect
 	golang.org/x/sync v0.1.0 // indirect
 	golang.org/x/sys v0.5.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect

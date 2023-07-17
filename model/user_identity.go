@@ -2,6 +2,9 @@ package model
 
 import "time"
 
+var SupportedFIMType = []UserFederatedType{}
+
+// TODO: implement creating and updating those identities.
 // UnitedUserIdentity connect all federated identities for a user in one entity.
 type UnitedUserIdentity struct {
 	ID     string `json:"id,omitempty"`
@@ -15,41 +18,17 @@ type UnitedUserIdentity struct {
 	TypeOther   string    `json:"type_other,omitempty"`
 	ConnectedAt time.Time `json:"connected_at,omitempty"`
 	UpdatedAt   time.Time `json:"updated_at,omitempty"`
-
-	// Unique field set for each external iDP.
-	Facebook *UserIdentityFacebook       `json:"facebook,omitempty"`
-	Google   *UserIdentityGoogle         `json:"google,omitempty"`
-	Twitter  *UserIdentityTwitter        `json:"twitter,omitempty"`
-	Apple    *UserIdentityApple          `json:"apple,omitempty"`
-	OIDC     map[string]UserIdentityOIDC `json:"oidc,omitempty"`
 }
 
 // UserFederatedType the user federated identity type.
 type UserFederatedType string
 
 const (
-	UserIdentityTypeApple    UserFederatedType = "apple"
-	UserIdentityTypeGoogle   UserFederatedType = "google"
-	UserIdentityTypeFacebook UserFederatedType = "facebook"
-	UserIdentityTypeTwitter  UserFederatedType = "twitter"
-	UserIdentityTypeOIDC     UserFederatedType = "oidc"
-	UserIdentityTypeUnknown  UserFederatedType = "unknown"
-	UserIdentityTypeOther    UserFederatedType = "other"
+	UserFIMApple    UserFederatedType = "apple"
+	UserFIMGoogle   UserFederatedType = "google"
+	UserFIMFacebook UserFederatedType = "facebook"
+	UserFIMTwitter  UserFederatedType = "twitter"
+	UserFIMOIDC     UserFederatedType = "oidc"
+	UserFIMUnknown  UserFederatedType = "unknown"
+	UserFIMOther    UserFederatedType = "other"
 )
-
-// TODO: Jack: implement FIM fields for user identity.
-
-// UserIdentityFacebook facebook specific fields.
-type UserIdentityFacebook struct{}
-
-// UserIdentityGoogle google specific fields.
-type UserIdentityGoogle struct{}
-
-// UserIdentityTwitter twitter specific fields.
-type UserIdentityTwitter struct{}
-
-// UserIdentityApple apple specific fields.
-type UserIdentityApple struct{}
-
-// UserIdentityOIDC oidc specific fields.
-type UserIdentityOIDC struct{}

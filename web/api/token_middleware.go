@@ -5,7 +5,6 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/jwt"
 	jwtValidator "github.com/madappgang/identifo/v2/jwt/validator"
 	"github.com/madappgang/identifo/v2/l"
@@ -19,7 +18,7 @@ const (
 )
 
 // Token middleware extracts token and validates it.
-func (ar *Router) Token(tokenType model.TokenType, scopes []string) mux.MiddlewareFunc {
+func (ar *Router) Token(tokenType model.TokenType) func(next http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(rw http.ResponseWriter, r *http.Request) {
 			locale := r.Header.Get("Accept-Language")

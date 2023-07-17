@@ -1,177 +1,81 @@
 package api
 
 import (
-	"net/http"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/chi/v5/middleware"
+	"github.com/go-chi/cors"
 
-	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/middleware"
-	"github.com/urfave/negroni"
+	// wm "github.com/madappgang/identifo/v2/web/middleware"
 )
 
 // setup all routes
+// inspired by https://auth0.com/docs/api/authentication#introduction
+// https://reference.clerk.dev/reference/frontend-api-reference/users/introduction
+
 func (ar *Router) initRoutes() {
-	if ar.router == nil {
-		panic("Empty API router")
-	}
+	r := chi.NewRouter()
 
-	baseMiddleware := negroni.New(
-		middleware.NewNegroniLogger("API"),
-		negroni.NewRecovery(),
-		ar.RemoveTrailingSlash(),
-	)
+	// A good base middleware stack
+	r.Use(middleware.StripSlashes)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(ar.cors))
+	r.Use(ar.ConfigCheck)
 
-	if ar.cors != nil {
-		baseMiddleware.Use(ar.cors)
-	}
+	r.Get("/ping", ar.Ping)
+	r.Get("/hello", ar.Hello)
 
-	ph := with(baseMiddleware, negroni.WrapFunc(ar.HandlePing))
-	ar.router.Handle("/ping", ph).Methods(http.MethodGet)
-
-	apiMiddlewares := ar.buildAPIMiddleware(baseMiddleware)
-
-	// federated oidc
-	federatedOIDC := ar.router.PathPrefix("/auth/federated/oidc").Subrouter()
-	ar.buildFederatedOIDCRoutes(federatedOIDC, apiMiddlewares)
-
-	// auth
-	auth := ar.buildAuthRoutes(apiMiddlewares)
-	ar.router.PathPrefix("/auth").Handler(auth)
-
-	// me
-	me := ar.buildMeRoutes(apiMiddlewares)
-	ar.router.PathPrefix("/me").Handler(me)
-
-	// oidc config provider
-	oidcMiddlewares := ar.buildOIDCMiddleware(baseMiddleware)
-	oidcCfg := ar.buildOIDCRoutes(oidcMiddlewares)
-	ar.router.PathPrefix("/.well-known").Handler(oidcCfg)
-}
-
-// buildAPIMiddleware creates middlewares that should execute for all requests
-func (ar *Router) buildAPIMiddleware(base *negroni.Negroni) *negroni.Negroni {
-	handlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		handlers = append(handlers, ar.DumpRequest())
-	}
-
-	handlers = append(handlers, ar.AppID())
-	return with(base, handlers...)
-}
-
-func (ar *Router) buildFederatedOIDCRoutes(router *mux.Router, middlewares *negroni.Negroni) {
-	router.Use(func(h http.Handler) http.Handler {
-		return with(middlewares, negroni.Wrap(h))
+	// auth router for non authenticated users
+	r.Route("/auth", func(r chi.Router) {
+		r.Use(ar.HMACSignature)
+		r.Route("/passwordless", func(r chi.Router) {
+			r.Post("/start", ar.RequestChallenge())
+			r.Post("/complete", ar.PasswordlessLogin())
+		})
+		r.Post("/login", ar.LoginWithPassword())
+		r.Post("/register", ar.RegisterWithPassword())
+		r.Route("/password", func(r chi.Router) {
+			r.Post("/reset", ar.RequestResetPassword())
+			// the only route here for authenticated user, but he have to use reset bearer token, not access
+			r.With(ar.Token(model.TokenTypeReset)).Post("/change", ar.ChangePassword())
+		})
+		r.Route("/federated", func(r chi.Router) {
+			// r.Handle("/start", ar.FederatedStart())
+			// r.Handle("/complete", ar.FederatedComplete())
+		})
+		r.With(ar.Token(model.TokenTypeRefresh)).Post("/token", ar.RefreshTokens())
 	})
 
-	router.Path("/login").Methods(http.MethodPost).HandlerFunc(ar.OIDCLogin)
-	router.Path("/login").Methods(http.MethodGet).HandlerFunc(ar.OIDCLogin)
+	// routes for apps
+	r.Route("/app", func(r chi.Router) {
+		r.Use(ar.HMACSignature)
+		r.Get("/settings", ar.GetAppSettings())
+	})
 
-	// some OIDC providers do not allow to redirect to url with query params
-	// so we have to use path argument to pass app id
-	// it will not work with auth router since AppID middleware
-	// will not be able to find app by id
-	router.Path("/complete/{appId}").Methods(http.MethodPost).HandlerFunc(ar.OIDCLoginComplete)
-	router.Path("/complete/{appId}").Methods(http.MethodGet).HandlerFunc(ar.OIDCLoginComplete)
+	// authenticated user routes
+	r.Route("/user", func(r chi.Router) {
+		r.Use(ar.Token(model.TokenTypeAccess))
+		r.Get("/profile", ar.GetUser())
+		r.Get("/profile/{id}", ar.GetUser())
+		r.Put("/profile", ar.UpdateUser())
+		r.Patch("/profile", ar.UpdateUser())
+		// TODO
+		// r.Get("/data", ar.GetUserData())
+		// r.Put("/data", ar.UpdateUserData())
+		r.Route("/device", func(r chi.Router) {
+			// TODO: add device management endpoints: register, get, list, update
+		})
+		r.Post("/invite", ar.RequestInviteLink())
+		r.Post("/logout", ar.Logout())
+	})
 
-	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete).Methods(http.MethodPost)
-	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete).Methods(http.MethodGet)
-}
-
-func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
-	// now build auth router for main API
-	auth := mux.NewRouter().PathPrefix("/auth").Subrouter()
-
-	auth.Path("/login").HandlerFunc(ar.LoginWithPassword()).Methods(http.MethodPost)
-	// TODO: Implement passwordless login instead of this one
-	// auth.Path("/request_phone_code").HandlerFunc(ar.RequestVerificationCode()).Methods(http.MethodPost)
-	// auth.Path("/phone_login").HandlerFunc(ar.PhoneLogin()).Methods(http.MethodPost)
-	auth.Path("/register").HandlerFunc(ar.RegisterWithPassword()).Methods(http.MethodPost)
-	auth.Path("/request_reset_password").HandlerFunc(ar.RequestResetPassword()).Methods(http.MethodPost)
-	auth.Path("/reset_password").Handler(
-		ar.Token(model.TokenTypeReset, nil)(ar.ResetPassword()),
-	).Methods(http.MethodPost)
-
-	auth.Path("/app_settings").HandlerFunc(ar.GetAppSettings()).Methods(http.MethodGet)
-
-	auth.Path("/token").Handler(
-		ar.Token(model.TokenTypeRefresh, nil)(ar.RefreshTokens()),
-	).Methods(http.MethodPost)
-	auth.Path("/invite").Handler(
-		ar.Token(model.TokenTypeAccess, nil)(ar.RequestInviteLink()),
-	).Methods(http.MethodPost)
-
-	// TODO: refactor all 2FA
-	// auth.Path("/tfa/enable").Handler(
-	// 	ar.Token(model.TokenTypeAccess, nil)(ar.EnableTFA()),
-	// ).Methods(http.MethodPut)
-	// auth.Path("/tfa/disable").Handler(
-	// 	ar.RequestDisabledTFA(),
-	// ).Methods(http.MethodPut)
-	// auth.Path("/tfa/login").Handler(
-	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.FinalizeTFA()),
-	// ).Methods(http.MethodPost)
-	// auth.Path("/tfa/resend").Handler(
-	// 	ar.Token(model.TokenTypeAccess, []string{model.TokenTypeTFAPreauth})(ar.ResendTFA()),
-	// ).Methods(http.MethodPost)
-	// auth.Path("/tfa/reset").Handler(
-	// 	ar.Token(model.TokenTypeAccess, nil)(ar.RequestTFAReset()),
-	// ).Methods(http.MethodPut)
-
-	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods(http.MethodPost)
-	auth.Path("/federated").HandlerFunc(ar.FederatedLogin()).Methods(http.MethodGet)
-
-	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods(http.MethodPost)
-	auth.Path("/federated/complete").HandlerFunc(ar.FederatedLoginComplete()).Methods(http.MethodGet)
-
-	return with(middlewares,
-		ar.SignatureHandler(),
-		negroni.Wrap(auth),
-	)
-}
-
-func (ar *Router) buildMeRoutes(middleware *negroni.Negroni) http.Handler {
-	me := mux.NewRouter().PathPrefix("/me").Subrouter()
-
-	me.Path("").HandlerFunc(ar.GetUser()).Methods(http.MethodGet)
-	me.Path("").HandlerFunc(ar.UpdateUser()).Methods(http.MethodPut)
-	me.Path("/logout").HandlerFunc(ar.Logout()).Methods(http.MethodPost)
-
-	return with(middleware,
-		ar.SignatureHandler(),
-		negroni.Wrap(ar.Token(model.TokenTypeAccess, nil)(me)),
-	)
-}
-
-func (ar *Router) buildOIDCRoutes(middleware *negroni.Negroni) http.Handler {
-	oidc := mux.NewRouter().PathPrefix("/.well-known").Subrouter()
-
-	oidc.Path("/openid-configuration").HandlerFunc(ar.OIDCConfiguration()).Methods(http.MethodGet)
-	oidc.Path("/jwks.json").HandlerFunc(ar.OIDCJwks()).Methods(http.MethodGet)
-
-	// apple native integration
-	// TODO: Jack reimplement it completely
-	// oidc.Path("/apple-developer-domain-association.txt").HandlerFunc(ar.ServeADDAFile()).Methods(http.MethodGet)
-	// oidc.Path("/apple-app-site-association").HandlerFunc(ar.ServeAASAFile()).Methods(http.MethodGet)
-
-	return with(middleware, negroni.Wrap(oidc))
-}
-
-func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
-	wellKnownHandlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
-	}
-
-	return with(base, wellKnownHandlers...)
-}
-
-func with(n *negroni.Negroni, handlers ...negroni.Handler) *negroni.Negroni {
-	existing := n.Handlers()
-	h := []negroni.Handler{}
-	h = append(h, existing...)
-	h = append(h, handlers...)
-	return negroni.New(h...)
+	// introspection routes
+	r.Route("/.well-known", func(r chi.Router) {
+		r.Get("/openid-configuration", ar.OIDCConfiguration())
+		r.Get("/jwks.json", ar.OIDCJwks())
+	})
+	ar.router = r
 }

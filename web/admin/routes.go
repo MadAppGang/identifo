@@ -3,15 +3,42 @@ package admin
 import (
 	"net/http"
 
+	"github.com/go-chi/chi/middleware"
+	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/gorilla/mux"
 	"github.com/urfave/negroni"
 )
 
 // Setup all routes.
 func (ar *Router) initRoutes() {
-	if ar.router == nil {
-		panic("Empty admin router")
-	}
+	r := chi.NewRouter()
+	r.Use(middleware.StripSlashes)
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(cors.Handler(ar.cors))
+
+	r.Route("/user", func(r chi.Router) {
+		r.Get("/info", ar.UserInfo())
+	})
+
+	r.Route("/auth", func(r chi.Router) {
+		r.Get("/info", ar.UserInfo())
+	})
+
+	r.Route("/apps", func(r chi.Router) {
+		r.Get("/info", ar.UserInfo())
+	})
+
+	r.Route("/users", func(r chi.Router) {
+		r.Get("/info", ar.UserInfo())
+	})
+
+	r.Route("/config", func(r chi.Router) {
+		r.Get("/info", ar.UserInfo())
+	})
 
 	ar.router.Path("/me").Handler(negroni.New(
 		negroni.WrapFunc(ar.IsLoggedIn()),

@@ -120,7 +120,6 @@ func (s *Server) Close() {
 	maybeCloseCtx(s.storages.User)
 	maybeClose(s.storages.Token)
 	maybeCloseCtx(s.storages.Invite)
-	maybeClose(s.storages.Session)
 }
 
 func (s *Server) Errors() []error {
