@@ -383,3 +383,91 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes 
 	result.User = user
 	return result, nil
 }
+
+type impersonateData struct {
+	login
+	UserID string   `json:"user_id" validate:"required"`
+	Scopes []string `json:"scopes,omitempty"`
+}
+
+// GetImpersonateToken returns a token that allows to impersonate a user.
+func (ar *Router) GetImpersonateToken() http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		locale := r.Header.Get("Accept-Language")
+
+		ld := impersonateData{}
+		if ar.MustParseJSON(w, r, &ld) != nil {
+			return
+		}
+
+		if err := ld.validate(); err != nil {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
+			return
+		}
+
+		if err := ar.checkSupportedWays(ld.login); err != nil {
+			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
+			return
+		}
+
+		var err error
+		var user model.User
+
+		if len(ld.UserID) > 0 {
+			user, err = ar.server.Storages().User.UserByID(ld.UserID)
+			if err != nil {
+				ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestIncorrectLoginOrPassword)
+				return
+			}
+		} else {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError)
+			return
+		}
+
+		app := middleware.AppFromContext(r.Context())
+		if len(app.ID) == 0 {
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
+			return
+		}
+
+		// Authorize user if the app requires authorization.
+		azi := authorization.AuthzInfo{
+			App:         app,
+			UserRole:    user.AccessRole,
+			ResourceURI: r.RequestURI,
+			Method:      r.Method,
+		}
+		if err := ar.Authorizer.Authorize(azi); err != nil {
+			ar.Error(w, locale, http.StatusForbidden, l.APIAccessDenied)
+			return
+		}
+
+		impersonateToken, err := ar.getImpersonateAccessToken(user, ld.Scopes, app)
+		if err != nil {
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
+			return
+		}
+
+		ar.ServeJSON(w, locale, http.StatusOK, impersonateToken)
+	}
+}
+
+// getImpersonateAccessToken creates and returns access token for a user.
+func (ar *Router) getImpersonateAccessToken(user model.User, scopes []string, app model.AppData) (string, error) {
+	tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
+	if err != nil {
+		return "", err
+	}
+
+	token, err := ar.server.Services().Token.NewAccessToken(user, scopes, app, false, tokenPayload)
+	if err != nil {
+		return "", err
+	}
+
+	accessTokenString, err := ar.server.Services().Token.String(token)
+	if err != nil {
+		return "", err
+	}
+
+	return accessTokenString, nil
+}
