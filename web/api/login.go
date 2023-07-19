@@ -385,7 +385,6 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes 
 }
 
 type impersonateData struct {
-	login
 	UserID string   `json:"user_id" validate:"required"`
 	Scopes []string `json:"scopes,omitempty"`
 }
@@ -397,16 +396,6 @@ func (ar *Router) GetImpersonateToken() http.HandlerFunc {
 
 		ld := impersonateData{}
 		if ar.MustParseJSON(w, r, &ld) != nil {
-			return
-		}
-
-		if err := ld.validate(); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
-			return
-		}
-
-		if err := ar.checkSupportedWays(ld.login); err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.APIAPPUsernameLoginNotSupported)
 			return
 		}
 
@@ -437,6 +426,7 @@ func (ar *Router) GetImpersonateToken() http.HandlerFunc {
 			ResourceURI: r.RequestURI,
 			Method:      r.Method,
 		}
+
 		if err := ar.Authorizer.Authorize(azi); err != nil {
 			ar.Error(w, locale, http.StatusForbidden, l.APIAccessDenied)
 			return
