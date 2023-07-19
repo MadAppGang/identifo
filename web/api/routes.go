@@ -100,6 +100,8 @@ func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
 	auth.Path("/invite").Handler(
 		ar.Token(model.TokenTypeAccess, nil)(ar.RequestInviteLink()),
 	).Methods(http.MethodPost)
+	auth.Path("/impersonate_token").Handler(
+		ar.GetImpersonateToken()).Methods(http.MethodPost)
 
 	auth.Path("/tfa/enable").Handler(
 		ar.Token(model.TokenTypeAccess, nil)(ar.EnableTFA()),
