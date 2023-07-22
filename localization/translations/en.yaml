@@ -96,6 +96,7 @@ error.federated.access_denied.error: "You are not allowed to login with error: %
 error.federated.login.error: "Federated login error: %v."
 error.federated.code.error: "No code returned for federated login"
 error.federated.state.error: "State mismatch code returned for federated login"
+error.federated.state.internal.error: "State processing error: %v."
 error.federated.exchange.error: "Federated exchange error: %v."
 error.federated.idtoken.missing: "No id_token returned for federated login"
 error.federated.idtoken.invalid: "Invalid id_token returned for federated login: %v"

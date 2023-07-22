@@ -47,10 +47,12 @@ func init() {
 // If no state string is associated with the request, one will be generated.
 // This state is sent to the provider and can be retrieved during the
 // callback.
-var setState = func(req *http.Request) string {
+var setState = func(req *http.Request, stateRequired bool) (string, error) {
 	state := req.URL.Query().Get("state")
 	if len(state) > 0 {
-		return state
+		return state, nil
+	} else if stateRequired {
+		return "", errors.New("state is required")
 	}
 
 	// If a state query param is not passed in, generate a random
@@ -61,9 +63,11 @@ var setState = func(req *http.Request) string {
 	nonceBytes := make([]byte, 64)
 	_, err := io.ReadFull(rand.Reader, nonceBytes)
 	if err != nil {
-		panic("gothic: source of randomness unavailable: " + err.Error())
+		return "", fmt.Errorf("source of randomness unavailable: %v", err)
+		// panic("gothic: source of randomness unavailable: " + err.Error())
 	}
-	return base64.URLEncoding.EncodeToString(nonceBytes)
+
+	return base64.URLEncoding.EncodeToString(nonceBytes), nil
 }
 
 // GetState gets the state returned by the provider during the callback.
@@ -271,7 +275,12 @@ func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string
 		return "", errors.New(ar.ls.SD(l.APIAPPFederatedProviderEmptyRedirect))
 	}
 
-	sess, err := provider.BeginAuth(setState(req))
+	state, err := setState(req, false)
+	if err != nil {
+		return "", err
+	}
+
+	sess, err := provider.BeginAuth(state)
 	if err != nil {
 		return "", err
 	}
@@ -421,7 +430,11 @@ func getCallbackUrl(req *http.Request) string {
 }
 
 func getScopes(req *http.Request) []string {
-	rs := strings.Split(req.URL.Query().Get("scopes"), ",")
+	return parseScopes(req.URL.Query().Get("scopes"), ",")
+}
+
+func parseScopes(scopes, sep string) []string {
+	rs := strings.Split(scopes, sep)
 
 	result := []string{}
 	for _, scope := range rs {

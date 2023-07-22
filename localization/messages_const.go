@@ -197,6 +197,8 @@ const (
 	ErrorFederatedCodeError LocalizedString = "error.federated.code.error"
 	// ErrorFederatedStateError -> State mismatch code returned for federated login
 	ErrorFederatedStateError LocalizedString = "error.federated.state.error"
+	// ErrorFederatedStateInternalError -> State processing error: %v.
+	ErrorFederatedStateInternalError LocalizedString = "error.federated.state.internal.error"
 	// ErrorFederatedExchangeError -> Federated exchange error: %v.
 	ErrorFederatedExchangeError LocalizedString = "error.federated.exchange.error"
 	// ErrorFederatedIDtokenMissing -> No id_token returned for federated login
