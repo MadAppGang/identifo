@@ -1,96 +1,91 @@
 package api_test
 
 import (
-	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"testing"
 
-	"github.com/golang-jwt/jwt/v4"
-	"github.com/madappgang/identifo/v2/config"
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/web/api"
-	"github.com/rs/cors"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-var testApp = model.AppData{
-	ID:     "test_app",
-	Active: true,
-	Type:   model.Web,
-	OIDCSettings: model.OIDCSettings{
-		ProviderName:    "test",
-		ClientID:        "test",
-		ClientSecret:    "test",
-		EmailClaimField: "email",
-	},
-}
+// var testApp = model.AppData{
+// 	ID:     "test_app",
+// 	Active: true,
+// 	Type:   model.Web,
+// 	OIDCSettings: model.OIDCSettings{
+// 		ProviderName:    "test",
+// 		ClientID:        "test",
+// 		ClientSecret:    "test",
+// 		EmailClaimField: "email",
+// 	},
+// }
 
-// test environment
-var (
-	testRouter *api.Router
-	testServer model.Server
-	oidcServer *httptest.Server
-)
+// // test environment
+// var (
+// 	testRouter *api.Router
+// 	testServer model.Server
+// 	oidcServer *httptest.Server
+// )
 
-type testConfig struct {
-	model.ConfigurationStorage
-}
+// type testConfig struct {
+// 	model.ConfigurationStorage
+// }
 
-var testServerSettings = model.DefaultServerSettings
+// var testServerSettings = model.DefaultServerSettings
 
-func (tc testConfig) LoadServerSettings(validate bool) (model.ServerSettings, []error) {
-	testServerSettings.KeyStorage.Local.Path = "../../jwt/test_artifacts/private.pem"
-	testServerSettings.Login.LoginWith.FederatedOIDC = true
-	return testServerSettings, nil
-}
+// func (tc testConfig) LoadServerSettings(validate bool) (model.ServerSettings, []error) {
+// 	testServerSettings.KeyStorage.Local.Path = "../../jwt/test_artifacts/private.pem"
+// 	testServerSettings.Login.LoginWith.FederatedOIDC = true
+// 	return testServerSettings, nil
+// }
 
-func (tc testConfig) LoadedSettings() *model.ServerSettings {
-	return &testServerSettings
-}
+// func (tc testConfig) LoadedSettings() *model.ServerSettings {
+// 	return &testServerSettings
+// }
 
-func init() {
-	var err error
+// func init() {
+// 	var err error
 
-	rc := make(chan bool, 1)
-	testServer, err = config.NewServer(testConfig{}, rc)
-	if err != nil {
-		panic(err)
-	}
+// 	rc := make(chan bool, 1)
+// 	testServer, err = config.NewServer(testConfig{}, rc)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	rs := api.RouterSettings{
-		LoginWith: model.LoginWith{
-			FederatedOIDC: true,
-		},
-		Server: testServer,
-		Cors:   cors.New(model.DefaultCors),
-	}
+// 	rs := api.RouterSettings{
+// 		LoginWith: model.LoginWith{
+// 			FederatedOIDC: true,
+// 		},
+// 		Server: testServer,
+// 		Cors:   cors.New(model.DefaultCors),
+// 	}
 
-	testRouter, err = api.NewRouter(rs)
-	if err != nil {
-		panic(err)
-	}
+// 	testRouter, err = api.NewRouter(rs)
+// 	if err != nil {
+// 		panic(err)
+// 	}
 
-	oidcServer, _ = testOIDCServer()
-}
+// 	oidcServer, _ = testOIDCServer()
+// }
 
-func testContext(app model.AppData) context.Context {
-	ctx := context.Background()
-	ctx = context.WithValue(ctx, model.AppDataContextKey, app)
+// func testContext(app model.AppData) context.Context {
+// 	ctx := context.Background()
+// 	ctx = context.WithValue(ctx, model.AppDataContextKey, app)
 
-	return ctx
-}
+// 	return ctx
+// }
 
-func Test_Router_OIDCLogin_Redirect(t *testing.T) {
+func Test_Router_OIDCLoginV2_Redirect(t *testing.T) {
 	testApp.OIDCSettings.ProviderURL = oidcServer.URL
 	ctx := testContext(testApp)
 
 	redirect := "http://localhost:8080"
-	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s", url.QueryEscape(redirect))
+	state := "some_test_state"
+	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s&state=%s", url.QueryEscape(redirect), state)
 
 	r := httptest.NewRequest(http.MethodGet, testURL, nil)
 	r = r.WithContext(ctx)
@@ -98,34 +93,29 @@ func Test_Router_OIDCLogin_Redirect(t *testing.T) {
 	rw := httptest.NewRecorder()
 
 	// call the test handler
-	testRouter.OIDCLogin(false)(rw, r)
+	testRouter.OIDCLogin(true)(rw, r)
 
 	require.Equal(t, http.StatusFound, rw.Code, "should redirect to the provider", rw.Body.String())
 
-	expectedAuthURL := oidcServer.URL + "/auth?client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code&scope=openid&state=test"
+	expectedAuthURL := oidcServer.URL + "/auth?client_id=test&redirect_uri=http%3A%2F%2Flocalhost%3A8080&response_type=code&scope=openid&state=some_test_state"
 
 	locURL, err := url.Parse(rw.Header().Get("Location"))
 	require.NoError(t, err)
 
-	locQuery := locURL.Query()
-	assert.NotEmpty(t, locQuery.Get("state"))
-
-	locQuery.Set("state", "test")
-	locURL.RawQuery = locQuery.Encode()
-
 	require.Equal(t, expectedAuthURL, locURL.String())
 
-	// there should be cookie with session
+	// there should be no cookie with session
 	cookies := rw.Result().Cookies()
-	assert.NotEmpty(t, cookies)
+	assert.Empty(t, cookies)
 }
 
-func Test_Router_OIDCLogin_Complete(t *testing.T) {
+func Test_Router_OIDCLoginV2_Complete(t *testing.T) {
 	testApp.OIDCSettings.ProviderURL = oidcServer.URL
 	ctx := testContext(testApp)
 
 	redirect := "http://localhost:8080"
-	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s", url.QueryEscape(redirect))
+	state := "some_test_state"
+	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s&state=%s", url.QueryEscape(redirect), state)
 
 	r := httptest.NewRequest(http.MethodGet, testURL, nil)
 	r = r.WithContext(ctx)
@@ -133,7 +123,7 @@ func Test_Router_OIDCLogin_Complete(t *testing.T) {
 	rw := httptest.NewRecorder()
 
 	// call the test handler - should return redirect to auth
-	testRouter.OIDCLogin(false)(rw, r)
+	testRouter.OIDCLogin(true)(rw, r)
 
 	require.Equal(t, http.StatusFound, rw.Code, "should redirect to the provider", rw.Body.String())
 
@@ -141,17 +131,15 @@ func Test_Router_OIDCLogin_Complete(t *testing.T) {
 	require.NoError(t, err)
 
 	locQuery := locURL.Query()
-	state := locQuery.Get("state")
-	assert.NotEmpty(t, state)
+	assert.Equal(t, state, locQuery.Get("state"))
 
-	testCompleteURL := fmt.Sprintf("http://localhost:8081/auth/federated/oidc/complete?code=%s&state=%s", "test", state)
+	testCompleteURL := fmt.Sprintf("http://localhost:8081/auth/federated/oidc/complete?code=%s", "test")
 	r = httptest.NewRequest(http.MethodGet, testCompleteURL, nil)
 	r = r.WithContext(ctx)
-	r.Header.Set("Cookie", rw.Header().Get("Set-Cookie"))
 
 	crw := httptest.NewRecorder()
 	// call complete handler - should return Identifo's JWT token
-	testRouter.OIDCLoginComplete(true)(crw, r)
+	testRouter.OIDCLoginComplete(false)(crw, r)
 
 	require.Equal(t, http.StatusOK, crw.Code, "should return JWT token", crw.Body.String())
 
@@ -162,7 +150,7 @@ func Test_Router_OIDCLogin_Complete(t *testing.T) {
 
 	crw = httptest.NewRecorder()
 	// call complete handler - should return Identifo's JWT token
-	testRouter.OIDCLoginComplete(true)(crw, r)
+	testRouter.OIDCLoginComplete(false)(crw, r)
 
 	cc := claimsFromResponse(t, crw.Body.Bytes())
 	assert.Equal(t, c["sub"], cc["sub"])
@@ -170,7 +158,7 @@ func Test_Router_OIDCLogin_Complete(t *testing.T) {
 	assert.Equal(t, c["iss"], cc["iss"])
 }
 
-func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
+func Test_Router_OIDCLogin_CompleteV2_ByEmail(t *testing.T) {
 	testApp.OIDCSettings.ProviderURL = oidcServer.URL
 	ctx := testContext(testApp)
 
@@ -191,7 +179,8 @@ func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	redirect := "http://localhost:8080"
-	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s", url.QueryEscape(redirect))
+	state := "some_test_state"
+	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s&state=%s", url.QueryEscape(redirect), state)
 
 	r := httptest.NewRequest(http.MethodGet, testURL, nil)
 	r = r.WithContext(ctx)
@@ -199,7 +188,7 @@ func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
 	rw := httptest.NewRecorder()
 
 	// call the test handler - should return redirect to auth
-	testRouter.OIDCLogin(false)(rw, r)
+	testRouter.OIDCLogin(true)(rw, r)
 
 	require.Equal(t, http.StatusFound, rw.Code, "should redirect to the provider", rw.Body.String())
 
@@ -207,17 +196,15 @@ func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
 	require.NoError(t, err)
 
 	locQuery := locURL.Query()
-	state := locQuery.Get("state")
-	assert.NotEmpty(t, state)
+	assert.Equal(t, state, locQuery.Get("state"))
 
-	testCompleteURL := fmt.Sprintf("http://localhost:8081/auth/federated/oidc/complete?code=%s&state=%s", "test", state)
+	testCompleteURL := fmt.Sprintf("http://localhost:8081/auth/federated/oidc/complete?code=%s", "test")
 	r = httptest.NewRequest(http.MethodGet, testCompleteURL, nil)
 	r = r.WithContext(ctx)
-	r.Header.Set("Cookie", rw.Header().Get("Set-Cookie"))
 
 	crw := httptest.NewRecorder()
 	// call complete handler - should return Identifo's JWT token
-	testRouter.OIDCLoginComplete(true)(crw, r)
+	testRouter.OIDCLoginComplete(false)(crw, r)
 
 	require.Equal(t, http.StatusOK, crw.Code, "should return JWT token", crw.Body.String())
 
@@ -227,26 +214,7 @@ func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
 	assert.Equal(t, "test_app", c["aud"], c)
 }
 
-func claimsFromResponse(t *testing.T, response []byte) jwt.MapClaims {
-	var token map[string]any
-
-	err := json.Unmarshal(response, &token)
-	require.NoError(t, err)
-
-	at := token["access_token"].(string)
-	require.NotEmpty(t, at)
-
-	c := jwt.MapClaims{}
-
-	jp := jwt.Parser{}
-
-	_, _, err = jp.ParseUnverified(at, c)
-	require.NoError(t, err)
-
-	return c
-}
-
-func Test_Router_OIDCLoginComplete_Routing(t *testing.T) {
+func Test_Router_OIDCLoginCompleteV2_Routing(t *testing.T) {
 	testApp.OIDCSettings.ProviderURL = oidcServer.URL
 
 	app := testServer.Storages().App
@@ -255,7 +223,7 @@ func Test_Router_OIDCLoginComplete_Routing(t *testing.T) {
 
 	// start oidc login
 	redirect := "http://localhost:8080"
-	testURL := fmt.Sprintf("/auth/federated/oidc/login?redirectUrl=%s&appId=%s",
+	testURL := fmt.Sprintf("/v2/auth/federated/oidc/login?redirectUrl=%s&appId=%s&state=test",
 		url.QueryEscape(redirect),
 		a.ID)
 	r := httptest.NewRequest(http.MethodGet, testURL, nil)
@@ -266,7 +234,7 @@ func Test_Router_OIDCLoginComplete_Routing(t *testing.T) {
 	require.Equal(t, http.StatusFound, rw.Result().StatusCode, rw.Body.String())
 
 	// complete with app id in path
-	testURL = "/auth/federated/oidc/complete/" + a.ID
+	testURL = "/v2/auth/federated/oidc/complete/" + a.ID
 	r = httptest.NewRequest(http.MethodGet, testURL, nil)
 	rw = httptest.NewRecorder()
 
@@ -276,7 +244,7 @@ func Test_Router_OIDCLoginComplete_Routing(t *testing.T) {
 	require.Equal(t, "error.federated.code.error", errCode(t, rw.Body.Bytes()), rw.Body.String())
 
 	// complete with app id in query
-	testURL = "/auth/federated/oidc/complete?appId=" + a.ID
+	testURL = "/v2/auth/federated/oidc/complete?appId=" + a.ID
 	r = httptest.NewRequest(http.MethodGet, testURL, nil)
 	rw = httptest.NewRecorder()
 
@@ -284,28 +252,4 @@ func Test_Router_OIDCLoginComplete_Routing(t *testing.T) {
 
 	require.Equal(t, http.StatusBadRequest, rw.Result().StatusCode, rw.Body.String())
 	require.Equal(t, "error.federated.code.error", errCode(t, rw.Body.Bytes()), rw.Body.String())
-}
-
-func errCode(t *testing.T, respBody []byte) string {
-	var resp map[string]any
-
-	err := json.Unmarshal(respBody, &resp)
-	require.NoError(t, err)
-
-	errRespI, ok := resp["error"]
-	if !ok {
-		return ""
-	}
-
-	errResp, ok := errRespI.(map[string]any)
-	if !ok {
-		return ""
-	}
-
-	code, ok := errResp["id"].(string)
-	if !ok {
-		return ""
-	}
-
-	return code
 }

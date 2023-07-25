@@ -32,7 +32,10 @@ func (ar *Router) initRoutes() {
 
 	// federated oidc
 	federatedOIDC := ar.router.PathPrefix("/auth/federated/oidc").Subrouter()
-	ar.buildFederatedOIDCRoutes(federatedOIDC, apiMiddlewares)
+	ar.buildFederatedOIDCRoutes(federatedOIDC, apiMiddlewares, false)
+
+	federatedOIDCV2 := ar.router.PathPrefix("/v2/auth/federated/oidc").Subrouter()
+	ar.buildFederatedOIDCRoutes(federatedOIDCV2, apiMiddlewares, true)
 
 	// auth
 	auth := ar.buildAuthRoutes(apiMiddlewares)
@@ -60,23 +63,23 @@ func (ar *Router) buildAPIMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	return with(base, handlers...)
 }
 
-func (ar *Router) buildFederatedOIDCRoutes(router *mux.Router, middlewares *negroni.Negroni) {
+func (ar *Router) buildFederatedOIDCRoutes(router *mux.Router, middlewares *negroni.Negroni, stateManagedByClient bool) {
 	router.Use(func(h http.Handler) http.Handler {
 		return with(middlewares, negroni.Wrap(h))
 	})
 
-	router.Path("/login").Methods(http.MethodPost).HandlerFunc(ar.OIDCLogin)
-	router.Path("/login").Methods(http.MethodGet).HandlerFunc(ar.OIDCLogin)
+	router.Path("/login").Methods(http.MethodPost).HandlerFunc(ar.OIDCLogin(stateManagedByClient))
+	router.Path("/login").Methods(http.MethodGet).HandlerFunc(ar.OIDCLogin(stateManagedByClient))
 
 	// some OIDC providers do not allow to redirect to url with query params
 	// so we have to use path argument to pass app id
 	// it will not work with auth router since AppID middleware
 	// will not be able to find app by id
-	router.Path("/complete/{appId}").Methods(http.MethodPost).HandlerFunc(ar.OIDCLoginComplete)
-	router.Path("/complete/{appId}").Methods(http.MethodGet).HandlerFunc(ar.OIDCLoginComplete)
+	router.Path("/complete/{appId}").Methods(http.MethodPost).HandlerFunc(ar.OIDCLoginComplete(!stateManagedByClient))
+	router.Path("/complete/{appId}").Methods(http.MethodGet).HandlerFunc(ar.OIDCLoginComplete(!stateManagedByClient))
 
-	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete).Methods(http.MethodPost)
-	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete).Methods(http.MethodGet)
+	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete(!stateManagedByClient)).Methods(http.MethodPost)
+	router.Path("/complete").HandlerFunc(ar.OIDCLoginComplete(!stateManagedByClient)).Methods(http.MethodGet)
 }
 
 func (ar *Router) buildAuthRoutes(middlewares *negroni.Negroni) http.Handler {
