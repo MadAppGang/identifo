@@ -8,25 +8,21 @@ import (
 	"strings"
 	"time"
 
-	"go.mongodb.org/mongo-driver/bson/bsontype"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 // NewDB creates new database connection.
 func NewDB(conn string, dbName string) (*DB, error) {
-	client, err := mongo.NewClient(options.Client().ApplyURI(conn))
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(conn))
 	if err != nil {
 		return nil, err
 	}
 
-	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
-	defer cancel()
-
-	if err = client.Connect(ctx); err != nil {
-		return nil, err
-	}
 	if err = client.Ping(ctx, nil); err != nil {
 		return nil, err
 	}
@@ -82,7 +78,7 @@ func generateIndexName(index mongo.IndexModel) (string, error) {
 	name := bytes.NewBufferString("")
 	first := true
 
-	keys, ok := index.Keys.(bsonx.Doc)
+	keys, ok := index.Keys.(bson.D)
 	if !ok {
 		return "", fmt.Errorf("Incorrect index keys type - expecting bsonx.Doc")
 	}
@@ -99,18 +95,7 @@ func generateIndexName(index mongo.IndexModel) (string, error) {
 			return "", err
 		}
 
-		var value string
-
-		switch elem.Value.Type() {
-		case bsontype.Int32:
-			value = fmt.Sprintf("%d", elem.Value.Int32())
-		case bsontype.Int64:
-			value = fmt.Sprintf("%d", elem.Value.Int64())
-		case bsontype.String:
-			value = elem.Value.StringValue()
-		default:
-			return "", fmt.Errorf("Incorrect index value type %s", elem.Value.Type())
-		}
+		value := fmt.Sprintf("%v", elem.Value)
 
 		if _, err := name.WriteString(value); err != nil {
 			return "", err
