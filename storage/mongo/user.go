@@ -13,7 +13,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -40,7 +39,7 @@ func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, er
 	userNameIndexOptions.SetCollation(&options.Collation{Locale: "en", Strength: 1})
 
 	userNameIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "username", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "username", Value: 1}},
 		Options: userNameIndexOptions,
 	}
 
@@ -49,7 +48,7 @@ func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, er
 	emailIndexOptions.SetSparse(true)
 
 	emailIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "email", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "email", Value: 1}},
 		Options: emailIndexOptions,
 	}
 
@@ -58,7 +57,7 @@ func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, er
 	phoneIndexOptions.SetSparse(true)
 
 	phoneIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "phone", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "phone", Value: 1}},
 		Options: phoneIndexOptions,
 	}
 

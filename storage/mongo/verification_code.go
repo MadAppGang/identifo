@@ -8,7 +8,6 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
-	"go.mongodb.org/mongo-driver/x/bsonx"
 )
 
 const (
@@ -36,7 +35,7 @@ func NewVerificationCodeStorage(settings model.MongoDatabaseSettings) (model.Ver
 	phoneIndexOptions.SetUnique(true)
 
 	phoneIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "phone", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "phone", Value: 1}},
 		Options: phoneIndexOptions,
 	}
 
@@ -44,7 +43,7 @@ func NewVerificationCodeStorage(settings model.MongoDatabaseSettings) (model.Ver
 	codeIndexOptions.SetUnique(true)
 
 	codeIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "code", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "code", Value: 1}},
 		Options: codeIndexOptions,
 	}
 
@@ -53,7 +52,7 @@ func NewVerificationCodeStorage(settings model.MongoDatabaseSettings) (model.Ver
 	createdAtOptions.SetExpireAfterSeconds(int32(verificationCodesExpirationTime.Seconds()))
 
 	createdAtIndex := &mongo.IndexModel{
-		Keys:    bsonx.Doc{{Key: "createdAt", Value: bsonx.Int32(int32(1))}},
+		Keys:    bson.D{{Key: "createdAt", Value: 1}},
 		Options: createdAtOptions,
 	}
 

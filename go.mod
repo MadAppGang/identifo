@@ -13,7 +13,7 @@ require (
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
-	github.com/google/uuid v1.1.2
+	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/gorilla/sessions v1.2.1
 	github.com/hashicorp/go-plugin v1.4.5
@@ -21,7 +21,7 @@ require (
 	github.com/jszwec/s3fs v0.4.0
 	github.com/madappgang/digestsig v1.0.1
 	github.com/mailgun/mailgun-go v2.0.0+incompatible
-	github.com/markbates/goth v1.74.1
+	github.com/markbates/goth v1.78.0
 	github.com/njern/gonexmo v2.0.0+incompatible
 	github.com/onsi/gomega v1.22.1
 	github.com/pallinder/go-randomdata v1.2.0
@@ -35,21 +35,22 @@ require (
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20220915034741-1546cf172da8
 	go.etcd.io/bbolt v1.3.6
-	go.mongodb.org/mongo-driver v1.10.3
-	golang.org/x/crypto v0.1.0
+	go.mongodb.org/mongo-driver v1.13.0
+	golang.org/x/crypto v0.11.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
-	golang.org/x/net v0.10.0
-	golang.org/x/oauth2 v0.4.0
-	golang.org/x/text v0.9.0
-	google.golang.org/grpc v1.52.0-dev
-	google.golang.org/protobuf v1.28.1
+	golang.org/x/net v0.12.0
+	golang.org/x/oauth2 v0.10.0
+	golang.org/x/text v0.11.0
+	google.golang.org/grpc v1.58.3
+	google.golang.org/protobuf v1.31.0
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/h2non/baloo.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	cloud.google.com/go/compute v1.9.0 // indirect
+	cloud.google.com/go/compute v1.21.0 // indirect
+	cloud.google.com/go/compute/metadata v0.2.3 // indirect
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -64,7 +65,7 @@ require (
 	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/goccy/go-json v0.9.6 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.2 // indirect
+	github.com/golang/protobuf v1.5.3 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
 	github.com/google/go-cmp v0.5.9 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
@@ -90,16 +91,16 @@ require (
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.9.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
-	github.com/xdg-go/scram v1.1.1 // indirect
-	github.com/xdg-go/stringprep v1.0.3 // indirect
+	github.com/xdg-go/scram v1.1.2 // indirect
+	github.com/xdg-go/stringprep v1.0.4 // indirect
 	github.com/xeipuuv/gojsonpointer v0.0.0-20180127040702-4e3ac2762d5f // indirect
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/sync v0.1.0 // indirect
-	golang.org/x/sys v0.8.0 // indirect
+	golang.org/x/sync v0.3.0 // indirect
+	golang.org/x/sys v0.10.0 // indirect
 	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto v0.0.0-20220804142021-4e6b2dfa6612 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/h2non/gentleman.v2 v2.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
