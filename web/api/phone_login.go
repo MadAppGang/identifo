@@ -41,7 +41,19 @@ func (ar *Router) RequestVerificationCode() http.HandlerFunc {
 			return
 		}
 
-		// TODO: add limiter here. Check frequency of requests.
+		//// TODO: add limiter here. Check frequency of requests.
+		// TODO: rate limiter is a function of network infrastructure. Better to use AWS WAF or similar solution.
+		_, err := ar.server.Storages().User.UserByPhone(authData.PhoneNumber)
+		if err == model.ErrUserNotFound {
+			if !ar.server.Settings().Login.AllowRegisterMissing {
+				ar.Error(w, locale, http.StatusUnauthorized, l.ErrorAPIAPPRegistrationForbidden)
+				return
+			}
+		} else if err != nil {
+			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserPhoneError, err)
+			return
+		}
+
 		code := randStringBytes(phoneVerificationCodeLength)
 		if err := ar.server.Storages().Verification.CreateVerificationCode(authData.PhoneNumber, code); err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageVerificationCreateError, err)
