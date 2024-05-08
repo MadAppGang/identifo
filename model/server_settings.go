@@ -30,6 +30,32 @@ type ServerSettings struct {
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
 	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
 	EmailTemplates FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
+	Impersonation  ImpersonationSettings  `yaml:"impersonation" json:"impersonation"`
+}
+
+type ImpersonationServiceType string
+
+const (
+	ImpersonationServiceTypeNone   ImpersonationServiceType = "none"
+	ImpersonationServiceTypeScope  ImpersonationServiceType = "scope"
+	ImpersonationServiceTypeRole   ImpersonationServiceType = "role"
+	ImpersonationServiceTypePlugin ImpersonationServiceType = "plugin"
+)
+
+// ImpersonationSettings are settings for impersonation.
+type ImpersonationSettings struct {
+	Type   ImpersonationServiceType   `yaml:"type" json:"type"`
+	Plugin PluginSettings             `yaml:"plugin" json:"plugin"`
+	Scope  ImpersonationScopeSettings `yaml:"scope" json:"scope"`
+	Role   ImpersonationRoleSettings  `yaml:"role" json:"role"`
+}
+
+type ImpersonationScopeSettings struct {
+	AllowedScopes []string `yaml:"allowed_scopes" json:"allowed_scopes"`
+}
+
+type ImpersonationRoleSettings struct {
+	AllowedRoles []string `yaml:"allowed_roles" json:"allowed_roles"`
 }
 
 // GeneralServerSettings are general server settings.

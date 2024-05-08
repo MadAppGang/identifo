@@ -1,0 +1,34 @@
+syntax = "proto3";
+package impersonation_provider;
+option go_package = "github.com/madappgang/identifo/v2/impersonation/grpc/impersonation_provider";
+
+
+message User {
+	string id               = 1;
+	string email            = 2;
+	bool active             = 3;
+	string access_role      = 4;
+	bool anonymous          = 5;
+	repeated string scopes  = 6;
+}
+
+message CanImpersonateRequest {
+    string app_id           = 1;
+    User admin_user         = 2;
+    User impersonated_user  = 3;
+}
+
+message CanImpersonateResponse {
+    bool ok = 1;
+}
+
+message CloseRequest {}
+
+message CloseResponse {}
+
+
+service ImpersonationProvider {
+    rpc CanImpersonate(CanImpersonateRequest) returns (CanImpersonateResponse);
+
+    rpc Close(CloseRequest) returns (CloseResponse);
+}

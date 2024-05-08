@@ -182,7 +182,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		authResult, err := ar.loginFlow(app, user, ld.Scopes)
+		authResult, err := ar.loginFlow(app, user, ld.Scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
@@ -330,7 +330,12 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 	return accessTokenString, refreshTokenString, nil
 }
 
-func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes []string) (AuthResponse, error) {
+func (ar *Router) loginFlow(
+	app model.AppData,
+	user model.User,
+	requestedScopes []string,
+	additionalPayload map[string]any,
+) (AuthResponse, error) {
 	// check if the user has the scope, that allows to login to the app
 	// user has to have at least one scope app expecting
 	if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
@@ -357,6 +362,14 @@ func (ar *Router) loginFlow(app model.AppData, user model.User, requestedScopes 
 	tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 	if err != nil {
 		return AuthResponse{}, err
+	}
+
+	if tokenPayload == nil {
+		tokenPayload = additionalPayload
+	} else {
+		for k, v := range additionalPayload {
+			tokenPayload[k] = v
+		}
 	}
 
 	accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA, tokenPayload)

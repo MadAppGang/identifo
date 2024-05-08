@@ -203,7 +203,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 			return
 		}
 
-		authResult, err := ar.loginFlow(app, user, fsess.Scopes)
+		authResult, err := ar.loginFlow(app, user, fsess.Scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 			return

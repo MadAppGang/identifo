@@ -6,6 +6,8 @@ import (
 	"log"
 	"time"
 
+	imp "github.com/madappgang/identifo/v2/impersonation/local"
+	impPlugin "github.com/madappgang/identifo/v2/impersonation/plugin"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
 	"github.com/madappgang/identifo/v2/services/mail"
@@ -181,11 +183,18 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	sessionS := model.NewSessionManager(settings.SessionStorage.SessionDuration, session)
 
+	impS, err := NewImpersonationProvider(settings.Impersonation)
+	if err != nil {
+		log.Printf("Error creating impersonation provider %v", err)
+		errs = append(errs, fmt.Errorf("error creating impersonation provider: %v", err))
+	}
+
 	srvs := model.ServerServices{
-		SMS:     sms,
-		Email:   email,
-		Token:   tokenS,
-		Session: sessionS,
+		SMS:           sms,
+		Email:         email,
+		Token:         tokenS,
+		Session:       sessionS,
+		Impersonation: impS,
 	}
 
 	server, err := server.NewServer(sc, srvs, errs, restartChan)
@@ -210,4 +219,19 @@ func NewTokenService(settings model.GeneralServerSettings, storages model.Server
 		storages.User,
 	)
 	return tokenService, err
+}
+
+func NewImpersonationProvider(settings model.ImpersonationSettings) (model.ImpersonationProvider, error) {
+	switch settings.Type {
+	case model.ImpersonationServiceTypeNone, "":
+		return nil, nil
+	case model.ImpersonationServiceTypeRole:
+		return imp.NewAccessRoleImpersonator(settings.Role.AllowedRoles), nil
+	case model.ImpersonationServiceTypeScope:
+		return imp.NewScopeImpersonator(settings.Scope.AllowedScopes), nil
+	case model.ImpersonationServiceTypePlugin:
+		return impPlugin.NewImpersonationProvider(settings.Plugin, time.Second)
+	}
+
+	return nil, nil
 }

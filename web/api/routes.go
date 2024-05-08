@@ -140,6 +140,7 @@ func (ar *Router) buildMeRoutes(middleware *negroni.Negroni) http.Handler {
 	me.Path("").HandlerFunc(ar.GetUser()).Methods(http.MethodGet)
 	me.Path("").HandlerFunc(ar.UpdateUser()).Methods(http.MethodPut)
 	me.Path("/logout").HandlerFunc(ar.Logout()).Methods(http.MethodPost)
+	me.Path("/impersonate_as").HandlerFunc(ar.ImpersonateAs()).Methods(http.MethodPost)
 
 	return with(middleware,
 		ar.SignatureHandler(),

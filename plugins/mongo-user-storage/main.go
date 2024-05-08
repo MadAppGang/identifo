@@ -41,10 +41,7 @@ func main() {
 	osch := make(chan os.Signal, 1)
 	signal.Notify(osch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	for {
-		<-osch
-		s.Close()
-		log.Println("Mongo user storage is terminated.")
-		return
-	}
+	<-osch
+	s.Close()
+	log.Println("Mongo user storage is terminated.")
 }
