@@ -145,6 +145,8 @@ const (
 	ErrorTokenInvalidError LocalizedString = "error.token.invalid.error"
 	// ErrorTokenBlocked -> The token is blocked and not valid any more.
 	ErrorTokenBlocked LocalizedString = "error.token.blocked"
+	// ErrorAPIImpersonationForbidden -> Impersonation is forbidden.
+	ErrorAPIImpersonationForbidden LocalizedString = "error.api.impersonation.forbidden"
 
 	//===========================================================================
 	//  App errors

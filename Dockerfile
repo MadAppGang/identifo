@@ -7,7 +7,7 @@ RUN web_apps_src/update-admin.sh
 RUN web_apps_src/update-web.sh
 
 
-FROM golang:1.19.2-alpine3.16 as builder
+FROM golang:1.22-alpine3.19 as builder
 
 # Copy the code from the host and compile it
 WORKDIR $GOPATH/src/github.com/madappgang/identifo
@@ -16,7 +16,7 @@ RUN go mod download
 RUN go build -o plugins/bin/ github.com/madappgang/identifo/v2/plugins/...
 RUN go build -o /identifo .
 
-FROM alpine:3.16
+FROM alpine:3.19
 RUN apk --no-cache add ca-certificates
 
 WORKDIR /

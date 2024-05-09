@@ -38,8 +38,9 @@ type ServerStorageCollection struct {
 }
 
 type ServerServices struct {
-	SMS     SMSService
-	Email   EmailService
-	Token   TokenService
-	Session SessionService
+	SMS           SMSService
+	Email         EmailService
+	Token         TokenService
+	Session       SessionService
+	Impersonation ImpersonationProvider
 }

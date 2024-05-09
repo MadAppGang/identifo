@@ -69,6 +69,7 @@ error.token.refresh.empty: Error getting old refresh token from context to repla
 error.otp.expired: OTP token expired, please get the new one and try again.
 error.token.invalid.error: "Invalid token. Validation error: %v."
 error.token.blocked: The token is blocked and not valid any more.
+error.api.impersonation.forbidden: Impersonation is forbidden.
 
 # App errors
 error.api.app.inactive: The app is inactive.

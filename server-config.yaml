@@ -26,6 +26,20 @@ storage:
   verificationCodeStorage: *storage_settings
   inviteStorage: *storage_settings
 
+
+
+impersonation:
+  type: scope
+  scope:
+    allowed_scopes: ["admin"]
+  role:
+    allowed_roles: ["admin"]
+  plugin:
+    cmd: /path/to/plugin
+    params: { "a": "b" }
+
+
+
 # Storage for admin sessions.
 sessionStorage:
   type: memory # Supported values are "memory", "redis", and "dynamodb".

@@ -179,7 +179,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		// 	return
 
 		// Do login flow.
-		authResult, err := ar.loginFlow(app, user, rd.Scopes)
+		authResult, err := ar.loginFlow(app, user, rd.Scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return

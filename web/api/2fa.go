@@ -180,10 +180,6 @@ func (ar *Router) ResendTFA() http.HandlerFunc {
 		}
 
 		userID := token.Subject()
-		if err != nil {
-			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPIRequestTokenSubError, err)
-			return
-		}
 
 		user, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
@@ -197,7 +193,9 @@ func (ar *Router) ResendTFA() http.HandlerFunc {
 			return
 		}
 
-		authResult, err := ar.loginFlow(app, user, strings.Split(token.Scopes(), " "))
+		scopes := strings.Split(token.Scopes(), " ")
+
+		authResult, err := ar.loginFlow(app, user, scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 			return
