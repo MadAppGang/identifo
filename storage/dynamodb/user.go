@@ -90,6 +90,7 @@ func (us *UserStorage) UserByID(id string) (model.User, error) {
 	if err != nil {
 		us.logger.Error("Error getting item from DynamoDB",
 			logging.FieldError, err)
+
 		return model.User{}, ErrorInternalError
 	}
 	if result.Item == nil {
