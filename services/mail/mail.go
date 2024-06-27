@@ -112,18 +112,10 @@ func (es *EmailService) Transport() model.EmailTransport {
 }
 
 func (es *EmailService) watch() {
-	for {
-		select {
-		case files, ok := <-es.watcher.WatchChan():
-			// the channel is closed
-			if ok == false {
-				return
-			}
-			for _, f := range files {
-				es.cache.Delete(f)
-				log.Printf("email template changed, the email template cache has been invalidated: %v", f)
-
-			}
+	for files := range es.watcher.WatchChan() {
+		for _, f := range files {
+			es.cache.Delete(f)
+			log.Printf("email template changed, the email template cache has been invalidated: %v", f)
 		}
 	}
 }

@@ -11,8 +11,8 @@ import (
 
 func TestNewMapOverlayFS(t *testing.T) {
 	base := afero.NewMemMapFs()
-	afero.WriteFile(base, "./test1.txt", []byte("file1"), 644)
-	afero.WriteFile(base, "./path/test2.txt", []byte("file2"), 644)
+	afero.WriteFile(base, "./test1.txt", []byte("file1"), 0644)
+	afero.WriteFile(base, "./path/test2.txt", []byte("file2"), 0644)
 
 	files := map[string][]byte{
 		"./path/test3.txt": []byte("file3"),

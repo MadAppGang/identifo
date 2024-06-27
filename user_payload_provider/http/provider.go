@@ -8,25 +8,25 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 
 	"github.com/madappgang/identifo/v2/model"
 )
 
-//NewTokenPayloadProvider creates new HTTP webhood  provider
-//it basically to the call to 3rd party http service
-//to secure this interaction, the receiver should apply some actions to ensure
-//the authorized Identity service is doing the request
-//To provide that level of verification we are signing the request with HMAC-SHA256 signature
-//https://en.wikipedia.org/wiki/HMAC
-//We are not using SHA1 here, because SHA2 is more secure.
-//We have limited SHA2 with SHA256 simplify the implementation, and SHA256 is the most popular among SHA2 family
-//SHA3 is not so popular yet and is limited in client packages available
-//Please verify signature on your side
+// NewTokenPayloadProvider creates new HTTP webhood  provider
+// it basically to the call to 3rd party http service
+// to secure this interaction, the receiver should apply some actions to ensure
+// the authorized Identity service is doing the request
+// To provide that level of verification we are signing the request with HMAC-SHA256 signature
+// https://en.wikipedia.org/wiki/HMAC
+// We are not using SHA1 here, because SHA2 is more secure.
+// We have limited SHA2 with SHA256 simplify the implementation, and SHA256 is the most popular among SHA2 family
+// SHA3 is not so popular yet and is limited in client packages available
+// Please verify signature on your side
 //
-//you  can also whitelist identifo's IP as an extra step
+// you  can also whitelist identifo's IP as an extra step
 func NewTokenPayloadProvider(secret string, serviceURL string) (model.TokenPayloadProvider, error) {
 	if len(secret) < 5 {
 		return nil, errors.New("http user payload provider init error, the secret is empty or short, it should be at least 5 chars long")
@@ -71,7 +71,7 @@ func (p *provider) TokenPayloadForApp(appId, appName, userId string) (map[string
 	if resp.StatusCode > 299 {
 		return nil, fmt.Errorf("getting user payload from provider, response code expected 200, got: %d", resp.StatusCode)
 	}
-	responseBody, err := ioutil.ReadAll(resp.Body)
+	responseBody, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("getting user payload from provider, could not read response body with error: %v", err)
 	}

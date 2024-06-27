@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -25,6 +26,19 @@ func NewTokenBlacklist(settings model.MongoDatabaseSettings) (model.TokenBlackli
 	}
 
 	coll := db.Database.Collection(blacklistedTokensCollectionName)
+
+	// TODO: check that index exists for other DB's
+	err = db.EnsureCollectionIndices(blacklistedTokensCollectionName, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "token", Value: 1}},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create indexes for %s: %w",
+			blacklistedTokensCollectionName,
+			err)
+	}
+
 	return &TokenBlacklist{coll: coll, timeout: 30 * time.Second}, nil
 }
 

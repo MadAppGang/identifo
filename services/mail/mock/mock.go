@@ -18,7 +18,7 @@ func NewTransport() model.EmailTransport {
 // SendMessage returns nil error.
 func (es *EmailService) SendMessage(subject, body, recipient string) error {
 	msg := fmt.Sprintf("✉️: MOCK EMAIL SERVICE: Sending message \nsubject: %s\nbody: %s\n recipient: %s\n\n", subject, body, recipient)
-	fmt.Printf(msg)
+	fmt.Print(msg)
 	es.SendMessages = append(es.SendMessages, msg)
 	return nil
 }
@@ -26,7 +26,7 @@ func (es *EmailService) SendMessage(subject, body, recipient string) error {
 // SendHTML returns nil error.
 func (es *EmailService) SendHTML(subject, html, recipient string) error {
 	msg := fmt.Sprintf("✉️: MOCK EMAIL SERVICE: Sending HTML \nsubject: %s\nhtml: %s\n recipient: %s\n\n", subject, html, recipient)
-	fmt.Printf(msg)
+	fmt.Print(msg)
 	es.SendMessages = append(es.SendMessages, msg)
 	return nil
 }

@@ -2,7 +2,6 @@ package fs
 
 import (
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -72,7 +71,7 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 		return fmt.Errorf("Cannot marshall configuration: %s", err)
 	}
 
-	if err = ioutil.WriteFile(cs.ServerConfigPath, ss, 0o644); err != nil {
+	if err = os.WriteFile(cs.ServerConfigPath, ss, 0o644); err != nil {
 		return fmt.Errorf("Cannot write configuration file: %s", err)
 	}
 
@@ -97,7 +96,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerS
 		return model.ServerSettings{}, cs.errors
 	}
 
-	yamlFile, err := ioutil.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
+	yamlFile, err := os.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
 	if err != nil {
 		cs.errors = append(cs.errors, fmt.Errorf("Cannot read server configuration file: %s", err))
 		return model.ServerSettings{}, cs.errors

@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"fmt"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -25,6 +26,19 @@ func NewTokenStorage(settings model.MongoDatabaseSettings) (model.TokenStorage, 
 	}
 
 	coll := db.Database.Collection(tokensCollectionName)
+
+	// TODO: check that index exists for other DB's
+	err = db.EnsureCollectionIndices(tokensCollectionName, []mongo.IndexModel{
+		{
+			Keys: bson.D{{Key: "token", Value: 1}},
+		},
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to create indexes for %s: %w",
+			tokensCollectionName,
+			err)
+	}
+
 	return &TokenStorage{coll: coll, timeout: 30 * time.Second}, nil
 }
 
