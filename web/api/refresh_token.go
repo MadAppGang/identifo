@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -84,6 +85,8 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 			RefreshToken: newRefreshTokenString,
 		}
 
+		ar.journal(JournalOperationRefreshToken, oldRefreshToken.Subject(), app.ID, r)
+
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
@@ -118,10 +121,14 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 
 func (ar *Router) invalidateOldRefreshToken(oldRefreshTokenString string) {
 	if err := ar.server.Storages().Token.DeleteToken(oldRefreshTokenString); err != nil {
-		ar.logger.Println("Cannot delete old refresh token from token storage:", err)
+		ar.logger.Error("Cannot delete old refresh token from token storage",
+			logging.FieldError, err)
 	}
+
 	if err := ar.server.Storages().Blocklist.Add(oldRefreshTokenString); err != nil {
-		ar.logger.Println("Cannot blacklist old refresh token:", err)
+		ar.logger.Error("Cannot blacklist old refresh token",
+			logging.FieldError, err)
 	}
-	ar.logger.Println("Old refresh token successfully invalidated")
+
+	ar.logger.Info("Old refresh token successfully invalidated")
 }

@@ -7,6 +7,7 @@ import (
 	"time"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	pphttp "github.com/madappgang/identifo/v2/user_payload_provider/http"
 	"github.com/madappgang/identifo/v2/user_payload_provider/plugin"
@@ -125,14 +126,16 @@ func (ar *Router) checkSupportedWays(l login) error {
 // LoginWithPassword logs user in with email and password.
 func (ar *Router) LoginWithPassword() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		var err error
+
 		locale := r.Header.Get("Accept-Language")
 
 		ld := loginData{}
-		if ar.MustParseJSON(w, r, &ld) != nil {
+		if err = ar.MustParseJSON(w, r, &ld); err != nil {
 			return
 		}
 
-		if err := ld.validate(); err != nil {
+		if err = ld.validate(); err != nil {
 			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 			return
 		}
@@ -142,7 +145,6 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		var err error
 		user := model.User{}
 
 		if len(ld.Email) > 0 {
@@ -187,6 +189,8 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
+
+		ar.journal(JournalOperationLoginWithPassword, user.ID, app.ID, r)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -288,8 +292,9 @@ func (ar *Router) getTokenPayloadService(app model.AppData) (model.TokenPayloadP
 	case model.TokenPayloadServicePlugin:
 		ps, err = plugin.NewTokenPayloadProvider(
 			model.PluginSettings{
-				Cmd:    app.TokenPayloadServicePluginSettings.Cmd,
-				Params: app.TokenPayloadServicePluginSettings.Params,
+				Cmd:         app.TokenPayloadServicePluginSettings.Cmd,
+				Params:      app.TokenPayloadServicePluginSettings.Params,
+				RedirectStd: app.TokenPayloadServicePluginSettings.RedirectStd,
 			}, app.TokenPayloadServicePluginSettings.ClientTimeout)
 	}
 
@@ -320,7 +325,8 @@ func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData,
 
 	refresh, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
-		ar.logger.Println(err)
+		ar.logger.Error("Failed to create refresh token",
+			logging.FieldError, err)
 		return accessTokenString, "", nil
 	}
 	refreshTokenString, err := ar.server.Services().Token.String(refresh)

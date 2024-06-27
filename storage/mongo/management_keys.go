@@ -4,9 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
+	"fmt"
+	"log/slog"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -18,23 +20,30 @@ const managementKeysCollectionName = "ManagementKeys"
 
 // ManagementKeysStorage is a MongoDB management keys storage.
 type ManagementKeysStorage struct {
-	coll *mongo.Collection
+	logger *slog.Logger
+	coll   *mongo.Collection
 }
 
 // NewManagementKeysStorage creates a management keys invite storage.
-func NewManagementKeysStorage(settings model.MongoDatabaseSettings) (model.ManagementKeysStorage, error) {
+func NewManagementKeysStorage(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings,
+) (model.ManagementKeysStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(managementKeysCollectionName)
-	return &ManagementKeysStorage{coll: coll}, nil
+	coll := db.database.Collection(managementKeysCollectionName)
+	return &ManagementKeysStorage{
+		logger: logger,
+		coll:   coll,
+	}, nil
 }
 
 func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.ManagementKey, error) {
@@ -136,7 +145,8 @@ func (ms *ManagementKeysStorage) ClearAllData() {
 	defer cancel()
 
 	if _, err := ms.coll.DeleteMany(ctx, bson.M{}); err != nil {
-		log.Printf("Error cleaning all user data: %s\n", err)
+		ms.logger.Error("Error cleaning all user data",
+			logging.FieldError, err)
 	}
 }
 
@@ -148,12 +158,12 @@ func (ms *ManagementKeysStorage) ImportJSON(data []byte, cleanOldData bool) erro
 
 	keys := []model.ManagementKey{}
 	if err := json.Unmarshal(data, &keys); err != nil {
-		log.Println(err)
-		return err
+		return fmt.Errorf("failed to unmarshal management keys: %w", err)
 	}
+
 	for _, a := range keys {
 		if _, err := ms.AddKey(context.TODO(), a); err != nil {
-			return err
+			return fmt.Errorf("failed to add management keys: %w", err)
 		}
 	}
 	return nil

@@ -2,8 +2,9 @@ package boltdb
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
@@ -14,7 +15,10 @@ const (
 )
 
 // NewVerificationCodeStorage creates and inits BoltDB verification code storage.
-func NewVerificationCodeStorage(settings model.BoltDBDatabaseSettings) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings,
+) (model.VerificationCodeStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -25,7 +29,10 @@ func NewVerificationCodeStorage(settings model.BoltDBDatabaseSettings) (model.Ve
 		return nil, err
 	}
 
-	vcs := &VerificationCodeStorage{db: db}
+	vcs := &VerificationCodeStorage{
+		logger: logger,
+		db:     db,
+	}
 
 	if err := db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(VerificationCodesBucket)); err != nil {
@@ -41,7 +48,8 @@ func NewVerificationCodeStorage(settings model.BoltDBDatabaseSettings) (model.Ve
 
 // VerificationCodeStorage implements verification code storage interface.
 type VerificationCodeStorage struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 // IsVerificationCodeFound checks whether verification code can be found.
@@ -79,6 +87,6 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 // Close closes underlying database.
 func (vcs *VerificationCodeStorage) Close() {
 	if err := CloseDB(vcs.db); err != nil {
-		log.Printf("Error closing verification code storage: %s\n", err)
+		vcs.logger.Error("Error closing verification code storage", logging.FieldError, err)
 	}
 }

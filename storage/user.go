@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
@@ -13,14 +14,16 @@ import (
 )
 
 // NewUserStorage creates new users storage from settings
-func NewUserStorage(settings model.DatabaseSettings) (model.UserStorage, error) {
+func NewUserStorage(
+	logger *slog.Logger,
+	settings model.DatabaseSettings) (model.UserStorage, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
-		return boltdb.NewUserStorage(settings.BoltDB)
+		return boltdb.NewUserStorage(logger, settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewUserStorage(settings.Mongo)
+		return mongo.NewUserStorage(logger, settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewUserStorage(settings.Dynamo)
+		return dynamodb.NewUserStorage(logger, settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:

@@ -8,9 +8,6 @@ import (
 	"github.com/go-chi/chi/v5/middleware"
 )
 
-func logger(name string) {
-}
-
 // setup all routes
 func (ar *Router) initRoutes() {
 	// A good base middleware stack

@@ -3,7 +3,7 @@ package s3
 import (
 	"bytes"
 	"fmt"
-	"log"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -13,6 +13,7 @@ import (
 
 // ConfigurationStorage is a server configuration storage in S3.
 type ConfigurationStorage struct {
+	logger           *slog.Logger
 	Client           *s3.S3
 	Bucket           string
 	ObjectName       string
@@ -24,19 +25,23 @@ type ConfigurationStorage struct {
 }
 
 // NewConfigurationStorage creates new server config storage in S3.
-func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationStorage, error) {
-	log.Println("Loading server configuration from the S3 bucket...")
+func NewConfigurationStorage(
+	logger *slog.Logger,
+	config model.FileStorageSettings,
+) (*ConfigurationStorage, error) {
+	logger.Info("Loading server configuration from the S3 bucket...")
 
 	if config.Type != model.FileStorageTypeS3 {
-		return nil, fmt.Errorf("Configuration file from S3 specifies configuration type %s", config.Type)
+		return nil, fmt.Errorf("configuration file from S3 specifies configuration type %s", config.Type)
 	}
 
 	s3client, err := NewS3Client(config.S3.Region, config.S3.Endpoint)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot initialize S3 client: %s.", err)
+		return nil, fmt.Errorf("cannot initialize S3 client: %w", err)
 	}
 
 	cs := &ConfigurationStorage{
+		logger:     logger,
 		Client:     s3client,
 		Bucket:     config.S3.Bucket,
 		ObjectName: config.S3.Key,
@@ -59,7 +64,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerS
 
 	resp, err := cs.Client.GetObject(getObjInput)
 	if err != nil {
-		e := fmt.Errorf("Cannot get object from S3: %s", err)
+		e := fmt.Errorf("cannot get object from S3: %w", err)
 		cs.errors = append(cs.errors, e)
 		return model.ServerSettings{}, cs.errors
 	}
@@ -67,7 +72,7 @@ func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerS
 
 	var settings model.ServerSettings
 	if err = yaml.NewDecoder(resp.Body).Decode(&settings); err != nil {
-		cs.errors = append(cs.errors, fmt.Errorf("Cannot decode S3 response: %s", err))
+		cs.errors = append(cs.errors, fmt.Errorf("cannot decode S3 response: %w", err))
 		return model.ServerSettings{}, cs.errors
 	}
 
@@ -82,11 +87,11 @@ func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerS
 
 // WriteConfig puts new configuration into the storage.
 func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
-	log.Println("Putting new config to S3...")
+	cs.logger.Info("Putting new config to S3...")
 
 	valueBytes, err := yaml.Marshal(settings)
 	if err != nil {
-		return fmt.Errorf("Cannot marshal settings value: %s", err)
+		return fmt.Errorf("cannot marshal settings value: %w", err)
 	}
 
 	_, err = cs.Client.PutObject(&s3.PutObjectInput{
@@ -100,13 +105,13 @@ func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error
 	})
 
 	if err == nil {
-		log.Println("Successfully put new configuration to S3")
+		cs.logger.Info("Successfully put new configuration to S3")
 	}
 
 	// Indicate config update. To prevent writing to a closed channel, make a check.
 	go func() {
 		if cs.updateChanClosed {
-			log.Println("Attempted to write to closed UpdateChan")
+			cs.logger.Warn("Attempted to write to closed UpdateChan")
 			return
 		}
 		cs.UpdateChan <- struct{}{}

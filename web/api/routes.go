@@ -6,6 +6,7 @@ import (
 	"github.com/gorilla/mux"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
@@ -15,15 +16,13 @@ func (ar *Router) initRoutes() {
 		panic("Empty API router")
 	}
 
-	baseMiddleware := negroni.New(
-		middleware.NewNegroniLogger("API"),
-		negroni.NewRecovery(),
-		ar.RemoveTrailingSlash(),
-	)
+	servSettings := ar.server.Settings()
 
-	if ar.cors != nil {
-		baseMiddleware.Use(ar.cors)
-	}
+	baseMiddleware := buildBaseMiddleware(
+		servSettings.Logger.DumpRequest,
+		servSettings.Logger.API,
+		ar.cors,
+	)
 
 	ph := with(baseMiddleware, negroni.WrapFunc(ar.HandlePing))
 	ar.router.Handle("/ping", ph).Methods(http.MethodGet)
@@ -51,14 +50,34 @@ func (ar *Router) initRoutes() {
 	ar.router.PathPrefix("/.well-known").Handler(oidcCfg)
 }
 
+func buildBaseMiddleware(
+	dumpRequest bool,
+	logParams model.LoggerParams,
+	cors *cors.Cors,
+) *negroni.Negroni {
+	logParams.Type = model.LogType(dumpRequest, logParams.Type)
+
+	lm := middleware.HTTPLogger(
+		"API",
+		logParams)
+
+	result := negroni.New(
+		lm,
+		negroni.NewRecovery(),
+		middleware.RemoveTrailingSlash(),
+	)
+
+	if cors != nil {
+		result.Use(cors)
+	}
+
+	return result
+
+}
+
 // buildAPIMiddleware creates middlewares that should execute for all requests
 func (ar *Router) buildAPIMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	handlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		handlers = append(handlers, ar.DumpRequest())
-	}
-
 	handlers = append(handlers, ar.AppID())
 	return with(base, handlers...)
 }
@@ -164,10 +183,6 @@ func (ar *Router) buildOIDCRoutes(middleware *negroni.Negroni) http.Handler {
 
 func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	wellKnownHandlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
-	}
 
 	return with(base, wellKnownHandlers...)
 }

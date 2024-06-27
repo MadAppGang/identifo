@@ -3,20 +3,20 @@ package management
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
-	"os"
 	"runtime"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-playground/validator"
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 type RouterSettings struct {
 	Server             model.Server
-	Logger             *log.Logger
+	Logger             *slog.Logger
 	LoggerSettings     model.LoggerSettings
 	Storage            model.ManagementKeysStorage
 	Locale             string
@@ -26,7 +26,7 @@ type RouterSettings struct {
 type Router struct {
 	server         model.Server
 	ls             *l.Printer // localized string
-	logger         *log.Logger
+	logger         *slog.Logger
 	router         *chi.Mux
 	loggerSettings model.LoggerSettings
 	stor           model.ManagementKeysStorage
@@ -51,7 +51,8 @@ func NewRouter(settings RouterSettings) (*Router, error) {
 
 	// setup logger to stdout.
 	if settings.Logger == nil {
-		ar.logger = log.New(os.Stdout, "MANAGEMENT_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
+		ar.logger = logging.NewDefaultLogger().
+			With(logging.FieldComponent, "MANAGEMENT_ROUTER")
 	} else {
 		ar.logger = settings.Logger
 	}
@@ -77,8 +78,20 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, locale string, status int, v 
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
+
 	if _, err = w.Write(data); err != nil {
-		log.Printf("error writing http response: %s", err)
+		logging.DefaultLogger.Error("error writing http response", logging.FieldError, err)
+	}
+}
+
+var jsonOkBody = []byte(`{"result": "ok"}`)
+
+func (ar *Router) ServeJSONOk(w http.ResponseWriter) {
+	w.Header().Set("Content-Type", "application/json")
+
+	if _, err := w.Write(jsonOkBody); err != nil {
+		ar.logger.Error("error writing http response",
+			logging.FieldError, err)
 	}
 }
 
@@ -107,8 +120,11 @@ func (ar *Router) error(w http.ResponseWriter, callerDepth int, locale string, s
 	}
 	message := ar.ls.SL(locale, errID, details...)
 
-	// Log error.
-	ar.logger.Printf("api error: %v (status=%v). Details: %v. Where: %v:%d.", errID, status, message, file, no)
+	ar.logger.Error("api error",
+		logging.FieldErrorID, errID,
+		"status", status,
+		"details", message,
+		"where", fmt.Sprintf("%v:%d", file, no))
 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")
@@ -127,7 +143,8 @@ func (ar *Router) error(w http.ResponseWriter, callerDepth int, locale string, s
 
 	encodeErr := json.NewEncoder(w).Encode(resp)
 	if encodeErr != nil {
-		ar.logger.Printf("error writing http response: %s", errID)
+		ar.logger.Error("error writing http response",
+			logging.FieldError, encodeErr)
 	}
 }
 

@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -16,7 +17,7 @@ func NewKeyStorageConnectionTester(settings model.FileStorageS3) model.Connectio
 
 func (ct *KeyStorageConnectionTester) Connect() error {
 	// let's try to load keys from the storage, if we can - it means
-	ks, err := NewKeyStorage(ct.settings)
+	ks, err := NewKeyStorage(logging.DefaultLogger, ct.settings)
 	if err != nil {
 		return err
 	}

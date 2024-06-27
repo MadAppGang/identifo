@@ -35,7 +35,7 @@ func TestInvite(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
@@ -47,7 +47,7 @@ func TestInvite(t *testing.T) {
 
 	require.NotEmpty(t, at)
 	data = fmt.Sprintf(`
-	{ 
+	{
 		"email": "%s",
 		"access_role": "%s",
 		"callback_url": "%s",
@@ -65,7 +65,7 @@ func TestInvite(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			link = data["link"].(string)
 			return nil
@@ -108,7 +108,7 @@ func TestInviteWithCustomLoginAppURL(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
@@ -120,7 +120,7 @@ func TestInviteWithCustomLoginAppURL(t *testing.T) {
 
 	require.NotEmpty(t, at)
 	data = fmt.Sprintf(`
-	{ 
+	{
 		"email": "%s",
 		"access_role": "%s",
 		"callback_url": "%s",
@@ -138,7 +138,7 @@ func TestInviteWithCustomLoginAppURL(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			link = data["link"].(string)
 			return nil

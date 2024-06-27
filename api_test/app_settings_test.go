@@ -21,7 +21,7 @@ func TestAppSettings(t *testing.T) {
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/app_settings_scheme.json").
@@ -45,7 +45,7 @@ func TestAppSettingsCORS(t *testing.T) {
 		SetHeader("Digest", "SHA-256="+signature).
 		SetHeader("Content-Type", "application/json").
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		AssertFunc(func(rsp *http.Response, r *http.Request) error {
 			header = rsp.Header
 			return nil
@@ -53,7 +53,6 @@ func TestAppSettingsCORS(t *testing.T) {
 		Status(204).
 		Done()
 
-	fmt.Printf("Header %+v\n", header)
 	assert.Contains(t, header.Get("Access-Control-Allow-Origin"), "http://localhost:3000")
 	assert.Contains(t, header.Get("Access-Control-Allow-Methods"), "GET")
 }

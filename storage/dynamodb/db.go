@@ -2,7 +2,6 @@ package dynamodb
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -19,7 +18,6 @@ func NewDB(endpoint string, region string) (*DB, error) {
 	}
 	sess, err := session.NewSession(config)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
@@ -46,7 +44,6 @@ func (db *DB) IsTableExists(table string) (bool, error) {
 		// if table not exists - create table
 	}
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 

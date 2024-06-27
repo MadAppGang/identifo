@@ -2,11 +2,11 @@ package middleware
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
-	"os"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/urfave/negroni"
 )
@@ -17,12 +17,11 @@ const (
 )
 
 // AppID gets app id from the request body.
-func AppID(errorPath string, appStorage model.AppStorage, logger *log.Logger) negroni.HandlerFunc {
-	// Setup logger to stdout.
-	if logger == nil {
-		logger = log.New(os.Stdout, "APP_ID_MIDDLEWARE: ", log.Ldate|log.Ltime|log.Lshortfile)
-	}
-
+func AppID(
+	logger *slog.Logger,
+	errorPath string,
+	appStorage model.AppStorage,
+) negroni.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		if strings.HasSuffix(errorPath, r.URL.Path) {
 			next.ServeHTTP(w, r)
@@ -43,7 +42,8 @@ func AppID(errorPath string, appStorage model.AppStorage, logger *log.Logger) ne
 
 		app, err := appStorage.ActiveAppByID(appID)
 		if err != nil {
-			logger.Printf("Error: getting app by id. %s", err)
+			logger.Error("Error: getting app by id",
+				logging.FieldError, err)
 			http.Redirect(w, r, errorPath, http.StatusFound)
 			return
 		}

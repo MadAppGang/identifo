@@ -8,12 +8,8 @@ import (
 	"net/http"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
-)
-
-const (
-	defaultAppSkip  = 0
-	defaultAppLimit = 20
 )
 
 // GetApp fetches app by ID from the database.
@@ -91,12 +87,12 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 		}
 
 		if lenSecret := len(ad.Secret); lenSecret < 24 || lenSecret > 48 {
-			err := fmt.Errorf("Incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
+			err := fmt.Errorf("incorrect appsecret string length %d, expecting 24 to 48 symbols inclusively", lenSecret)
 			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
 		if !isBase64(ad.Secret) {
-			err := fmt.Errorf("Expecting appsecret to be base64 encoded")
+			err := fmt.Errorf("expecting app secret to be base64 encoded")
 			ar.Error(w, err, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -108,10 +104,13 @@ func (ar *Router) UpdateApp() http.HandlerFunc {
 		}
 
 		if err = ar.updateAllowedOrigins(); err != nil {
-			ar.logger.Printf("Error occurred during updating allowed origins for App %s, error: %v", appID, err)
+			ar.logger.Error("Error occurred during updating allowed origins for App",
+				"appId", appID,
+				"error", err)
 		}
 
-		ar.logger.Printf("App %s updated", appID)
+		ar.logger.Info("App updated",
+			"appId", appID)
 
 		ar.ServeJSON(w, http.StatusOK, app)
 	}
@@ -126,7 +125,7 @@ func (ar *Router) DeleteApp() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("App %s deleted", appID)
+		ar.logger.Info("App deleted", "appId", appID)
 
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
@@ -145,7 +144,9 @@ func (ar *Router) DeleteAllApps() http.HandlerFunc {
 			err := ar.server.Storages().App.DeleteApp(a.ID)
 			if err != nil {
 				errs = append(errs, err)
-				ar.logger.Printf("Error deleting app: %s, error: %s. Ignoring and moving next.", a.ID, err)
+				ar.logger.Error("Error deleting app. Ignoring and moving next.",
+					logging.FieldAppID, a.ID,
+					logging.FieldError, err)
 			}
 		}
 		if len(errs) > 0 {

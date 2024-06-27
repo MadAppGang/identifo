@@ -135,7 +135,7 @@ func (dbs *DatabaseSettings) Validate() error {
 	case DBTypeGRPC:
 
 	default:
-		return fmt.Errorf("unsupported database type %s", dbs.Type)
+		return fmt.Errorf("unsupported database type '%s'", dbs.Type)
 	}
 	return nil
 }

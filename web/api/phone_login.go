@@ -172,6 +172,9 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
+
+		ar.journal(JournalOperationLoginWithPhone, user.ID, app.ID, r)
+
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }

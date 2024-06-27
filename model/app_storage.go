@@ -103,6 +103,7 @@ const (
 type TokenPayloadServicePluginSettings struct {
 	Name          string            `json:"name" bson:"name,omitempty"`
 	Cmd           string            `json:"cmd" bson:"cmd,omitempty"`
+	RedirectStd   bool              `json:"redirect_std" bson:"redirect_std,omitempty"`
 	Params        map[string]string `json:"params" bson:"params,omitempty"`
 	ClientTimeout time.Duration     `json:"client_timeout" bson:"client_timeout,omitempty"`
 }

@@ -2,7 +2,7 @@ package web
 
 import (
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -28,7 +28,7 @@ const (
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
 	Server           model.Server
-	Logger           *log.Logger
+	Logger           *slog.Logger
 	ServeAdminPanel  bool
 	Host             *url.URL
 	LoggerSettings   model.LoggerSettings
@@ -88,9 +88,10 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	} else {
 		// Web login app setup
 		loginAppSettings := spa.SPASettings{
-			Name:       "LOGIN_APP",
-			Root:       "/",
-			FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
+			Name:           "LOGIN_APP",
+			Root:           "/",
+			FileSystem:     http.FS(settings.Server.Storages().LoginAppFS),
+			LoggerSettings: apiRouter.LoggerSettings,
 		}
 		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, []negroni.Handler{middleware.NewCacheDisable()}, settings.Logger)
 		if err != nil {
@@ -126,9 +127,10 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 
 		// init admin panel web app
 		adminPanelAppSettings := spa.SPASettings{
-			Name:       "ADMIN_PANEL",
-			Root:       "/",
-			FileSystem: http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			Name:           "ADMIN_PANEL",
+			Root:           "/",
+			FileSystem:     http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			LoggerSettings: apiRouter.LoggerSettings,
 		}
 		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
 		if err != nil {

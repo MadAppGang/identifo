@@ -1,18 +1,23 @@
 package dynamodb
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 const blacklistedTokensTableName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new DynamoDB token storage.
-func NewTokenBlacklist(settings model.DynamoDatabaseSettings) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.TokenBlacklist, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
@@ -23,23 +28,27 @@ func NewTokenBlacklist(settings model.DynamoDatabaseSettings) (model.TokenBlackl
 		return nil, err
 	}
 
-	ts := &TokenBlacklist{db: db}
+	ts := &TokenBlacklist{
+		logger: logger,
+		db:     db,
+	}
 	err = ts.ensureTable()
 	return ts, err
 }
 
 // TokenBlacklist is a DynamoDB storage for blacklisted tokens.
 type TokenBlacklist struct {
-	db *DB
+	logger *slog.Logger
+	db     *DB
 }
 
 // ensureTable ensures that token blacklist exists.
 func (tb *TokenBlacklist) ensureTable() error {
 	exists, err := tb.db.IsTableExists(blacklistedTokensTableName)
 	if err != nil {
-		log.Printf("Error while checking if %s exists: %v", blacklistedTokensTableName, err)
-		return err
+		return fmt.Errorf("error while checking if %s exists: %w", blacklistedTokensTableName, err)
 	}
+
 	if exists {
 		return nil
 	}
@@ -62,8 +71,7 @@ func (tb *TokenBlacklist) ensureTable() error {
 	}
 
 	if _, err = tb.db.C.CreateTable(input); err != nil {
-		log.Printf("Error while creating %s table: %v", blacklistedTokensTableName, err)
-		return err
+		return fmt.Errorf("error while creating %s table: %w", blacklistedTokensTableName, err)
 	}
 	return nil
 }
@@ -79,7 +87,7 @@ func (tb *TokenBlacklist) Add(token string) error {
 
 	t, err := dynamodbattribute.MarshalMap(Token{Token: token})
 	if err != nil {
-		log.Println(err)
+		tb.logger.Error("Error while marshaling token", logging.FieldError, err)
 		return ErrorInternalError
 	}
 
@@ -89,7 +97,7 @@ func (tb *TokenBlacklist) Add(token string) error {
 	}
 
 	if _, err = tb.db.C.PutItem(input); err != nil {
-		log.Println("Error while putting token to blacklist:", err)
+		tb.logger.Error("Error while putting token to blacklist", logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return nil
@@ -110,7 +118,7 @@ func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
 		},
 	})
 	if err != nil {
-		log.Println("Error while fetching token from db:", err)
+		tb.logger.Error("Error while fetching token from db", logging.FieldError, err)
 		return false
 	}
 

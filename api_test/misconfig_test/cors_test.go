@@ -16,7 +16,7 @@ func TestCorsAlwaysTrue(t *testing.T) {
 			message = err["message"].(string)
 			return nil
 		})).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Status(500).
 		Done()
 	assert.NotEmpty(t, message)

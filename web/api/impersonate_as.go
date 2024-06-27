@@ -3,10 +3,10 @@ package api
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -34,7 +34,9 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 			return
 		}
 
-		log.Println("admin for impersonation", adminUser.ID, adminUser.Scopes)
+		ar.logger.Info("admin for impersonation",
+			logging.FieldUserID, adminUser.ID,
+			"scopes", adminUser.Scopes)
 
 		d := impersonateData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
@@ -49,7 +51,8 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 
 		ok, err := ar.checkImpersonationPermissions(ctx, app, adminUser, user)
 		if err != nil {
-			log.Printf("can not check impersonation: %v\n", err)
+			ar.logger.Error("cannot check impersonation",
+				logging.FieldError, err)
 			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPIImpersonationForbidden)
 			return
 		}

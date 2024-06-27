@@ -3,22 +3,27 @@ package redis
 import (
 	"encoding/json"
 	"io"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 
 	"github.com/go-redis/redis"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 // RedisSessionStorage is a Redis-backed storage for admin sessions.
 type RedisSessionStorage struct {
+	logger *slog.Logger
 	client redis.Cmdable
 	prefix string
 }
 
 // NewSessionStorage creates new Redis session storage.
-func NewSessionStorage(settings model.RedisDatabaseSettings) (model.SessionStorage, error) {
+func NewSessionStorage(
+	logger *slog.Logger,
+	settings model.RedisDatabaseSettings,
+) (model.SessionStorage, error) {
 	var addr, password string
 	var db int
 
@@ -59,6 +64,7 @@ func NewSessionStorage(settings model.RedisDatabaseSettings) (model.SessionStora
 	}
 
 	return &RedisSessionStorage{
+		logger: logger,
 		client: client,
 		prefix: p,
 	}, nil
@@ -95,7 +101,9 @@ func (r *RedisSessionStorage) DeleteSession(id string) error {
 	key := r.prefix + id
 	count, err := r.client.Del(key).Result()
 	if count == 0 {
-		log.Println("Tried to delete nonexistent session:", id)
+		r.logger.Warn("Tried to delete non existent session",
+			"key", key,
+			logging.FieldError, err)
 	}
 
 	return err

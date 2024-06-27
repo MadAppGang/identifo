@@ -2,12 +2,12 @@ package admin
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
@@ -18,8 +18,7 @@ import (
 type Router struct {
 	server       model.Server
 	middleware   *negroni.Negroni
-	cors         *cors.Cors
-	logger       *log.Logger
+	logger       *slog.Logger
 	router       *mux.Router
 	RedirectURL  string
 	PathPrefix   string
@@ -30,7 +29,7 @@ type Router struct {
 
 type RouterSettings struct {
 	Server       model.Server
-	Logger       *log.Logger
+	Logger       *slog.Logger
 	Host         *url.URL
 	Prefix       string
 	Cors         *cors.Cors
@@ -42,31 +41,57 @@ type RouterSettings struct {
 func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar := Router{
 		server:       settings.Server,
-		middleware:   negroni.New(middleware.NewNegroniLogger("ADMIN_API"), negroni.NewRecovery()),
 		router:       mux.NewRouter(),
 		Host:         settings.Host,
 		PathPrefix:   settings.Prefix,
 		forceRestart: settings.Restart,
-		cors:         settings.Cors,
 		RedirectURL:  "/login",
 		originUpdate: settings.OriginUpdate,
 	}
 
 	if settings.Logger == nil {
-		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
+		ar.logger = logging.NewDefaultLogger().
+			With(logging.FieldComponent, "ADMIN_ROUTER")
 	}
 
-	ar.middleware.Use(ar.RemoveTrailingSlash())
+	servSett := settings.Server.Settings()
 
-	if ar.cors == nil {
-		ar.cors = cors.New(model.DefaultCors)
-	}
-	ar.middleware.Use(ar.cors)
+	ar.middleware = buildMiddleware(
+		servSett.Logger.DumpRequest,
+		servSett.Logger.Admin,
+		settings.Cors)
 
 	ar.initRoutes()
 	ar.middleware.UseHandler(ar.router)
 
 	return &ar, nil
+}
+
+func buildMiddleware(
+	dumpRequest bool,
+	logParams model.LoggerParams,
+	corsHandler *cors.Cors,
+) *negroni.Negroni {
+	var handlers []negroni.Handler
+
+	// set efficient log type
+	logParams.Type = model.LogType(dumpRequest, logParams.Type)
+
+	lm := middleware.HTTPLogger(
+		"ADMIN_API",
+		logParams)
+	handlers = append(handlers, lm)
+
+	if corsHandler == nil {
+		corsHandler = cors.New(model.DefaultCors)
+	}
+
+	handlers = append(handlers,
+		negroni.NewRecovery(),
+		middleware.RemoveTrailingSlash(),
+		corsHandler)
+
+	return negroni.New(handlers...)
 }
 
 // Error writes an API error message to the response and logger.
@@ -79,7 +104,9 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	}
 
 	// Log error.
-	ar.logger.Printf("admin error: %v (code=%d)", err, code)
+	ar.logger.Error("admin error",
+		logging.FieldError, err,
+		"errorCode", code)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
@@ -89,7 +116,8 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 		Code:  code,
 	})
 	if encodeErr != nil {
-		ar.logger.Printf("error writing http response: %s", err)
+		ar.logger.Error("error writing http response",
+			logging.FieldError, encodeErr)
 	}
 }
 
@@ -110,6 +138,7 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if _, err = w.Write(data); err != nil {
-		log.Printf("error writing http response: %s", err)
+		ar.logger.Error("error writing http response",
+			logging.FieldError, err)
 	}
 }

@@ -4,10 +4,11 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -19,19 +20,25 @@ import (
 const usersCollectionName = "Users"
 
 // NewUserStorage creates and inits MongoDB user storage.
-func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, error) {
+func NewUserStorage(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings) (model.UserStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(usersCollectionName)
-	us := &UserStorage{coll: coll, timeout: 30 * time.Second}
+	coll := db.database.Collection(usersCollectionName)
+	us := &UserStorage{
+		logger:  logger,
+		coll:    coll,
+		timeout: 30 * time.Second,
+	}
 
 	userNameIndexOptions := &options.IndexOptions{}
 	userNameIndexOptions.SetUnique(false)
@@ -67,6 +74,7 @@ func NewUserStorage(settings model.MongoDatabaseSettings) (model.UserStorage, er
 
 // UserStorage implements user storage interface.
 type UserStorage struct {
+	logger  *slog.Logger
 	coll    *mongo.Collection
 	timeout time.Duration
 }
@@ -270,7 +278,7 @@ func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, 
 		return model.User{}, model.ErrorUserExists
 	}
 
-	// unknown error during user existnce check
+	// unknown error during user existence check
 	if !errors.Is(err, model.ErrUserNotFound) {
 		return model.User{}, err
 	}
@@ -455,7 +463,9 @@ func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	hexID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
-		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
+		us.logger.Error("Cannot update login metadata of user",
+			logging.FieldUserID, userID,
+			logging.FieldError, err)
 		return
 	}
 
@@ -469,7 +479,9 @@ func (us *UserStorage) UpdateLoginMetadata(userID string) {
 
 	var ud model.User
 	if err := us.coll.FindOneAndUpdate(ctx, bson.M{"_id": hexID.Hex()}, update).Decode(&ud); err != nil {
-		log.Printf("Cannot update login metadata of user %s: %s\n", userID, err)
+		us.logger.Error("Cannot update login metadata of user",
+			logging.FieldUserID, userID,
+			logging.FieldError, err)
 	}
 }
 
@@ -482,6 +494,7 @@ func (us *UserStorage) ClearAllUserData() {
 	defer cancel()
 
 	if _, err := us.coll.DeleteMany(ctx, bson.M{}); err != nil {
-		log.Printf("Error cleaning all user data: %s\n", err)
+		us.logger.Error("Error cleaning all user data",
+			logging.FieldError, err)
 	}
 }

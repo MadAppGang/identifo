@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
@@ -11,14 +12,16 @@ import (
 )
 
 // NewVerificationCodesStorage creates new verification codes storage from settings
-func NewVerificationCodesStorage(settings model.DatabaseSettings) (model.VerificationCodeStorage, error) {
+func NewVerificationCodesStorage(
+	logger *slog.Logger,
+	settings model.DatabaseSettings) (model.VerificationCodeStorage, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
-		return boltdb.NewVerificationCodeStorage(settings.BoltDB)
+		return boltdb.NewVerificationCodeStorage(logger, settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewVerificationCodeStorage(settings.Mongo)
+		return mongo.NewVerificationCodeStorage(logger, settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewVerificationCodeStorage(settings.Dynamo)
+		return dynamodb.NewVerificationCodeStorage(logger, settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:

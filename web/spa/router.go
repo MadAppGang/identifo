@@ -1,26 +1,34 @@
 package spa
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
-	"os"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/urfave/negroni"
 )
 
-func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.Logger) (model.Router, error) {
+func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *slog.Logger) (model.Router, error) {
 	ar := Router{
-		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()).With(middlewares...),
-		FS:         setting.FileSystem,
+		FS: setting.FileSystem,
 	}
 
 	// Setup logger to stdout.
 	if logger == nil {
-		ar.Logger = log.New(os.Stdout, fmt.Sprintf("[ %s ]: ", setting.Name), log.Ldate|log.Ltime|log.Lshortfile)
+		logger = logging.NewDefaultLogger().With(
+			logging.FieldComponent, setting.Name)
 	}
+
+	ar.Logger = logger
+
+	ar.Middleware = buildMiddleware(
+		setting.Name,
+		setting.LoggerSettings.DumpRequest,
+		setting.LoggerSettings.SPA,
+		middlewares,
+	)
 
 	ar.Middleware.UseHandler(NewSPAHandlerFunc(setting))
 	return &ar, nil
@@ -28,7 +36,7 @@ func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.L
 
 // login app router
 type Router struct {
-	Logger     *log.Logger
+	Logger     *slog.Logger
 	Middleware *negroni.Negroni
 	FS         http.FileSystem
 }
@@ -37,4 +45,25 @@ type Router struct {
 func (ar *Router) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Reroute to our internal implementation.
 	ar.Middleware.ServeHTTP(w, r)
+}
+
+func buildMiddleware(
+	settingName string,
+	dumpRequest bool,
+	logParams model.LoggerParams,
+	middlewares []negroni.Handler,
+) *negroni.Negroni {
+	var handlers []negroni.Handler
+
+	// set efficient log type
+	logParams.Type = model.LogType(dumpRequest, logParams.Type)
+
+	lm := middleware.HTTPLogger(
+		settingName,
+		logParams)
+	handlers = append(handlers, lm)
+
+	handlers = append(handlers, negroni.NewRecovery())
+
+	return negroni.New(handlers...).With(middlewares...)
 }

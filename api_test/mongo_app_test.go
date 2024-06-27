@@ -4,6 +4,7 @@ import (
 	"os"
 	"testing"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 	"github.com/stretchr/testify/assert"
@@ -17,10 +18,12 @@ func TestAppCRUD(t *testing.T) {
 
 	connStr := os.Getenv("IDENTIFO_STORAGE_MONGO_CONN")
 
-	s, err := mongo.NewAppStorage(model.MongoDatabaseSettings{
-		ConnectionString: connStr,
-		DatabaseName:     "test_users",
-	})
+	s, err := mongo.NewAppStorage(
+		logging.DefaultLogger,
+		model.MongoDatabaseSettings{
+			ConnectionString: connStr,
+			DatabaseName:     "test_users",
+		})
 	require.NoError(t, err)
 
 	expectedApp := model.AppData{

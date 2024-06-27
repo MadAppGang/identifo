@@ -2,23 +2,28 @@ package storage
 
 import (
 	"io/fs"
-	"log"
+	"log/slog"
 	"strings"
+	"sync"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"golang.org/x/exp/slices"
 )
 
 // FSWatcher watch for files changes in FS and notifies on file change
 type FSWatcher struct {
-	f             fs.FS
+	logger     *slog.Logger
+	f          fs.FS
+	poll       time.Duration
+	change     chan []string
+	err        chan error
+	done       chan bool
+	isWatching bool
+
 	keys          []string
-	poll          time.Duration
-	change        chan []string
-	err           chan error
-	done          chan bool
-	isWatching    bool
 	watchingSince map[string]time.Time
+	keysLock      sync.RWMutex
 }
 
 // KeysWithFixedSlashed remove prefixed or postfixed slashed in a path
@@ -33,17 +38,24 @@ func KeysWithFixedSlashed(keys []string) []string {
 	return result
 }
 
-func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
+func NewFSWatcher(
+	logger *slog.Logger,
+	f fs.FS,
+	keys []string,
+	poll time.Duration,
+) *FSWatcher {
 	// let's remove trailing
 	return &FSWatcher{
+		logger:        logger,
 		f:             f,
-		keys:          KeysWithFixedSlashed(keys),
 		poll:          poll,
 		change:        make(chan []string),
 		err:           make(chan error),
 		done:          make(chan bool),
-		watchingSince: make(map[string]time.Time),
 		isWatching:    false,
+		keys:          KeysWithFixedSlashed(keys),
+		watchingSince: make(map[string]time.Time),
+		keysLock:      sync.RWMutex{},
 	}
 }
 
@@ -70,11 +82,11 @@ func (w *FSWatcher) runWatch() {
 	for {
 		select {
 		case <-time.After(w.poll):
-			log.Println("fs watcher checking the files ...")
+			w.logger.Debug("fs watcher checking the files ...")
 			go w.checkUpdatedFiles()
 		case <-w.done:
 			w.isWatching = false
-			log.Println("fs watcher has received done signal and stopping itself ...")
+			w.logger.Debug("fs watcher has received done signal and stopping itself ...")
 			return
 		}
 	}
@@ -82,23 +94,38 @@ func (w *FSWatcher) runWatch() {
 
 func (w *FSWatcher) checkUpdatedFiles() {
 	var modifiedKeys []string
+
+	w.keysLock.RLock()
+
 	for _, key := range w.keys {
 		stat, err := fs.Stat(w.f, key)
 		if err != nil {
-			log.Printf("getting error: %+v\n", err)
+			w.logger.Error("fs watcher getting error", logging.FieldError, err)
 			w.err <- err
 			continue
 		}
 		if stat.ModTime().After(w.watchingSince[key]) {
-			w.watchingSince[key] = time.Now()
 			modifiedKeys = append(modifiedKeys, key)
 		}
 	}
-	if len(modifiedKeys) > 0 {
-		log.Printf("fs files has changed response: %+v", modifiedKeys)
-		// report file change
-		w.change <- modifiedKeys
+
+	w.keysLock.RUnlock()
+
+	if len(modifiedKeys) == 0 {
+		return
 	}
+
+	w.keysLock.Lock()
+
+	for _, key := range modifiedKeys {
+		w.watchingSince[key] = time.Now()
+	}
+
+	w.keysLock.Unlock()
+
+	w.logger.Info("fs files has changed response", "keys", modifiedKeys)
+	// report file change
+	w.change <- modifiedKeys
 }
 
 func (w *FSWatcher) IsWatching() bool {
@@ -124,6 +151,9 @@ func (w *FSWatcher) Stop() {
 }
 
 func (w *FSWatcher) AppendForWatching(path string) {
+	w.keysLock.Lock()
+	defer w.keysLock.Unlock()
+
 	if !slices.Contains(w.keys, path) {
 		w.keys = append(w.keys, path)
 		w.watchingSince[path] = time.Now()

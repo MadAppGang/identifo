@@ -3,9 +3,10 @@ package boltdb
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 	bolt "go.etcd.io/bbolt"
@@ -17,7 +18,9 @@ const (
 )
 
 // NewAppStorage creates new BoltDB AppStorage implementation.
-func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, error) {
+func NewAppStorage(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings) (model.AppStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, fmt.Errorf("unable to find init boltdb storage with empty database path")
 	}
@@ -28,7 +31,10 @@ func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, err
 		return nil, err
 	}
 
-	as := AppStorage{db: db}
+	as := AppStorage{
+		logger: logger,
+		db:     db,
+	}
 	// ensure we have app's bucket in the database
 	if err := db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(AppBucket)); err != nil {
@@ -43,7 +49,8 @@ func NewAppStorage(settings model.BoltDBDatabaseSettings) (model.AppStorage, err
 
 // AppStorage is a fully functional app storage.
 type AppStorage struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 // AppByID returns app from memory by ID.
@@ -199,7 +206,8 @@ func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
 
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println(err)
+		as.logger.Error("unmarshalling app data",
+			logging.FieldError, err)
 		return err
 	}
 	for _, a := range apd {
@@ -213,6 +221,6 @@ func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
 // Close closes underlying database.
 func (as *AppStorage) Close() {
 	if err := CloseDB(as.db); err != nil {
-		log.Printf("Error closing app storage: %s\n", err)
+		as.logger.Error("Error closing app storage", logging.FieldError, err)
 	}
 }

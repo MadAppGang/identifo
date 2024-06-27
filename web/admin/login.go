@@ -22,7 +22,7 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		ld := adminLoginData{}
 		if err = ar.mustParseJSON(w, r, &ld); err != nil {
-			ar.Error(w, fmt.Errorf("unable to parse login and pssword: %s", err.Error()), http.StatusBadRequest, "")
+			ar.Error(w, fmt.Errorf("unable to parse login and password: %s", err.Error()), http.StatusBadRequest, "")
 			return
 		}
 
@@ -33,12 +33,12 @@ func (ar *Router) Login() http.HandlerFunc {
 
 		session, err := ar.server.Services().Session.NewSession()
 		if err != nil {
-			ar.Error(w, fmt.Errorf("Cannot create session: %s", err), http.StatusInternalServerError, "")
+			ar.Error(w, fmt.Errorf("cannot create session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
 
 		if err = ar.server.Storages().Session.InsertSession(session); err != nil {
-			ar.Error(w, fmt.Errorf("Cannot insert session: %s", err), http.StatusInternalServerError, "")
+			ar.Error(w, fmt.Errorf("cannot insert session: %s", err), http.StatusInternalServerError, "")
 			return
 		}
 
