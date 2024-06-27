@@ -2,8 +2,9 @@ package boltdb
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
@@ -14,7 +15,9 @@ const (
 )
 
 // NewTokenBlacklist creates a token blacklist in BoltDB.
-func NewTokenBlacklist(settings model.BoltDBDatabaseSettings) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings) (model.TokenBlacklist, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -25,7 +28,10 @@ func NewTokenBlacklist(settings model.BoltDBDatabaseSettings) (model.TokenBlackl
 		return nil, err
 	}
 
-	tb := &TokenBlacklist{db: db}
+	tb := &TokenBlacklist{
+		logger: logger,
+		db:     db,
+	}
 	if err := tb.db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(BlacklistedTokenBucket)); err != nil {
 			return fmt.Errorf("create bucket: %s", err)
@@ -39,7 +45,8 @@ func NewTokenBlacklist(settings model.BoltDBDatabaseSettings) (model.TokenBlackl
 
 // TokenBlacklist is a BoltDB token blacklist.
 type TokenBlacklist struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 // Add adds token in the blacklist.
@@ -68,6 +75,6 @@ func (tb *TokenBlacklist) IsBlacklisted(token string) bool {
 // Close closes underlying database.
 func (tb *TokenBlacklist) Close() {
 	if err := CloseDB(tb.db); err != nil {
-		log.Printf("Error closing token blacklist storage: %s\n", err)
+		tb.logger.Error("error closing token blacklist storage", logging.FieldError, err)
 	}
 }

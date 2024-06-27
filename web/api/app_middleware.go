@@ -44,10 +44,3 @@ func (ar *Router) AppID() negroni.HandlerFunc {
 		next.ServeHTTP(rw, r)
 	}
 }
-
-func (ar *Router) RemoveTrailingSlash() negroni.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
-		next.ServeHTTP(rw, r)
-	}
-}

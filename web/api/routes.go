@@ -4,26 +4,28 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
+	"github.com/rs/cors"
 	"github.com/urfave/negroni"
 )
 
 // setup all routes
-func (ar *Router) initRoutes() {
+func (ar *Router) initRoutes(
+	loggerSettings model.LoggerSettings,
+) {
 	if ar.router == nil {
 		panic("Empty API router")
 	}
 
-	baseMiddleware := negroni.New(
-		middleware.NewNegroniLogger("API"),
-		negroni.NewRecovery(),
-		ar.RemoveTrailingSlash(),
+	baseMiddleware := buildBaseMiddleware(
+		loggerSettings.DumpRequest,
+		loggerSettings.Format,
+		loggerSettings.API,
+		loggerSettings.LogSensitiveData,
+		ar.cors,
 	)
-
-	if ar.cors != nil {
-		baseMiddleware.Use(ar.cors)
-	}
 
 	ph := with(baseMiddleware, negroni.WrapFunc(ar.HandlePing))
 	ar.router.Handle("/ping", ph).Methods(http.MethodGet)
@@ -51,14 +53,53 @@ func (ar *Router) initRoutes() {
 	ar.router.PathPrefix("/.well-known").Handler(oidcCfg)
 }
 
+func buildBaseMiddleware(
+	dumpRequest bool,
+	format string,
+	logParams model.LoggerParams,
+	logSensitiveData bool,
+	cors *cors.Cors,
+) *negroni.Negroni {
+	exclude := []string{}
+
+	if !logSensitiveData {
+		exclude = []string{
+			"auth/login",
+			"auth/request_phone_code",
+			"auth/phone_login",
+			"auth/register",
+			"auth/token",
+			"auth/request_reset_password",
+			"auth/reset_password",
+			"me/logout",
+			"me/impersonate_as",
+		}
+	}
+
+	lm := middleware.NegroniHTTPLogger(
+		logging.ComponentAPI,
+		format,
+		logParams,
+		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
+		exclude...)
+
+	result := negroni.New(
+		lm,
+		negroni.NewRecovery(),
+		middleware.RemoveTrailingSlash(),
+	)
+
+	if cors != nil {
+		result.Use(cors)
+	}
+
+	return result
+
+}
+
 // buildAPIMiddleware creates middlewares that should execute for all requests
 func (ar *Router) buildAPIMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	handlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		handlers = append(handlers, ar.DumpRequest())
-	}
-
 	handlers = append(handlers, ar.AppID())
 	return with(base, handlers...)
 }
@@ -164,10 +205,6 @@ func (ar *Router) buildOIDCRoutes(middleware *negroni.Negroni) http.Handler {
 
 func (ar *Router) buildOIDCMiddleware(base *negroni.Negroni) *negroni.Negroni {
 	wellKnownHandlers := []negroni.Handler{ar.ConfigCheck()}
-
-	if ar.LoggerSettings.DumpRequest {
-		wellKnownHandlers = append(wellKnownHandlers, ar.DumpRequest())
-	}
 
 	return with(base, wellKnownHandlers...)
 }

@@ -45,7 +45,7 @@ func LoadPrivateKeyFromPEMString(s string) (interface{}, model.TokenSignatureAlg
 		}
 		return private, model.TokenSignatureAlgorithmES256, nil
 	default:
-		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T\n", private)
+		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T", private)
 	}
 }
 
@@ -76,7 +76,7 @@ func LoadPublicKeyFromString(s string) (interface{}, model.TokenSignatureAlgorit
 	case *ecdsa.PublicKey:
 		return pub, model.TokenSignatureAlgorithmES256, nil
 	default:
-		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T\n", pub)
+		return nil, model.TokenSignatureAlgorithmInvalid, fmt.Errorf("could not load unsupported key type: %T", pub)
 	}
 }
 
@@ -142,6 +142,6 @@ func GenerateNewPrivateKey(alg model.TokenSignatureAlgorithm) (interface{}, erro
 	case model.TokenSignatureAlgorithmES256:
 		return ecdsa.GenerateKey(elliptic.P256(), rand.Reader)
 	default:
-		return nil, fmt.Errorf("unable to generate new private key, unsupported algorithm: %s\n", alg)
+		return nil, fmt.Errorf("unable to generate new private key, unsupported algorithm: %s", alg)
 	}
 }

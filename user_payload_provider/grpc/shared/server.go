@@ -6,7 +6,6 @@ import (
 	"io"
 
 	"github.com/madappgang/identifo/v2/model"
-	"github.com/madappgang/identifo/v2/user_payload_provider/grpc/payload_provider"
 	pp "github.com/madappgang/identifo/v2/user_payload_provider/grpc/payload_provider"
 )
 
@@ -28,7 +27,7 @@ func (s *GRPCServer) TokenPayload(ctx context.Context, request *pp.TokenPayloadR
 		return nil, err
 	}
 
-	response := &payload_provider.TokenPayloadResponse{
+	response := &pp.TokenPayloadResponse{
 		PayloadJson: string(paylodBytes),
 	}
 

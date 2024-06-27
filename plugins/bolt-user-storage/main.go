@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/hashicorp/go-plugin"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
 	"github.com/madappgang/identifo/v2/storage/plugin/shared"
@@ -17,9 +17,11 @@ func main() {
 	path := flag.String("path", "", "path to database")
 	flag.Parse()
 
-	s, err := boltdb.NewUserStorage(model.BoltDBDatabaseSettings{
-		Path: *path,
-	})
+	s, err := boltdb.NewUserStorage(
+		logging.DefaultLogger,
+		model.BoltDBDatabaseSettings{
+			Path: *path,
+		})
 
 	if err != nil {
 		panic(err)
@@ -40,10 +42,7 @@ func main() {
 	osch := make(chan os.Signal, 1)
 	signal.Notify(osch, syscall.SIGHUP, syscall.SIGINT, syscall.SIGTERM, syscall.SIGQUIT)
 
-	for {
-		<-osch
-		s.Close()
-		log.Println("Boltdb user storage is terminated.")
-		return
-	}
+	<-osch
+	s.Close()
+	logging.DefaultLogger.Info("Boltdb user storage is terminated.")
 }

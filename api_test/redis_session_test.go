@@ -5,6 +5,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/redis"
 	"github.com/stretchr/testify/assert"
@@ -22,7 +23,7 @@ func TestSessionStore(t *testing.T) {
 		Address: rh,
 		Prefix:  "identifo",
 	}
-	storage, err := redis.NewSessionStorage(s)
+	storage, err := redis.NewSessionStorage(logging.DefaultLogger, s)
 	require.NoError(t, err)
 
 	expDate := time.Date(2100, 1, 1, 0, 0, 0, 0, time.UTC)

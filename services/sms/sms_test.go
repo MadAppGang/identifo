@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"testing"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/services/sms"
 	"github.com/madappgang/identifo/v2/services/sms/twilio"
@@ -21,7 +22,7 @@ func TestTwilioSMSCreate(t *testing.T) {
 		},
 	}
 
-	service, err := sms.NewService(settings)
+	service, err := sms.NewService(logging.DefaultLogger, settings)
 	require.NoError(t, err)
 
 	assert.IsType(t, &twilio.SMSService{}, service)

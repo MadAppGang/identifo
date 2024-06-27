@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io/fs"
-	"log"
+	"log/slog"
 	"path"
 	"sync"
 	"text/template"
@@ -21,27 +21,38 @@ const (
 	DefaultEmailTemplatePath string = "./email_templates"
 )
 
-func NewService(ess model.EmailServiceSettings, fs fs.FS, updIntrv time.Duration, templatesPath string) (model.EmailService, error) {
+func NewService(
+	logger *slog.Logger,
+	ess model.EmailServiceSettings,
+	fs fs.FS,
+	updIntrv time.Duration,
+	templatesPath string,
+) (model.EmailService, error) {
 	var t model.EmailTransport
 
 	switch ess.Type {
 	case model.EmailServiceMailgun:
 		t = mailgun.NewTransport(ess.Mailgun)
 	case model.EmailServiceAWS:
-		tt, err := ses.NewTransport(ess.SES)
+		tt, err := ses.NewTransport(logger, ess.SES)
 		if err != nil {
 			return nil, err
 		}
 		t = tt
 	case model.EmailServiceMock:
-		t = mock.NewTransport()
+		t = mock.NewTransport(logger)
 	default:
-		return nil, fmt.Errorf("Email service of type '%s' is not supported", ess.Type)
+		return nil, fmt.Errorf("email service of type '%s' is not supported", ess.Type)
 	}
 
-	watcher := storage.NewFSWatcher(fs, []string{}, updIntrv)
+	watcher := storage.NewFSWatcher(
+		logger,
+		fs,
+		[]string{},
+		updIntrv)
 
 	return &EmailService{
+		logger:        logger,
 		cache:         sync.Map{},
 		transport:     t,
 		fs:            fs,
@@ -51,6 +62,7 @@ func NewService(ess model.EmailServiceSettings, fs fs.FS, updIntrv time.Duration
 }
 
 type EmailService struct {
+	logger        *slog.Logger
 	transport     model.EmailTransport
 	fs            fs.FS
 	cache         sync.Map
@@ -115,7 +127,9 @@ func (es *EmailService) watch() {
 	for files := range es.watcher.WatchChan() {
 		for _, f := range files {
 			es.cache.Delete(f)
-			log.Printf("email template changed, the email template cache has been invalidated: %v", f)
+
+			es.logger.Info("email template changed, the email template cache has been invalidated",
+				"file", f)
 		}
 	}
 }

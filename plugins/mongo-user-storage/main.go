@@ -2,12 +2,12 @@ package main
 
 import (
 	"flag"
-	"log"
 	"os"
 	"os/signal"
 	"syscall"
 
 	"github.com/hashicorp/go-plugin"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/mongo"
 	"github.com/madappgang/identifo/v2/storage/plugin/shared"
@@ -18,10 +18,12 @@ func main() {
 	databaseName := flag.String("database", "", "name of database")
 	flag.Parse()
 
-	s, err := mongo.NewUserStorage(model.MongoDatabaseSettings{
-		ConnectionString: *connectionString,
-		DatabaseName:     *databaseName,
-	})
+	s, err := mongo.NewUserStorage(
+		logging.DefaultLogger,
+		model.MongoDatabaseSettings{
+			ConnectionString: *connectionString,
+			DatabaseName:     *databaseName,
+		})
 	if err != nil {
 		panic(err)
 	}
@@ -43,5 +45,5 @@ func main() {
 
 	<-osch
 	s.Close()
-	log.Println("Mongo user storage is terminated.")
+	logging.DefaultLogger.Info("Mongo user storage is terminated.")
 }

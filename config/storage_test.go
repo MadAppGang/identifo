@@ -3,6 +3,7 @@ package config
 import (
 	"testing"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/stretchr/testify/require"
 )
@@ -18,6 +19,6 @@ func TestInitConfigurationStorage(t *testing.T) {
 		},
 	}
 
-	_, err := InitConfigurationStorage(config)
+	_, err := InitConfigurationStorage(logging.DefaultLogger, config)
 	require.NoError(t, err)
 }

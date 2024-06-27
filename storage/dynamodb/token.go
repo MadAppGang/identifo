@@ -1,18 +1,23 @@
 package dynamodb
 
 import (
-	"log"
+	"fmt"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
 const tokensTableName = "RefreshTokens"
 
 // NewTokenStorage creates new DynamoDB token storage.
-func NewTokenStorage(settings model.DynamoDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.TokenStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
@@ -23,22 +28,25 @@ func NewTokenStorage(settings model.DynamoDatabaseSettings) (model.TokenStorage,
 		return nil, err
 	}
 
-	ts := &TokenStorage{db: db}
+	ts := &TokenStorage{
+		logger: logger,
+		db:     db,
+	}
 	err = ts.ensureTable()
 	return ts, err
 }
 
 // TokenStorage is a DynamoDB token storage.
 type TokenStorage struct {
-	db *DB
+	logger *slog.Logger
+	db     *DB
 }
 
 // ensureTable ensures that token storage exists in the database.
 func (ts *TokenStorage) ensureTable() error {
 	exists, err := ts.db.IsTableExists(tokensTableName)
 	if err != nil {
-		log.Printf("Error while checking if %s exists: %v", tokensTableName, err)
-		return err
+		return fmt.Errorf("error while checking if %s exists: %w", tokensTableName, err)
 	}
 	if exists {
 		return nil
@@ -62,8 +70,7 @@ func (ts *TokenStorage) ensureTable() error {
 	}
 
 	if _, err = ts.db.C.CreateTable(input); err != nil {
-		log.Printf("Error while creating %s table: %v", tokensTableName, err)
-		return err
+		return fmt.Errorf("error while creating %s table: %w", tokensTableName, err)
 	}
 	return nil
 }
@@ -79,7 +86,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 
 	t, err := dynamodbattribute.MarshalMap(Token{Token: token})
 	if err != nil {
-		log.Println(err)
+		ts.logger.Error("Error while marshaling token to db", logging.FieldError, err)
 		return ErrorInternalError
 	}
 
@@ -89,7 +96,7 @@ func (ts *TokenStorage) SaveToken(token string) error {
 	}
 
 	if _, err = ts.db.C.PutItem(input); err != nil {
-		log.Println("Error while putting token to db:", err)
+		ts.logger.Error("Error while putting token to db", logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return nil
@@ -110,7 +117,7 @@ func (ts *TokenStorage) HasToken(token string) bool {
 		},
 	})
 	if err != nil {
-		log.Println("Error while fetching token from db:", err)
+		ts.logger.Error("Error while fetching token from db", logging.FieldError, err)
 		return false
 	}
 	// empty result
@@ -133,7 +140,7 @@ func (ts *TokenStorage) DeleteToken(token string) error {
 			},
 		},
 	}); err != nil {
-		log.Println("Error while deleting token from db:", err)
+		ts.logger.Error("Error while deleting token from db", logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return nil

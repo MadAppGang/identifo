@@ -8,15 +8,18 @@ import (
 	"net/url"
 	"os"
 	"path/filepath"
+
+	"github.com/madappgang/identifo/v2/model"
 )
 
 const DefaultIndexFilename = "index.html"
 
 type SPASettings struct {
-	Name       string
-	Root       string
-	FileSystem http.FileSystem
-	Index      string
+	Name           string
+	Root           string
+	FileSystem     http.FileSystem
+	Index          string
+	LoggerSettings model.LoggerSettings
 }
 
 type SPAHandlerError struct {

@@ -2,20 +2,25 @@ package mem
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
 
 // NewAppStorage creates new in-memory AppStorage implementation.
-func NewAppStorage() (model.AppStorage, error) {
-	return &AppStorage{storage: make(map[string]model.AppData)}, nil
+func NewAppStorage(logger *slog.Logger) (model.AppStorage, error) {
+	return &AppStorage{
+		logger:  logger,
+		storage: make(map[string]model.AppData),
+	}, nil
 }
 
 // AppStorage is a fully functional app storage.
 type AppStorage struct {
+	logger  *slog.Logger
 	storage map[string]model.AppData
 }
 
@@ -102,7 +107,7 @@ func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
 
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println("error while unmarshal app data: ", err)
+		as.logger.Error("error while unmarshal app data", logging.FieldError, err)
 		return err
 	}
 	for _, a := range apd {

@@ -9,19 +9,14 @@ adminAccount:
   passwordEnvName: IDENTIFO_ADMIN_PASSWORD
 
 storage:
-  appStorage:
+  appStorage: &storage_settings
     type: fake
-  userStorage:
-    type: fake
-  tokenStorage:
-    type: fake
-  tokenBlacklist:
-    type: fake
-  verificationCodeStorage:
-    type: fake
-  inviteStorage:
-    type: fake
-
+  userStorage: *storage_settings
+  tokenStorage: *storage_settings
+  tokenBlacklist: *storage_settings
+  verificationCodeStorage: *storage_settings
+  inviteStorage: *storage_settings
+  managementKeysStorage: *storage_settings
 # Storage for admin sessions.
 sessionStorage:
   type: memory # Supported values are "memory", "redis", and "dynamodb".
@@ -47,3 +42,23 @@ services:
     type: mock
 adminPanel:
   enabled: true
+
+# logger settings
+logger:
+  # dump request body in logs
+  dumpRequest: false
+  # logs format (json, text)
+  format: json
+  # exclude body for HTTP requests that can contain sensitive data
+  logSensitiveData: false
+  common:
+    level: info
+  api:
+    httpDetailing: dump
+    level: debug
+  admin:
+    httpDetailing: dump
+    level: debug
+  spa:
+    httpDetailing: short
+    level: debug

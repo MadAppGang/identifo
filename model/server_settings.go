@@ -125,8 +125,9 @@ type DynamoDatabaseSettings struct {
 }
 
 type PluginSettings struct {
-	Cmd    string            `yaml:"cmd" json:"cmd"`
-	Params map[string]string `yaml:"params" json:"params"`
+	Cmd         string            `yaml:"cmd" json:"cmd"`
+	RedirectStd bool              `yaml:"redirectStd" json:"redirectStd"`
+	Params      map[string]string `yaml:"params" json:"params"`
 }
 
 type GRPCSettings struct {
@@ -345,8 +346,46 @@ func (ss ServerSettings) GetPort() string {
 	return ":" + port
 }
 
+const (
+	LogFormatJSON = "json"
+)
+
+type HTTPDetailing string
+
+const (
+	HTTPLogNone  HTTPDetailing = "none"
+	HTTPLogDump  HTTPDetailing = "dump"
+	HTTPLogShort HTTPDetailing = "short"
+)
+
+type LoggerParams struct {
+	HTTPDetailing HTTPDetailing `yaml:"httpDetailing" json:"httpDetailing"`
+	Level         string        `yaml:"level" json:"level"`
+}
+
 type LoggerSettings struct {
-	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
+	// DumpRequest is still here for backward compatibility.
+	// Deprecated: User HTTPDetailing on module level.
+	DumpRequest      bool         `yaml:"dumpRequest" json:"dumpRequest"`
+	Format           string       `yaml:"format" json:"format"`
+	LogSensitiveData bool         `yaml:"logSensitiveData" json:"logSensitiveData"`
+	Common           LoggerParams `yaml:"common" json:"common"`
+	API              LoggerParams `yaml:"api" json:"api"`
+	Admin            LoggerParams `yaml:"admin" json:"admin"`
+	SPA              LoggerParams `yaml:"spa" json:"spi"`
+	Management       LoggerParams `yaml:"management" json:"management"`
+}
+
+func HTTPLogDetailing(dumpRequest bool, logType HTTPDetailing) HTTPDetailing {
+	if dumpRequest {
+		return HTTPLogDump
+	}
+
+	if logType == "" {
+		return HTTPLogNone
+	}
+
+	return logType
 }
 
 type AdminPanelSettings struct {
@@ -357,7 +396,7 @@ func ConfigStorageSettingsFromString(config string) (FileStorageSettings, error)
 	// Parse the URL and ensure there are no errors.
 	u, err := url.Parse(config)
 	if err != nil {
-		return FileStorageSettings{}, fmt.Errorf("Unable to parse config string: %s", config)
+		return FileStorageSettings{}, fmt.Errorf("unable to parse config string: %s", config)
 	}
 
 	switch strings.ToLower(u.Scheme) {

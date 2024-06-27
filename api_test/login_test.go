@@ -34,7 +34,7 @@ func TestLogin(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
@@ -60,7 +60,7 @@ func TestLoginWithNoRefresh(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data).To(MatchKeys(IgnoreExtras|IgnoreMissing, Keys{
 				"access_token":  Not(BeZero()),
@@ -81,7 +81,7 @@ func TestLoginWithWrongAppID(t *testing.T) {
 	request.Post("/auth/login").
 		SetHeader("X-Identifo-ClientID", "wrong_app_ID").
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
 				"id":       Equal(string(l.ErrorStorageAPPFindByIDError)),
@@ -115,7 +115,7 @@ func TestLoginWithWrongSignature(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Status(400).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			g.Expect(data["error"]).To(MatchAllKeys(Keys{
@@ -145,7 +145,7 @@ func TestLoginTokenClaims(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			tokenStr = data["access_token"].(string)

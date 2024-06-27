@@ -1,14 +1,14 @@
 package model
 
 import (
+	"crypto/rand"
 	"encoding/json"
 	"errors"
-	"log"
-	"math/rand"
 	"regexp"
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"golang.org/x/crypto/bcrypt"
 )
 
@@ -130,7 +130,7 @@ type TFAInfo struct {
 func UserFromJSON(d []byte) (User, error) {
 	var user User
 	if err := json.Unmarshal(d, &user); err != nil {
-		log.Println("Error while unmarshal user:", err)
+		logging.DefaultLogger.Error("Error while unmarshal user", logging.FieldError, err)
 		return User{}, err
 	}
 	return user, nil
@@ -144,7 +144,6 @@ func PasswordHash(pwd string) string {
 
 // RandomPassword creates random password
 func RandomPassword(length int) string {
-	rand.Seed(time.Now().UnixNano())
 	return randSeq(length)
 }
 
@@ -152,9 +151,17 @@ var rndPassLetters = []rune("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXY
 
 func randSeq(n int) string {
 	b := make([]rune, n)
+
+	rnd := make([]byte, n)
+	rand.Read(rnd)
+
+	charSetLen := byte(len(rndPassLetters))
+
 	for i := range b {
-		b[i] = rndPassLetters[rand.Intn(len(rndPassLetters))]
+		ix := rnd[i] % charSetLen
+		b[i] = rndPassLetters[ix]
 	}
+
 	return string(b)
 }
 

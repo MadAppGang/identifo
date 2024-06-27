@@ -155,16 +155,16 @@ func (d *updateData) validate(user model.User) error {
 
 	if d.updatePassword {
 		if d.OldPassword == "" {
-			return errors.New("Old password is not specified. ")
+			return errors.New("old password is not specified")
 		}
 		// validate password
 		if err := model.StrongPswd(d.NewPassword); err != nil {
-			return errors.New("New password is not strong enough. ")
+			return errors.New("new password is not strong enough")
 		}
 	}
 
 	if d.updateEmail && !model.EmailRegexp.MatchString(d.NewEmail) {
-		return errors.New("Email is not valid. ")
+		return errors.New("email is not valid")
 	}
 	return nil
 }

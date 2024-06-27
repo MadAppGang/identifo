@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
@@ -11,14 +12,17 @@ import (
 )
 
 // NewManagementKeys creates new management keys storage from settings.
-func NewManagementKeys(settings model.DatabaseSettings) (model.ManagementKeysStorage, error) {
+func NewManagementKeys(
+	logger *slog.Logger,
+	settings model.DatabaseSettings,
+) (model.ManagementKeysStorage, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
 		return boltdb.NewManagementKeysStorage(settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewManagementKeysStorage(settings.Mongo)
+		return mongo.NewManagementKeysStorage(logger, settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewManagementKeysStorage(settings.Dynamo)
+		return dynamodb.NewManagementKeysStorage(logger, settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:

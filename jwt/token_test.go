@@ -5,6 +5,7 @@ import (
 	"testing"
 
 	jwt "github.com/madappgang/identifo/v2/jwt/service"
+	"github.com/madappgang/identifo/v2/logging"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
@@ -30,23 +31,26 @@ func createTokenService(t *testing.T) model.TokenService {
 	if err != nil {
 		t.Fatalf("Unable to create token storage %v", err)
 	}
-	as, err := mem.NewAppStorage()
+	as, err := mem.NewAppStorage(logging.DefaultLogger)
 	if err != nil {
 		t.Fatalf("Unable to create app storage %v", err)
 	}
 
-	keyStorage, err := storage.NewKeyStorage(model.FileStorageSettings{
-		Type: model.FileStorageTypeLocal,
-		Local: model.FileStorageLocal{
-			Path: keyPath,
-		},
-	})
+	keyStorage, err := storage.NewKeyStorage(
+		logging.DefaultLogger,
+		model.FileStorageSettings{
+			Type: model.FileStorageTypeLocal,
+			Local: model.FileStorageLocal{
+				Path: keyPath,
+			},
+		})
 	require.NoError(t, err)
 
 	privateKey, err := keyStorage.LoadPrivateKey()
 	require.NoError(t, err)
 
 	tokenService, err := jwt.NewJWTokenService(
+		logging.DefaultLogger,
 		privateKey,
 		testIssuer,
 		tstor,

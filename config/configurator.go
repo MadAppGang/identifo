@@ -3,11 +3,12 @@ package config
 import (
 	"fmt"
 	"io/fs"
-	"log"
+	"log/slog"
 	"time"
 
 	imp "github.com/madappgang/identifo/v2/impersonation/local"
 	impPlugin "github.com/madappgang/identifo/v2/impersonation/plugin"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/server"
 	"github.com/madappgang/identifo/v2/services/mail"
@@ -40,14 +41,22 @@ var defaultEmailTemplateFSSettings = model.FileStorageSettings{
 
 // NewServer creates new server instance from ServerSettings
 func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (model.Server, error) {
+	defaultLogger := logging.NewDefaultLogger().With(logging.FieldComponent, "configurator")
+
 	var errs []error
 	// read settings, if they empty or use cached version
 	settings, e := config.LoadServerSettings(true)
 	if len(e) > 0 {
-		log.Printf("Error on Load Server Settings: %+v\n", e)
+		defaultLogger.Error("Error on Load Server Settings", logging.FieldErrors, logging.LogErrors(e))
 		settings = model.DefaultServerSettings
 		errs = e
 	}
+
+	baseLogger := logging.NewLogger(
+		settings.Logger.Format,
+		settings.Logger.Common.Level)
+
+	logger := baseLogger.With(logging.FieldComponent, "configurator")
 
 	// helper function get settings from default or override
 	dbSettings := func(s model.DatabaseSettings) model.DatabaseSettings {
@@ -58,57 +67,57 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	// Create all storages
-	app, err := storage.NewAppStorage(dbSettings(settings.Storage.AppStorage))
+	app, err := storage.NewAppStorage(baseLogger, dbSettings(settings.Storage.AppStorage))
 	if err != nil {
-		log.Printf("Error on Create New AppStorage %v", err)
+		logger.Error("Error on Create New AppStorage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating app storage: %v", err))
 	}
 
-	user, err := storage.NewUserStorage(dbSettings(settings.Storage.UserStorage))
+	user, err := storage.NewUserStorage(baseLogger, dbSettings(settings.Storage.UserStorage))
 	if err != nil {
-		log.Printf("Error on Create New user storage %v", err)
+		logger.Error("Error on Create New user storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating user storage: %v", err))
 	}
 
-	token, err := storage.NewTokenStorage(dbSettings(settings.Storage.TokenStorage))
+	token, err := storage.NewTokenStorage(baseLogger, dbSettings(settings.Storage.TokenStorage))
 	if err != nil {
-		log.Printf("Error on Create New token storage %v", err)
+		logger.Error("Error on Create New token storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating token storage: %v", err))
 	}
 
-	tokenBlacklist, err := storage.NewTokenBlacklistStorage(dbSettings(settings.Storage.TokenBlacklist))
+	tokenBlacklist, err := storage.NewTokenBlacklistStorage(baseLogger, dbSettings(settings.Storage.TokenBlacklist))
 	if err != nil {
-		log.Printf("Error on Create New blacklist storage %v", err)
+		logger.Error("Error on Create New blacklist storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating blacklist storage: %v", err))
 	}
 
-	verification, err := storage.NewVerificationCodesStorage(dbSettings(settings.Storage.VerificationCodeStorage))
+	verification, err := storage.NewVerificationCodesStorage(baseLogger, dbSettings(settings.Storage.VerificationCodeStorage))
 	if err != nil {
-		log.Printf("Error on Create New verification codes storage %v", err)
+		logger.Error("Error on Create New verification codes storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating verification codes storage: %v", err))
 	}
 
-	invite, err := storage.NewInviteStorage(dbSettings(settings.Storage.InviteStorage))
+	invite, err := storage.NewInviteStorage(baseLogger, dbSettings(settings.Storage.InviteStorage))
 	if err != nil {
-		log.Printf("Error on Create New invite storage %v", err)
+		logger.Error("Error on Create New invite storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating invite storage: %v", err))
 	}
 
-	managementKeys, err := storage.NewManagementKeys(dbSettings(settings.Storage.ManagementKeysStorage))
+	managementKeys, err := storage.NewManagementKeys(baseLogger, dbSettings(settings.Storage.ManagementKeysStorage))
 	if err != nil {
-		log.Printf("Error on Create New management keys storage %v", err)
+		logger.Error("Error on Create New management keys storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating management keys storage: %v", err))
 	}
 
-	session, err := storage.NewSessionStorage(settings.SessionStorage)
+	session, err := storage.NewSessionStorage(baseLogger, settings.SessionStorage)
 	if err != nil {
-		log.Printf("Error on Create New session storage %v", err)
+		logger.Error("Error on Create New session storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating session storage: %v", err))
 	}
 
-	key, err := storage.NewKeyStorage(settings.KeyStorage)
+	key, err := storage.NewKeyStorage(baseLogger, settings.KeyStorage)
 	if err != nil {
-		log.Printf("Error on Create New key storage %v", err)
+		logger.Error("Error on Create New key storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating key storage: %v", err))
 	}
 
@@ -121,7 +130,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 	loginFS, err := storage.NewFS(lwas)
 	if err != nil {
-		log.Printf("Error creating login fs storage %v", err)
+		logger.Error("Error creating login fs storage", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating login fs storage: %v", err))
 	}
 
@@ -129,7 +138,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	if settings.AdminPanel.Enabled {
 		adminPanelFS, err = storage.NewFS(adminPanelFSSettings)
 		if err != nil {
-			log.Printf("Error creating admin panel fs storage %v", err)
+			logger.Error("Error creating admin panel fs storage", logging.FieldError, err)
 			errs = append(errs, fmt.Errorf("error creating admin panel fs storage: %v", err))
 		}
 	}
@@ -150,9 +159,11 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 
 	// create 3rd party services
-	sms, err := sms.NewService(settings.Services.SMS)
+	sms, err := sms.NewService(baseLogger, settings.Services.SMS)
 	if err != nil {
-		log.Printf("Error creating SMS service %v", err)
+		logger.Error("Error creating SMS service",
+			logging.FieldError, err)
+
 		errs = append(errs, fmt.Errorf("error creating SMS service: %v", err))
 	}
 
@@ -163,21 +174,21 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	}
 	emailTemplateFS, err := storage.NewFS(ets)
 	if err != nil {
-		log.Printf("Error creating email template filesystem %v", err)
+		logger.Error("Error creating email template filesystem", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating email template filesystem: %v", err))
 	}
 
 	emailServiceSettings := settings.Services.Email
 	// update templates every five minutes and look templates in a root folder of FS
-	email, err := mail.NewService(emailServiceSettings, emailTemplateFS, time.Minute*5, "")
+	email, err := mail.NewService(baseLogger, emailServiceSettings, emailTemplateFS, time.Minute*5, "")
 	if err != nil {
-		log.Printf("Error creating email service %v", err)
+		logger.Error("Error creating email service", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating email service: %v", err))
 	}
 
-	tokenS, err := NewTokenService(settings.General, sc)
+	tokenS, err := NewTokenService(baseLogger, settings.General, sc)
 	if err != nil {
-		log.Printf("Error creating token service %v", err)
+		logger.Error("Error creating token service", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating token service: %v", err))
 	}
 
@@ -185,7 +196,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	impS, err := NewImpersonationProvider(settings.Impersonation)
 	if err != nil {
-		log.Printf("Error creating impersonation provider %v", err)
+		logger.Error("Error creating impersonation provider", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating impersonation provider: %v", err))
 	}
 
@@ -205,13 +216,18 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 	return server, nil
 }
 
-func NewTokenService(settings model.GeneralServerSettings, storages model.ServerStorageCollection) (model.TokenService, error) {
+func NewTokenService(
+	logger *slog.Logger,
+	settings model.GeneralServerSettings,
+	storages model.ServerStorageCollection,
+) (model.TokenService, error) {
 	key, err := storages.Key.LoadPrivateKey()
 	if err != nil {
 		return nil, err
 	}
 
 	tokenService, err := jwt.NewJWTokenService(
+		logger,
 		key,
 		settings.Issuer,
 		storages.Token,

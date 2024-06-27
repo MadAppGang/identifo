@@ -98,12 +98,6 @@ func TestKeysManualSerializationServiceRSA(t *testing.T) {
 	}
 }
 
-func printByte(s []byte) {
-	for _, i := range s {
-		fmt.Printf("%X", i)
-	}
-}
-
 func TestRSAPemMarshalling(t *testing.T) {
 	private, alg, err := jwti.LoadPrivateKeyFromPEMString(string(privateRSAKeyPEM))
 	if err != nil {

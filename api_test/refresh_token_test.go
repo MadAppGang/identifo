@@ -22,11 +22,11 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			rt = data["refresh_token"].(string)
 			return nil
@@ -43,7 +43,7 @@ func TestLoginAndRefreshToken(t *testing.T) {
 		SetHeader("Authorization", "Bearer "+rt).
 		SetHeader("X-Identifo-Timestamp", d).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_refresh_token.json").
@@ -66,11 +66,11 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			rt = data["refresh_token"].(string)
 			return nil
@@ -87,7 +87,7 @@ func TestLoginAndRefreshTokenWithNewRefresh(t *testing.T) {
 		SetHeader("Authorization", "Bearer "+rt).
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_refresh_token_with_new_refresh.json").

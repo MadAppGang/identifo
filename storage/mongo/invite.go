@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"errors"
+	"log/slog"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -21,18 +22,21 @@ type InviteStorage struct {
 }
 
 // NewInviteStorage creates a MongoDB invite storage.
-func NewInviteStorage(settings model.MongoDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings,
+) (model.InviteStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(invitesCollectionName)
+	coll := db.database.Collection(invitesCollectionName)
 	return &InviteStorage{coll: coll, timeout: 30 * time.Second}, nil
 }
 

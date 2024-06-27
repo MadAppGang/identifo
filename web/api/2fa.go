@@ -11,6 +11,7 @@ import (
 
 	ijwt "github.com/madappgang/identifo/v2/jwt"
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
@@ -282,7 +283,8 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 
 		// Blacklist old access token.
 		if err := ar.server.Storages().Blocklist.Add(oldAccessTokenString); err != nil {
-			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
+			ar.logger.Error("Cannot blacklist old access token",
+				logging.FieldError, err)
 		}
 
 		user = user.Sanitized()
@@ -305,7 +307,8 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			}
 		}
 
-		journal(user.ID, app.ID, "2fa_login", scopes)
+		ar.journal(JournalOperationLoginWith2FA,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)
@@ -563,7 +566,7 @@ func (ar *Router) check2FA(appTFAStatus model.TFAStatus, serverTFAType model.TFA
 	return false, false, nil
 }
 
-func (ar *Router) sendTFACodeInSMS(app model.AppData, phone, otp string) error {
+func (ar *Router) sendTFACodeInSMS(_ model.AppData, phone, otp string) error {
 	if phone == "" {
 		return errors.New("unable to send SMS OTP, user has no phone number")
 	}

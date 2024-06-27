@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -62,7 +63,8 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 		}
 
 		if err := ar.server.Storages().Config.WriteConfig(merged); err != nil {
-			ar.logger.Println("Cannot insert new settings into configuration storage:", err)
+			ar.logger.Error("Cannot insert new settings into configuration storage",
+				logging.FieldError, err)
 			ar.Error(w, fmt.Errorf("error saving new config: %v", err), http.StatusInternalServerError, "")
 			return
 		}
@@ -70,7 +72,7 @@ func (ar *Router) UpdateSettings() http.HandlerFunc {
 		// if the config storage is not supporting instant reloading - let's force restart it
 		if ar.forceRestart != nil && ar.server.Storages().Config.ForceReloadOnWriteConfig() {
 			go func() {
-				ar.logger.Println("sending server restart")
+				ar.logger.Info("sending server restart")
 				ar.forceRestart <- true
 			}()
 		}

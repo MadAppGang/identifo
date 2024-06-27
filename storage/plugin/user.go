@@ -1,6 +1,7 @@
 package plugin
 
 import (
+	"os"
 	"os/exec"
 
 	"github.com/hashicorp/go-plugin"
@@ -18,12 +19,19 @@ func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
 		params = append(params, v)
 	}
 
-	client := plugin.NewClient(&plugin.ClientConfig{
+	cfg := &plugin.ClientConfig{
 		HandshakeConfig:  shared.Handshake,
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command(settings.Cmd, params...),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-	})
+	}
+
+	if settings.RedirectStd {
+		cfg.SyncStdout = os.Stdout
+		cfg.SyncStderr = os.Stderr
+	}
+
+	client := plugin.NewClient(cfg)
 
 	// Connect via RPC
 	rpcClient, err := client.Client()
