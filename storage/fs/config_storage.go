@@ -2,16 +2,18 @@ package fs
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"path/filepath"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"gopkg.in/yaml.v2"
 )
 
 // ConfigurationStorage is a wrapper over server configuration file.
 type ConfigurationStorage struct {
+	logger           *slog.Logger
 	ServerConfigPath string
 	UpdateChan       chan interface{}
 	updateChanClosed bool
@@ -20,7 +22,7 @@ type ConfigurationStorage struct {
 	errors           []error
 }
 
-func NewDefaultConfigurationStorage() model.ConfigurationStorage {
+func NewDefaultConfigurationStorage(logger *slog.Logger) model.ConfigurationStorage {
 	configPaths := []string{
 		"./server-config.yaml",
 		"../../server/server-config.yaml",
@@ -32,13 +34,16 @@ func NewDefaultConfigurationStorage() model.ConfigurationStorage {
 		}
 		if fileExists(p) {
 			cs, _ := model.ConfigStorageSettingsFromStringFile(p)
-			c, e := NewConfigurationStorage(cs)
+			c, e := NewConfigurationStorage(logger, cs)
 			// if error, trying to other file from the list
 			if e != nil {
-				log.Printf("Unable to load default config from file %s, trying other one from the list (if any)", p)
+				logger.Error("Unable to load default config from file, trying other one from the list (if any)",
+					"file", p,
+					logging.FieldError, e)
 				continue
 			} else {
-				log.Printf("Successfully loaded default config from  file %s", p)
+				logger.Info("Successfully loaded default config from file",
+					"file", p)
 				return c
 			}
 		}
@@ -48,14 +53,18 @@ func NewDefaultConfigurationStorage() model.ConfigurationStorage {
 }
 
 // NewConfigurationStorage creates and returns new file configuration storage.
-func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationStorage, error) {
-	log.Println("Loading server configuration from specified file...")
+func NewConfigurationStorage(
+	logger *slog.Logger,
+	config model.FileStorageSettings,
+) (*ConfigurationStorage, error) {
+	logger.Info("Loading server configuration from specified file...")
 
 	if config.Type != model.FileStorageTypeLocal {
 		return nil, fmt.Errorf("could not create file config storage from non-file settings")
 	}
 
 	cs := &ConfigurationStorage{
+		logger:           logger,
 		config:           config,
 		ServerConfigPath: config.Local.Path,
 		UpdateChan:       make(chan interface{}, 1),
@@ -68,17 +77,17 @@ func NewConfigurationStorage(config model.FileStorageSettings) (*ConfigurationSt
 func (cs *ConfigurationStorage) WriteConfig(settings model.ServerSettings) error {
 	ss, err := yaml.Marshal(settings)
 	if err != nil {
-		return fmt.Errorf("Cannot marshall configuration: %s", err)
+		return fmt.Errorf("cannot marshall configuration: %s", err)
 	}
 
 	if err = os.WriteFile(cs.ServerConfigPath, ss, 0o644); err != nil {
-		return fmt.Errorf("Cannot write configuration file: %s", err)
+		return fmt.Errorf("cannot write configuration file: %s", err)
 	}
 
 	// Indicate config update. To prevent writing to a closed channel, make a check.
 	go func() {
 		if cs.updateChanClosed {
-			log.Println("Attempted to write to closed UpdateChan")
+			cs.logger.Info("Attempted to write to closed UpdateChan")
 			return
 		}
 		cs.UpdateChan <- struct{}{}
@@ -92,19 +101,19 @@ func (cs *ConfigurationStorage) LoadServerSettings(validate bool) (model.ServerS
 
 	dir, err := os.Getwd()
 	if err != nil {
-		cs.errors = append(cs.errors, fmt.Errorf("Cannot get server configuration file: %s", err))
+		cs.errors = append(cs.errors, fmt.Errorf("cannot get server configuration file: %s", err))
 		return model.ServerSettings{}, cs.errors
 	}
 
 	yamlFile, err := os.ReadFile(filepath.Join(dir, cs.ServerConfigPath))
 	if err != nil {
-		cs.errors = append(cs.errors, fmt.Errorf("Cannot read server configuration file: %s", err))
+		cs.errors = append(cs.errors, fmt.Errorf("cannot read server configuration file: %s", err))
 		return model.ServerSettings{}, cs.errors
 	}
 
 	var settings model.ServerSettings
 	if err = yaml.Unmarshal(yamlFile, &settings); err != nil {
-		cs.errors = append(cs.errors, fmt.Errorf("Cannot unmarshal server configuration file: %s", err))
+		cs.errors = append(cs.errors, fmt.Errorf("cannot unmarshal server configuration file: %s", err))
 		return model.ServerSettings{}, cs.errors
 	}
 

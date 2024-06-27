@@ -2,7 +2,7 @@ package twilio
 
 import (
 	"errors"
-	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/twilio/twilio-go"
@@ -11,14 +11,19 @@ import (
 
 // SMSService sends SMS via Twilio service.
 type SMSService struct {
+	logger              *slog.Logger
 	messagingServiceSid string
 	sendFrom            string
 	client              *twilio.RestClient
 }
 
 // NewSMSService creates, inits and returns Twilio-backed SMS service.
-func NewSMSService(settings model.TwilioServiceSettings) (*SMSService, error) {
+func NewSMSService(
+	logger *slog.Logger,
+	settings model.TwilioServiceSettings,
+) (*SMSService, error) {
 	t := &SMSService{
+		logger:              logger,
 		messagingServiceSid: settings.ServiceSid,
 		sendFrom:            settings.SendFrom,
 		client: twilio.NewRestClientWithParams(twilio.ClientParams{
@@ -39,7 +44,7 @@ func NewSMSService(settings model.TwilioServiceSettings) (*SMSService, error) {
 // SendSMS sends SMS messages using Twilio service.
 func (ss *SMSService) SendSMS(recipient, message string) error {
 	if ss.client == nil {
-		return errors.New("Twilio SMS service is not configured")
+		return errors.New("twilio SMS service is not configured")
 	}
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(recipient)
@@ -54,13 +59,14 @@ func (ss *SMSService) SendSMS(recipient, message string) error {
 	if len(ss.messagingServiceSid) > 0 {
 		params.SetMessagingServiceSid(ss.messagingServiceSid)
 	} else {
-		return errors.New("Twilio SMS service has no sendFrom nor messagingServiceSid for sending the message configured")
+		return errors.New("twilio SMS service has no sendFrom nor messagingServiceSid for sending the message configured")
 	}
 	resp, err := ss.client.Api.CreateMessage(params)
 	if err != nil {
 		return err
 	}
 
-	fmt.Printf("Twilio service sending SMS %+v\n", resp)
+	ss.logger.Info("Twilio service sending SMS",
+		"response", resp)
 	return nil
 }

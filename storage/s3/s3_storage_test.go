@@ -7,6 +7,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	s3s "github.com/madappgang/identifo/v2/storage/s3"
 	"github.com/stretchr/testify/assert"
@@ -25,15 +26,17 @@ func TestS3ConfigSource(t *testing.T) {
 	_ = getS3Client(t, ep)
 	putTestFileTOS3(t, awsEndpoint)
 
-	c, err := s3s.NewConfigurationStorage(model.FileStorageSettings{
-		Type: model.FileStorageTypeS3,
-		S3: model.FileStorageS3{
-			Region:   settings.Region,
-			Bucket:   settings.Bucket,
-			Key:      settings.Key,
-			Endpoint: awsEndpoint,
-		},
-	})
+	c, err := s3s.NewConfigurationStorage(
+		logging.DefaultLogger,
+		model.FileStorageSettings{
+			Type: model.FileStorageTypeS3,
+			S3: model.FileStorageS3{
+				Region:   settings.Region,
+				Bucket:   settings.Bucket,
+				Key:      settings.Key,
+				Endpoint: awsEndpoint,
+			},
+		})
 	require.NoError(t, err)
 	settings, errs := c.LoadServerSettings(false)
 	require.Empty(t, errs)

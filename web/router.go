@@ -2,7 +2,7 @@ package web
 
 import (
 	"io/fs"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
 
@@ -28,7 +28,7 @@ const (
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
 	Server           model.Server
-	Logger           *log.Logger
+	Logger           *slog.Logger
 	ServeAdminPanel  bool
 	Host             *url.URL
 	LoggerSettings   model.LoggerSettings

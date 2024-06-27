@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -186,7 +187,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("User %s updated", userID)
+		ar.logger.Info("User updated",
+			logging.FieldUserID, userID)
 
 		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
@@ -202,7 +204,8 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("User %s deleted", userID)
+		ar.logger.Info("User deleted",
+			logging.FieldUserID, userID)
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }

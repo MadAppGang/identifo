@@ -6,6 +6,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/services/mail"
 	"github.com/spf13/afero"
@@ -23,7 +24,7 @@ func TestEmailService_SendMessage(t *testing.T) {
 	}
 
 	afs := createFS()
-	service, err := mail.NewService(sts, afero.NewIOFS(afs), time.Second, "templates")
+	service, err := mail.NewService(logging.DefaultLogger, sts, afero.NewIOFS(afs), time.Second, "templates")
 	require.NoError(t, err)
 	service.Start()
 	service.SendTemplateEmail(

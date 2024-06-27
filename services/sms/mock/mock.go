@@ -1,17 +1,23 @@
 package mock
 
-import "fmt"
+import (
+	"log/slog"
+)
 
 // SMSServiceMock mocks SMS service.
-type SMSServiceMock struct{}
+type SMSServiceMock struct {
+	logger *slog.Logger
+}
 
 // NewSMSService returns pointer to newly created SMS service mock.
-func NewSMSService() (*SMSServiceMock, error) {
-	return &SMSServiceMock{}, nil
+func NewSMSService(logger *slog.Logger) (*SMSServiceMock, error) {
+	return &SMSServiceMock{logger}, nil
 }
 
 // SendSMS implements SMSService.
 func (ss *SMSServiceMock) SendSMS(recipient, message string) error {
-	fmt.Printf("📱: MOCK SMS SERVICE: Sending SMS: \nrecipient: %s\nmessage: %s\n\n", recipient, message)
+	ss.logger.Info("📱: MOCK SMS SERVICE: Sending SMS",
+		"recipient", recipient,
+		"message", message)
 	return nil
 }

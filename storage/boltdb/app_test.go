@@ -5,6 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,7 @@ func TestBoltDBAppCreateApp(t *testing.T) {
 	sts := model.BoltDBDatabaseSettings{
 		Path: dbpath,
 	}
-	apps, err := boltdb.NewAppStorage(sts)
+	apps, err := boltdb.NewAppStorage(logging.DefaultLogger, sts)
 	require.NoError(t, err)
 
 	defer apps.Close()
@@ -64,7 +65,7 @@ func TestBoltDBAppFindAppById(t *testing.T) {
 	sts := model.BoltDBDatabaseSettings{
 		Path: dbpath,
 	}
-	apps, err := boltdb.NewAppStorage(sts)
+	apps, err := boltdb.NewAppStorage(logging.DefaultLogger, sts)
 	require.NoError(t, err)
 
 	defer apps.Close()
@@ -87,7 +88,7 @@ func TestBoltDBAppFindAppFetchApps(t *testing.T) {
 	sts := model.BoltDBDatabaseSettings{
 		Path: dbpath,
 	}
-	apps, err := boltdb.NewAppStorage(sts)
+	apps, err := boltdb.NewAppStorage(logging.DefaultLogger, sts)
 	require.NoError(t, err)
 
 	defer apps.Close()

@@ -22,7 +22,7 @@ func TestRegisterWithEmail(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/jwt_token_with_refresh_scheme.json").
@@ -49,7 +49,7 @@ func TestRegisterWithEmailAndLogout(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
 			at = data["access_token"].(string)
 			rt = data["refresh_token"].(string)
@@ -73,7 +73,7 @@ func TestRegisterWithEmailAndLogout(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(logoutData).
 		Expect(t).
-		// AssertFunc(dumpResponse).
+		// AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		Done()

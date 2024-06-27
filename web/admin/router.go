@@ -2,12 +2,12 @@ package admin
 
 import (
 	"encoding/json"
-	"log"
+	"log/slog"
 	"net/http"
 	"net/url"
-	"os"
 
 	"github.com/gorilla/mux"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/rs/cors"
@@ -19,7 +19,7 @@ type Router struct {
 	server       model.Server
 	middleware   *negroni.Negroni
 	cors         *cors.Cors
-	logger       *log.Logger
+	logger       *slog.Logger
 	router       *mux.Router
 	RedirectURL  string
 	PathPrefix   string
@@ -30,7 +30,7 @@ type Router struct {
 
 type RouterSettings struct {
 	Server       model.Server
-	Logger       *log.Logger
+	Logger       *slog.Logger
 	Host         *url.URL
 	Prefix       string
 	Cors         *cors.Cors
@@ -41,8 +41,10 @@ type RouterSettings struct {
 // NewRouter creates and initializes new admin router.
 func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar := Router{
-		server:       settings.Server,
-		middleware:   negroni.New(middleware.NewNegroniLogger("ADMIN_API"), negroni.NewRecovery()),
+		server: settings.Server,
+		middleware: negroni.New(
+			middleware.NewNegroniLogger("ADMIN_API"),
+			negroni.NewRecovery()),
 		router:       mux.NewRouter(),
 		Host:         settings.Host,
 		PathPrefix:   settings.Prefix,
@@ -53,7 +55,8 @@ func NewRouter(settings RouterSettings) (model.Router, error) {
 	}
 
 	if settings.Logger == nil {
-		ar.logger = log.New(os.Stdout, "ADMIN_ROUTER: ", log.Ldate|log.Ltime|log.Lshortfile)
+		ar.logger = logging.NewDefaultLogger().
+			With(logging.FieldComponent, "ADMIN_ROUTER")
 	}
 
 	ar.middleware.Use(ar.RemoveTrailingSlash())
@@ -79,7 +82,9 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 	}
 
 	// Log error.
-	ar.logger.Printf("admin error: %v (code=%d)", err, code)
+	ar.logger.Error("admin error",
+		logging.FieldError, err,
+		"errorCode", code)
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
@@ -89,7 +94,8 @@ func (ar *Router) Error(w http.ResponseWriter, err error, code int, userInfo str
 		Code:  code,
 	})
 	if encodeErr != nil {
-		ar.logger.Printf("error writing http response: %s", err)
+		ar.logger.Error("error writing http response",
+			logging.FieldError, encodeErr)
 	}
 }
 
@@ -110,6 +116,7 @@ func (ar *Router) ServeJSON(w http.ResponseWriter, code int, v interface{}) {
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(code)
 	if _, err = w.Write(data); err != nil {
-		log.Printf("error writing http response: %s", err)
+		ar.logger.Error("error writing http response",
+			logging.FieldError, err)
 	}
 }

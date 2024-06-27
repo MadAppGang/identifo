@@ -5,6 +5,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/urfave/negroni"
 )
 
@@ -57,7 +58,8 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 
 func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 	if err := ar.server.Services().Session.ProlongSession(sessionID); err != nil {
-		ar.logger.Println("Error prolonging session:", err)
+		ar.logger.Error("Error prolonging session",
+			logging.FieldError, err)
 		return
 	}
 	c := &http.Cookie{

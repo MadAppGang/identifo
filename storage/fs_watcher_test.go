@@ -10,6 +10,7 @@ import (
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
 	s3s "github.com/madappgang/identifo/v2/storage/s3"
@@ -37,7 +38,11 @@ func TestNewFSWatcher(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	watcher := storage.NewFSWatcher(fss, []string{"test1.txt", "test2.txt"}, time.Second*2)
+	watcher := storage.NewFSWatcher(
+		logging.DefaultLogger,
+		fss,
+		[]string{"test1.txt", "test2.txt"},
+		time.Second*2)
 	watcher.Watch()
 
 	go func() {
@@ -101,7 +106,11 @@ func TestNewFSWatcherS3(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	watcher := storage.NewFSWatcher(fss, []string{"watched.txt", "watched_new.txt"}, time.Second*2)
+	watcher := storage.NewFSWatcher(
+		logging.DefaultLogger,
+		fss,
+		[]string{"watched.txt", "watched_new.txt"},
+		time.Second*2)
 	watcher.Watch()
 
 	go func() {
@@ -170,7 +179,7 @@ func getS3Client(t *testing.T, endpoint string) *s3.S3 {
 	return s3client
 }
 
-func uploadS3File(t *testing.T, s3client *s3.S3, s model.FileStorageS3, key string) {
+func uploadS3File(t *testing.T, s3client *s3.S3, _ model.FileStorageS3, key string) {
 	newFilecontent := []byte(fmt.Sprintf("This content has been changed at %v", time.Now().Unix()))
 	input := &s3.PutObjectInput{
 		Bucket:             aws.String("identifo"),

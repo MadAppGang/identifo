@@ -12,7 +12,12 @@ import (
 )
 
 // NewServer creates backend service.
-func NewServer(storages model.ServerStorageCollection, services model.ServerServices, errs []error, restartChan chan<- bool) (model.Server, error) {
+func NewServer(
+	storages model.ServerStorageCollection,
+	services model.ServerServices,
+	errs []error,
+	restartChan chan<- bool,
+) (model.Server, error) {
 	if storages.Config == nil {
 		return nil, fmt.Errorf("unable create sever with empty config storage")
 	}

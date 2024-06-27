@@ -3,11 +3,12 @@ package boltdb
 import (
 	"encoding/json"
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	bolt "go.etcd.io/bbolt"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
@@ -19,11 +20,15 @@ const (
 
 // InviteStorage is a BoltDB invite storage.
 type InviteStorage struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 // NewInviteStorage creates a BoltDB invites storage.
-func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings,
+) (model.InviteStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -34,11 +39,14 @@ func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorag
 		return nil, err
 	}
 
-	is := &InviteStorage{db: db}
+	is := &InviteStorage{
+		logger: logger,
+		db:     db,
+	}
 	// Ensure that we have needed bucket in the database.
 	if err := db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(InviteBucket)); err != nil {
-			return fmt.Errorf("create bucket: %s", err)
+			return fmt.Errorf("create bucket: %w", err)
 		}
 		return nil
 	}); err != nil {
@@ -50,7 +58,6 @@ func NewInviteStorage(settings model.BoltDBDatabaseSettings) (model.InviteStorag
 // Save creates and saves new invite to a database.
 func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string, expiresAt time.Time) error {
 	return is.db.Update(func(tx *bolt.Tx) error {
-		fmt.Println(expiresAt)
 		ib := tx.Bucket([]byte(InviteBucket))
 
 		invite := model.Invite{
@@ -226,6 +233,6 @@ func (is *InviteStorage) ArchiveByID(id string) error {
 // Close closes underlying database.
 func (is *InviteStorage) Close() {
 	if err := CloseDB(is.db); err != nil {
-		log.Printf("Error closing invite storage: %s\n", err)
+		is.logger.Error("Error closing invite storage", logging.FieldError, err)
 	}
 }

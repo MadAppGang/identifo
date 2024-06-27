@@ -4,10 +4,11 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 	bolt "go.etcd.io/bbolt"
@@ -23,7 +24,10 @@ const (
 )
 
 // NewUserStorage creates and inits an embedded user storage.
-func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, error) {
+func NewUserStorage(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings,
+) (model.UserStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -34,7 +38,10 @@ func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, e
 		return nil, err
 	}
 
-	us := UserStorage{db: db}
+	us := UserStorage{
+		logger: logger,
+		db:     db,
+	}
 
 	if err := us.createBuckets(); err != nil {
 		return nil, err
@@ -45,7 +52,8 @@ func NewUserStorage(settings model.BoltDBDatabaseSettings) (model.UserStorage, e
 
 // UserStorage implements user storage interface for BoltDB.
 type UserStorage struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 func (us *UserStorage) createBuckets() error {
@@ -514,21 +522,24 @@ func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 func (us *UserStorage) UpdateLoginMetadata(userID string) {
 	user, err := us.UserByID(userID)
 	if err != nil {
-		log.Printf("Cannot get user by ID %s: %s\n", userID, err)
+		us.logger.Error("Cannot get user by ID",
+			logging.FieldUserID, userID,
+			logging.FieldError, err)
+		return
 	}
 
 	user.NumOfLogins++
 	user.LatestLoginTime = time.Now().Unix()
 
-	if _, err := us.UpdateUser(UserBucket, user); err != nil {
-		log.Println("Cannot update user login info: ", err)
+	if _, err := us.UpdateUser(userID, user); err != nil {
+		us.logger.Error("Cannot update user login info", logging.FieldError, err)
 	}
 }
 
 // Close closes underlying database.
 func (us *UserStorage) Close() {
 	if err := CloseDB(us.db); err != nil {
-		log.Printf("Error closing user storage: %s\n", err)
+		us.logger.Error("Error closing user storage", logging.FieldError, err)
 	}
 }
 

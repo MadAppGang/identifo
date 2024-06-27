@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -28,9 +29,10 @@ func (ar *Router) getResetPasswordToken(w http.ResponseWriter, r *http.Request) 
 	user, err := ar.server.Storages().User.UserByEmail(d.Email)
 	if err == model.ErrUserNotFound {
 		// return ok, but there is no user
-		ar.logger.Printf("Trying to reset password for the user, which is not exists: %s. Sending back ok to user for security reason.", d.Email)
-		result := map[string]string{"result": "ok"}
-		ar.ServeJSON(w, locale, http.StatusOK, result)
+		ar.logger.Warn("Trying to reset password for the user, which is not exists. Sending back ok to user for security reason.",
+			logging.FieldEmail, d.Email)
+
+		ar.ServeJSONOk(w)
 		return
 	} else if err != nil {
 		ar.Error(w, locale, http.StatusInternalServerError, l.ErrorStorageFindUserEmailError, d.Email, err)

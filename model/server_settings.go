@@ -125,8 +125,9 @@ type DynamoDatabaseSettings struct {
 }
 
 type PluginSettings struct {
-	Cmd    string            `yaml:"cmd" json:"cmd"`
-	Params map[string]string `yaml:"params" json:"params"`
+	Cmd         string            `yaml:"cmd" json:"cmd"`
+	RedirectStd bool              `yaml:"redirectStd" json:"redirectStd"`
+	Params      map[string]string `yaml:"params" json:"params"`
 }
 
 type GRPCSettings struct {
@@ -346,7 +347,9 @@ func (ss ServerSettings) GetPort() string {
 }
 
 type LoggerSettings struct {
-	DumpRequest bool `yaml:"dumpRequest" json:"dumpRequest"`
+	DumpRequest bool   `yaml:"dumpRequest" json:"dumpRequest"`
+	Format      string `yaml:"format" json:"format"`
+	Level       string `yaml:"level" json:"level"`
 }
 
 type AdminPanelSettings struct {

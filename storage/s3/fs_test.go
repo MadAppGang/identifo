@@ -40,7 +40,7 @@ func TestNewFSWithS3(t *testing.T) {
 	testFSContent(settings, s3client, t)
 }
 
-func testFSContent(sts model.FileStorageSettings, s3client *s3.S3, t *testing.T) {
+func testFSContent(sts model.FileStorageSettings, _ *s3.S3, t *testing.T) {
 	fss, err := storage.NewFS(sts)
 	if err != nil {
 		t.Fatalf("error creating local fs with error: %v", err)

@@ -4,7 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"io"
-	"log"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/s3"
@@ -14,43 +14,49 @@ import (
 
 // KeyStorage is a wrapper over private key files
 type KeyStorage struct {
-	Client         *s3.S3
-	Bucket         string
-	PrivateKeyPath string
+	logger         *slog.Logger
+	client         *s3.S3
+	bucket         string
+	privateKeyPath string
 }
 
 // NewKeyStorage creates and returns new S3-backed key files storage.
-func NewKeyStorage(settings model.FileStorageS3) (*KeyStorage, error) {
+func NewKeyStorage(
+	logger *slog.Logger,
+	settings model.FileStorageS3,
+) (*KeyStorage, error) {
 	s3Client, err := NewS3Client(settings.Region, settings.Endpoint)
 	if err != nil {
 		return nil, err
 	}
 
 	return &KeyStorage{
-		Client:         s3Client,
-		Bucket:         settings.Bucket,
-		PrivateKeyPath: settings.Key,
+		logger:         logger,
+		client:         s3Client,
+		bucket:         settings.Bucket,
+		privateKeyPath: settings.Key,
 	}, nil
 }
 
 // ReplaceKey replaces private  key into S3 key storage
 func (ks *KeyStorage) ReplaceKey(keyPEM []byte) error {
-	log.Println("Putting new keys to S3...")
+	ks.logger.Info("Putting new keys to S3...")
 
 	if keyPEM == nil {
-		return fmt.Errorf("Cannot insert empty key")
+		return fmt.Errorf("cannot insert empty key")
 	}
 
-	_, err := ks.Client.PutObject(&s3.PutObjectInput{
-		Bucket:       aws.String(ks.Bucket),
-		Key:          aws.String(ks.PrivateKeyPath),
+	_, err := ks.client.PutObject(&s3.PutObjectInput{
+		Bucket:       aws.String(ks.bucket),
+		Key:          aws.String(ks.privateKeyPath),
 		ACL:          aws.String("private"),
 		StorageClass: aws.String(s3.ObjectStorageClassStandard),
 		Body:         bytes.NewReader(keyPEM),
 		ContentType:  aws.String("application/x-pem-file"),
 	})
 	if err == nil {
-		log.Printf("Successfully put %s to S3\n", ks.PrivateKeyPath)
+		ks.logger.Info("Successfully put key to S3",
+			"path", ks.privateKeyPath)
 	}
 
 	return nil
@@ -59,19 +65,19 @@ func (ks *KeyStorage) ReplaceKey(keyPEM []byte) error {
 // LoadPrivateKey loads private key from the storage
 func (ks *KeyStorage) LoadPrivateKey() (interface{}, error) {
 	getKeyInput := &s3.GetObjectInput{
-		Bucket: aws.String(ks.Bucket),
-		Key:    aws.String(ks.PrivateKeyPath),
+		Bucket: aws.String(ks.bucket),
+		Key:    aws.String(ks.privateKeyPath),
 	}
 
-	resp, err := ks.Client.GetObject(getKeyInput)
+	resp, err := ks.client.GetObject(getKeyInput)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot get %s from S3: %s", ks.PrivateKeyPath, err)
+		return nil, fmt.Errorf("cannot get %s from S3: %w", ks.privateKeyPath, err)
 	}
 	defer resp.Body.Close()
 
 	keyData, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
+		return nil, fmt.Errorf("cannot decode S3 response: %w", err)
 	}
 
 	privateKey, _, err := jwt.LoadPrivateKeyFromPEMString(string(keyData))

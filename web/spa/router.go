@@ -1,25 +1,27 @@
 package spa
 
 import (
-	"fmt"
-	"log"
+	"log/slog"
 	"net/http"
-	"os"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	"github.com/urfave/negroni"
 )
 
-func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.Logger) (model.Router, error) {
+func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *slog.Logger) (model.Router, error) {
 	ar := Router{
-		Middleware: negroni.New(middleware.NewNegroniLogger(setting.Name), negroni.NewRecovery()).With(middlewares...),
-		FS:         setting.FileSystem,
+		Middleware: negroni.New(
+			middleware.NewNegroniLogger(setting.Name),
+			negroni.NewRecovery()).With(middlewares...),
+		FS: setting.FileSystem,
 	}
 
 	// Setup logger to stdout.
 	if logger == nil {
-		ar.Logger = log.New(os.Stdout, fmt.Sprintf("[ %s ]: ", setting.Name), log.Ldate|log.Ltime|log.Lshortfile)
+		ar.Logger = logging.NewDefaultLogger().With(
+			logging.FieldComponent, setting.Name)
 	}
 
 	ar.Middleware.UseHandler(NewSPAHandlerFunc(setting))
@@ -28,7 +30,7 @@ func NewRouter(setting SPASettings, middlewares []negroni.Handler, logger *log.L
 
 // login app router
 type Router struct {
-	Logger     *log.Logger
+	Logger     *slog.Logger
 	Middleware *negroni.Negroni
 	FS         http.FileSystem
 }

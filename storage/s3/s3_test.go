@@ -46,7 +46,7 @@ func getS3Client(t *testing.T, endpoint string) *s3.S3 {
 	return s3client
 }
 
-func uploadS3File(t *testing.T, s3client *s3.S3, s model.FileStorageS3, key string) {
+func uploadS3File(t *testing.T, s3client *s3.S3, _ model.FileStorageS3, key string) {
 	newFilecontent := []byte(fmt.Sprintf("This content has been changed at %v", time.Now().Unix()))
 	input := &s3.PutObjectInput{
 		Bucket:             aws.String(settings.Bucket),

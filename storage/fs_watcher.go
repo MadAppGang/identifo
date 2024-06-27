@@ -2,15 +2,17 @@ package storage
 
 import (
 	"io/fs"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"golang.org/x/exp/slices"
 )
 
 // FSWatcher watch for files changes in FS and notifies on file change
 type FSWatcher struct {
+	logger        *slog.Logger
 	f             fs.FS
 	keys          []string
 	poll          time.Duration
@@ -33,9 +35,15 @@ func KeysWithFixedSlashed(keys []string) []string {
 	return result
 }
 
-func NewFSWatcher(f fs.FS, keys []string, poll time.Duration) *FSWatcher {
+func NewFSWatcher(
+	logger *slog.Logger,
+	f fs.FS,
+	keys []string,
+	poll time.Duration,
+) *FSWatcher {
 	// let's remove trailing
 	return &FSWatcher{
+		logger:        logger,
 		f:             f,
 		keys:          KeysWithFixedSlashed(keys),
 		poll:          poll,
@@ -70,11 +78,11 @@ func (w *FSWatcher) runWatch() {
 	for {
 		select {
 		case <-time.After(w.poll):
-			log.Println("fs watcher checking the files ...")
+			w.logger.Info("fs watcher checking the files ...")
 			go w.checkUpdatedFiles()
 		case <-w.done:
 			w.isWatching = false
-			log.Println("fs watcher has received done signal and stopping itself ...")
+			w.logger.Info("fs watcher has received done signal and stopping itself ...")
 			return
 		}
 	}
@@ -85,7 +93,7 @@ func (w *FSWatcher) checkUpdatedFiles() {
 	for _, key := range w.keys {
 		stat, err := fs.Stat(w.f, key)
 		if err != nil {
-			log.Printf("getting error: %+v\n", err)
+			w.logger.Error("fs watcher getting error", logging.FieldError, err)
 			w.err <- err
 			continue
 		}
@@ -95,7 +103,7 @@ func (w *FSWatcher) checkUpdatedFiles() {
 		}
 	}
 	if len(modifiedKeys) > 0 {
-		log.Printf("fs files has changed response: %+v", modifiedKeys)
+		w.logger.Info("fs files has changed response", "keys", modifiedKeys)
 		// report file change
 		w.change <- modifiedKeys
 	}

@@ -11,6 +11,7 @@ import (
 
 	ijwt "github.com/madappgang/identifo/v2/jwt"
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 	qrcode "github.com/skip2/go-qrcode"
@@ -289,7 +290,8 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 
 		// Blacklist old access token.
 		if err := ar.server.Storages().Blocklist.Add(oldAccessTokenString); err != nil {
-			ar.logger.Printf("Cannot blacklist old access token: %s\n", err)
+			ar.logger.Error("Cannot blacklist old access token",
+				logging.FieldError, err)
 		}
 
 		user = user.Sanitized()
