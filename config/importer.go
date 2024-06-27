@@ -1,7 +1,7 @@
 package config
 
 import (
-	"io/ioutil"
+	"io"
 	"os"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -45,5 +45,5 @@ func dataFromFile(filename string) ([]byte, error) {
 		return nil, err
 	}
 	defer file.Close()
-	return ioutil.ReadAll(file)
+	return io.ReadAll(file)
 }

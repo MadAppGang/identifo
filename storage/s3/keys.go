@@ -3,7 +3,7 @@ package s3
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -69,7 +69,7 @@ func (ks *KeyStorage) LoadPrivateKey() (interface{}, error) {
 	}
 	defer resp.Body.Close()
 
-	keyData, err := ioutil.ReadAll(resp.Body)
+	keyData, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("Cannot decode S3 response: %s", err)
 	}

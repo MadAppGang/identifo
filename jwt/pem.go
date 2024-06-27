@@ -10,7 +10,7 @@ import (
 	"encoding/pem"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"os"
 
 	"github.com/madappgang/identifo/v2/model"
 )
@@ -51,7 +51,7 @@ func LoadPrivateKeyFromPEMString(s string) (interface{}, model.TokenSignatureAlg
 
 // LoadPrivateKeyFromPEM loads private key from PEM file.
 func LoadPrivateKeyFromPEMFile(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	prkb, err := ioutil.ReadFile(file)
+	prkb, err := os.ReadFile(file)
 	if err != nil {
 		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}
@@ -82,7 +82,7 @@ func LoadPublicKeyFromString(s string) (interface{}, model.TokenSignatureAlgorit
 
 // LoadPublicKeyFromPEM loads public key from file
 func LoadPublicKeyFromPEM(file string) (interface{}, model.TokenSignatureAlgorithm, error) {
-	prkb, err := ioutil.ReadFile(file)
+	prkb, err := os.ReadFile(file)
 	if err != nil {
 		return nil, model.TokenSignatureAlgorithmInvalid, err
 	}

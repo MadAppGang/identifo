@@ -3,6 +3,7 @@ package mongo
 import (
 	"bytes"
 	"context"
+	"errors"
 	"fmt"
 	"log"
 	"strings"
@@ -80,7 +81,7 @@ func generateIndexName(index mongo.IndexModel) (string, error) {
 
 	keys, ok := index.Keys.(bson.D)
 	if !ok {
-		return "", fmt.Errorf("Incorrect index keys type - expecting bsonx.Doc")
+		return "", errors.New("incorrect index keys type - expecting bsonx.Doc")
 	}
 	for _, elem := range keys {
 		if !first {

@@ -2,7 +2,7 @@ package routemobile
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/url"
 	"strings"
@@ -52,7 +52,7 @@ func (ss *SMSService) SendSMS(recipient, message string) error {
 	}
 	defer resp.Body.Close()
 
-	respBytes, err := ioutil.ReadAll(resp.Body)
+	respBytes, err := io.ReadAll(resp.Body)
 	if err != nil {
 		return err
 	}

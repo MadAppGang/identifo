@@ -7,7 +7,7 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"net/http"
 	"net/http/httptest"
@@ -106,13 +106,13 @@ type validatorFunc = func(map[string]interface{}) error
 
 func validateJSON(validator validatorFunc) assert.Func {
 	return func(res *http.Response, req *http.Request) error {
-		body, err := ioutil.ReadAll(res.Body)
+		body, err := io.ReadAll(res.Body)
 		if err != nil {
 			return err
 		}
 
 		// Re-fill body reader stream after reading it
-		res.Body = ioutil.NopCloser(bytes.NewBuffer(body))
+		res.Body = io.NopCloser(bytes.NewBuffer(body))
 
 		// parse the data
 		var data map[string]interface{}

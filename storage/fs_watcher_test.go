@@ -3,7 +3,6 @@ package storage_test
 import (
 	"bytes"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"strings"
 	"testing"
@@ -152,7 +151,7 @@ func makeFiles() {
 
 func updateFile(name string) {
 	data := fmt.Sprintf("This is file data has been created at: %v", time.Now())
-	_ = ioutil.WriteFile(name, []byte(data), 0o644)
+	_ = os.WriteFile(name, []byte(data), 0o644)
 }
 
 func deleteFiles() {

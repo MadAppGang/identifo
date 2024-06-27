@@ -271,7 +271,7 @@ func (us *UserStorage) AddUserWithFederatedID(user model.User, provider string, 
 	}
 
 	// unknown error during user existnce check
-	if err != nil && !errors.Is(err, model.ErrUserNotFound) {
+	if !errors.Is(err, model.ErrUserNotFound) {
 		return model.User{}, err
 	}
 
