@@ -27,19 +27,19 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 			return
 		}
 
-		userID := tokenFromContext(r.Context()).UserID()
+		userID := tokenFromContext(ctx).UserID()
 		adminUser, err := ar.server.Storages().User.UserByID(userID)
 		if err != nil {
 			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorStorageFindUserIDError, userID, err)
 			return
 		}
 
-		log.Println("admin for impersonation", adminUser.ID, adminUser.Scopes)
-
 		d := impersonateData{}
 		if ar.MustParseJSON(w, r, &d) != nil {
 			return
 		}
+
+		log.Println("admin for impersonation", adminUser.ID, adminUser.Scopes, "as", d.UserID)
 
 		user, err := ar.server.Storages().User.UserByID(d.UserID)
 		if err != nil {
@@ -63,7 +63,7 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 			"impersonated_by": adminUser.ID,
 		}
 
-		authResult, err := ar.loginFlow(app, user, nil, ap)
+		authResult, resultScopes, err := ar.loginFlow(app, user, nil, ap)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
@@ -71,6 +71,8 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 
 		// do not allow refresh for impersonated user
 		authResult.RefreshToken = ""
+
+		journal(userID, app.ID, "impersonated", resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

@@ -182,11 +182,13 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		authResult, err := ar.loginFlow(app, user, ld.Scopes, nil)
+		authResult, resultScopes, err := ar.loginFlow(app, user, ld.Scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
 		}
+
+		journal(authResult.User.ID, app.ID, "pass_login", resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -304,7 +306,13 @@ func (ar *Router) getTokenPayloadService(app model.AppData) (model.TokenPayloadP
 
 // loginUser creates and returns access token for a user.
 // createRefreshToken boolean param tells if we should issue refresh token as well.
-func (ar *Router) loginUser(user model.User, scopes []string, app model.AppData, createRefreshToken, require2FA bool, tokenPayload map[string]interface{}) (string, string, error) {
+func (ar *Router) loginUser(
+	user model.User,
+	scopes []string,
+	app model.AppData,
+	createRefreshToken, require2FA bool,
+	tokenPayload map[string]interface{},
+) (string, string, error) {
 	token, err := ar.server.Services().Token.NewAccessToken(user, scopes, app, require2FA, tokenPayload)
 	if err != nil {
 		return "", "", err
@@ -335,33 +343,26 @@ func (ar *Router) loginFlow(
 	user model.User,
 	requestedScopes []string,
 	additionalPayload map[string]any,
-) (AuthResponse, error) {
+) (AuthResponse, []string, error) {
 	// check if the user has the scope, that allows to login to the app
 	// user has to have at least one scope app expecting
 	if len(app.Scopes) > 0 && len(model.SliceIntersect(app.Scopes, user.Scopes)) == 0 {
-		return AuthResponse{}, errors.New("user does not have required scope for the app")
+		return AuthResponse{}, nil, errors.New("user does not have required scope for the app")
 	}
 
 	// Do login flow.
-	scopes := []string{}
-	// if we requested any scope, let's provide all the scopes user has and requested
-	if len(requestedScopes) > 0 {
-		scopes = model.SliceIntersect(requestedScopes, user.Scopes)
-	}
-	if model.SliceContains(requestedScopes, "offline") && app.Offline {
-		scopes = append(scopes, "offline")
-	}
+	scopes := model.AllowedScopes(requestedScopes, user.Scopes, app.Offline)
 
 	// Check if we should require user to authenticate with 2FA.
 	require2FA, enabled2FA, err := ar.check2FA(app.TFAStatus, ar.tfaType, user)
 	if !require2FA && enabled2FA && err != nil {
-		return AuthResponse{}, err
+		return AuthResponse{}, nil, err
 	}
 
 	offline := contains(scopes, model.OfflineScope)
 	tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 	if err != nil {
-		return AuthResponse{}, err
+		return AuthResponse{}, nil, err
 	}
 
 	if tokenPayload == nil {
@@ -374,7 +375,7 @@ func (ar *Router) loginFlow(
 
 	accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, require2FA, tokenPayload)
 	if err != nil {
-		return AuthResponse{}, err
+		return AuthResponse{}, nil, err
 	}
 
 	result := AuthResponse{
@@ -386,7 +387,7 @@ func (ar *Router) loginFlow(
 
 	if require2FA && enabled2FA {
 		if err := ar.sendOTPCode(app, user); err != nil {
-			return AuthResponse{}, err
+			return AuthResponse{}, nil, err
 		}
 	} else {
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
@@ -394,7 +395,7 @@ func (ar *Router) loginFlow(
 
 	user = user.Sanitized()
 	result.User = user
-	return result, nil
+	return result, scopes, nil
 }
 
 type impersonateData struct {

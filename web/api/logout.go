@@ -18,9 +18,12 @@ func (ar *Router) Logout() http.HandlerFunc {
 	result := map[string]string{"result": "ok"}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		locale := r.Header.Get("Accept-Language")
 
-		accessTokenBytes, ok := r.Context().Value(model.TokenRawContextKey).([]byte)
+		accessToken := tokenFromContext(ctx)
+
+		accessTokenBytes, ok := ctx.Value(model.TokenRawContextKey).([]byte)
 		if !ok {
 			ar.logger.Println("Cannot fetch access token bytes from context")
 			ar.ServeJSON(w, locale, http.StatusNoContent, nil)
@@ -56,23 +59,20 @@ func (ar *Router) Logout() http.HandlerFunc {
 			}
 		}
 
+		journal(accessToken.Subject(), accessToken.Audience(), "logout", nil)
+
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 
 func (ar *Router) getTokenSubject(tokenString string) (string, error) {
-	claims := jwt.MapClaims{}
+	claims := jwt.RegisteredClaims{}
 
-	if _, err := jwt.ParseWithClaims(tokenString, claims, nil); err == nil {
-		return "", fmt.Errorf("Cannot parse token: %s", err)
+	if _, err := jwt.ParseWithClaims(tokenString, &claims, nil); err == nil {
+		return "", fmt.Errorf("cannot parse token: %s", err)
 	}
 
-	sub, ok := claims["sub"].(string)
-	if !ok {
-		return "", fmt.Errorf("Cannot obtain token subject")
-	}
-
-	return sub, nil
+	return claims.Subject, nil
 }
 
 func (ar *Router) revokeRefreshToken(refreshTokenString, accessTokenString string) error {

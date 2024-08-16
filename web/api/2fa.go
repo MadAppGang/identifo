@@ -195,7 +195,7 @@ func (ar *Router) ResendTFA() http.HandlerFunc {
 
 		scopes := strings.Split(token.Scopes(), " ")
 
-		authResult, err := ar.loginFlow(app, user, scopes, nil)
+		authResult, _, err := ar.loginFlow(app, user, scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 			return
@@ -265,14 +265,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		scopes := []string{}
-		// if we requested any scope, let's provide all the scopes user has and requested
-		if len(d.Scopes) > 0 {
-			scopes = model.SliceIntersect(d.Scopes, user.Scopes)
-		}
-		if model.SliceContains(d.Scopes, "offline") && app.Offline {
-			scopes = append(scopes, "offline")
-		}
+		scopes := model.AllowedScopes(d.Scopes, app.Scopes, app.Offline)
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 		if err != nil {
@@ -311,6 +304,8 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 				return
 			}
 		}
+
+		journal(user.ID, app.ID, "2fa_login", scopes)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)

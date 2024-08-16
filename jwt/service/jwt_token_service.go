@@ -343,9 +343,13 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token, tokenPayl
 		return nil, ErrInvalidUser
 	}
 
+	requestedScopes := strings.Split(claims.Scopes, " ")
+
+	scopes := model.AllowedScopes(requestedScopes, user.Scopes, app.Offline)
+
 	token, err := ts.NewAccessToken(
 		user,
-		strings.Split(claims.Scopes, " "),
+		scopes,
 		app,
 		false,
 		tokenPayload)

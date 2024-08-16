@@ -18,7 +18,7 @@ type GRPCServer struct {
 func (m *GRPCServer) UserByPhone(ctx context.Context, in *proto.UserByPhoneRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByPhone(in.Phone)
 	if err == model.ErrUserNotFound {
-		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+		return toProto(user), status.Error(codes.NotFound, err.Error())
 	}
 	return toProto(user), err
 }
@@ -31,7 +31,7 @@ func (m *GRPCServer) AddUserWithPassword(ctx context.Context, in *proto.AddUserW
 func (m *GRPCServer) UserByID(ctx context.Context, in *proto.UserByIDRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByID(in.Id)
 	if err == model.ErrUserNotFound {
-		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+		return toProto(user), status.Error(codes.NotFound, err.Error())
 	}
 	return toProto(user), err
 }
@@ -39,7 +39,7 @@ func (m *GRPCServer) UserByID(ctx context.Context, in *proto.UserByIDRequest) (*
 func (m *GRPCServer) UserByEmail(ctx context.Context, in *proto.UserByEmailRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByEmail(in.Email)
 	if err == model.ErrUserNotFound {
-		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+		return toProto(user), status.Error(codes.NotFound, err.Error())
 	}
 	return toProto(user), err
 }
@@ -47,7 +47,7 @@ func (m *GRPCServer) UserByEmail(ctx context.Context, in *proto.UserByEmailReque
 func (m *GRPCServer) UserByUsername(ctx context.Context, in *proto.UserByUsernameRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByUsername(in.Username)
 	if err == model.ErrUserNotFound {
-		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+		return toProto(user), status.Error(codes.NotFound, err.Error())
 	}
 	return toProto(user), err
 }
@@ -55,7 +55,7 @@ func (m *GRPCServer) UserByUsername(ctx context.Context, in *proto.UserByUsernam
 func (m *GRPCServer) UserByFederatedID(ctx context.Context, in *proto.UserByFederatedIDRequest) (*proto.User, error) {
 	user, err := m.Impl.UserByFederatedID(in.Provider, in.Id)
 	if err == model.ErrUserNotFound {
-		return toProto(user), status.Errorf(codes.NotFound, err.Error())
+		return toProto(user), status.Error(codes.NotFound, err.Error())
 	}
 	return toProto(user), err
 }
