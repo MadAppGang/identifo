@@ -1,6 +1,4 @@
 # this is compose for test environment
-
-version: "3"
 services:
   minio:
     image: quay.io/minio/minio:latest

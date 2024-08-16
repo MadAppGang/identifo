@@ -11,7 +11,7 @@ export IDENTIFO_STORAGE_MONGO_TEST_INTEGRATION=1
 export IDENTIFO_STORAGE_MONGO_CONN="mongodb://admin:password@localhost:27017/billing-local?authSource=admin"
 export IDENTIFO_REDIS_HOST="127.0.0.1:6379"
 
-docker-compose up -d
+docker compose up -d
 
 sleep 1
 echo "dependencies started"
@@ -20,6 +20,6 @@ go test -race -timeout=60s -count=1 ../...
 test_exit=$?
 
 # docker-compose down -v
-docker-compose rm -s -f -v
+docker compose rm -s -f -v
 
 exit $test_exit
