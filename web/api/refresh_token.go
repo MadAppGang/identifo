@@ -3,13 +3,14 @@ package api
 import (
 	"encoding/json"
 	"net/http"
+	"strings"
 
 	l "github.com/madappgang/identifo/v2/localization"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
 
-// RefreshTokens issues new access and, if requsted, refresh token for provided refresh token.
+// RefreshTokens issues new access and, if requested, refresh token for provided refresh token.
 // After new tokens are issued, the old refresh token gets invalidated (via blacklisting).
 func (ar *Router) RefreshTokens() http.HandlerFunc {
 	type requestData struct {
@@ -22,6 +23,8 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 	}
 
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+
 		locale := r.Header.Get("Accept-Language")
 
 		rd := requestData{}
@@ -30,14 +33,14 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 			rd = requestData{Scopes: []string{}}
 		}
 
-		app := middleware.AppFromContext(r.Context())
+		app := middleware.AppFromContext(ctx)
 		if len(app.ID) == 0 {
 			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPNoAPPInContext)
 			return
 		}
 
 		// Get refresh token from context.
-		oldRefreshToken := tokenFromContext(r.Context())
+		oldRefreshToken := tokenFromContext(ctx)
 
 		if err := oldRefreshToken.Validate(); err != nil {
 			ar.Error(w, locale, http.StatusUnauthorized, l.ErrorTokenInvalidError, err)
@@ -84,12 +87,19 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 			RefreshToken: newRefreshTokenString,
 		}
 
+		resultScopes := strings.Split(accessToken.Scopes(), " ")
+		journal(oldRefreshToken.Subject(), app.ID, "refresh_token", resultScopes)
+
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
 
-func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []string, app model.AppData) (string, error) {
-	if !contains(scopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
+func (ar *Router) issueNewRefreshToken(
+	oldRefreshTokenString string,
+	requestedScopes []string,
+	app model.AppData,
+) (string, error) {
+	if !contains(requestedScopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
 		return "", nil
 	}
 
@@ -102,6 +112,8 @@ func (ar *Router) issueNewRefreshToken(oldRefreshTokenString string, scopes []st
 	if err != nil {
 		return "", err
 	}
+
+	scopes := model.AllowedScopes(requestedScopes, user.Scopes, app.Offline)
 
 	refreshToken, err := ar.server.Services().Token.NewRefreshToken(user, scopes, app)
 	if err != nil {
