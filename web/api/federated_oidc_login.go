@@ -368,7 +368,7 @@ func (ar *Router) completeOIDCAuth(
 
 	providerScope, ok := providerScopeVal.(string)
 	if !ok {
-		ar.logger.Printf("oidc returned scope is not string but %T %+v", providerScope, providerScope)
+		ar.logger.Printf("oidc returned scope is not string but %T %+v", providerScopeVal, providerScopeVal)
 	}
 
 	// Extract the ID Token from OAuth2 token.

@@ -11,7 +11,6 @@ import (
 
 	jwt "github.com/golang-jwt/jwt/v4"
 	ijwt "github.com/madappgang/identifo/v2/jwt"
-	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/api"
 )
 
@@ -65,15 +64,25 @@ func testOIDCServer() (*httptest.Server, context.CancelFunc) {
 	})
 
 	mux.HandleFunc("/token", func(w http.ResponseWriter, r *http.Request) {
-		idt, err := model.NewTokenWithClaims(jwt.SigningMethodES256, "kid", jwt.MapClaims{
-			"sub":    "abc",
-			"emails": []string{"some@example.com"},
-			"email":  "some@example.com",
-			"iss":    cfg.Issuer,
-			"aud":    "test",
-			"exp":    time.Now().Add(time.Hour).Unix(),
-			"iat":    time.Now().Unix(),
-		}).SignedString(privateKey)
+		token := jwt.Token{
+			Header: map[string]interface{}{
+				"typ": "JWT",
+				"alg": jwt.SigningMethodES256.Alg(),
+				"kid": "kid",
+			},
+			Claims: jwt.MapClaims{
+				"sub":    "abc",
+				"emails": []string{"some@example.com"},
+				"email":  "some@example.com",
+				"iss":    cfg.Issuer,
+				"aud":    "test",
+				"exp":    time.Now().Add(time.Hour).Unix(),
+				"iat":    time.Now().Unix(),
+			},
+			Method: jwt.SigningMethodES256,
+		}
+
+		idt, err := token.SignedString(privateKey)
 		if err != nil {
 			panic(err)
 		}

@@ -38,7 +38,7 @@ type Token interface {
 }
 
 // NewTokenWithClaims generates new JWT token with claims and keyID.
-func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
+func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims *Claims) *jwt.Token {
 	return &jwt.Token{
 		Header: map[string]interface{}{
 			"typ": "JWT",
