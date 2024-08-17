@@ -237,7 +237,7 @@ func (ar *Router) OIDCLoginComplete(useSession bool) http.HandlerFunc {
 		// map OIDC scopes to Identifo scopes
 		requestedScopes = mapScopes(app.OIDCSettings.ScopeMapping, requestedScopes)
 
-		authResult, err := ar.loginFlow(app, user, requestedScopes, nil)
+		authResult, resultScopes, err := ar.loginFlow(app, user, requestedScopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 			return
@@ -247,8 +247,10 @@ func (ar *Router) OIDCLoginComplete(useSession bool) http.HandlerFunc {
 			authResult.CallbackUrl = fsess.CallbackUrl
 		}
 
-		authResult.Scopes = requestedScopes
+		authResult.Scopes = resultScopes
 		authResult.ProviderData = *providerData
+
+		journal(user.ID, app.ID, "oidc_login", resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -366,7 +368,7 @@ func (ar *Router) completeOIDCAuth(
 
 	providerScope, ok := providerScopeVal.(string)
 	if !ok {
-		ar.logger.Printf("oidc returned scope is not string but %T %+v", providerScope, providerScope)
+		ar.logger.Printf("oidc returned scope is not string but %T %+v", providerScopeVal, providerScopeVal)
 	}
 
 	// Extract the ID Token from OAuth2 token.

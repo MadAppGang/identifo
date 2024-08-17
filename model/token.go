@@ -38,7 +38,7 @@ type Token interface {
 }
 
 // NewTokenWithClaims generates new JWT token with claims and keyID.
-func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims jwt.Claims) *jwt.Token {
+func NewTokenWithClaims(method jwt.SigningMethod, kid string, claims *Claims) *jwt.Token {
 	return &jwt.Token{
 		Header: map[string]interface{}{
 			"typ": "JWT",
@@ -181,3 +181,16 @@ type Claims struct {
 
 // Full example of how to use JWT tokens:
 // https://github.com/form3tech-oss/jwt-go/blob/master/cmd/jwt/app.go
+
+func AllowedScopes(requestedScopes, userScopes []string, isOffline bool) []string {
+	scopes := []string{}
+	// if we requested any scope, let's provide all the scopes user has and requested
+	if len(requestedScopes) > 0 {
+		scopes = SliceIntersect(requestedScopes, userScopes)
+	}
+	if SliceContains(requestedScopes, "offline") && isOffline {
+		scopes = append(scopes, "offline")
+	}
+
+	return scopes
+}

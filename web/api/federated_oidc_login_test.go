@@ -19,9 +19,10 @@ import (
 )
 
 var testApp = model.AppData{
-	ID:     "test_app",
-	Active: true,
-	Type:   model.Web,
+	ID:      "test_app",
+	Active:  true,
+	Offline: true,
+	Type:    model.Web,
 	OIDCSettings: model.OIDCSettings{
 		ProviderName:    "test",
 		ClientID:        "test",
@@ -61,6 +62,8 @@ func init() {
 	if err != nil {
 		panic(err)
 	}
+
+	testServer.Storages().App.CreateApp(testApp)
 
 	rs := api.RouterSettings{
 		LoginWith: model.LoginWith{
@@ -228,12 +231,20 @@ func Test_Router_OIDCLogin_Complete_ByEmail(t *testing.T) {
 }
 
 func claimsFromResponse(t *testing.T, response []byte) jwt.MapClaims {
+	return claimsFromJSONResponse(t, "access_token", response)
+}
+
+func refreshClaimsFromResponse(t *testing.T, response []byte) jwt.MapClaims {
+	return claimsFromJSONResponse(t, "refresh_token", response)
+}
+
+func claimsFromJSONResponse(t *testing.T, token_field string, response []byte) jwt.MapClaims {
 	var token map[string]any
 
 	err := json.Unmarshal(response, &token)
 	require.NoError(t, err)
 
-	at := token["access_token"].(string)
+	at := token[token_field].(string)
 	require.NotEmpty(t, at)
 
 	c := jwt.MapClaims{}

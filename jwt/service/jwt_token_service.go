@@ -232,7 +232,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		lifespan = TokenLifespan
 	}
 
-	claims := model.Claims{
+	claims := &model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    tokenType,
@@ -282,7 +282,7 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 		lifespan = RefreshTokenLifespan
 	}
 
-	claims := model.Claims{
+	claims := &model.Claims{
 		Scopes:  strings.Join(scopes, " "),
 		Payload: payload,
 		Type:    model.TokenTypeRefresh,
@@ -343,9 +343,13 @@ func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token, tokenPayl
 		return nil, ErrInvalidUser
 	}
 
+	requestedScopes := strings.Split(claims.Scopes, " ")
+
+	scopes := model.AllowedScopes(requestedScopes, user.Scopes, app.Offline)
+
 	token, err := ts.NewAccessToken(
 		user,
-		strings.Split(claims.Scopes, " "),
+		scopes,
 		app,
 		false,
 		tokenPayload)
@@ -414,7 +418,7 @@ func (ts *JWTokenService) NewResetToken(userID string) (model.Token, error) {
 
 	lifespan := ts.resetTokenLifespan
 
-	claims := model.Claims{
+	claims := &model.Claims{
 		Type: model.TokenTypeReset,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
@@ -446,7 +450,7 @@ func (ts *JWTokenService) NewWebCookieToken(u model.User) (model.Token, error) {
 	now := ijwt.TimeFunc().Unix()
 	lifespan := ts.resetTokenLifespan
 
-	claims := model.Claims{
+	claims := &model.Claims{
 		Type: model.TokenTypeWebCookie,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),

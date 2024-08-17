@@ -2,6 +2,7 @@ package model
 
 import "strings"
 
+// SliceIntersect returns only items in as that are found in bs.
 // simple intersection of two slices, with complexity: O(n^2)
 // there is better algorithms around, this one is simple and scopes are usually 1-3 items in it
 func SliceIntersect(a, b []string) []string {

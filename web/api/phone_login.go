@@ -142,14 +142,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		// Do login flow.
-		scopes := []string{}
-		// if we requested any scope, let's provide all the scopes user has and requested
-		if len(authData.Scopes) > 0 {
-			scopes = model.SliceIntersect(authData.Scopes, user.Scopes)
-		}
-		if model.SliceContains(authData.Scopes, "offline") && app.Offline {
-			scopes = append(scopes, "offline")
-		}
+		scopes := model.AllowedScopes(authData.Scopes, user.Scopes, app.Offline)
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, user.ID)
 		if err != nil {
@@ -170,6 +163,8 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			RefreshToken: refreshToken,
 			User:         user,
 		}
+
+		journal(user.ID, app.ID, "phone_login", scopes)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)
