@@ -101,7 +101,7 @@ func (ar *Router) issueNewRefreshToken(
 	requestedScopes []string,
 	app model.AppData,
 ) (string, error) {
-	if !contains(requestedScopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
+	if !model.SliceContains(requestedScopes, model.OfflineScope) { // Don't issue new refresh token if not requested.
 		return "", nil
 	}
 

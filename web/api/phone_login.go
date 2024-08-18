@@ -156,8 +156,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
-		offline := contains(scopes, model.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, offline, false, tokenPayload)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
@@ -171,7 +170,7 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 		}
 
 		ar.journal(JournalOperationLoginWithPhone,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes)
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes())
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 

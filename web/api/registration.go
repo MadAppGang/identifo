@@ -180,7 +180,7 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 		}
 
 		ar.journal(JournalOperationRegistration,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

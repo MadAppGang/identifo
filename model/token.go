@@ -1,6 +1,7 @@
 package model
 
 import (
+	"strings"
 	"time"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -182,15 +183,31 @@ type Claims struct {
 // Full example of how to use JWT tokens:
 // https://github.com/form3tech-oss/jwt-go/blob/master/cmd/jwt/app.go
 
-func AllowedScopes(requestedScopes, userScopes []string, isOffline bool) []string {
-	scopes := []string{}
+// This type is needed for guard against passing unchecked scopes to the token.
+// Do not convert user provided scopes to this type directly.
+type AllowedScopesSet struct {
+	scopes []string
+}
+
+func (a AllowedScopesSet) String() string {
+	return strings.Join(a.scopes, " ")
+}
+
+func (a AllowedScopesSet) Scopes() []string {
+	return a.scopes
+}
+
+func (a AllowedScopesSet) Contains(scope string) bool {
+	return SliceContains(a.scopes, scope)
+}
+
+func AllowedScopes(requestedScopes, userScopes []string, isOffline bool) AllowedScopesSet {
 	// if we requested any scope, let's provide all the scopes user has and requested
-	if len(requestedScopes) > 0 {
-		scopes = SliceIntersect(requestedScopes, userScopes)
-	}
-	if SliceContains(requestedScopes, "offline") && isOffline {
-		scopes = append(scopes, "offline")
+	scopes := SliceIntersect(requestedScopes, userScopes)
+
+	if SliceContains(requestedScopes, OfflineScope) && isOffline {
+		scopes = append(scopes, OfflineScope)
 	}
 
-	return scopes
+	return AllowedScopesSet{scopes}
 }

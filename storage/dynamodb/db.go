@@ -51,12 +51,17 @@ func (db *DB) IsTableExists(table string) (bool, error) {
 }
 
 func (db *DB) DeleteTable(table string) error {
-	svc := dynamodb.New(session.New())
+	sess, err := session.NewSession()
+	if err != nil {
+		return err
+	}
+
+	svc := dynamodb.New(sess)
 	input := &dynamodb.DeleteTableInput{
 		TableName: aws.String(table),
 	}
 
-	_, err := svc.DeleteTable(input)
+	_, err = svc.DeleteTable(input)
 	return err
 }
 

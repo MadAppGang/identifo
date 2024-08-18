@@ -213,7 +213,7 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 		authResult.Scopes = fsess.Scopes
 
 		ar.journal(JournalOperationFederatedLogin,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

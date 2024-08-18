@@ -113,6 +113,7 @@ func TestNewToken(t *testing.T) {
 	}, "password", "admin", false)
 	scopes := []string{"scope1", "scope2"}
 	tokenPayload := []string{"name"}
+
 	app := model.AppData{
 		ID:                           "123456",
 		Secret:                       "1",
@@ -138,7 +139,10 @@ func TestNewToken(t *testing.T) {
 		RolesBlacklist:               []string{},
 		NewUserDefaultRole:           "",
 	}
-	token, err := tokenService.NewAccessToken(user, scopes, app, false, nil)
+
+	allowedScopes := model.AllowedScopes(scopes, scopes, false)
+
+	token, err := tokenService.NewAccessToken(user, allowedScopes, app, false, nil)
 	assert.NoError(t, err)
 
 	tokenString, err := tokenService.String(token)

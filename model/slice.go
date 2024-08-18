@@ -18,11 +18,15 @@ func SliceIntersect(a, b []string) []string {
 }
 
 func SliceContains(s []string, e string) bool {
+	el := strings.TrimSpace(e)
+
 	for _, a := range s {
-		if strings.TrimSpace(strings.ToLower(a)) == strings.TrimSpace(strings.ToLower(e)) {
+		if strings.EqualFold(strings.TrimSpace(a), el) {
 			return true
 		}
+
 	}
+
 	return false
 }
 
