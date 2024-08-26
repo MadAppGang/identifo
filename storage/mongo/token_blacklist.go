@@ -3,6 +3,7 @@ package mongo
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -14,18 +15,21 @@ import (
 const blacklistedTokensCollectionName = "BlacklistedTokens"
 
 // NewTokenBlacklist creates new MongoDB-backed token blacklist.
-func NewTokenBlacklist(settings model.MongoDatabaseSettings) (model.TokenBlacklist, error) {
+func NewTokenBlacklist(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings,
+) (model.TokenBlacklist, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(blacklistedTokensCollectionName)
+	coll := db.database.Collection(blacklistedTokensCollectionName)
 
 	// TODO: check that index exists for other DB's
 	err = db.EnsureCollectionIndices(blacklistedTokensCollectionName, []mongo.IndexModel{

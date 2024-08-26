@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
@@ -11,14 +12,16 @@ import (
 )
 
 // NewTokenStorage creates new tokens storage from settings
-func NewTokenStorage(settings model.DatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(
+	logger *slog.Logger,
+	settings model.DatabaseSettings) (model.TokenStorage, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
-		return boltdb.NewTokenStorage(settings.BoltDB)
+		return boltdb.NewTokenStorage(logger, settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewTokenStorage(settings.Mongo)
+		return mongo.NewTokenStorage(logger, settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewTokenStorage(settings.Dynamo)
+		return dynamodb.NewTokenStorage(logger, settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:

@@ -2,6 +2,7 @@ package storage
 
 import (
 	"fmt"
+	"log/slog"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/boltdb"
@@ -11,14 +12,17 @@ import (
 )
 
 // NewTokenBlacklistStorage creates new tokens blacklist storage from settings
-func NewTokenBlacklistStorage(settings model.DatabaseSettings) (model.TokenBlacklist, error) {
+func NewTokenBlacklistStorage(
+	logger *slog.Logger,
+	settings model.DatabaseSettings,
+) (model.TokenBlacklist, error) {
 	switch settings.Type {
 	case model.DBTypeBoltDB:
-		return boltdb.NewTokenBlacklist(settings.BoltDB)
+		return boltdb.NewTokenBlacklist(logger, settings.BoltDB)
 	case model.DBTypeMongoDB:
-		return mongo.NewTokenBlacklist(settings.Mongo)
+		return mongo.NewTokenBlacklist(logger, settings.Mongo)
 	case model.DBTypeDynamoDB:
-		return dynamodb.NewTokenBlacklist(settings.Dynamo)
+		return dynamodb.NewTokenBlacklist(logger, settings.Dynamo)
 	case model.DBTypeFake:
 		fallthrough
 	case model.DBTypeMem:

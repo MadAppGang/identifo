@@ -2,7 +2,7 @@ DOCKER_IMAGE_VERSION = 3.0.0
 
 export IDENTIFO_ADMIN_LOGIN = admin@admin.com
 export IDENTIFO_ADMIN_PASSWORD = password
-export NODE_OPTIONS=--openssl-legacy-provider
+# export NODE_OPTIONS=--openssl-legacy-provider
 
 run_boltdb:
 	mkdir -p ./data

@@ -14,7 +14,8 @@ func (ar *Router) test(w http.ResponseWriter, r *http.Request) {
 
 	locale := r.Header.Get("Accept-Language")
 
-	ar.logger.Println("trace pong handler")
+	ar.logger.Debug("trace pong handler")
+
 	pong := pongResponse{
 		Message: "Pong!",
 		Date:    time.Now(),

@@ -2,6 +2,7 @@ package mongo
 
 import (
 	"context"
+	"log/slog"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -17,18 +18,21 @@ const (
 )
 
 // NewVerificationCodeStorage creates and inits MongoDB verification code storage.
-func NewVerificationCodeStorage(settings model.MongoDatabaseSettings) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings,
+) (model.VerificationCodeStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(verificationCodesCollectionName)
+	coll := db.database.Collection(verificationCodesCollectionName)
 	vcs := &VerificationCodeStorage{coll: coll, timeout: 30 * time.Second}
 
 	phoneIndexOptions := &options.IndexOptions{}

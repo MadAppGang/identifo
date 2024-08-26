@@ -3,19 +3,19 @@ package mongo
 import (
 	"bytes"
 	"context"
-	"errors"
 	"fmt"
-	"log"
+	"log/slog"
 	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 )
 
 // NewDB creates new database connection.
-func NewDB(conn string, dbName string) (*DB, error) {
+func NewDB(logger *slog.Logger, conn string, dbName string) (*DB, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
@@ -28,28 +28,30 @@ func NewDB(conn string, dbName string) (*DB, error) {
 		return nil, err
 	}
 	db := &DB{
-		Client:   client,
-		Database: client.Database(dbName),
+		logger:   logger,
+		client:   client,
+		database: client.Database(dbName),
 	}
 	return db, nil
 }
 
 // DB is database connection structure.
 type DB struct {
-	Database *mongo.Database
-	Client   *mongo.Client
+	logger   *slog.Logger
+	database *mongo.Database
+	client   *mongo.Client
 }
 
 // Close closes database connection.
 func (db *DB) Close() {
-	if err := db.Client.Disconnect(context.TODO()); err != nil {
-		log.Printf("Error closing mongo storage: %s\n", err)
+	if err := db.client.Disconnect(context.TODO()); err != nil {
+		db.logger.Error("Error closing mongo storage", logging.FieldError, err)
 	}
 }
 
 // EnsureCollectionIndices creates indices on a collection.
 func (db *DB) EnsureCollectionIndices(collectionName string, newIndices []mongo.IndexModel) error {
-	coll := db.Database.Collection(collectionName)
+	coll := db.database.Collection(collectionName)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Minute)
 	defer cancel()
@@ -81,7 +83,7 @@ func generateIndexName(index mongo.IndexModel) (string, error) {
 
 	keys, ok := index.Keys.(bson.D)
 	if !ok {
-		return "", errors.New("incorrect index keys type - expecting bsonx.Doc")
+		return "", fmt.Errorf("incorrect index keys type - expecting bson.D")
 	}
 	for _, elem := range keys {
 		if !first {

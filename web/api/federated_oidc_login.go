@@ -4,13 +4,12 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"log"
 	"net/http"
-	"net/url"
 	"sync"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -250,7 +249,8 @@ func (ar *Router) OIDCLoginComplete(useSession bool) http.HandlerFunc {
 		authResult.Scopes = resultScopes
 		authResult.ProviderData = *providerData
 
-		journal(user.ID, app.ID, "oidc_login", resultScopes)
+		ar.journal(JournalOperationOIDCLogin,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -268,20 +268,6 @@ func mapScopes(m map[string]string, scopes []string) []string {
 	}
 
 	return result
-}
-
-func makeRedirectURL(redirect string, app model.AppData) (string, error) {
-	u, err := url.Parse(redirect)
-	if err != nil {
-		return "", err
-	}
-
-	q := u.Query()
-	q.Set("appId", app.ID)
-
-	u.RawQuery = q.Encode()
-
-	return u.String(), nil
 }
 
 func extractField(data map[string]any, key string) string {
@@ -320,7 +306,8 @@ func (ar *Router) completeOIDCAuth(
 
 	authCode := r.URL.Query().Get("code")
 	if len(authCode) == 0 {
-		log.Println("failed ot authorize user with OIDC: no code in response", r.URL.Query())
+		ar.logger.Info("failed to authorize user with OIDC: no code in response",
+			logging.FieldURL, r.URL.Query())
 		return nil, nil, nil, "", NewLocalizedError(http.StatusBadRequest, locale, l.ErrorFederatedCodeError)
 	}
 
@@ -368,7 +355,9 @@ func (ar *Router) completeOIDCAuth(
 
 	providerScope, ok := providerScopeVal.(string)
 	if !ok {
-		ar.logger.Printf("oidc returned scope is not string but %T %+v", providerScopeVal, providerScopeVal)
+		ar.logger.Warn("oidc returned scope is not string",
+			"scopeType", fmt.Sprintf("%T", providerScopeVal),
+			"scopeValue", fmt.Sprintf("%+v", providerScopeVal))
 	}
 
 	// Extract the ID Token from OAuth2 token.
@@ -409,7 +398,7 @@ func (ar *Router) tryFindFederatedUser(provider, fedUserID, email string) (model
 		}
 
 		if !errors.Is(err, model.ErrUserNotFound) {
-			return model.User{}, fmt.Errorf("can not find user by federated ID: %w", err)
+			return model.User{}, fmt.Errorf("cannot find user by federated ID: %w", err)
 		}
 	}
 
@@ -426,7 +415,10 @@ func (ar *Router) tryFindFederatedUser(provider, fedUserID, email string) (model
 
 	_, uerr := us.UpdateUser(user.ID, user)
 	if uerr != nil {
-		log.Printf("can not update user %s with federated id: %v\n", email, uerr)
+		ar.logger.Error("cannot update user with federated id",
+			logging.FieldEmail, email,
+			"fedreatedID", fedUserID,
+			logging.FieldError, uerr)
 	}
 
 	return user, nil

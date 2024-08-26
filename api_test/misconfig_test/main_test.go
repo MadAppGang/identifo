@@ -18,6 +18,7 @@ import (
 	"github.com/caarlos0/env"
 	"github.com/joho/godotenv"
 	"github.com/madappgang/identifo/v2/config"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"gopkg.in/h2non/baloo.v3"
 	"gopkg.in/h2non/baloo.v3/assert"
@@ -69,7 +70,7 @@ func runServer() (model.Server, *httptest.Server) {
 	os.Remove("./db.db")
 	settings, _ = model.ConfigStorageSettingsFromString("file://./config.yaml")
 
-	configStorage, err := config.InitConfigurationStorage(settings)
+	configStorage, err := config.InitConfigurationStorage(logging.DefaultLogger, settings)
 	if err != nil {
 		log.Fatalf("Unable to load config with error: %v", err)
 	}
@@ -95,10 +96,12 @@ func stopServer(server *httptest.Server) {
 // Helper functions
 
 // DumpResponse
-func dumpResponse(res *http.Response, req *http.Request) error {
-	data, err := httputil.DumpResponse(res, true)
-	fmt.Printf("Response: %s \n", string(data))
-	return err
+func dumpResponse(t *testing.T) func(res *http.Response, req *http.Request) error {
+	return func(res *http.Response, req *http.Request) error {
+		data, err := httputil.DumpResponse(res, true)
+		t.Logf("Response: %s \n", string(data))
+		return err
+	}
 }
 
 // DumpResponse

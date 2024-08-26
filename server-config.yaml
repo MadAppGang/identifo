@@ -25,7 +25,7 @@ storage:
   tokenBlacklist: *storage_settings
   verificationCodeStorage: *storage_settings
   inviteStorage: *storage_settings
-
+  managementKeysStorage: *storage_settings
 
 
 impersonation:
@@ -108,5 +108,25 @@ services:
     #   source: whatever # RouteMobile-related setting.
     #   region: australia # RouteMobile-related setting. Supported values are: uae.
 
-
-
+# logger settings
+logger:
+  # dump request body in logs
+  dumpRequest: false
+  # logs format (json, text)
+  format: json
+  # exclude body for HTTP requests that can contain sensitive data
+  logSensitiveData: false
+  common:
+    level: debug
+  api:
+    httpDetailing: dump
+    level: debug
+  admin:
+    httpDetailing: dump
+    level: debug
+  spa:
+    httpDetailing: short
+    level: debug
+  management:
+    httpDetailing: short
+    level: debug

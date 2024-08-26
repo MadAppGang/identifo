@@ -9,6 +9,7 @@ import (
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -123,6 +124,11 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			return
 		}
 
+		if !needVerification {
+			ar.logger.Warn("Debug TFA code is used to login",
+				logging.FieldUserID, user.ID)
+		}
+
 		// Authorize user if the app requires authorization.
 		azi := authorization.AuthzInfo{
 			App:         app,
@@ -164,9 +170,11 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			User:         user,
 		}
 
-		journal(user.ID, app.ID, "phone_login", scopes)
+		ar.journal(JournalOperationLoginWithPhone,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
+
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }
@@ -194,14 +202,14 @@ type PhoneLogin struct {
 
 func (l *PhoneLogin) validateCodeAndPhone() error {
 	if len(l.Code) == 0 {
-		return errors.New("Verification code is too short or missing. ")
+		return errors.New("verification code is too short or missing")
 	}
 	return l.validatePhone()
 }
 
 func (l *PhoneLogin) validatePhone() error {
 	if !model.PhoneRegexp.MatchString(l.PhoneNumber) {
-		return errors.New("Phone number is not valid. ")
+		return errors.New("ohone number is not valid")
 	}
 	return nil
 }

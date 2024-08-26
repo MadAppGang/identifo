@@ -6,6 +6,7 @@ import (
 	"net/url"
 	"strings"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -40,10 +41,10 @@ type ResetEmailData struct {
 
 func (rd *registrationData) validate() error {
 	if usernameLen := len(rd.Username); usernameLen < 6 || usernameLen > 50 {
-		return fmt.Errorf("Incorrect username length %d, expected a number between 6 and 50", usernameLen)
+		return fmt.Errorf("incorrect username length %d, expected a number between 6 and 50", usernameLen)
 	}
 	if pswdLen := len(rd.Password); pswdLen < 6 || pswdLen > 50 {
-		return fmt.Errorf("Incorrect password length %d, expected a number between 6 and 50", pswdLen)
+		return fmt.Errorf("incorrect password length %d, expected a number between 6 and 50", pswdLen)
 	}
 	return nil
 }
@@ -186,7 +187,8 @@ func (ar *Router) UpdateUser() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("User %s updated", userID)
+		ar.logger.Info("User updated",
+			logging.FieldUserID, userID)
 
 		user = user.Sanitized()
 		ar.ServeJSON(w, http.StatusOK, user)
@@ -202,7 +204,8 @@ func (ar *Router) DeleteUser() http.HandlerFunc {
 			return
 		}
 
-		ar.logger.Printf("User %s deleted", userID)
+		ar.logger.Info("User deleted",
+			logging.FieldUserID, userID)
 		ar.ServeJSON(w, http.StatusOK, nil)
 	}
 }

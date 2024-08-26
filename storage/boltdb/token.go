@@ -2,8 +2,9 @@ package boltdb
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	bolt "go.etcd.io/bbolt"
 )
@@ -14,7 +15,10 @@ const (
 )
 
 // NewTokenStorage creates a BoltDB token storage.
-func NewTokenStorage(settings model.BoltDBDatabaseSettings) (model.TokenStorage, error) {
+func NewTokenStorage(
+	logger *slog.Logger,
+	settings model.BoltDBDatabaseSettings,
+) (model.TokenStorage, error) {
 	if len(settings.Path) == 0 {
 		return nil, ErrorEmptyDatabasePath
 	}
@@ -25,7 +29,10 @@ func NewTokenStorage(settings model.BoltDBDatabaseSettings) (model.TokenStorage,
 		return nil, err
 	}
 
-	ts := &TokenStorage{db: db}
+	ts := &TokenStorage{
+		logger: logger,
+		db:     db,
+	}
 	// Ensure that we have needed bucket in the database.
 	if err := db.Update(func(tx *bolt.Tx) error {
 		if _, err := tx.CreateBucketIfNotExists([]byte(TokenBucket)); err != nil {
@@ -40,7 +47,8 @@ func NewTokenStorage(settings model.BoltDBDatabaseSettings) (model.TokenStorage,
 
 // TokenStorage is a BoltDB token storage.
 type TokenStorage struct {
-	db *bolt.DB
+	logger *slog.Logger
+	db     *bolt.DB
 }
 
 // SaveToken saves token in the storage.
@@ -79,6 +87,6 @@ func (ts *TokenStorage) DeleteToken(token string) error {
 // Close closes underlying database.
 func (ts *TokenStorage) Close() {
 	if err := CloseDB(ts.db); err != nil {
-		log.Printf("Error closing token storage: %s\n", err)
+		ts.logger.Error("Error closing token storage", logging.FieldError, err)
 	}
 }

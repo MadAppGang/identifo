@@ -2,7 +2,7 @@ package dynamodb
 
 import (
 	"fmt"
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -10,6 +10,7 @@ import (
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -19,11 +20,15 @@ const (
 
 // DynamoDBSessionStorage is a DynamoDB-backed storage for admin sessions.
 type DynamoDBSessionStorage struct {
-	db *dynamodb.DynamoDB
+	logger *slog.Logger
+	db     *dynamodb.DynamoDB
 }
 
 // NewSessionStorage creates new DynamoDB session storage.
-func NewSessionStorage(settings model.DynamoDatabaseSettings) (model.SessionStorage, error) {
+func NewSessionStorage(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.SessionStorage, error) {
 	config := &aws.Config{
 		Region:   aws.String(settings.Region),
 		Endpoint: aws.String(settings.Endpoint),
@@ -31,11 +36,13 @@ func NewSessionStorage(settings model.DynamoDatabaseSettings) (model.SessionStor
 
 	sess, err := session.NewSession(config)
 	if err != nil {
-		log.Println(err)
 		return nil, err
 	}
 
-	dss := &DynamoDBSessionStorage{db: dynamodb.New(sess)}
+	dss := &DynamoDBSessionStorage{
+		logger: logger,
+		db:     dynamodb.New(sess),
+	}
 	err = dss.ensureTable()
 	return dss, err
 }
@@ -122,7 +129,6 @@ func (dss *DynamoDBSessionStorage) ProlongSession(id string, newDuration model.S
 func (dss *DynamoDBSessionStorage) ensureTable() error {
 	exists, err := dss.isTableExists(adminSessionsTableName)
 	if err != nil {
-		log.Println("Error checking admins sessions table existence:", err)
 		return err
 	}
 	if exists {
@@ -148,7 +154,7 @@ func (dss *DynamoDBSessionStorage) ensureTable() error {
 
 	_, err = dss.db.CreateTable(input)
 	if err != nil {
-		return fmt.Errorf("Cannot create admin sessions table: %s", err)
+		return fmt.Errorf("cannot create admin sessions table: %w", err)
 	}
 
 	ttlSpecification := &dynamodb.TimeToLiveSpecification{
@@ -165,11 +171,16 @@ func (dss *DynamoDBSessionStorage) ensureTable() error {
 			// Then table must be in creating status. Let's give it some time.
 			for i := 0; i < 5; i++ {
 				time.Sleep(5 * time.Second)
-				log.Println("Retry setting expiration time...")
+
+				dss.logger.Info("Retry setting expiration time...")
+
 				if _, err = dss.db.UpdateTimeToLive(ttlInput); err == nil {
-					log.Println("Expiration time successfully set")
+					dss.logger.Info("Expiration time successfully set")
 					break
 				}
+
+				dss.logger.Error("Error setting expiration time",
+					logging.FieldError, err)
 			}
 		}
 	}
@@ -188,7 +199,6 @@ func (dss *DynamoDBSessionStorage) isTableExists(table string) (bool, error) {
 		return false, nil
 	}
 	if err != nil {
-		log.Println(err)
 		return false, err
 	}
 

@@ -5,6 +5,7 @@ import (
 	"net/http"
 
 	jwt "github.com/golang-jwt/jwt/v4"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -25,15 +26,17 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		accessTokenBytes, ok := ctx.Value(model.TokenRawContextKey).([]byte)
 		if !ok {
-			ar.logger.Println("Cannot fetch access token bytes from context")
+			ar.logger.Warn("Cannot fetch access token bytes from context")
 			ar.ServeJSON(w, locale, http.StatusNoContent, nil)
 			return
 		}
+
 		accessTokenString := string(accessTokenBytes)
 
 		// Blacklist current access token.
 		if err := ar.server.Storages().Blocklist.Add(accessTokenString); err != nil {
-			ar.logger.Printf("Cannot blacklist access token: %s\n", err)
+			ar.logger.Error("Cannot blacklist access token",
+				logging.FieldError, err)
 		}
 
 		if r.Body == http.NoBody {
@@ -48,18 +51,21 @@ func (ar *Router) Logout() http.HandlerFunc {
 
 		// Revoke refresh token, if present.
 		if err := ar.revokeRefreshToken(d.RefreshToken, accessTokenString); err != nil {
-			ar.logger.Printf("Cannot revoke refresh token: %s\n", err)
+			ar.logger.Error("Cannot revoke refresh token",
+				logging.FieldError, err)
 		}
 
 		// Detach device token, if present.
 		if len(d.DeviceToken) > 0 {
 			// TODO: check for ownership when device tokens are supported.
 			if err := ar.server.Storages().User.DetachDeviceToken(d.DeviceToken); err != nil {
-				ar.logger.Println("Cannot detach device token")
+				ar.logger.Error("Cannot detach device token",
+					logging.FieldError, err)
 			}
 		}
 
-		journal(accessToken.Subject(), accessToken.Audience(), "logout", nil)
+		ar.journal(JournalOperationLogout,
+			accessToken.Subject(), accessToken.Audience(), r.UserAgent(), "", nil)
 
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
@@ -94,11 +100,11 @@ func (ar *Router) revokeRefreshToken(refreshTokenString, accessTokenString strin
 	}
 
 	if err := ar.server.Storages().Token.DeleteToken(refreshTokenString); err != nil {
-		return fmt.Errorf("Cannot delete refresh token: %s", err)
+		return fmt.Errorf("cannot delete refresh token: %s", err)
 	}
 
 	if err := ar.server.Storages().Blocklist.Add(refreshTokenString); err != nil {
-		return fmt.Errorf("Cannot blacklist refresh token: %s", err)
+		return fmt.Errorf("cannot blacklist refresh token: %s", err)
 	}
 	return nil
 }

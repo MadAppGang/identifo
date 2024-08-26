@@ -28,10 +28,8 @@ func (ar *Router) TestConnection() http.HandlerFunc {
 		}
 		err = tester.Connect()
 		if err != nil {
-			if err != nil {
-				ar.Error(w, fmt.Errorf("connection error: %v", err), http.StatusBadRequest, "")
-				return
-			}
+			ar.Error(w, fmt.Errorf("connection error: %v", err), http.StatusBadRequest, "")
+			return
 		}
 		ar.ServeJSON(w, http.StatusOK, tc)
 	}

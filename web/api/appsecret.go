@@ -42,7 +42,8 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 
 		if r.Method == "GET" {
 			body = []byte(r.URL.RequestURI() + t)
-			ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(GET request)")
+			ar.logger.Info("RequestURI to sign (GET request)",
+				"uriData", r.URL.RequestURI()+t)
 		} else {
 			// Extract body.
 			b, err := io.ReadAll(r.Body)
@@ -50,10 +51,13 @@ func (ar *Router) SignatureHandler() negroni.HandlerFunc {
 				ar.Error(rw, locale, http.StatusBadRequest, l.ErrorAPIRequestBodyInvalidError, err)
 				return
 			}
+
 			if len(b) == 0 {
 				b = []byte(r.URL.RequestURI() + t)
-				ar.logger.Println("RequestURI to sign:", r.URL.RequestURI()+t, "(POST request)")
+				ar.logger.Info("RequestURI to sign (POST request)",
+					"uriData", r.URL.RequestURI()+t)
 			}
+
 			body = b
 		}
 
@@ -106,10 +110,10 @@ func validateBodySignature(body, reqMAC, secret []byte) error {
 	if _, err := mac.Write(body); err != nil {
 		return err
 	}
+
 	expectedMAC := mac.Sum(nil)
 	if !hmac.Equal(reqMAC, expectedMAC) {
-		// fmt.Printf("Error validation signature, expecting: %v, got: %v\n", hex.EncodeToString(expectedMAC), hex.EncodeToString(reqMAC))
-		return errors.New("Request hmac is not equal to expected. ")
+		return errors.New("request hmac is not equal to expected. ")
 	}
 	return nil
 }

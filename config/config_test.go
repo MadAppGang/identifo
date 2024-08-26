@@ -9,6 +9,7 @@ import (
 	"testing"
 
 	"github.com/madappgang/identifo/v2/config"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -16,7 +17,7 @@ import (
 
 func TestInitConfigurationWithEmptyFlags(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
-	stor, err := config.InitConfigurationStorageFromFlag("")
+	stor, err := config.InitConfigurationStorageFromFlag(logging.DefaultLogger, "")
 
 	require.NoError(t, err)
 
@@ -32,7 +33,9 @@ func TestInitConfigurationWithEmptyFlags(t *testing.T) {
 func TestInitConfigurationWithFile(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
 	os.Mkdir("../data", os.ModePerm)
-	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_default_storage.yaml")
+	stor, err := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_default_storage.yaml")
 	require.NoError(t, err)
 
 	// the settings are not loaded yet, should be empty
@@ -61,7 +64,9 @@ func TestInitConfigurationWithFile(t *testing.T) {
 
 func TestInitConfigurationWithWrongFilePath(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
-	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_default_storage_not_exists.yaml")
+	stor, err := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_default_storage_not_exists.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, stor)
 
@@ -76,13 +81,15 @@ func TestInitConfigurationWithWrongFilePath(t *testing.T) {
 
 func TestInitConfigurationWithWrongSettingsData(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
-	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_wrong_data.yaml")
+	stor, err := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_wrong_data.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, stor)
 
 	s, errs := stor.LoadServerSettings(true)
 	assert.NotEmpty(t, errs)
-	assert.True(t, sliceContainsError(errs, "unsupported database type magicDB"))
+	assert.True(t, sliceContainsError(errs, "unsupported database type 'magicDB'"))
 	assert.Equal(t, string(s.Storage.DefaultStorage.Type), "magicDB") // wrong data
 
 	server, err := config.NewServer(stor, nil)
@@ -101,7 +108,9 @@ func sliceContainsError(errs []error, text string) bool {
 
 func TestInitConfigurationWithDefaultReferenceDefault(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
-	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_default_reference_default.yaml")
+	stor, err := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_default_reference_default.yaml")
 	require.NoError(t, err)
 	require.NotNil(t, stor)
 
@@ -117,7 +126,9 @@ func TestInitConfigurationWithDefaultReferenceDefault(t *testing.T) {
 
 func TestInitConfigurationWithBrokenSettingsAPICall(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
-	stor, _ := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_default_reference_default.yaml")
+	stor, _ := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_default_reference_default.yaml")
 	s, errs := stor.LoadServerSettings(true)
 	assert.NotEmpty(t, errs)
 	assert.True(t, sliceContainsError(errs, "DefaultStorage settings could not be of type Default"))
@@ -159,7 +170,9 @@ func TestInitConfigurationWithBrokenSettingsAPICall(t *testing.T) {
 func TestInitConfigurationWithWithGoodConfigAndFailedStorages(t *testing.T) {
 	os.Unsetenv(model.IdentifoConfigPathEnvName)
 	// storages will failed to create as folder does not exists
-	stor, err := config.InitConfigurationStorageFromFlag("file://../test/artifacts/configs/settings_with_wrong_file_path.yaml")
+	stor, err := config.InitConfigurationStorageFromFlag(
+		logging.DefaultLogger,
+		"file://../test/artifacts/configs/settings_with_wrong_file_path.yaml")
 	require.NoError(t, err)
 
 	// the settings are not loaded yet, should be empty

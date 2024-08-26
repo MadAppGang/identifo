@@ -3,10 +3,10 @@ package api
 import (
 	"context"
 	"errors"
-	"log"
 	"net/http"
 
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/middleware"
 )
@@ -39,7 +39,11 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 			return
 		}
 
-		log.Println("admin for impersonation", adminUser.ID, adminUser.Scopes, "as", d.UserID)
+		ar.logger.Info("admin for impersonation",
+			"adminUserId", adminUser.ID,
+			"adminScopes", adminUser.Scopes,
+			"adminAccessRole", adminUser.AccessRole,
+			"impersonatedId", d.UserID)
 
 		user, err := ar.server.Storages().User.UserByID(d.UserID)
 		if err != nil {
@@ -49,7 +53,8 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 
 		ok, err := ar.checkImpersonationPermissions(ctx, app, adminUser, user)
 		if err != nil {
-			log.Printf("can not check impersonation: %v\n", err)
+			ar.logger.Error("cannot check impersonation",
+				logging.FieldError, err)
 			ar.Error(w, locale, http.StatusForbidden, l.ErrorAPIImpersonationForbidden)
 			return
 		}
@@ -72,7 +77,8 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 		// do not allow refresh for impersonated user
 		authResult.RefreshToken = ""
 
-		journal(userID, app.ID, "impersonated", resultScopes)
+		ar.journal(JournalOperationImpersonatedAs,
+			userID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

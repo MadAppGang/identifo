@@ -30,7 +30,7 @@ func TestManagementResetToken(t *testing.T) {
 		Expires:     time.Now().Add(time.Hour).Unix(),
 		Host:        u.Host,
 	}
-	fmt.Println(sd.String())
+	t.Log(sd.String())
 	signature := sig.SignString(sd.String(), []byte(cfg.ManagementKeySecret1))
 
 	request.Post("/management/token/reset_password").
@@ -42,7 +42,7 @@ func TestManagementResetToken(t *testing.T) {
 		SetHeader(sig.KeyIDHeaderKey, cfg.ManagementKeyID1).
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		AssertFunc(validateJSON(func(data map[string]interface{}) error {
@@ -77,7 +77,7 @@ func TestManagementInactiveKey(t *testing.T) {
 		Expires:     time.Now().Add(time.Hour).Unix(),
 		Host:        u.Host,
 	}
-	fmt.Println(sd.String())
+	t.Log(sd.String())
 	signature := sig.SignString(sd.String(), []byte(cfg.ManagementKeySecret2))
 
 	body := ""
@@ -91,7 +91,7 @@ func TestManagementInactiveKey(t *testing.T) {
 		SetHeader(sig.KeyIDHeaderKey, cfg.ManagementKeyID2).
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Status(400).
 		AssertFunc(validateBodyText(func(b string) error {
 			body = b
@@ -115,7 +115,7 @@ func TestManagementInviteNoKeyID(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Status(400).
 		AssertFunc(validateBodyText(func(b string) error {
 			body = b
@@ -141,7 +141,7 @@ func TestManagementInviteWrongKeyID(t *testing.T) {
 		SetHeader("X-Nl-Key-Id", "AABBCCDDSS").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Status(400).
 		AssertFunc(validateBodyText(func(b string) error {
 			body = b

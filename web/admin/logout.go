@@ -20,7 +20,7 @@ func (ar *Router) Logout() http.HandlerFunc {
 		if err != nil {
 			switch err {
 			case http.ErrNoCookie:
-				ar.logger.Println("No cookie")
+				ar.logger.Warn("No cookie during logout")
 				ar.ServeJSON(w, http.StatusOK, nil)
 			default:
 				ar.Error(w, err, http.StatusInternalServerError, "")

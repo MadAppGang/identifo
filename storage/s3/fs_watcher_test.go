@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/aws/aws-sdk-go/service/s3"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage"
 	"github.com/stretchr/testify/assert"
@@ -40,7 +41,11 @@ func TestNewFSWatcher(t *testing.T) {
 
 	time.Sleep(time.Second * 1)
 
-	watcher := storage.NewFSWatcher(fss, []string{"test1.txt", "test2.txt", "test3.txt"}, time.Second*2)
+	watcher := storage.NewFSWatcher(
+		logging.DefaultLogger,
+		fss,
+		[]string{"test1.txt", "test2.txt", "test3.txt"},
+		time.Second*2)
 	watcher.Watch()
 
 	go func() {

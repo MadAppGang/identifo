@@ -1,12 +1,13 @@
 package dynamodb
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/rs/xid"
 )
@@ -24,11 +25,15 @@ type inviteIndexByEmailData struct {
 
 // InviteStorage is a DynamoDB invite storage.
 type InviteStorage struct {
-	db *DB
+	logger *slog.Logger
+	db     *DB
 }
 
 // NewInviteStorage creates new DynamoDB invite storage.
-func NewInviteStorage(settings model.DynamoDatabaseSettings) (model.InviteStorage, error) {
+func NewInviteStorage(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.InviteStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
@@ -39,7 +44,10 @@ func NewInviteStorage(settings model.DynamoDatabaseSettings) (model.InviteStorag
 		return nil, err
 	}
 
-	is := &InviteStorage{db: db}
+	is := &InviteStorage{
+		logger: logger,
+		db:     db,
+	}
 	err = is.ensureTable()
 	return is, err
 }
@@ -48,7 +56,7 @@ func NewInviteStorage(settings model.DynamoDatabaseSettings) (model.InviteStorag
 func (is *InviteStorage) ensureTable() error {
 	exists, err := is.db.IsTableExists(invitesTableName)
 	if err != nil {
-		log.Println("Error checking Invites table existence:", err)
+		is.logger.Error("Error checking Invites table existence", logging.FieldError, err)
 		return err
 	}
 	if exists {
@@ -110,7 +118,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 
 	iv, err := dynamodbattribute.MarshalMap(invite)
 	if err != nil {
-		log.Println("error marshalling invite: ", err)
+		is.logger.Error("Error marshalling invite", logging.FieldError, err)
 		return ErrorInternalError
 	}
 
@@ -120,7 +128,7 @@ func (is *InviteStorage) Save(email, inviteToken, role, appID, createdBy string,
 	}
 
 	if _, err = is.db.C.PutItem(input); err != nil {
-		log.Println("error putting invite to storage: ", err)
+		is.logger.Error("Error putting invite to storage", logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return nil
@@ -138,7 +146,7 @@ func (is *InviteStorage) inviteIdxByEmail(email string) (*inviteIndexByEmailData
 		Select: aws.String("ALL_PROJECTED_ATTRIBUTES"),
 	})
 	if err != nil {
-		log.Println("error querying for invite by email: ", err)
+		is.logger.Error("Error querying for invite by email", logging.FieldError, err)
 		return nil, ErrorInternalError
 	}
 	if len(result.Items) == 0 {
@@ -148,7 +156,7 @@ func (is *InviteStorage) inviteIdxByEmail(email string) (*inviteIndexByEmailData
 	item := result.Items[0]
 	inviteData := new(inviteIndexByEmailData)
 	if err = dynamodbattribute.UnmarshalMap(item, inviteData); err != nil {
-		log.Println("error while unmarshal invite: ", err)
+		is.logger.Error("Error while unmarshal invite", logging.FieldError, err)
 		return nil, ErrorInternalError
 	}
 	return inviteData, nil
@@ -158,13 +166,13 @@ func (is *InviteStorage) inviteIdxByEmail(email string) (*inviteIndexByEmailData
 func (is *InviteStorage) GetByEmail(email string) (model.Invite, error) {
 	inviteIdx, err := is.inviteIdxByEmail(email)
 	if err != nil {
-		log.Println("error getting invite by email: ", err)
+		is.logger.Error("Error getting invite by email", logging.FieldError, err)
 		return model.Invite{}, err
 	}
 
 	invite, err := is.GetByID(inviteIdx.ID)
 	if err != nil {
-		log.Println("error querying invite by id: ", err)
+		is.logger.Error("Error querying invite by id", logging.FieldError, err)
 		return model.Invite{}, ErrorInternalError
 	}
 
@@ -186,7 +194,7 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 		},
 	})
 	if err != nil {
-		log.Println("Error getting invite:", err)
+		is.logger.Error("Error getting invite", logging.FieldError, err)
 		return model.Invite{}, ErrorInternalError
 	}
 
@@ -196,7 +204,7 @@ func (is *InviteStorage) GetByID(id string) (model.Invite, error) {
 
 	invite := model.Invite{}
 	if err = dynamodbattribute.UnmarshalMap(result.Item, &invite); err != nil {
-		log.Println("Error unmarshalling invite:", err)
+		is.logger.Error("Error unmarshalling invite", logging.FieldError, err)
 		return model.Invite{}, ErrorInternalError
 	}
 	return invite, nil
@@ -226,7 +234,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 
 	result, err := is.db.C.Scan(scanInput)
 	if err != nil {
-		log.Println("Error querying for invites:", err)
+		is.logger.Error("Error querying for invites", logging.FieldError, err)
 		return []model.Invite{}, 0, ErrorInternalError
 	}
 
@@ -237,7 +245,7 @@ func (is *InviteStorage) GetAll(withArchived bool, skip, limit int) ([]model.Inv
 		}
 		invite := model.Invite{}
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &invite); err != nil {
-			log.Println("error while unmarshal invite: ", err)
+			is.logger.Error("error while unmarshal invite", logging.FieldError, err)
 			return []model.Invite{}, 0, ErrorInternalError
 		}
 		invites[i] = invite
@@ -260,17 +268,20 @@ func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 
 	result, err := is.db.C.Scan(scanInput)
 	if err != nil {
-		log.Println("Error querying for invites:", err)
+		is.logger.Error("Error querying for invites",
+			logging.FieldError, err)
 		return ErrorInternalError
 	}
 
 	for i := 0; i < len(result.Items); i++ {
 		invite := model.Invite{}
 		if err = dynamodbattribute.UnmarshalMap(result.Items[i], &invite); err != nil {
-			log.Println("error while unmarshal invite: ", err)
+			is.logger.Error("Error while unmarshal invite",
+				logging.FieldError, err)
 		}
 		if err := is.ArchiveByID(invite.ID); err != nil {
-			log.Printf("error while ArchiveByID: %v", err)
+			is.logger.Error("Error while ArchiveByID",
+				logging.FieldError, err)
 		}
 	}
 	return nil
@@ -279,7 +290,7 @@ func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 // ArchiveByID archived specific invite by its ID.
 func (is *InviteStorage) ArchiveByID(id string) error {
 	if _, err := xid.FromString(id); err != nil {
-		log.Println("incorrect invite id: ", id)
+		is.logger.Error("Incorrect invite id", "id", id)
 		return model.ErrorWrongDataFormat
 	}
 	input := &dynamodb.UpdateItemInput{
@@ -299,7 +310,7 @@ func (is *InviteStorage) ArchiveByID(id string) error {
 	}
 
 	if _, err := is.db.C.UpdateItem(input); err != nil {
-		log.Printf("Error archiving %s invite: %v\n", id, err)
+		is.logger.Error("Error archiving invite", "id", id, logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return nil

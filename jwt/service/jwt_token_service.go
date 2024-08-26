@@ -8,6 +8,7 @@ import (
 	"encoding/base64"
 	"errors"
 	"fmt"
+	"log/slog"
 	"strings"
 
 	jwt "github.com/golang-jwt/jwt/v4"
@@ -45,12 +46,21 @@ const (
 // Arguments:
 // - privateKeyPath - the path to the private key in pem format. Please keep it in a secret place.
 // - publicKeyPath - the path to the public key.
-func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model.TokenStorage, appStorage model.AppStorage, userStorage model.UserStorage, options ...func(model.TokenService) error) (model.TokenService, error) {
+func NewJWTokenService(
+	logger *slog.Logger,
+	privateKey interface{},
+	issuer string,
+	tokenStorage model.TokenStorage,
+	appStorage model.AppStorage,
+	userStorage model.UserStorage,
+	options ...func(model.TokenService) error,
+) (model.TokenService, error) {
 	if privateKey == nil {
 		return nil, fmt.Errorf("private key is empty")
 	}
 
 	t := &JWTokenService{
+		logger:                 logger,
 		issuer:                 issuer,
 		tokenStorage:           tokenStorage,
 		appStorage:             appStorage,
@@ -72,6 +82,8 @@ func NewJWTokenService(privateKey interface{}, issuer string, tokenStorage model
 
 // JWTokenService is a JWT token service.
 type JWTokenService struct {
+	logger *slog.Logger
+
 	privateKey             interface{} // *ecdsa.PrivateKey, or *rsa.PrivateKey
 	tokenStorage           model.TokenStorage
 	appStorage             model.AppStorage
@@ -132,14 +144,16 @@ func (ts *JWTokenService) PublicKey() interface{} {
 		pk := ts.privateKey.(*ecdsa.PrivateKey)
 		ts.cachedPublicKey = pk.Public()
 	default:
-		fmt.Printf("unable to get public key from private key of type: %v", t)
+		ts.logger.Error("unable to get public key from private key",
+			"type", t)
 		return nil
 	}
 	return ts.cachedPublicKey
 }
 
 func (ts *JWTokenService) SetPrivateKey(key interface{}) {
-	fmt.Printf("Changing private key for Token service, all new tokens will be signed with a new key!!!\n")
+	ts.logger.Info("Changing private key for Token service, all new tokens will be signed with a new key!!!")
+
 	ts.privateKey = key
 	ts.cachedPublicKey = nil
 	ts.cachedAlgorithm = ""
@@ -201,18 +215,24 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 }
 
 // NewAccessToken creates new access token for user.
-func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app model.AppData, requireTFA bool, tokenPayload map[string]interface{}) (model.Token, error) {
+func (ts *JWTokenService) NewAccessToken(
+	user model.User,
+	scopes []string,
+	app model.AppData,
+	requireTFA bool,
+	tokenPayload map[string]interface{},
+) (model.Token, error) {
 	if !app.Active {
 		return nil, ErrInvalidApp
 	}
 
-	if !u.Active {
+	if !user.Active {
 		return nil, ErrInvalidUser
 	}
 
 	payload := make(map[string]interface{})
 	if model.SliceContains(app.TokenPayload, PayloadName) {
-		payload[PayloadName] = u.Username
+		payload[PayloadName] = user.Username
 	}
 
 	tokenType := model.TokenTypeAccess
@@ -239,7 +259,7 @@ func (ts *JWTokenService) NewAccessToken(u model.User, scopes []string, app mode
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   u.ID,
+			Subject:   user.ID,
 			Audience:  app.ID,
 			IssuedAt:  now,
 		},

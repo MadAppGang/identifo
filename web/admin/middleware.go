@@ -2,9 +2,9 @@ package admin
 
 import (
 	"net/http"
-	"strings"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/urfave/negroni"
 )
 
@@ -57,7 +57,8 @@ func (ar *Router) isLoggedIn(w http.ResponseWriter, r *http.Request) bool {
 
 func (ar *Router) prolongSession(w http.ResponseWriter, sessionID string) {
 	if err := ar.server.Services().Session.ProlongSession(sessionID); err != nil {
-		ar.logger.Println("Error prolonging session:", err)
+		ar.logger.Error("Error prolonging session",
+			logging.FieldError, err)
 		return
 	}
 	c := &http.Cookie{
@@ -78,11 +79,4 @@ func (ar *Router) getSessionID(r *http.Request) (string, error) {
 
 	sessionID, err := decode(cookie.Value)
 	return sessionID, err
-}
-
-func (ar *Router) RemoveTrailingSlash() negroni.HandlerFunc {
-	return func(rw http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
-		r.URL.Path = strings.TrimSuffix(r.URL.Path, "/")
-		next.ServeHTTP(rw, r)
-	}
 }

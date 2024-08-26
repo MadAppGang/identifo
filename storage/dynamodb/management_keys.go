@@ -3,10 +3,11 @@ package dynamodb
 import (
 	"context"
 	"errors"
-	"log"
+	"log/slog"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -15,7 +16,10 @@ const (
 )
 
 // NewManagementKeysStorage creates and provisions new management keys storage instance.
-func NewManagementKeysStorage(settings model.DynamoDatabaseSettings) (model.ManagementKeysStorage, error) {
+func NewManagementKeysStorage(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.ManagementKeysStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
@@ -26,14 +30,18 @@ func NewManagementKeysStorage(settings model.DynamoDatabaseSettings) (model.Mana
 		return nil, err
 	}
 
-	us := &ManagementKeysStorage{db: db}
+	us := &ManagementKeysStorage{
+		logger: logger,
+		db:     db,
+	}
 	err = us.ensureTable()
 	return us, err
 }
 
 // UserStorage stores and manages data in DynamoDB storage.
 type ManagementKeysStorage struct {
-	db *DB
+	logger *slog.Logger
+	db     *DB
 }
 
 func (ms *ManagementKeysStorage) GetKey(ctx context.Context, id string) (model.ManagementKey, error) {
@@ -69,7 +77,6 @@ func (ms *ManagementKeysStorage) GeyAllKeys(ctx context.Context) ([]model.Manage
 func (ms *ManagementKeysStorage) ensureTable() error {
 	exists, err := ms.db.IsTableExists(managementKeyTableName)
 	if err != nil {
-		log.Println("Error checking for table existence:", err)
 		return err
 	}
 	if !exists {
@@ -100,7 +107,7 @@ func (ms *ManagementKeysStorage) ensureTable() error {
 			TableName:   aws.String(managementKeyTableName),
 		}
 		if _, err = ms.db.C.CreateTable(input); err != nil {
-			log.Println("Error creating table:", err)
+			ms.logger.Error("Error creating table", logging.FieldError, err)
 			return err
 		}
 	}

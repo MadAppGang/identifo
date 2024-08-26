@@ -8,7 +8,6 @@ import (
 	"errors"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
 	"net/url"
 	"reflect"
@@ -16,6 +15,7 @@ import (
 
 	"github.com/gorilla/sessions"
 	l "github.com/madappgang/identifo/v2/localization"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/web/authorization"
 	"github.com/madappgang/identifo/v2/web/middleware"
@@ -115,7 +115,7 @@ func (ar *Router) FederatedLogin() http.HandlerFunc {
 			return
 		}
 
-		log.Println("federated auth url", url)
+		ar.logger.Info("federated auth url", logging.FieldURL, url)
 
 		http.Redirect(w, r, url, http.StatusTemporaryRedirect)
 	}
@@ -212,7 +212,8 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 		authResult.CallbackUrl = fsess.CallbackUrl
 		authResult.Scopes = fsess.Scopes
 
-		journal(user.ID, app.ID, "federated_login", resultScopes)
+		ar.journal(JournalOperationFederatedLogin,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -254,7 +255,7 @@ as either "provider"
 */
 func (ar *Router) GetAuthURL(res http.ResponseWriter, req *http.Request) (string, error) {
 	if !keySet && defaultStore == Store {
-		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+		ar.logger.Info("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
 	}
 
 	providerName := req.URL.Query().Get("provider")
@@ -320,7 +321,7 @@ See https://github.com/markbates/goth/examples/main.go to see this in action.
 */
 func (ar *Router) CompleteUserAuth(res http.ResponseWriter, req *http.Request) (goth.User, error) {
 	if !keySet && defaultStore == Store {
-		fmt.Println("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
+		ar.logger.Info("goth/gothic: no SESSION_SECRET environment variable is set. The default cookie store is not available and any calls will fail. Ignore this warning if you are using a different store.")
 	}
 
 	providerName := req.URL.Query().Get("provider")

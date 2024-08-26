@@ -3,9 +3,10 @@ package mongo
 import (
 	"context"
 	"encoding/json"
-	"log"
+	"log/slog"
 	"time"
 
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
@@ -16,23 +17,31 @@ import (
 const appsCollectionName = "Applications"
 
 // NewAppStorage creates new MongoDB AppStorage implementation.
-func NewAppStorage(settings model.MongoDatabaseSettings) (model.AppStorage, error) {
+func NewAppStorage(
+	logger *slog.Logger,
+	settings model.MongoDatabaseSettings,
+) (model.AppStorage, error) {
 	if len(settings.ConnectionString) == 0 || len(settings.DatabaseName) == 0 {
 		return nil, ErrorEmptyConnectionStringDatabase
 	}
 
 	// create database
-	db, err := NewDB(settings.ConnectionString, settings.DatabaseName)
+	db, err := NewDB(logger, settings.ConnectionString, settings.DatabaseName)
 	if err != nil {
 		return nil, err
 	}
 
-	coll := db.Database.Collection(appsCollectionName)
-	return &AppStorage{coll: coll, timeout: 30 * time.Second}, nil
+	coll := db.database.Collection(appsCollectionName)
+	return &AppStorage{
+		logger:  logger,
+		coll:    coll,
+		timeout: 30 * time.Second,
+	}, nil
 }
 
 // AppStorage is a fully functional app storage for MongoDB.
 type AppStorage struct {
+	logger  *slog.Logger
 	coll    *mongo.Collection
 	timeout time.Duration
 }
@@ -173,7 +182,7 @@ func (as *AppStorage) ClearAllData() {
 	defer cancel()
 
 	if _, err := as.coll.DeleteMany(ctx, bson.M{}); err != nil {
-		log.Printf("Error cleaning all user data: %s\n", err)
+		as.logger.Error("Error cleaning all user data", logging.FieldError, err)
 	}
 }
 
@@ -185,7 +194,6 @@ func (as *AppStorage) ImportJSON(data []byte, cleanOldData bool) error {
 
 	apd := []model.AppData{}
 	if err := json.Unmarshal(data, &apd); err != nil {
-		log.Println(err)
 		return err
 	}
 	for _, a := range apd {

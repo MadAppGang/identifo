@@ -22,7 +22,7 @@ func TestResetPasswordWithCustomURL(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/response_ok.json").
@@ -53,7 +53,7 @@ func TestResetPasswordWithAppSpecificURL(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/response_ok.json").
@@ -83,7 +83,7 @@ func TestResetPasswordWithDefaultURL(t *testing.T) {
 		SetHeader("Content-Type", "application/json").
 		BodyString(data).
 		Expect(t).
-		AssertFunc(dumpResponse).
+		AssertFunc(dumpResponse(t)).
 		Type("json").
 		Status(200).
 		JSONSchema("../test/artifacts/api/response_ok.json").

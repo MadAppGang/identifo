@@ -1,12 +1,13 @@
 package dynamodb
 
 import (
-	"log"
+	"log/slog"
 	"time"
 
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/service/dynamodb"
 	"github.com/aws/aws-sdk-go/service/dynamodb/dynamodbattribute"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
@@ -23,7 +24,10 @@ const (
 )
 
 // NewVerificationCodeStorage creates and provisions new DynamoDB verification code storage.
-func NewVerificationCodeStorage(settings model.DynamoDatabaseSettings) (model.VerificationCodeStorage, error) {
+func NewVerificationCodeStorage(
+	logger *slog.Logger,
+	settings model.DynamoDatabaseSettings,
+) (model.VerificationCodeStorage, error) {
 	if len(settings.Endpoint) == 0 || len(settings.Region) == 0 {
 		return nil, ErrorEmptyEndpointRegion
 	}
@@ -34,14 +38,18 @@ func NewVerificationCodeStorage(settings model.DynamoDatabaseSettings) (model.Ve
 		return nil, err
 	}
 
-	vcs := &VerificationCodeStorage{db: db}
+	vcs := &VerificationCodeStorage{
+		logger: logger,
+		db:     db,
+	}
 	err = vcs.ensureTable()
 	return vcs, err
 }
 
 // VerificationCodeStorage implements verification code storage interface.
 type VerificationCodeStorage struct {
-	db *DB
+	logger *slog.Logger
+	db     *DB
 }
 
 // IsVerificationCodeFound checks whether verification code can be found.
@@ -54,7 +62,7 @@ func (vcs *VerificationCodeStorage) IsVerificationCodeFound(phone, code string) 
 		},
 	})
 	if err != nil {
-		log.Println("Error querying for verification code:", err)
+		vcs.logger.Error("Error querying for verification code", logging.FieldError, err)
 		return false, ErrorInternalError
 	}
 	if len(result.Items) == 0 {
@@ -74,7 +82,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 	}
 
 	if _, err := vcs.db.C.DeleteItem(delInput); err != nil {
-		log.Println("Error deleting old verification code: ", err)
+		vcs.logger.Error("Error deleting old verification code", logging.FieldError, err)
 		return ErrorInternalError
 	}
 
@@ -85,7 +93,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 		expiresAtField: time.Now().Add(verificationCodesExpirationTime),
 	})
 	if err != nil {
-		log.Println("Error marshalling verification code:", err)
+		vcs.logger.Error("Error marshalling verification code", logging.FieldError, err)
 		return ErrorInternalError
 	}
 
@@ -95,7 +103,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 	}
 
 	if _, err := vcs.db.C.PutItem(putInput); err != nil {
-		log.Println("Error putting verification code to database:", err)
+		vcs.logger.Error("Error putting verification code to database", logging.FieldError, err)
 		return ErrorInternalError
 	}
 	return err
@@ -105,7 +113,7 @@ func (vcs *VerificationCodeStorage) CreateVerificationCode(phone, code string) e
 func (vcs *VerificationCodeStorage) ensureTable() error {
 	exists, err := vcs.db.IsTableExists(verificationCodesTableName)
 	if err != nil {
-		log.Println("Error checking for verification codes table existence:", err)
+		vcs.logger.Error("Error checking for verification codes table existence", logging.FieldError, err)
 		return err
 	}
 	if exists {
@@ -130,7 +138,7 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 	}
 
 	if _, err = vcs.db.C.CreateTable(createTableInput); err != nil {
-		log.Println("Error creating table:", err)
+		vcs.logger.Error("Error creating table", logging.FieldError, err)
 		return err
 	}
 
@@ -148,11 +156,15 @@ func (vcs *VerificationCodeStorage) ensureTable() error {
 			// Then Verification Codes table must be in creating status. Let's give it some time.
 			for i := 0; i < 5; i++ {
 				time.Sleep(5 * time.Second)
-				log.Println("Retry setting expiration time...")
+
+				vcs.logger.Info("Retry setting expiration time...")
+
 				if _, err = vcs.db.C.UpdateTimeToLive(ttlInput); err == nil {
-					log.Println("Expiration time successfully set")
+					vcs.logger.Info("Expiration time successfully set")
 					break
 				}
+
+				vcs.logger.Error("Error sending expiration time", logging.FieldError, err)
 			}
 		}
 	}

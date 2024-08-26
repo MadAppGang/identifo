@@ -3,6 +3,7 @@ package config
 import (
 	"errors"
 	"fmt"
+	"log/slog"
 	"time"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -11,7 +12,7 @@ import (
 
 const defaultS3PollInterval = time.Minute // poll new updates every minute
 
-func NewConfigWatcher(settings model.FileStorageSettings) (model.ConfigurationWatcher, error) {
+func NewConfigWatcher(logger *slog.Logger, settings model.FileStorageSettings) (model.ConfigurationWatcher, error) {
 	filename := settings.FileName()
 	switch settings.Type {
 	case model.FileStorageTypeS3:
@@ -25,13 +26,13 @@ func NewConfigWatcher(settings model.FileStorageSettings) (model.ConfigurationWa
 		}
 		settings.Local.Path = settings.Dir() // remove filename from key to keep dir only
 	default:
-		return nil, fmt.Errorf("Unsupported config storage type: %v", settings.Type)
+		return nil, fmt.Errorf("unsupported config storage type: %v", settings.Type)
 	}
 
 	fs, err := storage.NewFS(settings)
 	if err != nil {
 		return nil, err
 	}
-	watcher := storage.NewFSWatcher(fs, []string{filename}, defaultS3PollInterval)
+	watcher := storage.NewFSWatcher(logger, fs, []string{filename}, defaultS3PollInterval)
 	return watcher, nil
 }

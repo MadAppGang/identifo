@@ -2,7 +2,6 @@ package web
 
 import (
 	"io/fs"
-	"log"
 	"net/http"
 	"net/url"
 
@@ -28,7 +27,6 @@ const (
 // RouterSetting contains settings for root http router.
 type RouterSetting struct {
 	Server           model.Server
-	Logger           *log.Logger
 	ServeAdminPanel  bool
 	Host             *url.URL
 	LoggerSettings   model.LoggerSettings
@@ -53,7 +51,6 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 
 	apiSettings := api.RouterSettings{
 		Server:           settings.Server,
-		Logger:           settings.Logger,
 		LoggerSettings:   settings.LoggerSettings,
 		Authorizer:       authorizer,
 		Host:             settings.Host,
@@ -72,8 +69,7 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 
 	managementRouter, err := management.NewRouter(management.RouterSettings{
 		Server:             settings.Server,
-		Logger:             settings.Logger,
-		LoggerSettings:     apiRouter.LoggerSettings,
+		LoggerSettings:     settings.LoggerSettings,
 		Storage:            settings.Server.Storages().ManagementKey,
 		Locale:             settings.Locale,
 		SupportedLoginWays: settings.Server.Settings().Login.LoginWith,
@@ -88,11 +84,14 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	} else {
 		// Web login app setup
 		loginAppSettings := spa.SPASettings{
-			Name:       "LOGIN_APP",
-			Root:       "/",
-			FileSystem: http.FS(settings.Server.Storages().LoginAppFS),
+			Name:           "LOGIN_APP",
+			Root:           "/",
+			FileSystem:     http.FS(settings.Server.Storages().LoginAppFS),
+			LoggerSettings: settings.LoggerSettings,
 		}
-		r.LoginAppRouter, err = spa.NewRouter(loginAppSettings, []negroni.Handler{middleware.NewCacheDisable()}, settings.Logger)
+		r.LoginAppRouter, err = spa.NewRouter(
+			loginAppSettings,
+			[]negroni.Handler{middleware.NewCacheDisable()})
 		if err != nil {
 			return nil, err
 		}
@@ -101,11 +100,11 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 	// Admin panel
 	if settings.ServeAdminPanel {
 		routerSettings := admin.RouterSettings{
-			Server:  settings.Server,
-			Logger:  settings.Logger,
-			Host:    settings.Host,
-			Prefix:  adminpanelAPIPath,
-			Restart: settings.RestartChan,
+			Server:         settings.Server,
+			LoggerSettings: settings.LoggerSettings,
+			Host:           settings.Host,
+			Prefix:         adminpanelAPIPath,
+			Restart:        settings.RestartChan,
 		}
 
 		if settings.AppOriginChecker != nil {
@@ -126,11 +125,12 @@ func NewRootRouter(settings RouterSetting) (model.Router, error) {
 
 		// init admin panel web app
 		adminPanelAppSettings := spa.SPASettings{
-			Name:       "ADMIN_PANEL",
-			Root:       "/",
-			FileSystem: http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			Name:           "ADMIN_PANEL",
+			Root:           "/",
+			FileSystem:     http.FS(fsWithConfig(settings.Server.Storages().AdminPanelFS)),
+			LoggerSettings: settings.LoggerSettings,
 		}
-		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil, settings.Logger)
+		r.AdminPanelRouter, err = spa.NewRouter(adminPanelAppSettings, nil)
 		if err != nil {
 			return nil, err
 		}
