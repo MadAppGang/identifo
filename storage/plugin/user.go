@@ -4,6 +4,7 @@ import (
 	"os"
 	"os/exec"
 
+	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	"github.com/madappgang/identifo/v2/model"
 	grpcShared "github.com/madappgang/identifo/v2/storage/grpc/shared"
@@ -12,7 +13,6 @@ import (
 
 // NewUserStorage creates and inits plugin user storage.
 func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
-	var err error
 	params := []string{}
 	for k, v := range settings.Params {
 		params = append(params, "-"+k)
@@ -24,6 +24,10 @@ func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command(settings.Cmd, params...),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
+		Logger: hclog.New(&hclog.LoggerOptions{
+			Level:      hclog.Debug,
+			JSONFormat: true,
+		}),
 	}
 
 	if settings.RedirectStd {

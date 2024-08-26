@@ -19,6 +19,12 @@ func (ar *Router) initRoutes(
 		panic("Empty API router")
 	}
 
+	pingHandler := negroni.New(
+		negroni.NewRecovery(),
+		negroni.WrapFunc(ar.HandlePing),
+	)
+	ar.router.Handle("/ping", pingHandler).Methods(http.MethodGet)
+
 	baseMiddleware := buildBaseMiddleware(
 		loggerSettings.DumpRequest,
 		loggerSettings.Format,
@@ -26,10 +32,6 @@ func (ar *Router) initRoutes(
 		loggerSettings.LogSensitiveData,
 		ar.cors,
 	)
-
-	ph := with(baseMiddleware, negroni.WrapFunc(ar.HandlePing))
-	ar.router.Handle("/ping", ph).Methods(http.MethodGet)
-
 	apiMiddlewares := ar.buildAPIMiddleware(baseMiddleware)
 
 	// federated oidc
