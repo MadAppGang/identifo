@@ -34,8 +34,6 @@ func (ar *Router) HandlePing(w http.ResponseWriter, r *http.Request) {
 
 	locale := r.Header.Get("Accept-Language")
 
-	ar.logger.Debug("trace pong handler")
-
 	pong := pongResponse{
 		Message: "Pong!",
 		Date:    time.Now(),

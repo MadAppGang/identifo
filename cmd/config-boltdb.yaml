@@ -11,7 +11,12 @@ storage:
     type: boltdb
     boltdb:
       path: ./db.db
-  userStorage: *storage_settings
+  userStorage:
+    type: plugin
+    plugin:
+      cmd: ./plugins/bin/bolt-user-storage
+      params: { "path": "./db_plugin.db" }
+      redirectStd: true
   tokenStorage: *storage_settings
   tokenBlacklist: *storage_settings
   verificationCodeStorage: *storage_settings

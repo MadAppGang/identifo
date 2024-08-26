@@ -32,10 +32,13 @@ func TestRefreshTokens(t *testing.T) {
 
 	tokenService := testServer.Services().Token
 
-	refreshToken, err := tokenService.NewRefreshToken(
-		user,
+	scopes := model.AllowedScopes(
 		[]string{"offline", "chat", "super_admin"},
-		testApp)
+		[]string{"offline", "chat", "super_admin"},
+		true,
+	)
+
+	refreshToken, err := tokenService.NewRefreshToken(user, scopes, testApp)
 	require.NoError(t, err)
 
 	rts, err := tokenService.String(refreshToken)

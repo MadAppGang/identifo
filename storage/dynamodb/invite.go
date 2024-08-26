@@ -270,6 +270,7 @@ func (is *InviteStorage) ArchiveAllByEmail(email string) error {
 	if err != nil {
 		is.logger.Error("Error querying for invites",
 			logging.FieldError, err)
+
 		return ErrorInternalError
 	}
 

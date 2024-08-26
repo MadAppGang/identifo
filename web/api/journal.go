@@ -31,8 +31,9 @@ func (ar *Router) journal(
 		"operation", string(op),
 		logging.FieldUserID, userID,
 		logging.FieldAppID, appID,
+		"device", device,
 		"issuer", iss,
+		"accessRole", accessRole,
 		"scopes", scopes,
-		"role", accessRole,
-		"device", device)
+	)
 }

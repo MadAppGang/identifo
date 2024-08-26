@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
@@ -13,7 +14,20 @@ import (
 	"github.com/madappgang/identifo/v2/storage/plugin/shared"
 )
 
+type wproxy struct {
+}
+
+func (w wproxy) Write(p []byte) (n int, err error) {
+	return os.Stderr.Write(p)
+}
+
 func main() {
+	slog.SetDefault(slog.New(slog.NewJSONHandler(
+		wproxy{},
+		&slog.HandlerOptions{
+			Level: slog.LevelDebug,
+		})))
+
 	path := flag.String("path", "", "path to database")
 	flag.Parse()
 
@@ -34,7 +48,6 @@ func main() {
 		Plugins: map[string]plugin.Plugin{
 			"user-storage": &shared.UserStoragePlugin{Impl: s},
 		},
-
 		// A non-nil value here enables gRPC serving for this plugin...
 		GRPCServer: plugin.DefaultGRPCServer,
 	})

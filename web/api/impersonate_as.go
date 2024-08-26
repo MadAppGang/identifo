@@ -78,7 +78,7 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 		authResult.RefreshToken = ""
 
 		ar.journal(JournalOperationImpersonatedAs,
-			userID, app.ID, r.UserAgent(), user.AccessRole, resultScopes)
+			userID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

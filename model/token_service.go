@@ -7,8 +7,8 @@ const (
 
 // TokenService is an abstract token manager.
 type TokenService interface {
-	NewAccessToken(u User, scopes []string, app AppData, requireTFA bool, tokenPayload map[string]interface{}) (Token, error)
-	NewRefreshToken(u User, scopes []string, app AppData) (Token, error)
+	NewAccessToken(u User, scopes AllowedScopesSet, app AppData, requireTFA bool, tokenPayload map[string]interface{}) (Token, error)
+	NewRefreshToken(u User, scopes AllowedScopesSet, app AppData) (Token, error)
 	RefreshAccessToken(token Token, tokenPayload map[string]interface{}) (Token, error)
 	NewInviteToken(email, role, audience string, data map[string]interface{}) (Token, error)
 	NewResetToken(userID string) (Token, error)

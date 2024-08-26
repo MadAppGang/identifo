@@ -217,7 +217,7 @@ func (ts *JWTokenService) ValidateTokenString(tstr string, v jwtValidator.Valida
 // NewAccessToken creates new access token for user.
 func (ts *JWTokenService) NewAccessToken(
 	user model.User,
-	scopes []string,
+	scopes model.AllowedScopesSet,
 	app model.AppData,
 	requireTFA bool,
 	tokenPayload map[string]interface{},
@@ -235,10 +235,11 @@ func (ts *JWTokenService) NewAccessToken(
 		payload[PayloadName] = user.Username
 	}
 
-	tokenType := model.TokenTypeAccess
+	scopesStr := scopes.String()
 	if requireTFA {
-		scopes = []string{model.TokenTypeTFAPreauth}
+		scopesStr = model.TokenTypeTFAPreauth
 	}
+
 	if len(tokenPayload) > 0 {
 		for k, v := range tokenPayload {
 			payload[k] = v
@@ -253,9 +254,9 @@ func (ts *JWTokenService) NewAccessToken(
 	}
 
 	claims := &model.Claims{
-		Scopes:  strings.Join(scopes, " "),
+		Scopes:  scopesStr,
 		Payload: payload,
-		Type:    tokenType,
+		Type:    model.TokenTypeAccess,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
@@ -278,22 +279,27 @@ func (ts *JWTokenService) NewAccessToken(
 }
 
 // NewRefreshToken creates new refresh token.
-func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app model.AppData) (model.Token, error) {
+func (ts *JWTokenService) NewRefreshToken(
+	user model.User,
+	scopes model.AllowedScopesSet,
+	app model.AppData,
+) (model.Token, error) {
 	if !app.Active || !app.Offline {
 		return nil, ErrInvalidApp
 	}
+
 	// no offline request
-	if !model.SliceContains(scopes, model.OfflineScope) {
+	if !scopes.Contains(model.OfflineScope) {
 		return nil, ErrInvalidOfflineScope
 	}
 
-	if !u.Active {
+	if !user.Active {
 		return nil, ErrInvalidUser
 	}
 
 	payload := make(map[string]interface{})
 	if model.SliceContains(app.TokenPayload, PayloadName) {
-		payload[PayloadName] = u.Username
+		payload[PayloadName] = user.Username
 	}
 	now := ijwt.TimeFunc().Unix()
 
@@ -303,13 +309,13 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 	}
 
 	claims := &model.Claims{
-		Scopes:  strings.Join(scopes, " "),
+		Scopes:  scopes.String(),
 		Payload: payload,
 		Type:    model.TokenTypeRefresh,
 		StandardClaims: jwt.StandardClaims{
 			ExpiresAt: (now + lifespan),
 			Issuer:    ts.issuer,
-			Subject:   u.ID,
+			Subject:   user.ID,
 			Audience:  app.ID,
 			IssuedAt:  now,
 		},
@@ -338,7 +344,10 @@ func (ts *JWTokenService) NewRefreshToken(u model.User, scopes []string, app mod
 }
 
 // RefreshAccessToken issues new access token for provided refresh token.
-func (ts *JWTokenService) RefreshAccessToken(refreshToken model.Token, tokenPayload map[string]interface{}) (model.Token, error) {
+func (ts *JWTokenService) RefreshAccessToken(
+	refreshToken model.Token,
+	tokenPayload map[string]interface{},
+) (model.Token, error) {
 	rt, ok := refreshToken.(*model.JWToken)
 	if !ok || rt == nil {
 		return nil, model.ErrTokenInvalid

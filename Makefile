@@ -39,7 +39,7 @@ build:
 	go build -o ./identifo
 
 lint:
-	golangci-lint run -D deadcode,errcheck,unused,varcheck,govet
+	golangci-lint run -D errcheck,unused,govet
 
 build_admin_panel:
 	rm -rf static/admin_panel

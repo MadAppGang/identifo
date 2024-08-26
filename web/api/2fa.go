@@ -88,7 +88,7 @@ func (ar *Router) EnableTFA() http.HandlerFunc {
 			return
 		}
 
-		accessToken, _, err := ar.loginUser(user, []string{}, app, false, true, tokenPayload)
+		accessToken, _, err := ar.loginUser(user, model.AllowedScopesSet{}, app, true, tokenPayload)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
@@ -274,8 +274,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			return
 		}
 
-		createRefreshToken := contains(scopes, model.OfflineScope)
-		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, createRefreshToken, false, tokenPayload)
+		accessToken, refreshToken, err := ar.loginUser(user, scopes, app, false, tokenPayload)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorTokenUnableToCreateAccessTokenError, err)
 			return
@@ -308,7 +307,7 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 		}
 
 		ar.journal(JournalOperationLoginWith2FA,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes)
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes())
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)
