@@ -29,7 +29,7 @@ func NewUserStorage(
 	case model.DBTypeMem:
 		return mem.NewUserStorage()
 	case model.DBTypePlugin:
-		return plugin.NewUserStorage(settings.Plugin)
+		return plugin.NewUserStorage(logger, settings.Plugin)
 	case model.DBTypeGRPC:
 		return grpc.NewUserStorage(settings.GRPC)
 	default:

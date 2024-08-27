@@ -1,18 +1,23 @@
 package plugin
 
 import (
+	"log/slog"
 	"os"
 	"os/exec"
 	"time"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
 	grpcShared "github.com/madappgang/identifo/v2/impersonation/grpc/shared"
 	"github.com/madappgang/identifo/v2/impersonation/plugin/shared"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 )
 
-func NewImpersonationProvider(settings model.PluginSettings, timeout time.Duration) (model.ImpersonationProvider, error) {
+func NewImpersonationProvider(
+	logger *slog.Logger,
+	settings model.PluginSettings,
+	timeout time.Duration,
+) (model.ImpersonationProvider, error) {
 	params := []string{}
 	for k, v := range settings.Params {
 		params = append(params, "-"+k)
@@ -24,10 +29,7 @@ func NewImpersonationProvider(settings model.PluginSettings, timeout time.Durati
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command(settings.Cmd, params...),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		Logger: hclog.New(&hclog.LoggerOptions{
-			Level:      hclog.Debug,
-			JSONFormat: true,
-		}),
+		Logger:           logging.NewHCLogger(logger, false),
 	}
 
 	if settings.RedirectStd {

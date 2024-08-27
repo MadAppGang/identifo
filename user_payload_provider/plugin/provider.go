@@ -1,19 +1,24 @@
 package plugin
 
 import (
+	"log/slog"
 	"os"
 	"os/exec"
 	"time"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	grpcShared "github.com/madappgang/identifo/v2/user_payload_provider/grpc/shared"
 	"github.com/madappgang/identifo/v2/user_payload_provider/plugin/shared"
 )
 
 // NewTokenPayloadProvider creates and inits plugin for payload provider.
-func NewTokenPayloadProvider(settings model.PluginSettings, timeout time.Duration) (model.TokenPayloadProvider, error) {
+func NewTokenPayloadProvider(
+	logger *slog.Logger,
+	settings model.PluginSettings,
+	timeout time.Duration,
+) (model.TokenPayloadProvider, error) {
 	params := []string{}
 	for k, v := range settings.Params {
 		params = append(params, "-"+k)
@@ -25,10 +30,7 @@ func NewTokenPayloadProvider(settings model.PluginSettings, timeout time.Duratio
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command(settings.Cmd, params...),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		Logger: hclog.New(&hclog.LoggerOptions{
-			Level:      hclog.Debug,
-			JSONFormat: true,
-		}),
+		Logger:           logging.NewHCLogger(logger, false),
 	}
 
 	if settings.RedirectStd {
