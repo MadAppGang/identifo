@@ -27,7 +27,7 @@ func NewServer(
 	if settings == nil {
 		// no settings and no errors
 		if len(errs) == 0 {
-			return nil, fmt.Errorf("New Server could not be created, no settings loaded and no errors detected")
+			return nil, fmt.Errorf("new server could not be created, no settings loaded and no errors detected")
 		} else {
 			settings = &model.DefaultServerSettings
 		}
@@ -51,7 +51,7 @@ func NewServer(
 		return nil, err
 	}
 
-	var originChecker *middleware.AppOriginChecker
+	var originChecker model.OriginChecker
 	if len(errs) == 0 {
 		// we have valid config loaded and we can do origin checker
 		var err error

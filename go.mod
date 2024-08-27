@@ -9,15 +9,15 @@ require (
 	github.com/caarlos0/env v3.5.0+incompatible
 	github.com/casbin/casbin v1.9.1
 	github.com/coreos/go-oidc/v3 v3.5.0
-	github.com/go-chi/chi/v5 v5.0.8
+	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/redis v6.15.9+incompatible
 	github.com/golang-jwt/jwt/v4 v4.4.2
-	github.com/google/uuid v1.3.0
-	github.com/gorilla/mux v1.8.0
+	github.com/google/uuid v1.6.0
+	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/sessions v1.2.1
-	github.com/hashicorp/go-hclog v0.14.1
-	github.com/hashicorp/go-plugin v1.4.5
+	github.com/hashicorp/go-hclog v1.6.3
+	github.com/hashicorp/go-plugin v1.6.1
 	github.com/hummerd/httpdump v0.9.1
 	github.com/joho/godotenv v1.4.0
 	github.com/jszwec/s3fs v0.4.0
@@ -28,7 +28,7 @@ require (
 	github.com/onsi/gomega v1.22.1
 	github.com/pallinder/go-randomdata v1.2.0
 	github.com/qiangmzsx/string-adapter v1.0.0
-	github.com/rs/cors v1.8.2
+	github.com/rs/cors v1.11.0
 	github.com/rs/xid v1.4.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/afero v1.9.2
@@ -41,18 +41,17 @@ require (
 	golang.org/x/crypto v0.25.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
 	golang.org/x/net v0.27.0
-	golang.org/x/oauth2 v0.10.0
+	golang.org/x/oauth2 v0.22.0
 	golang.org/x/text v0.16.0
-	google.golang.org/grpc v1.58.3
-	google.golang.org/protobuf v1.31.0
+	google.golang.org/grpc v1.65.0
+	google.golang.org/protobuf v1.34.2
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/h2non/baloo.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
-	cloud.google.com/go/compute v1.21.0 // indirect
-	cloud.google.com/go/compute/metadata v0.2.3 // indirect
+	cloud.google.com/go/compute/metadata v0.3.0 // indirect
 	github.com/Knetic/govaluate v3.0.1-0.20171022003610-9aa49832a739+incompatible // indirect
 	github.com/TylerBrock/colorjson v0.0.0-20200706003622-8a50f05110d2 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -67,11 +66,11 @@ require (
 	github.com/gobuffalo/envy v1.10.2 // indirect
 	github.com/goccy/go-json v0.9.6 // indirect
 	github.com/golang/mock v1.6.0 // indirect
-	github.com/golang/protobuf v1.5.3 // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/google/go-cmp v0.5.9 // indirect
+	github.com/google/go-cmp v0.6.0 // indirect
 	github.com/gorilla/securecookie v1.1.1 // indirect
-	github.com/hashicorp/yamux v0.0.0-20180604194846-3520598351bb // indirect
+	github.com/hashicorp/yamux v0.1.1 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
 	github.com/leodido/go-urn v1.2.1 // indirect
@@ -100,8 +99,7 @@ require (
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
 	golang.org/x/sync v0.7.0 // indirect
 	golang.org/x/sys v0.22.0 // indirect
-	google.golang.org/appengine v1.6.7 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230711160842-782d3b101e98 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/h2non/gentleman.v2 v2.0.5 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
