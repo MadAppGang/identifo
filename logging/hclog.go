@@ -65,6 +65,10 @@ func (l *HCLogger) Error(msg string, args ...interface{}) {
 	l.logger.Error(msg, args...)
 }
 
+func (l *HCLogger) GetLevel() hclog.Level {
+	return hclog.Trace
+}
+
 func (l *HCLogger) IsTrace() bool {
 	return l.traceEnabled && l.logger.Enabled(context.Background(), slog.LevelDebug)
 }
