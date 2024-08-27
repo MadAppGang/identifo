@@ -1,18 +1,19 @@
 package plugin
 
 import (
+	"log/slog"
 	"os"
 	"os/exec"
 
-	"github.com/hashicorp/go-hclog"
 	"github.com/hashicorp/go-plugin"
+	"github.com/madappgang/identifo/v2/logging"
 	"github.com/madappgang/identifo/v2/model"
 	grpcShared "github.com/madappgang/identifo/v2/storage/grpc/shared"
 	"github.com/madappgang/identifo/v2/storage/plugin/shared"
 )
 
 // NewUserStorage creates and inits plugin user storage.
-func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
+func NewUserStorage(logger *slog.Logger, settings model.PluginSettings) (model.UserStorage, error) {
 	params := []string{}
 	for k, v := range settings.Params {
 		params = append(params, "-"+k)
@@ -24,10 +25,7 @@ func NewUserStorage(settings model.PluginSettings) (model.UserStorage, error) {
 		Plugins:          shared.PluginMap,
 		Cmd:              exec.Command(settings.Cmd, params...),
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
-		Logger: hclog.New(&hclog.LoggerOptions{
-			Level:      hclog.Debug,
-			JSONFormat: true,
-		}),
+		Logger:           logging.NewHCLogger(logger, false),
 	}
 
 	if settings.RedirectStd {

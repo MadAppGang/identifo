@@ -72,11 +72,17 @@ keyStorage:
   type: local
   local:
     path: ./jwt/test_artifacts/private.pem
-logger:
-  dumpRequest: false
 adminPanel:
   enabled: true
 loginWebApp:
   type: default
 emailTemplaits:
   type: default
+# logger settings
+logger:
+  # logs format (json, text)
+  format: json
+  # exclude body for HTTP requests that can contain sensitive data
+  logSensitiveData: false
+  common:
+    level: debug

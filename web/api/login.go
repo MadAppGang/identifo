@@ -291,6 +291,7 @@ func (ar *Router) getTokenPayloadService(app model.AppData) (model.TokenPayloadP
 
 	case model.TokenPayloadServicePlugin:
 		ps, err = plugin.NewTokenPayloadProvider(
+			ar.logger,
 			model.PluginSettings{
 				Cmd:         app.TokenPayloadServicePluginSettings.Cmd,
 				Params:      app.TokenPayloadServicePluginSettings.Params,

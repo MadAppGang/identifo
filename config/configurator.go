@@ -194,7 +194,7 @@ func NewServer(config model.ConfigurationStorage, restartChan chan<- bool) (mode
 
 	sessionS := model.NewSessionManager(settings.SessionStorage.SessionDuration, session)
 
-	impS, err := NewImpersonationProvider(settings.Impersonation)
+	impS, err := NewImpersonationProvider(logger, settings.Impersonation)
 	if err != nil {
 		logger.Error("Error creating impersonation provider", logging.FieldError, err)
 		errs = append(errs, fmt.Errorf("error creating impersonation provider: %v", err))
@@ -237,7 +237,10 @@ func NewTokenService(
 	return tokenService, err
 }
 
-func NewImpersonationProvider(settings model.ImpersonationSettings) (model.ImpersonationProvider, error) {
+func NewImpersonationProvider(
+	logger *slog.Logger,
+	settings model.ImpersonationSettings,
+) (model.ImpersonationProvider, error) {
 	switch settings.Type {
 	case model.ImpersonationServiceTypeNone, "":
 		return nil, nil
@@ -246,7 +249,7 @@ func NewImpersonationProvider(settings model.ImpersonationSettings) (model.Imper
 	case model.ImpersonationServiceTypeScope:
 		return imp.NewScopeImpersonator(settings.Scope.AllowedScopes), nil
 	case model.ImpersonationServiceTypePlugin:
-		return impPlugin.NewImpersonationProvider(settings.Plugin, time.Second)
+		return impPlugin.NewImpersonationProvider(logger, settings.Plugin, time.Second)
 	}
 
 	return nil, nil
