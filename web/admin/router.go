@@ -58,6 +58,7 @@ func NewRouter(settings RouterSettings) (model.Router, error) {
 		settings.LoggerSettings.DumpRequest,
 		settings.LoggerSettings.Format,
 		settings.LoggerSettings.Admin,
+		settings.LoggerSettings.LogSensitiveData,
 		settings.Cors)
 
 	ar.initRoutes()
@@ -70,6 +71,7 @@ func buildMiddleware(
 	dumpRequest bool,
 	format string,
 	logParams model.LoggerParams,
+	logSensitiveData bool,
 	corsHandler *cors.Cors,
 ) *negroni.Negroni {
 	var handlers []negroni.Handler
@@ -79,6 +81,7 @@ func buildMiddleware(
 		format,
 		logParams,
 		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
+		!logSensitiveData,
 		"/login",
 	)
 	handlers = append(handlers, lm)

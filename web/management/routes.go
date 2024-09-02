@@ -18,6 +18,7 @@ func (ar *Router) initRoutes(loggerSettings model.LoggerSettings) {
 		loggerSettings.Format,
 		loggerSettings.Management,
 		model.HTTPLogDetailing(loggerSettings.DumpRequest, loggerSettings.Management.HTTPDetailing),
+		!loggerSettings.LogSensitiveData,
 	)
 
 	ar.router.Use(middleware.RequestID)

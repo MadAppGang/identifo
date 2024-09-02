@@ -83,6 +83,7 @@ func buildBaseMiddleware(
 		format,
 		logParams,
 		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
+		!logSensitiveData,
 		exclude...)
 
 	result := negroni.New(
