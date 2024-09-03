@@ -61,7 +61,7 @@ services:
       region: ""
 login:
   loginWith:
-    username: false
+    username: true
     phone: true
     email: false
     federated: false
@@ -83,6 +83,9 @@ logger:
   # logs format (json, text)
   format: json
   # exclude body for HTTP requests that can contain sensitive data
-  logSensitiveData: false
+  logSensitiveData: true
   common:
     level: debug
+  api:
+    level: debug
+    httpDetailing: dump

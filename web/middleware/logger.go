@@ -17,9 +17,10 @@ func NegroniHTTPLogger(
 	format string,
 	logParams model.LoggerParams,
 	httpDetailing model.HTTPDetailing,
+	excludeAuth bool,
 	exclude ...string,
 ) negroni.Handler {
-	logger := HTTPLogger(component, format, logParams, httpDetailing, exclude...)
+	logger := HTTPLogger(component, format, logParams, httpDetailing, excludeAuth, exclude...)
 
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		logger(next).ServeHTTP(w, r)
@@ -35,6 +36,7 @@ func HTTPLogger(
 	format string,
 	logParams model.LoggerParams,
 	httpDetailing model.HTTPDetailing,
+	excludeAuth bool,
 	exclude ...string,
 ) func(http.Handler) http.Handler {
 	if httpDetailing == model.HTTPLogNone ||
@@ -52,7 +54,7 @@ func HTTPLogger(
 				logging.FieldComponent, component,
 				"method", r.Method,
 				"url", r.URL.String(),
-				"headers", r.Header,
+				"headers", redactHeaders(r.Header, excludeAuth),
 				"body", string(body))
 		}
 
@@ -100,4 +102,46 @@ func HTTPLogger(
 
 	hl := httplog.LoggerWithFormatterAndName(component, httplog.DefaultLogFormatterWithRequestHeadersAndBody)
 	return hl
+}
+
+func redactHeaders(headers http.Header, excludeAuth bool) http.Header {
+	if !excludeAuth {
+		return headers
+	}
+
+	result := make(http.Header, len(headers))
+
+	for k, vv := range headers {
+		if strings.EqualFold(k, "Authorization") {
+			cc := make([]string, len(vv))
+			for i, v := range vv {
+				cc[i] = redactAuthValue(v)
+			}
+			result[k] = cc
+		} else {
+			result[k] = vv
+		}
+
+	}
+
+	return result
+}
+
+func redactAuthValue(v string) string {
+	expectedPrefix := "bearer"
+
+	actualPrefix := ""
+	if len(v) >= len(expectedPrefix) {
+		actualPrefix = v[:len(expectedPrefix)]
+	}
+
+	if strings.EqualFold(actualPrefix, expectedPrefix) {
+		if len(v) <= len(expectedPrefix)+1 {
+			return actualPrefix + " <empty>"
+		}
+
+		return actualPrefix + " <redacted>"
+	}
+
+	return "<redacted>"
 }
