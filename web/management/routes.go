@@ -16,6 +16,7 @@ func (ar *Router) initRoutes(loggerSettings model.LoggerSettings) {
 	lm := imiddleware.HTTPLogger(
 		logging.ComponentAPI,
 		loggerSettings.Format,
+		loggerSettings.MaxBodySize,
 		loggerSettings.Management,
 		model.HTTPLogDetailing(loggerSettings.DumpRequest, loggerSettings.Management.HTTPDetailing),
 		!loggerSettings.LogSensitiveData,

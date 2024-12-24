@@ -57,6 +57,7 @@ func NewRouter(settings RouterSettings) (model.Router, error) {
 	ar.middleware = buildMiddleware(
 		settings.LoggerSettings.DumpRequest,
 		settings.LoggerSettings.Format,
+		settings.LoggerSettings.MaxBodySize,
 		settings.LoggerSettings.Admin,
 		settings.LoggerSettings.LogSensitiveData,
 		settings.Cors)
@@ -70,6 +71,7 @@ func NewRouter(settings RouterSettings) (model.Router, error) {
 func buildMiddleware(
 	dumpRequest bool,
 	format string,
+	maxBodySize int,
 	logParams model.LoggerParams,
 	logSensitiveData bool,
 	corsHandler *cors.Cors,
@@ -79,6 +81,7 @@ func buildMiddleware(
 	lm := middleware.NegroniHTTPLogger(
 		logging.ComponentAdmin,
 		format,
+		maxBodySize,
 		logParams,
 		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
 		!logSensitiveData,

@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 	"net/url"
 	"os"
@@ -146,7 +147,7 @@ func (sss *SessionStorageSettings) Validate() []error {
 	result := []error{}
 
 	if len(sss.Type) == 0 {
-		result = append(result, fmt.Errorf("Empty session storage type"))
+		result = append(result, errors.New("empty session storage type"))
 	}
 	if sss.SessionDuration.Duration == 0 {
 		result = append(result, fmt.Errorf("%s. Session duration is 0 seconds", subject))
@@ -226,7 +227,7 @@ func (sss *SMSServiceSettings) Validate() []error {
 	subject := "SMSServiceSettings"
 	result := []error{}
 	if len(sss.Type) == 0 {
-		return []error{fmt.Errorf("Empty SMS service type")}
+		return []error{errors.New("empty SMS service type")}
 	}
 
 	switch sss.Type {

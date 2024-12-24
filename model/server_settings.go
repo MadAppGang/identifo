@@ -369,6 +369,7 @@ type LoggerSettings struct {
 	// Deprecated: User HTTPDetailing on module level.
 	DumpRequest      bool         `yaml:"dumpRequest" json:"dumpRequest"`
 	Format           string       `yaml:"format" json:"format"`
+	MaxBodySize      int          `yaml:"maxBodySize" json:"maxBodySize"`
 	LogSensitiveData bool         `yaml:"logSensitiveData" json:"logSensitiveData"`
 	Common           LoggerParams `yaml:"common" json:"common"`
 	API              LoggerParams `yaml:"api" json:"api"`

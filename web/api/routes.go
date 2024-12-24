@@ -28,6 +28,7 @@ func (ar *Router) initRoutes(
 	baseMiddleware := buildBaseMiddleware(
 		loggerSettings.DumpRequest,
 		loggerSettings.Format,
+		loggerSettings.MaxBodySize,
 		loggerSettings.API,
 		loggerSettings.LogSensitiveData,
 		ar.cors,
@@ -58,6 +59,7 @@ func (ar *Router) initRoutes(
 func buildBaseMiddleware(
 	dumpRequest bool,
 	format string,
+	maxBodySize int,
 	logParams model.LoggerParams,
 	logSensitiveData bool,
 	cors *cors.Cors,
@@ -81,6 +83,7 @@ func buildBaseMiddleware(
 	lm := middleware.NegroniHTTPLogger(
 		logging.ComponentAPI,
 		format,
+		maxBodySize,
 		logParams,
 		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
 		!logSensitiveData,
