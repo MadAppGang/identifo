@@ -15,12 +15,13 @@ import (
 func NegroniHTTPLogger(
 	component string,
 	format string,
+	maxBodySize int,
 	logParams model.LoggerParams,
 	httpDetailing model.HTTPDetailing,
 	excludeAuth bool,
 	exclude ...string,
 ) negroni.Handler {
-	logger := HTTPLogger(component, format, logParams, httpDetailing, excludeAuth, exclude...)
+	logger := HTTPLogger(component, format, maxBodySize, logParams, httpDetailing, excludeAuth, exclude...)
 
 	return negroni.HandlerFunc(func(w http.ResponseWriter, r *http.Request, next http.HandlerFunc) {
 		logger(next).ServeHTTP(w, r)
@@ -34,6 +35,7 @@ func emptyMiddleware(next http.Handler) http.Handler {
 func HTTPLogger(
 	component string,
 	format string,
+	maxBodySize int,
 	logParams model.LoggerParams,
 	httpDetailing model.HTTPDetailing,
 	excludeAuth bool,
@@ -95,6 +97,12 @@ func HTTPLogger(
 		opts = append(opts, httpdump.WithResponseFilters(func(r *http.Request, headers http.Header, status int) (dump bool, body bool) {
 			return true, logBody(r.URL.Path)
 		}))
+
+		if maxBodySize <= 0 {
+			maxBodySize = httpdump.DefaultBodySize
+		}
+
+		opts = append(opts, httpdump.WithLimitedBody(maxBodySize))
 
 		hd := httpdump.NewMiddlewareWrapper(dumpReq, dumpResp, opts...)
 		return hd

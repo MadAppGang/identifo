@@ -77,8 +77,9 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 		// do not allow refresh for impersonated user
 		authResult.RefreshToken = ""
 
-		ar.journal(JournalOperationImpersonatedAs,
-			userID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
+		ar.audit(AuditOperationImpersonatedAs,
+			userID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

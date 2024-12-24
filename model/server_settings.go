@@ -27,6 +27,7 @@ type ServerSettings struct {
 	KeyStorage     FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
 	Config         FileStorageSettings    `yaml:"-" json:"config"`
 	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
+	Audit          AuditSettings          `yaml:"audit" json:"audit"`
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
 	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
 	EmailTemplates FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
@@ -368,6 +369,7 @@ type LoggerSettings struct {
 	// Deprecated: User HTTPDetailing on module level.
 	DumpRequest      bool         `yaml:"dumpRequest" json:"dumpRequest"`
 	Format           string       `yaml:"format" json:"format"`
+	MaxBodySize      int          `yaml:"maxBodySize" json:"maxBodySize"`
 	LogSensitiveData bool         `yaml:"logSensitiveData" json:"logSensitiveData"`
 	Common           LoggerParams `yaml:"common" json:"common"`
 	API              LoggerParams `yaml:"api" json:"api"`
@@ -386,6 +388,18 @@ func HTTPLogDetailing(dumpRequest bool, logType HTTPDetailing) HTTPDetailing {
 	}
 
 	return logType
+}
+
+type TokenRecording string
+
+const (
+	TokenRecordingNone       TokenRecording = "none"
+	TokenRecordingObfuscated TokenRecording = "obfuscated"
+	TokenRecordingFull       TokenRecording = "full"
+)
+
+type AuditSettings struct {
+	TokenRecording TokenRecording `yaml:"tokenRecording" json:"tokenRecording"`
 }
 
 type AdminPanelSettings struct {

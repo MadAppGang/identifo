@@ -89,8 +89,9 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		}
 
 		resultScopes := strings.Split(accessToken.Scopes(), " ")
-		ar.journal(JournalOperationRefreshToken,
-			oldRefreshToken.Subject(), app.ID, r.UserAgent(), "", resultScopes)
+		ar.audit(AuditOperationRefreshToken,
+			oldRefreshToken.Subject(), app.ID, r.UserAgent(), "", resultScopes,
+			result.AccessToken, result.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}

@@ -306,8 +306,9 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			}
 		}
 
-		ar.journal(JournalOperationLoginWith2FA,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes())
+		ar.audit(AuditOperationLoginWith2FA,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes(),
+			result.AccessToken, result.RefreshToken)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)

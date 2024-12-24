@@ -24,6 +24,7 @@ func NewRouter(setting SPASettings, middlewares []negroni.Handler) (model.Router
 		setting.Name,
 		setting.LoggerSettings.DumpRequest,
 		setting.LoggerSettings.Format,
+		setting.LoggerSettings.MaxBodySize,
 		setting.LoggerSettings.SPA,
 		!setting.LoggerSettings.LogSensitiveData,
 		middlewares,
@@ -50,6 +51,7 @@ func buildMiddleware(
 	settingName string,
 	dumpRequest bool,
 	format string,
+	maxBodySize int,
 	logParams model.LoggerParams,
 	logSensitiveData bool,
 	middlewares []negroni.Handler,
@@ -57,6 +59,7 @@ func buildMiddleware(
 	lm := middleware.NegroniHTTPLogger(
 		settingName,
 		format,
+		maxBodySize,
 		logParams,
 		model.HTTPLogDetailing(dumpRequest, logParams.HTTPDetailing),
 		!logSensitiveData,
