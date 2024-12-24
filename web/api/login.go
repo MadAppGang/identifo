@@ -189,8 +189,9 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		ar.journal(JournalOperationLoginWithPassword,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
+		ar.audit(AuditOperationLoginWithPassword,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

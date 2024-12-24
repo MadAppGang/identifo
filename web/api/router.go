@@ -1,6 +1,7 @@
 package api
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"log/slog"
@@ -155,11 +156,20 @@ func (ar *Router) error(w http.ResponseWriter, callerDepth int, locale string, s
 	}
 	message := ar.ls.SL(locale, errID, details...)
 
-	ar.logger.Error("api error",
+	logLevel := slog.LevelWarn
+	if status >= 500 {
+		logLevel = slog.LevelError
+	}
+
+	ar.logger.Log(
+		context.Background(),
+		logLevel,
+		"api error",
 		logging.FieldErrorID, errID,
 		"status", status,
 		"details", message,
-		"where", fmt.Sprintf("%v:%d", file, no))
+		"where", fmt.Sprintf("%v:%d", file, no),
+	)
 
 	// Write generic error response.
 	w.Header().Set("Content-Type", "application/json")

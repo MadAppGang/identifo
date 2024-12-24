@@ -27,6 +27,7 @@ type ServerSettings struct {
 	KeyStorage     FileStorageSettings    `yaml:"keyStorage" json:"key_storage"`
 	Config         FileStorageSettings    `yaml:"-" json:"config"`
 	Logger         LoggerSettings         `yaml:"logger" json:"logger"`
+	Audit          AuditSettings          `yaml:"audit" json:"audit"`
 	AdminPanel     AdminPanelSettings     `yaml:"adminPanel" json:"admin_panel"`
 	LoginWebApp    FileStorageSettings    `yaml:"loginWebApp" json:"login_web_app"`
 	EmailTemplates FileStorageSettings    `yaml:"emailTemplates" json:"email_templates"`
@@ -386,6 +387,18 @@ func HTTPLogDetailing(dumpRequest bool, logType HTTPDetailing) HTTPDetailing {
 	}
 
 	return logType
+}
+
+type TokenRecording string
+
+const (
+	TokenRecordingNone       TokenRecording = "none"
+	TokenRecordingObfuscated TokenRecording = "obfuscated"
+	TokenRecordingFull       TokenRecording = "full"
+)
+
+type AuditSettings struct {
+	TokenRecording TokenRecording `yaml:"tokenRecording" json:"tokenRecording"`
 }
 
 type AdminPanelSettings struct {

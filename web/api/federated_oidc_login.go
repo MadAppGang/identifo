@@ -249,8 +249,9 @@ func (ar *Router) OIDCLoginComplete(useSession bool) http.HandlerFunc {
 		authResult.Scopes = resultScopes.Scopes()
 		authResult.ProviderData = *providerData
 
-		ar.journal(JournalOperationOIDCLogin,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
+		ar.audit(AuditOperationOIDCLogin,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

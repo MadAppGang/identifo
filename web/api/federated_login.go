@@ -212,8 +212,9 @@ func (ar *Router) FederatedLoginComplete() http.HandlerFunc {
 		authResult.CallbackUrl = fsess.CallbackUrl
 		authResult.Scopes = fsess.Scopes
 
-		ar.journal(JournalOperationFederatedLogin,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
+		ar.audit(AuditOperationFederatedLogin,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

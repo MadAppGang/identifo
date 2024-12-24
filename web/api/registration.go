@@ -179,8 +179,9 @@ func (ar *Router) RegisterWithPassword() http.HandlerFunc {
 			return
 		}
 
-		ar.journal(JournalOperationRegistration,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes())
+		ar.audit(AuditOperationRegistration,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}

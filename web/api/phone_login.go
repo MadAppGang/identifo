@@ -169,8 +169,9 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			User:         user,
 		}
 
-		ar.journal(JournalOperationLoginWithPhone,
-			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes())
+		ar.audit(AuditOperationLoginWithPhone,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes(),
+			result.AccessToken, result.RefreshToken)
 
 		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 
@@ -208,7 +209,7 @@ func (l *PhoneLogin) validateCodeAndPhone() error {
 
 func (l *PhoneLogin) validatePhone() error {
 	if !model.PhoneRegexp.MatchString(l.PhoneNumber) {
-		return errors.New("ohone number is not valid")
+		return errors.New("phone number is not valid")
 	}
 	return nil
 }

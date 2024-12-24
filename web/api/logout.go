@@ -64,8 +64,9 @@ func (ar *Router) Logout() http.HandlerFunc {
 			}
 		}
 
-		ar.journal(JournalOperationLogout,
-			accessToken.Subject(), accessToken.Audience(), r.UserAgent(), "", nil)
+		ar.audit(AuditOperationLogout,
+			accessToken.Subject(), accessToken.Audience(), r.UserAgent(), "", nil,
+			accessTokenString, d.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
