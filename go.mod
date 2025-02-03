@@ -1,6 +1,6 @@
 module github.com/madappgang/identifo/v2
 
-go 1.22.0
+go 1.23.5
 
 require (
 	github.com/MadAppGang/httplog v1.3.0
@@ -12,12 +12,12 @@ require (
 	github.com/go-chi/chi/v5 v5.1.0
 	github.com/go-playground/validator v9.31.0+incompatible
 	github.com/go-redis/redis v6.15.9+incompatible
-	github.com/golang-jwt/jwt/v4 v4.4.2
+	github.com/golang-jwt/jwt/v4 v4.5.1
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/mux v1.8.1
 	github.com/gorilla/sessions v1.2.1
 	github.com/hashicorp/go-hclog v1.6.3
-	github.com/hashicorp/go-plugin v1.6.1
+	github.com/hashicorp/go-plugin v1.6.3
 	github.com/hummerd/httpdump v0.9.1
 	github.com/joho/godotenv v1.4.0
 	github.com/jszwec/s3fs v0.4.0
@@ -32,19 +32,19 @@ require (
 	github.com/rs/xid v1.4.0
 	github.com/skip2/go-qrcode v0.0.0-20200617195104-da1b6568686e
 	github.com/spf13/afero v1.9.2
-	github.com/stretchr/testify v1.8.2
+	github.com/stretchr/testify v1.8.3
 	github.com/twilio/twilio-go v1.1.1
 	github.com/urfave/negroni v1.0.0
 	github.com/xlzd/gotp v0.0.0-20220915034741-1546cf172da8
 	go.etcd.io/bbolt v1.3.6
 	go.mongodb.org/mongo-driver v1.15.0
-	golang.org/x/crypto v0.25.0
+	golang.org/x/crypto v0.32.0
 	golang.org/x/exp v0.0.0-20221019170559-20944726eadf
-	golang.org/x/net v0.27.0
+	golang.org/x/net v0.34.0
 	golang.org/x/oauth2 v0.22.0
-	golang.org/x/text v0.16.0
+	golang.org/x/text v0.21.0
 	google.golang.org/grpc v1.65.0
-	google.golang.org/protobuf v1.34.2
+	google.golang.org/protobuf v1.36.1
 	gopkg.in/go-playground/validator.v9 v9.31.0
 	gopkg.in/h2non/baloo.v3 v3.1.0
 	gopkg.in/yaml.v2 v2.4.0
@@ -82,7 +82,6 @@ require (
 	github.com/lestrrat-go/option v1.0.0 // indirect
 	github.com/mattn/go-colorable v0.1.13 // indirect
 	github.com/mattn/go-isatty v0.0.17 // indirect
-	github.com/mitchellh/go-testing-interface v1.0.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/nbio/st v0.0.0-20140626010706-e9e8d9816f32 // indirect
 	github.com/oklog/run v1.0.0 // indirect
@@ -97,8 +96,8 @@ require (
 	github.com/xeipuuv/gojsonreference v0.0.0-20180127040603-bd5ef7bd5415 // indirect
 	github.com/xeipuuv/gojsonschema v1.2.0 // indirect
 	github.com/youmark/pkcs8 v0.0.0-20181117223130-1be2e3e5546d // indirect
-	golang.org/x/sync v0.7.0 // indirect
-	golang.org/x/sys v0.22.0 // indirect
+	golang.org/x/sync v0.10.0 // indirect
+	golang.org/x/sys v0.29.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20240528184218-531527333157 // indirect
 	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
 	gopkg.in/h2non/gentleman.v2 v2.0.5 // indirect

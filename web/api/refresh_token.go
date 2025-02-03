@@ -50,7 +50,7 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 
 		tokenPayload, err := ar.getTokenPayloadForApp(app, oldRefreshToken.Subject())
 		if err != nil {
-			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPUnableToTokenPayloadForAPPError)
+			ar.Error(w, locale, http.StatusBadRequest, l.ErrorAPIAPPUnableToTokenPayloadForAPPError, app.ID, err)
 			return
 		}
 
