@@ -217,7 +217,7 @@ func (us *UserStorage) DeleteUser(id string) error {
 }
 
 // UpdateLoginMetadata does nothing here.
-func (us *UserStorage) UpdateLoginMetadata(userID string) {
+func (us *UserStorage) UpdateLoginMetadata(operation, app, userID string, scopes []string, payload map[string]any) {
 	for i, u := range us.users {
 		if strings.EqualFold(userID, u.ID) {
 			u.NumOfLogins += 1

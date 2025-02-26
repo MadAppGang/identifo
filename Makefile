@@ -63,13 +63,13 @@ open_ui_tests:
 
 ## first install protoc compiler https://grpc.io/docs/protoc-installation/
 install_go_protoc:
-	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.30
-	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.3
+	go install google.golang.org/protobuf/cmd/protoc-gen-go@v1.36.5
+	go install google.golang.org/grpc/cmd/protoc-gen-go-grpc@v1.5.1
 
 gen_payload_plugin:
 	protoc --go_out=. --go_opt=paths=source_relative \
     	--go-grpc_out=. --go-grpc_opt=paths=source_relative \
-		user_payload_provider/grps/payload_provider/payload_provider.proto
+		user_payload_provider/grpc/payload_provider/payload_provider.proto
 
 gen_user_storage_plugin:
 	protoc --go_out=. --go_opt=paths=source_relative \

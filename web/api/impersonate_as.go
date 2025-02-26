@@ -68,7 +68,7 @@ func (ar *Router) ImpersonateAs() http.HandlerFunc {
 			"impersonated_by": adminUser.ID,
 		}
 
-		authResult, resultScopes, err := ar.loginFlow(app, user, nil, ap)
+		authResult, resultScopes, err := ar.loginFlow(AuditOperationImpersonatedAs, app, user, nil, ap)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return

@@ -196,13 +196,17 @@ func (ar *Router) ResendTFA() http.HandlerFunc {
 
 		scopes := strings.Split(token.Scopes(), " ")
 
-		authResult, _, err := ar.loginFlow(app, user, scopes, nil)
+		authResult, resultScopes, err := ar.loginFlow(AuditOperationLoginWith2FA, app, user, scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.APIInternalServerErrorWithError, err)
 			return
 		}
 
 		ar.server.Storages().Blocklist.Add(string(tfaToken))
+
+		ar.audit(AuditOperationLoginWith2FA,
+			user.ID, app.ID, r.UserAgent(), user.AccessRole, resultScopes.Scopes(),
+			authResult.AccessToken, authResult.RefreshToken)
 
 		ar.ServeJSON(w, locale, http.StatusOK, authResult)
 	}
@@ -306,11 +310,18 @@ func (ar *Router) FinalizeTFA() http.HandlerFunc {
 			}
 		}
 
+		ar.server.Storages().User.UpdateLoginMetadata(
+			string(AuditOperationLoginWith2FA),
+			user.ID,
+			app.ID,
+			scopes.Scopes(),
+			tokenPayload,
+		)
+
 		ar.audit(AuditOperationLoginWith2FA,
 			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes(),
 			result.AccessToken, result.RefreshToken)
 
-		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}
 }

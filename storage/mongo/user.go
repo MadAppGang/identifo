@@ -460,7 +460,7 @@ func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 }
 
 // UpdateLoginMetadata updates user's login metadata.
-func (us *UserStorage) UpdateLoginMetadata(userID string) {
+func (us *UserStorage) UpdateLoginMetadata(operation, app, userID string, scopes []string, payload map[string]any) {
 	hexID, err := primitive.ObjectIDFromHex(userID)
 	if err != nil {
 		us.logger.Error("Cannot update login metadata of user",

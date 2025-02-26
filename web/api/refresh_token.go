@@ -89,6 +89,14 @@ func (ar *Router) RefreshTokens() http.HandlerFunc {
 		}
 
 		resultScopes := strings.Split(accessToken.Scopes(), " ")
+
+		ar.server.Storages().User.UpdateLoginMetadata(
+			string(AuditOperationRefreshToken),
+			app.ID,
+			oldRefreshToken.Subject(),
+			resultScopes,
+			tokenPayload)
+
 		ar.audit(AuditOperationRefreshToken,
 			oldRefreshToken.Subject(), app.ID, r.UserAgent(), "", resultScopes,
 			result.AccessToken, result.RefreshToken)

@@ -1,6 +1,7 @@
 package shared
 
 import (
+	"encoding/json"
 	"io"
 
 	"github.com/madappgang/identifo/v2/model"
@@ -179,9 +180,15 @@ func (m GRPCClient) FetchUsers(search string, skip, limit int) ([]model.User, in
 	return users, len(users), nil
 }
 
-func (m GRPCClient) UpdateLoginMetadata(userID string) {
+func (m GRPCClient) UpdateLoginMetadata(operation, app, userID string, scopes []string, payload map[string]any) {
+	pj, _ := json.Marshal(payload)
+
 	m.Client.UpdateLoginMetadata(context.Background(), &proto.UpdateLoginMetadataRequest{
-		Id: userID,
+		Id:          userID,
+		App:         app,
+		Operation:   operation,
+		Scopes:      scopes,
+		PayloadJson: pj,
 	})
 }
 
