@@ -236,7 +236,7 @@ func (ar *Router) OIDCLoginComplete(useSession bool) http.HandlerFunc {
 		// map OIDC scopes to Identifo scopes
 		requestedScopes = mapScopes(app.OIDCSettings.ScopeMapping, requestedScopes)
 
-		authResult, resultScopes, err := ar.loginFlow(app, user, requestedScopes, nil)
+		authResult, resultScopes, err := ar.loginFlow(AuditOperationOIDCLogin, app, user, requestedScopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorFederatedLoginError, err)
 			return

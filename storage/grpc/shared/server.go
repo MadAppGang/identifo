@@ -1,6 +1,8 @@
 package shared
 
 import (
+	"encoding/json"
+
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/madappgang/identifo/v2/storage/grpc/proto"
 	"golang.org/x/net/context"
@@ -103,7 +105,17 @@ func (m *GRPCServer) FetchUsers(ctx context.Context, in *proto.FetchUsersRequest
 }
 
 func (m *GRPCServer) UpdateLoginMetadata(ctx context.Context, in *proto.UpdateLoginMetadataRequest) (*proto.Empty, error) {
-	m.Impl.UpdateLoginMetadata(in.Id)
+	payload := map[string]any{}
+
+	_ = json.Unmarshal(in.PayloadJson, &payload)
+
+	m.Impl.UpdateLoginMetadata(
+		in.Operation,
+		in.App,
+		in.Id,
+		in.Scopes,
+		payload,
+	)
 	return &proto.Empty{}, nil
 }
 

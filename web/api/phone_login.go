@@ -169,11 +169,17 @@ func (ar *Router) PhoneLogin() http.HandlerFunc {
 			User:         user,
 		}
 
+		ar.server.Storages().User.UpdateLoginMetadata(
+			string(AuditOperationLoginWithPhone),
+			app.ID,
+			user.ID,
+			scopes.Scopes(),
+			tokenPayload,
+		)
+
 		ar.audit(AuditOperationLoginWithPhone,
 			user.ID, app.ID, r.UserAgent(), user.AccessRole, scopes.Scopes(),
 			result.AccessToken, result.RefreshToken)
-
-		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
 
 		ar.ServeJSON(w, locale, http.StatusOK, result)
 	}

@@ -36,7 +36,7 @@ type UserStorage interface {
 	CheckPassword(id, password string) error
 	DeleteUser(id string) error
 	FetchUsers(search string, skip, limit int) ([]User, int, error)
-	UpdateLoginMetadata(userID string)
+	UpdateLoginMetadata(operation, app, userID string, scopes []string, payload map[string]any)
 
 	// push device tokens
 	AttachDeviceToken(userID, token string) error

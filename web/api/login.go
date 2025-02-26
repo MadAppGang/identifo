@@ -183,7 +183,7 @@ func (ar *Router) LoginWithPassword() http.HandlerFunc {
 			return
 		}
 
-		authResult, resultScopes, err := ar.loginFlow(app, user, ld.Scopes, nil)
+		authResult, resultScopes, err := ar.loginFlow(AuditOperationLoginWithPassword, app, user, ld.Scopes, nil)
 		if err != nil {
 			ar.Error(w, locale, http.StatusInternalServerError, l.ErrorAPILoginError, err)
 			return
@@ -350,6 +350,7 @@ func (ar *Router) loginUser(
 }
 
 func (ar *Router) loginFlow(
+	operation AuditOperation,
 	app model.AppData,
 	user model.User,
 	requestedScopes []string,
@@ -400,7 +401,12 @@ func (ar *Router) loginFlow(
 			return AuthResponse{}, model.AllowedScopesSet{}, err
 		}
 	} else {
-		ar.server.Storages().User.UpdateLoginMetadata(user.ID)
+		ar.server.Storages().User.UpdateLoginMetadata(
+			string(operation),
+			app.ID,
+			user.ID,
+			scopes.Scopes(),
+			tokenPayload)
 	}
 
 	user = user.Sanitized()

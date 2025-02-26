@@ -15,7 +15,7 @@ message User {
     string username = 2;
     string email = 3;
     string full_name = 4;
-    string phone = 5; 
+    string phone = 5;
     string pswd = 6;
     bool active = 7;
     message TFAInfo {
@@ -26,15 +26,15 @@ message User {
     }
     TFAInfo tfa_info = 8;
     int32 num_of_logins = 9   ;
-    int64 latest_login_time =10; 
+    int64 latest_login_time =10;
     string access_role = 11;
-    bool anonymous = 12;   
+    bool anonymous = 12;
     repeated string federated_ids = 13;
     repeated string scopes = 14;
 }
 
 message UserByPhoneRequest {
-    string phone = 1; 
+    string phone = 1;
 }
 
 message AddUserWithPasswordRequest {
@@ -99,6 +99,10 @@ message FetchUsersResponse {
 
 message UpdateLoginMetadataRequest {
     string id = 1;
+    string app = 2;
+    string operation = 3;
+    repeated string scopes = 4;
+    bytes payloadJson = 5;
 }
 
 message AttachDeviceTokenRequest{
@@ -151,7 +155,7 @@ service UserStorage {
     rpc FetchUsers(FetchUsersRequest) returns (FetchUsersResponse);
     //UpdateLoginMetadata(userID string) {
     rpc UpdateLoginMetadata(UpdateLoginMetadataRequest) returns (Empty);
-    
+
     // push device tokens
     //AttachDeviceToken(userID, token string) error {
     rpc AttachDeviceToken(AttachDeviceTokenRequest) returns (Empty);
@@ -159,7 +163,7 @@ service UserStorage {
     rpc DetachDeviceToken(DetachDeviceTokenRequest) returns (Empty);
     //AllDeviceTokens(userID string) ([]string, error) {
     rpc AllDeviceTokens(AllDeviceTokensRequest) returns (AllDeviceTokensResponse);
-    
+
     // import data
     //ImportJSON(data []byte) error {
     rpc ImportJSON(ImportJSONRequest) returns (Empty);

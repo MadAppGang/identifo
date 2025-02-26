@@ -553,7 +553,7 @@ func (us *UserStorage) ImportJSON(data []byte, clearOldData bool) error {
 }
 
 // UpdateLoginMetadata updates user's login metadata.
-func (us *UserStorage) UpdateLoginMetadata(userID string) {
+func (us *UserStorage) UpdateLoginMetadata(operation, app, userID string, scopes []string, payload map[string]any) {
 	if _, err := xid.FromString(userID); err != nil {
 		us.logger.Error("Incorrect userID",
 			logging.FieldUserID, userID,
