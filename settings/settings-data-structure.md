@@ -11,7 +11,7 @@ This settings file is subject for changes and extendability.
 ## General 
 
 | Field            | Description                                                                                                                                                                                                                                                                                                                                                                                                                                                                    |
-| ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+|------------------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | port             | external port, exposed globally by load balancers and/or reverse proxy                                                                                                                                                                                                                                                                                                                                                                                                         |
 | host             | Identifo server URL. env variable `HOST_NAME` overrides this value from the config file. The host should have full URL, including scheme, hostname, path and port.                                                                                                                                                                                                                                                                                                             |
 | issuer           | JWT token issuer, used as `iss` field value in JWT token. [Please refer to RFC7519 Section 4.1.1.](https://datatracker.ietf.org/doc/html/rfc7519#section-4.1.1)                                                                                                                                                                                                                                                                                                                |
@@ -38,7 +38,7 @@ general:
 ## Admin panel account
 
 | Field           | Description                                                |
-| --------------- | ---------------------------------------------------------- |
+|-----------------|------------------------------------------------------------|
 | loginEnvName    | environment variable for admin account email address/login |
 | passwordEnvName | environment variable for admin account password            |
 
@@ -55,7 +55,7 @@ adminAccount:
 Storage settings hold together all storage settings. All settings for a particular database engine (i.e, file paths for BoltDB, endpoints and regions for DynamoDB etc.) are assumed to be the same across all stores. If they are not the same, the latest option in this file will be applied. For example, if there are two MongoDB-backed storage, `appStorage` and `tokenStorage`, and endpoint for `appStorage` is localhost:27017, while tokenStorage's endpoint is `localhost:27018`, the server will connect both stores to `localhost:27018`.
 
 | Field                   | Description                                             |
-| ----------------------- | ------------------------------------------------------- |
+|-------------------------|---------------------------------------------------------|
 | appStorage              | Application storage settings                            |
 | userStorage             | User accounts storage settings                          |
 | tokenStorage            | Tokens storage for all issues access and refresh tokens |
@@ -83,7 +83,7 @@ storage:
 Now we support the following types:
 
 | Field 'type' value | Description                                                                             |
-| ------------------ | --------------------------------------------------------------------------------------- |
+|--------------------|-----------------------------------------------------------------------------------------|
 | mongodb            | MongoDB 4+ databases, you can use AtlasDB with a large free storage allowance to start. |
 | dynamodb           | AWS DynamoDB storage                                                                    |
 | boltDB             | BoltDB local storage for simple solutions and single instance solutions                 |
@@ -92,7 +92,7 @@ Now we support the following types:
 ### MongoDB
 
 | Field            | Description                                          |
-| ---------------- | ---------------------------------------------------- |
+|------------------|------------------------------------------------------|
 | type             | mongodb                                              |
 | mongo            | object field to keep all settings for mongodb        |
 | mongo.database   | the database name to keep all the data               |
@@ -112,7 +112,7 @@ storage:
 ### BoltDB
 
 | Field       | Description                                                                                                |
-| ----------- | ---------------------------------------------------------------------------------------------------------- |
+|-------------|------------------------------------------------------------------------------------------------------------|
 | type        | boltdb                                                                                                     |
 | boltdb      | object field to keep all settings for boltdb                                                               |
 | boltdb.path | Full file path and name for boltdb file, could be absolute or relevant on local or network attached drive. |
@@ -130,7 +130,7 @@ storage:
 ### Memory
 
 | Field | Description |
-| ----- | ----------- |
+|-------|-------------|
 | type  | fake        |
 
 Example:
@@ -144,7 +144,7 @@ storage:
 ### DynamoDb
 
 | Field           | Description                                           |
-| --------------- | ----------------------------------------------------- |
+|-----------------|-------------------------------------------------------|
 | type            | dynamodb                                              |
 | dynamo          | Field to store all the relevant settings for dynamoDB |
 | dynamo.endpoint | Full endpoint for DynamoDB                            |
@@ -166,7 +166,7 @@ storage:
 Session storage keeps sessions for admin panel. 
 
 | Field           | Description                                                          |
-| --------------- | -------------------------------------------------------------------- |
+|-----------------|----------------------------------------------------------------------|
 | sessionStorage  | root field to hold the session values                                |
 | type            | options are `memory`, `redis` and `dynamodb`                         |
 | sessionDuration | session duration in seconds                                          |
@@ -207,7 +207,7 @@ Storage for keys used for signing and verifying JWT tokens. Technically, a priva
 Currently we support keys from local file system and S3. Other options could be added in the future. like: base64 encoded env variable or etcd or Hashicorp vault or AWS KMS.
 
 | Field                 | Description                                 |
-| --------------------- | ------------------------------------------- |
+|-----------------------|---------------------------------------------|
 | keyStorage            | root key for key settings                   |
 | type                  | `local` or `s3`                             |
 | file                  | key for local file type settings            |
@@ -237,7 +237,7 @@ By default admin panel is not served. Admin API is not active if the admin panel
 This setting enables the admin panel.
 
 | Field   | Description                                       |
-| ------- | ------------------------------------------------- |
+|---------|---------------------------------------------------|
 | enabled | Bool value, admin panel is served with admin API. |
 
 
@@ -266,7 +266,7 @@ You are not limited to web elements implementation we provide, you can do your o
 The root settings key for the login web app is `loginWebApp` 
 
 | Field        | Description                                                          |
-| ------------ | -------------------------------------------------------------------- |
+|--------------|----------------------------------------------------------------------|
 | type         | storage type, supported values are: `none`, `default`, `local`, `s3` |
 | local        | key for local (file system) storage settings                         |
 | local.folder | root folder of SPA app                                               |
@@ -302,7 +302,7 @@ Identifo sending emails to users for following resons:
  
 
 | Field        | Description                                                          |
-| ------------ | -------------------------------------------------------------------- |
+|--------------|----------------------------------------------------------------------|
 | type         | storage type, supported values are: `none`, `default`, `local`, `s3` |
 | local        | key for local (file system) storage settings                         |
 | local.folder | folder with templates                                                |
@@ -330,7 +330,7 @@ loginWebApp:
 Settings for login options supported by identifo.
 
 | Field               | Description                                                               |
-| ------------------- | ------------------------------------------------------------------------- |
+|---------------------|---------------------------------------------------------------------------|
 | login               | root key for login settings                                               |
 | loginWith           | key for login types                                                       |
 | loginWith.phone     | boolean value, indicating login with phone is supported                   |
@@ -363,18 +363,18 @@ All services are supporting `mock` type. This type prints everything to a consol
 
 ### Email external service
 
-| Field                    | Description                                                                                      |
-| ------------------------ | ------------------------------------------------------------------------------------------------ |
-| email                    | root key for email service settings                                                              |
-| email.type               | email service type, supported types are mailgun, ses and mock. Mock types does not requeres any  |
-| email.mailgun            | mailgun email service settings key                                                               |
-| email.mailgun.domain     | mailgun domain name                                                                              |
-| email.mailgun.privateKey | mailgun private key                                                                              |
-| email.mailgun.publicKey  | mailgun public key                                                                               |
-| email.mailgun.sender     | sender email address                                                                             |
-| email.ses                | AWS SES email settings key                                                                       |
-| email.ses.sender         | email sender for SES service                                                                     |
-| email.ses.region         | email AWS SES region                                                                             |
+| Field                    | Description                                                                                     |
+|--------------------------|-------------------------------------------------------------------------------------------------|
+| email                    | root key for email service settings                                                             |
+| email.type               | email service type, supported types are mailgun, ses and mock. Mock types does not requeres any |
+| email.mailgun            | mailgun email service settings key                                                              |
+| email.mailgun.domain     | mailgun domain name                                                                             |
+| email.mailgun.privateKey | mailgun private key                                                                             |
+| email.mailgun.publicKey  | mailgun public key                                                                              |
+| email.mailgun.sender     | sender email address                                                                            |
+| email.ses                | AWS SES email settings key                                                                      |
+| email.ses.sender         | email sender for SES service                                                                    |
+| email.ses.region         | email AWS SES region                                                                            |
 
 Example:
 
@@ -394,22 +394,23 @@ services:
 
 ### SMS external service
 
-| Field                    | Description                                                               |
-| ------------------------ | ------------------------------------------------------------------------- |
-| sms                      | root key for sms settings                                                 |
-| sms.type                 | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
-| sms.twilio               | key to store settings for Twilio SMS service                              |
-| sms.twilio.accountSid    | Twilio account SID                                                        |
-| sms.twilio.authToken     | Twilio authentication token                                               |
-| sms.twilio.serviceSid    | Twilio service SID                                                        |
-| sms.nexmo                | key to store nexmo service settings                                       |
-| sms.nexmo.apiKey         | Nexmo API Key                                                             |
-| sms.nexmo.apiSecret      | Nexmo API Secret                                                          |
-| sms.routemobile          | RouteMobile service settings                                              |
-| sms.routemobile.username | Routemobile username                                                      |
-| sms.routemobile.password | Routemobile service password                                              |
-| sms.routemobile.source   | Routemobile service source                                                |
-| sms.routemobile.region   | Routemobile region settings                                               |
+| Field                         | Description                                                               |
+|-------------------------------|---------------------------------------------------------------------------|
+| sms                           | root key for sms settings                                                 |
+| sms.type                      | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
+| sms.twilio                    | key to store settings for Twilio SMS service                              |
+| sms.twilio.accountSid         | Twilio account SID                                                        |
+| sms.twilio.authToken          | Twilio authentication token                                               |
+| sms.twilio.serviceSid         | Twilio service SID                                                        |
+| sms.twilio.noopNumbersRegexps | Phone numbers to not attempt sending SMSs to                              |
+| sms.nexmo                     | key to store nexmo service settings                                       |
+| sms.nexmo.apiKey              | Nexmo API Key                                                             |
+| sms.nexmo.apiSecret           | Nexmo API Secret                                                          |
+| sms.routemobile               | RouteMobile service settings                                              |
+| sms.routemobile.username      | Routemobile username                                                      |
+| sms.routemobile.password      | Routemobile service password                                              |
+| sms.routemobile.source        | Routemobile service source                                                |
+| sms.routemobile.region        | Routemobile region settings                                               |
 
 ```yaml
 services:
