@@ -9,7 +9,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func TestSensSMS_WhenNoopNumber_ReturnsNil(t *testing.T) {
+func TestSendSMS_WhenNoopNumber_ReturnsNil(t *testing.T) {
 	logger := logging.NewLogger("json", "info")
 
 	settings := model.TwilioServiceSettings{
