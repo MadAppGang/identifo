@@ -33,7 +33,7 @@ func NewSMSService(
 			Username: settings.AccountSid,
 			Password: settings.AuthToken,
 		}),
-		noopNumbersRegexps: make([]*regexp.Regexp, len(settings.NoopNumbersRegexps)),
+		noopNumbersRegexps: make([]*regexp.Regexp, len(settings.NoopNumbersRegexPatterns)),
 	}
 
 	if len(settings.Region) > 0 {
@@ -43,13 +43,13 @@ func NewSMSService(
 		t.client.Edge = settings.Edge
 	}
 
-	for i, r := range settings.NoopNumbersRegexps {
-		complied, err := regexp.Compile(r)
+	for i, r := range settings.NoopNumbersRegexPatterns {
+		compiled, err := regexp.Compile(r)
 		if err != nil {
 			return nil, fmt.Errorf("compiling noop phone number regexp %q: %s", r, err)
 		}
 
-		t.noopNumbersRegexps[i] = complied
+		t.noopNumbersRegexps[i] = compiled
 	}
 
 	return t, nil

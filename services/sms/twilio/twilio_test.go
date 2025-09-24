@@ -13,9 +13,9 @@ func TestSensSMS_WhenNoopNumber_ReturnsNil(t *testing.T) {
 	logger := logging.NewLogger("json", "info")
 
 	settings := model.TwilioServiceSettings{
-		AccountSid:         "testAccountSid",
-		ServiceSid:         "testServiceSid",
-		NoopNumbersRegexps: []string{"\\+123456.*"},
+		AccountSid:               "testAccountSid",
+		ServiceSid:               "testServiceSid",
+		NoopNumbersRegexPatterns: []string{"\\+123456.*"},
 	}
 
 	sut, err := twilio.NewSMSService(logger, settings)

@@ -289,13 +289,13 @@ const (
 
 type TwilioServiceSettings struct {
 	// Twilio related config.
-	AccountSid         string   `yaml:"accountSid" json:"account_sid"`
-	AuthToken          string   `yaml:"authToken" json:"auth_token"`
-	ServiceSid         string   `yaml:"serviceSid" json:"service_sid"`
-	SendFrom           string   `yaml:"sendFrom" json:"send_from"`
-	Region             string   `yaml:"region" json:"region"`
-	Edge               string   `yaml:"edge" json:"edge"`
-	NoopNumbersRegexps []string `yaml:"noopNumbersRegexps" json:"noopNumbersRegexps"`
+	AccountSid               string   `yaml:"accountSid" json:"account_sid"`
+	AuthToken                string   `yaml:"authToken" json:"auth_token"`
+	ServiceSid               string   `yaml:"serviceSid" json:"service_sid"`
+	SendFrom                 string   `yaml:"sendFrom" json:"send_from"`
+	Region                   string   `yaml:"region" json:"region"`
+	Edge                     string   `yaml:"edge" json:"edge"`
+	NoopNumbersRegexPatterns []string `yaml:"noopNumbersRegexPatterns" json:"noopNumbersRegexPatterns"`
 }
 
 type NexmoServiceSettings struct {

@@ -394,23 +394,23 @@ services:
 
 ### SMS external service
 
-| Field                         | Description                                                               |
-|-------------------------------|---------------------------------------------------------------------------|
-| sms                           | root key for sms settings                                                 |
-| sms.type                      | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
-| sms.twilio                    | key to store settings for Twilio SMS service                              |
-| sms.twilio.accountSid         | Twilio account SID                                                        |
-| sms.twilio.authToken          | Twilio authentication token                                               |
-| sms.twilio.serviceSid         | Twilio service SID                                                        |
-| sms.twilio.noopNumbersRegexps | Phone numbers to not attempt sending SMSs to                              |
-| sms.nexmo                     | key to store nexmo service settings                                       |
-| sms.nexmo.apiKey              | Nexmo API Key                                                             |
-| sms.nexmo.apiSecret           | Nexmo API Secret                                                          |
-| sms.routemobile               | RouteMobile service settings                                              |
-| sms.routemobile.username      | Routemobile username                                                      |
-| sms.routemobile.password      | Routemobile service password                                              |
-| sms.routemobile.source        | Routemobile service source                                                |
-| sms.routemobile.region        | Routemobile region settings                                               |
+| Field                               | Description                                                               |
+|-------------------------------------|---------------------------------------------------------------------------|
+| sms                                 | root key for sms settings                                                 |
+| sms.type                            | SMS services type, now we support `mock`, `twilio`, `nexmo`, `routmobile` |
+| sms.twilio                          | key to store settings for Twilio SMS service                              |
+| sms.twilio.accountSid               | Twilio account SID                                                        |
+| sms.twilio.authToken                | Twilio authentication token                                               |
+| sms.twilio.serviceSid               | Twilio service SID                                                        |
+| sms.twilio.noopNumbersRegexPatterns | Phone numbers to not attempt sending SMSs to, as regex patterns           |
+| sms.nexmo                           | key to store nexmo service settings                                       |
+| sms.nexmo.apiKey                    | Nexmo API Key                                                             |
+| sms.nexmo.apiSecret                 | Nexmo API Secret                                                          |
+| sms.routemobile                     | RouteMobile service settings                                              |
+| sms.routemobile.username            | Routemobile username                                                      |
+| sms.routemobile.password            | Routemobile service password                                              |
+| sms.routemobile.source              | Routemobile service source                                                |
+| sms.routemobile.region              | Routemobile region settings                                               |
 
 ```yaml
 services:
