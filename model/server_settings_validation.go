@@ -8,11 +8,9 @@ import (
 )
 
 const (
-	identifoLoginWebAppBucket    = "IDENTIFO_LOGIN_APP_BUCKET"
-	identifoJWTKeysBucketEnvName = "IDENTIFO_JWT_KEYS_BUCKET"
+	identifoLoginWebAppBucket = "IDENTIFO_LOGIN_APP_BUCKET"
 	// RouteMobileRegionUAE is a regional UAE RouteMobileR platform.
-	RouteMobileRegionUAE        = "uae"
-	identifoConfigBucketEnvName = "IDENTIFO_CONFIG_BUCKET"
+	RouteMobileRegionUAE = "uae"
 )
 
 // Validate makes sure that all crucial fields are set.

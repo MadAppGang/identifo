@@ -2,7 +2,9 @@ package twilio
 
 import (
 	"errors"
+	"fmt"
 	"log/slog"
+	"regexp"
 
 	"github.com/madappgang/identifo/v2/model"
 	"github.com/twilio/twilio-go"
@@ -15,6 +17,7 @@ type SMSService struct {
 	messagingServiceSid string
 	sendFrom            string
 	client              *twilio.RestClient
+	noopNumbersRegexps  []*regexp.Regexp
 }
 
 // NewSMSService creates, inits and returns Twilio-backed SMS service.
@@ -30,12 +33,23 @@ func NewSMSService(
 			Username: settings.AccountSid,
 			Password: settings.AuthToken,
 		}),
+		noopNumbersRegexps: make([]*regexp.Regexp, len(settings.NoopNumbersRegexPatterns)),
 	}
+
 	if len(settings.Region) > 0 {
 		t.client.Region = settings.Region
 	}
 	if len(settings.Edge) > 0 {
 		t.client.Edge = settings.Edge
+	}
+
+	for i, r := range settings.NoopNumbersRegexPatterns {
+		compiled, err := regexp.Compile(r)
+		if err != nil {
+			return nil, fmt.Errorf("compiling noop phone number regexp %q: %s", r, err)
+		}
+
+		t.noopNumbersRegexps[i] = compiled
 	}
 
 	return t, nil
@@ -46,6 +60,16 @@ func (ss *SMSService) SendSMS(recipient, message string) error {
 	if ss.client == nil {
 		return errors.New("twilio SMS service is not configured")
 	}
+
+	for _, r := range ss.noopNumbersRegexps {
+		if r.MatchString(recipient) {
+			ss.logger.Info("Will not attempt sending SMS for a no-op number",
+				"phoneNumber", recipient, "regexp", r.String())
+
+			return nil
+		}
+	}
+
 	params := &twilioApi.CreateMessageParams{}
 	params.SetTo(recipient)
 	params.SetBody(message)
